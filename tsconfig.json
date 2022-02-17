@@ -1,0 +1,10 @@
+{
+  "extends": "./configs/api.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": ["jest", "node", "@types/jest"]
+  },
+  "include": ["src/", "test/"],
+  "exclude": ["node_modules"]
+}
