@@ -1,0 +1,18 @@
+{
+  "development": {
+    "dialect": "postgres",
+    "username": "postgres",
+    "password": "HUNTER",
+    "database": "graph-node-developement",
+    "host": "localhost",
+    "port": 5432
+  },
+  "test": {
+    "dialect": "postgres",
+    "username": "postgres",
+    "password": "HUNTER",
+    "database": "graph-node-test",
+    "host": "localhost",
+    "port": 5432
+  }
+}
