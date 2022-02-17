@@ -63,10 +63,7 @@ export default class IpfsHashService {
       }
     })
 
-    const hashIndex = await this.hashIndexModel.bulkCreate([
-      { name: 'Jack Sparrow' },
-      { name: 'Davy Jones' },
-    ])
+    const hashIndex = await this.hashIndexModel.bulkCreate([])
 
     return hashIndex
   }
