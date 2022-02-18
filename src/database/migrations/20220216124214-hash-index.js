@@ -1,6 +1,13 @@
 module.exports = {
   up: async (queryInterface, Sequelize) =>
-    queryInterface.createTable('HashIndex', {
+    queryInterface.createTable('HashIndices', {
+      id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        unique: true,
+        primaryKey: true,
+      },
       version: {
         type: Sequelize.INTEGER,
       },
@@ -16,7 +23,15 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      createdAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
     }),
 
-  down: async (queryInterface) => queryInterface.dropTable('HashIndex'),
+  down: async queryInterface => queryInterface.dropTable('HashIndices'),
 }

@@ -2,16 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
 import axios from 'axios'
 import { request, gql } from 'graphql-request'
-import HashIndex from './models/hashIndex.model'
-
-interface Valid {
-  id?: string
-  content: {
-    user?: {
-      id?: string
-    }
-  }
-}
+import Hash from './models/hashIndex.model'
 
 interface GetHashs {
   ipfshashs: [{ id: string }]
@@ -20,15 +11,15 @@ interface GetHashs {
 @Injectable()
 export default class IpfsHashService {
   constructor(
-    @InjectModel(HashIndex)
-    private hashIndexModel: typeof HashIndex,
+    @InjectModel(Hash)
+    private hashIndexModel: typeof Hash,
   ) {}
 
-  public async getHashes(arg: string, url: string): Promise<GetHashs> {
+  private async getHashes(arg: string, url: string): Promise<GetHashs> {
     return request(url, arg)
   }
 
-  public async filterValidHashes(arg: any[]): Promise<any[]> {
+  private async filterValidHashes(arg: any[]): Promise<any[]> {
     const ress: [{ id: string }] = [
       { id: 'QmUGs99gpmE2KKh454rs4DYvwrVLbq44i8DvWDqgBEy3Qs' },
     ]
@@ -38,7 +29,7 @@ export default class IpfsHashService {
     return ress.concat(result)
   }
 
-  public async queryIpfs(arg: any[], url: string): Promise<any[]> {
+  private async queryIpfs(arg: any[], url: string): Promise<any[]> {
     const queryPromise = []
     for (let i = 0; i < arg.length; i += 1) {
       queryPromise.push(axios.get(`${url}/${arg[i].id}`))
@@ -46,7 +37,24 @@ export default class IpfsHashService {
     return Promise.all(queryPromise)
   }
 
-  async indexHash(): Promise<HashIndex[]> {
+  private queryUsers(arg: any[]): any[] {
+    const validHashes: any[] = []
+    arg.forEach((el: any) => {
+      if ('user' in el.content === true) {
+        validHashes.push(el)
+      }
+    })
+    const result = []
+    for (let i = 0; i < validHashes.length; i += 1) {
+      result.push({
+        user: validHashes[i].content.user,
+        version: validHashes[i].version,
+      })
+    }
+    return result
+  }
+
+  async indexHash(): Promise<Hash> {
     const query = gql`
       {
         ipfshashs {
@@ -59,28 +67,25 @@ export default class IpfsHashService {
       'https://api.thegraph.com/subgraphs/name/kesar/wiki-mumbai-v1',
     )
 
-    // Filter valid ipfshashes
     const { ipfshashs } = res
 
     const recess = await this.filterValidHashes(ipfshashs)
 
-    // Query ipfs
-    let queryHash = await this.queryIpfs(
+    const queryPromise = await this.queryIpfs(
       recess,
-      // 'https://ipfs.io/ipfs',
-      'https://gateway.pinata.cloud/ipfs',
+      'https://ipfs.io/ipfs',
+      // 'https://gateway.pinata.cloud/ipfs',
     )
-    queryHash = queryHash.map(el => el.data)
 
-    // filter hashes with users only
-    const validHashes: Valid[] = []
-    queryHash.forEach((el: any) => {
-      if ('user' in el.content === true) {
-        validHashes.push(el)
-      }
+    const queryHash = queryPromise.map(el => el.data)
+
+    const result = this.queryUsers(queryHash)
+
+    const hashIndex = await this.hashIndexModel.create({
+      userId: result[0].user.id,
+      version: result[0].version,
+      edited: true,
     })
-
-    const hashIndex = await this.hashIndexModel.bulkCreate([])
 
     return hashIndex
   }
