@@ -54,7 +54,7 @@ export default class IpfsHashService {
     return result
   }
 
-  async indexHash(): Promise<Hash> {
+  async indexHash(): Promise<any> {
     const query = gql`
       {
         ipfshashs {
@@ -74,7 +74,7 @@ export default class IpfsHashService {
     const queryPromise = await this.queryIpfs(
       recess,
       'https://ipfs.io/ipfs',
-      // 'https://gateway.pinata.cloud/ipfs',
+      //   'https://gateway.pinata.cloud/ipfs',
     )
 
     const queryHash = queryPromise.map(el => el.data)

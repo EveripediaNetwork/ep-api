@@ -2,15 +2,15 @@ import { Field, ObjectType } from '@nestjs/graphql'
 
 @ObjectType()
 export default class HashIndex {
-  @Field()
-  version!: number
+  @Field({ nullable: true })
+  version?: number
 
-  @Field()
-  ipfsHash!: string
+  @Field({ nullable: true })
+  ipfsHash?: string
 
   @Field()
   userId!: string
 
-  @Field()
-  edited!: boolean
+  @Field({ nullable: true })
+  edited?: boolean
 }

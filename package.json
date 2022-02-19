@@ -25,6 +25,7 @@
     "db:reset": "npm run db:drop && npm run db:create && npm run db:migrate"
   },
   "dependencies": {
+    "@nestjs/apollo": "^10.0.4",
     "@nestjs/common": "^8.1.1",
     "@nestjs/core": "^8.1.1",
     "@nestjs/graphql": "^10.0.3",
@@ -32,6 +33,7 @@
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/sequelize": "^8.0.0",
     "apollo-server-core": "3.6.3",
+    "apollo-server-express": "^3.6.3",
     "axios": "^0.25.0",
     "dotenv": "16.0.0",
     "graphql": "^15.8.0",

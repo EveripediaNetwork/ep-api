@@ -3,7 +3,7 @@
     "dialect": "postgres",
     "username": "postgres",
     "password": "HUNTER",
-    "database": "graph-node-developement",
+    "database": "graph-node",
     "host": "localhost",
     "port": 5432
   },
