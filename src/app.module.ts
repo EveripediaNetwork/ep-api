@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { SequelizeModule } from '@nestjs/sequelize'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
+import * as dotenv from 'dotenv'
 import IpfsHashModule from './ipfs-hash/ipfs-hash.module'
 import AppController from './app.controller'
 import AppService from './app.service'
 import Hash from './ipfs-hash/models/hashIndex.model'
 
-import config from './database/config.json'
+dotenv.config()
 
 @Module({
   imports: [
@@ -18,11 +19,11 @@ import config from './database/config.json'
     }),
     SequelizeModule.forRoot({
       dialect: 'postgres',
-      host: config.development.host,
+      host: process.env.DB_HOST,
       port: 5432,
-      username: config.development.username,
-      password: config.development.password,
-      database: config.development.database,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: `${process.env.DB_NAME}-${process.env.NODE_ENV}`,
       models: [Hash],
     }),
   ],
