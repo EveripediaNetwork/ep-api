@@ -1,4 +1,3 @@
-// import { SequelizeModule } from '@nestjs/sequelize'
 import { getModelToken } from '@nestjs/sequelize'
 import { Test, TestingModule } from '@nestjs/testing'
 import IpfsHashService from './ipfs-hash.service'
