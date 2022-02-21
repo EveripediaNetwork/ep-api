@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Cron } from '@nestjs/schedule'
 import { InjectModel } from '@nestjs/sequelize'
 import axios from 'axios'
 import { request, gql } from 'graphql-request'
@@ -15,7 +16,7 @@ export default class IpfsHashService {
     private hashIndexModel: typeof Hash,
   ) {}
 
-  private async getHashes(arg: string, url: string): Promise<GetHashs> {
+  public async getHashes(arg: string, url: string): Promise<GetHashs> {
     return request(url, arg)
   }
 
@@ -54,6 +55,7 @@ export default class IpfsHashService {
     return result
   }
 
+  @Cron('*/10 * * * * *')
   async indexHash(): Promise<any> {
     const query = gql`
       {

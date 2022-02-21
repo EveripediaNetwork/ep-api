@@ -3,6 +3,7 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { SequelizeModule } from '@nestjs/sequelize'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import * as dotenv from 'dotenv'
+import { ScheduleModule } from '@nestjs/schedule'
 import IpfsHashModule from './ipfs-hash/ipfs-hash.module'
 import AppController from './app.controller'
 import AppService from './app.service'
@@ -12,6 +13,7 @@ dotenv.config()
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     IpfsHashModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

@@ -23,4 +23,13 @@ describe('IpfsHashService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
+
+  it('should return an array of ipfshashes', async () => {
+    // const result: any = getMockRes({
+    //   data: {
+    //     ipfsHashs: [{ id: 'value' }],
+    //   },
+    // })
+    // jest.spyOn(service, 'getHashes').mockImplementation(() => result)
+  })
 })
