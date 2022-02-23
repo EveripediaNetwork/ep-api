@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Cron } from '@nestjs/schedule'
+// import { Cron } from '@nestjs/schedule'
 import { InjectModel } from '@nestjs/sequelize'
 import axios from 'axios'
 import { request, gql } from 'graphql-request'
@@ -31,10 +31,17 @@ export default class IpfsHashService {
   }
 
   private async queryIpfs(arg: any[], url: string): Promise<any[]> {
+    let index = 0
     const queryPromise = []
-    for (let i = 0; i < arg.length; i += 1) {
-      queryPromise.push(axios.get(`${url}/${arg[i].id}`))
+
+    while (index < arg.length) {
+      const limit = arg.splice(0, 18)
+      for (let i = 0; i < limit.length; i += 1) {
+        queryPromise.push(axios.get(`${url}/${limit[i].id}`))
+      }
+      index += limit.length
     }
+
     return Promise.all(queryPromise)
   }
 
@@ -45,17 +52,10 @@ export default class IpfsHashService {
         validHashes.push(el)
       }
     })
-    const result = []
-    for (let i = 0; i < validHashes.length; i += 1) {
-      result.push({
-        user: validHashes[i].content.user,
-        version: validHashes[i].version,
-      })
-    }
-    return result
+    return validHashes
   }
 
-  @Cron('*/10 * * * * *')
+//   @Cron('*/10 * * * * *')
   async indexHash(): Promise<any> {
     const query = gql`
       {
@@ -64,31 +64,30 @@ export default class IpfsHashService {
         }
       }
     `
-    const res = await this.getHashes(
+    const hashes = await this.getHashes(
       query,
       'https://api.thegraph.com/subgraphs/name/kesar/wiki-mumbai-v1',
     )
 
-    const { ipfshashs } = res
+    const { ipfshashs } = hashes
 
-    const recess = await this.filterValidHashes(ipfshashs)
+    const validHashes = await this.filterValidHashes(ipfshashs)
 
-    const queryPromise = await this.queryIpfs(
-      recess,
+    const response = await this.queryIpfs(
+      validHashes,
       'https://ipfs.io/ipfs',
       //   'https://gateway.pinata.cloud/ipfs',
     )
 
-    const queryHash = queryPromise.map(el => el.data)
+    const wikiContent = response.map(el => el.data)
 
-    const result = this.queryUsers(queryHash)
+    const result = this.queryUsers(wikiContent)
 
-    const hashIndex = await this.hashIndexModel.create({
-      userId: result[0].user.id,
-      version: result[0].version,
-      edited: true,
-    })
-
-    return hashIndex
+    // const hashIndex = await this.hashIndexModel.create({
+    //   userId: result[0].user.id,
+    //   version: result[0].version,
+    //   edited: true,
+    // })
+    console.log(result)
   }
 }
