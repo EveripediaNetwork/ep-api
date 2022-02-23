@@ -35,10 +35,19 @@ export default class IpfsHashService {
     const queryPromise = []
 
     while (index < arg.length) {
-      const limit = arg.splice(0, 18)
+      const limit = arg.splice(0, 19)
+      let breaker = 0
       for (let i = 0; i < limit.length; i += 1) {
-        queryPromise.push(axios.get(`${url}/${limit[i].id}`))
+        const result = axios.get(`${url}/${limit[i].id}`)
+
+        queryPromise.push(result)
+        breaker += 1
       }
+      if (breaker === 19) {
+        setTimeout(() => {}, 10000)
+        breaker = 0
+      }
+
       index += limit.length
     }
 
@@ -55,7 +64,7 @@ export default class IpfsHashService {
     return validHashes
   }
 
-//   @Cron('*/10 * * * * *')
+  //   @Cron('*/10 * * * * *')
   async indexHash(): Promise<any> {
     const query = gql`
       {
