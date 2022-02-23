@@ -1,11 +1,33 @@
 import { Injectable } from '@nestjs/common'
+import { request, gql } from 'graphql-request'
+import config from '../../config'
+
+type Hash = {
+  id: string
+  createdAt: number
+  transactionHash: string
+  userId: string
+  contentId: string
+}
+
+const query = gql`
+  query ($unixtime: Int) {
+    ipfshashs(where: { createdAt_gt: $unixtime }) {
+      id
+      createdAt
+      transactionHash
+      userId
+      contentId
+    }
+  }
+`
 
 @Injectable()
 class GraphProviderService {
-  getIPFSHashesFromBlock(block: number): [string] {
-    // TODO: get array of ipfs hashesh from a block
-    console.log(block)
-    return ['']
+  async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash]> {
+    // TODO: catch errors
+    const response = await request(config.graphUrl, query, { unixtime })
+    return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }
 }
 
