@@ -754,10 +754,10 @@
     tslib "2.3.1"
     uuid "8.3.2"
 
-"@nestjs/graphql@^10.0.3":
-  version "10.0.3"
-  resolved "https://registry.npmjs.org/@nestjs/graphql/-/graphql-10.0.3.tgz#6431b3c937e6c603fe8220740d44cf04bdb16ba0"
-  integrity sha512-nKLGLvhmVdpO/1SNDOYP00D2e76pyN+RV7nW3+10pCtBioWp4e8wn9PbfdXXI7EbsX/e+xd3f9vGYpWvRlJBdw==
+"@nestjs/graphql@^10.0.5":
+  version "10.0.5"
+  resolved "https://registry.npmjs.org/@nestjs/graphql/-/graphql-10.0.5.tgz#8afd8b2869b34035d16e56a4a3beacc00df16b43"
+  integrity sha512-ok7dXJOIw3hqoler3IP/ehm2S9FBQLgmjKguuPB4OMe/pk4TbcDXzQO7SPzwkgVMB/H/fhol9+kHoCXrCMHf7w==
   dependencies:
     "@graphql-tools/merge" "8.2.2"
     "@graphql-tools/schema" "8.3.1"
@@ -1071,6 +1071,13 @@
   integrity sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==
   dependencies:
     "@types/node" "*"
+
+"@types/graphql@^14.5.0":
+  version "14.5.0"
+  resolved "https://registry.npmjs.org/@types/graphql/-/graphql-14.5.0.tgz#a545fb3bc8013a3547cf2f07f5e13a33642b75d6"
+  integrity sha512-MOkzsEp1Jk5bXuAsHsUi6BVv0zCO+7/2PTiZMXWDSsMXvNU6w/PLMQT2vHn8hy2i0JqojPz1Sz6rsFjHtsU0lA==
+  dependencies:
+    graphql "*"
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.4"
@@ -3405,7 +3412,7 @@ graphql-ws@5.5.5:
   resolved "https://registry.npmjs.org/graphql-ws/-/graphql-ws-5.5.5.tgz#f375486d3f196e2a2527b503644693ae3a8670a9"
   integrity sha512-hvyIS71vs4Tu/yUYHPvGXsTgo0t3arU820+lT5VjZS2go0ewp2LqyCgxEN56CzOG7Iys52eRhHBiD1gGRdiQtw==
 
-graphql@^16.3.0:
+graphql@*, graphql@^16.3.0:
   version "16.3.0"
   resolved "https://registry.npmjs.org/graphql/-/graphql-16.3.0.tgz#a91e24d10babf9e60c706919bb182b53ccdffc05"
   integrity sha512-xm+ANmA16BzCT5pLjuXySbQVFwH3oJctUVdy81w1sV0vBU0KgDdBGtxQOUd5zqOBk/JayAFeG8Dlmeq74rjm/A==

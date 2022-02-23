@@ -6,6 +6,7 @@ import {
   PrimaryColumn,
   JoinTable,
 } from 'typeorm'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 import Category from './category.entity'
 import Tag from './tag.entity'
 import User from './user.entity'
@@ -21,16 +22,20 @@ type Image = {
   type: string
 }
 
+@ObjectType()
 @Entity()
 class Wiki {
+  @Field(type => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
   id!: string
 
+  @Field()
   @Column()
   title!: string
 
+  @Field()
   @Column()
   createdAt!: number
 
