@@ -5,13 +5,13 @@ import Wiki from './wiki.entity'
 @ObjectType()
 @Entity()
 class Language {
-  @Field(type => ID)
+  @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
   id!: string
 
-  @Field(type => String)
+  @Field(() => String)
   @Column('varchar')
   title = ''
 

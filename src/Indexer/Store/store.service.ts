@@ -93,7 +93,6 @@ class DBStoreService {
       existWiki.language = language
       existWiki.title = wiki.content.title
       existWiki.content = wiki.content.content
-      existWiki.lastModified = Math.floor(Date.now() / 1000)
       existWiki.user = user
       existWiki.tags = tags
       existWiki.categories = categories
@@ -109,8 +108,6 @@ class DBStoreService {
       language,
       title: wiki.content.title,
       content: wiki.content.content,
-      createdAt: Math.floor(Date.now() / 1000),
-      lastModified: Math.floor(Date.now() / 1000), // TODO: get it from onchain tx
       user,
       tags,
       categories,

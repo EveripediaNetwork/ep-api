@@ -1,15 +1,15 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import Language from '../Database/Entities/language.entity'
+import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 
-@Resolver(() => Language)
-class LanguageResolver {
+@Resolver(() => Tag)
+class TagResolver {
   constructor(private connection: Connection) {}
 
-  @Query(() => [Language])
-  async languages(@Args() args: PaginationArgs) {
-    const repository = this.connection.getRepository(Language)
+  @Query(() => [Tag])
+  async tags(@Args() args: PaginationArgs) {
+    const repository = this.connection.getRepository(Tag)
     return repository.find({
       take: args.limit,
       skip: args.offset,
@@ -17,4 +17,4 @@ class LanguageResolver {
   }
 }
 
-export default LanguageResolver
+export default TagResolver

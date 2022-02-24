@@ -5,27 +5,37 @@ import {
   ManyToOne,
   PrimaryColumn,
   JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm'
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 import Category from './category.entity'
 import Tag from './tag.entity'
 import User from './user.entity'
 import Language from './language.entity'
 
-type Metadata = {
-  id: string
-  value: string
+@ObjectType()
+class Metadata {
+  @Field()
+  id!: string
+
+  @Field()
+  value!: string
 }
 
-type Image = {
-  id: string
-  type: string
+@ObjectType()
+class Image {
+  @Field()
+  id!: string
+
+  @Field()
+  type!: string
 }
 
 @ObjectType()
 @Entity()
 class Wiki {
-  @Field(type => ID)
+  @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
@@ -35,36 +45,49 @@ class Wiki {
   @Column()
   title!: string
 
-  @Field()
-  @Column()
-  createdAt!: number
+  @Field(() => GraphQLISODateTime)
+  @CreateDateColumn()
+  created!: Date
 
-  @Column()
-  lastModified!: number
+  @Field(() => GraphQLISODateTime)
+  @UpdateDateColumn()
+  updated!: Date
 
+  @Field(() => Int)
+  @Column('integer')
+  views = 0
+
+  @Field(() => Int)
   @Column('smallint')
   version = 1
 
+  @Field()
   @Column('text')
   content!: string
 
-  @ManyToOne(() => Language, language => language.wikis)
+  @Field(() => Language)
+  @ManyToOne(() => Language, language => language.wikis, { lazy: true })
   language!: Language
 
-  @ManyToOne(() => User, user => user.wikis)
+  @Field(() => User)
+  @ManyToOne(() => User, user => user.wikis, { lazy: true })
   user!: User
 
+  @Field(() => [Metadata])
   @Column('json', { nullable: true })
   metadata!: Metadata[]
 
+  @Field(() => [Image])
   @Column('json', { nullable: true })
   images!: Image[]
 
-  @ManyToMany(() => Tag)
+  @Field(() => [Tag])
+  @ManyToMany(() => Tag, { lazy: true })
   @JoinTable()
   tags!: Tag[]
 
-  @ManyToMany(() => Category)
+  @Field(() => [Category])
+  @ManyToMany(() => Category, { lazy: true })
   @JoinTable()
   categories!: Category[]
 }

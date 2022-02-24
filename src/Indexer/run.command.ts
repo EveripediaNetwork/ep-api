@@ -1,8 +1,10 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
+import { Connection } from 'typeorm'
 import GraphProviderService from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
 import DBStoreService, { ValidWiki } from './Store/store.service'
+import Wiki from '../Database/Entities/wiki.entity'
 
 interface CommandOptions {
   unixtime: number
@@ -17,16 +19,27 @@ class RunCommand implements CommandRunner {
     private ipfsGetter: IPFSGetterService,
     private validator: IPFSValidatorService,
     private dbStoreService: DBStoreService,
+    private connection: Connection,
   ) {}
 
   async run(passedParam: string[], options?: CommandOptions): Promise<void> {
+    let unixtime = 0
     if (options?.unixtime === undefined) {
-      console.error('No unixtime')
-      process.exit(-1)
+      const repo = this.connection.getRepository(Wiki)
+      const lastWikiEdited = await repo.find({
+        order: {
+          updated: 'DESC',
+        },
+        take: 1,
+      })
+      unixtime = Math.floor(
+        new Date(lastWikiEdited[0].updated).getTime() / 1000,
+      )
+    } else {
+      unixtime = options.unixtime
     }
-    const hashes = await this.providerService.getIPFSHashesFromBlock(
-      options.unixtime,
-    )
+
+    const hashes = await this.providerService.getIPFSHashesFromBlock(unixtime)
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)

@@ -5,6 +5,8 @@ import DatabaseModule from '../Database/database.module'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
+import TagResolver from './tag.resolver'
+import UserResolver from './user.resolver'
 
 @Module({
   imports: [
@@ -17,7 +19,13 @@ import CategoryResolver from './category.resolver'
     }),
   ],
   controllers: [],
-  providers: [WikiResolver, LanguageResolver, CategoryResolver],
+  providers: [
+    WikiResolver,
+    LanguageResolver,
+    CategoryResolver,
+    TagResolver,
+    UserResolver,
+  ],
 })
 class AppModule {}
 
