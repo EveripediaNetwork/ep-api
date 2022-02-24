@@ -10,6 +10,12 @@ class LangArgs extends PaginationArgs {
 }
 
 @ArgsType()
+class TitleArgs extends LangArgs {
+  @Field(() => String)
+  title!: string
+}
+
+@ArgsType()
 class CategoryArgs extends LangArgs {
   @Field(() => String)
   category!: string
@@ -47,6 +53,22 @@ class WikiResolver {
         categoryId: args.category,
       })
       .where('wiki.language = :lang', { lang: args.lang })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('wiki.updated', 'DESC')
+      .getMany()
+  }
+
+  @Query(() => [Wiki])
+  async wikisByTitle(@Args() args: TitleArgs) {
+    const repository = this.connection.getRepository(Wiki)
+
+    return repository
+      .createQueryBuilder('wiki')
+      .where('wiki.language = :lang AND wiki.title LIKE :title', {
+        lang: args.lang,
+        title: `%${args.title}%`,
+      })
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
