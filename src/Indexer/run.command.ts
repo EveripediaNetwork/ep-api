@@ -44,7 +44,7 @@ class RunCommand implements CommandRunner {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
         if (this.validator.validate(content)) {
-          await this.dbStoreService.storeWiki(content as ValidWiki)
+          await this.dbStoreService.storeWiki(content as ValidWiki, hash)
           console.log(`🚀 Storing IPFS: ${hash.id}`)
         } else {
           console.error(`🔥 Invalid IPFS: ${hash.id}`)

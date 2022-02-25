@@ -55,6 +55,14 @@ class Wiki {
 
   @Field(() => Int)
   @Column('integer')
+  block!: number
+
+  @Field()
+  @Column()
+  transactionHash!: string
+
+  @Field(() => Int)
+  @Column('integer')
   views = 0
 
   @Field(() => Int)

@@ -5,6 +5,7 @@ import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
+import { Hash } from '../Provider/graph.service'
 
 export type ValidWiki = {
   id: string
@@ -38,7 +39,7 @@ export type ValidWiki = {
 class DBStoreService {
   constructor(private connection: Connection) {}
 
-  async storeWiki(wiki: ValidWiki): Promise<boolean> {
+  async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
     console.log(wiki)
     const wikiRepository = this.connection.getRepository(Wiki)
     const languageRepository = this.connection.getRepository(Language)
@@ -98,6 +99,8 @@ class DBStoreService {
       existWiki.categories = categories
       existWiki.images = wiki.content.images
       existWiki.metadata = wiki.content.metadata
+      existWiki.block = hash.block
+      existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       return true
     }
@@ -113,6 +116,8 @@ class DBStoreService {
       categories,
       images: wiki.content.images,
       metadata: wiki.content.metadata,
+      block: hash.block,
+      transactionHash: hash.transactionHash,
     })
 
     await wikiRepository.save(newWiki)

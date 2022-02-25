@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { request, gql } from 'graphql-request'
 import config from '../../config'
 
-type Hash = {
+export type Hash = {
   id: string
   createdAt: number
+  block: number
   transactionHash: string
   userId: string
   contentId: string
@@ -14,6 +15,7 @@ const query = gql`
   query ($unixtime: Int) {
     ipfshashs(where: { createdAt_gt: $unixtime }) {
       id
+      block
       createdAt
       transactionHash
       userId
