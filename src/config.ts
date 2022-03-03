@@ -7,4 +7,5 @@ export default {
   dbHost: 'localhost',
   dbPassword: 'root',
   dbName: 'ep',
+  port: process.env.PORT || 5000,
 }

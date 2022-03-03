@@ -1,0 +1,21 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy bot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ep-api
+            git pull
+            sudo supervisorctl restart all
