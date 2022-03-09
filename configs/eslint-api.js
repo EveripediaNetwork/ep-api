@@ -36,6 +36,7 @@ module.exports = {
   ignorePatterns: ['.eslintrc.js'],
   rules: {
     'class-methods-use-this': 'off',
+    "max-classes-per-file": ["error", 5],
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

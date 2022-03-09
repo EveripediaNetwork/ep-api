@@ -9,28 +9,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
+
 import Category from './category.entity'
 import Tag from './tag.entity'
 import User from './user.entity'
 import Language from './language.entity'
-
-@ObjectType()
-class Metadata {
-  @Field()
-  id!: string
-
-  @Field()
-  value!: string
-}
-
-@ObjectType()
-class Image {
-  @Field()
-  id!: string
-
-  @Field()
-  type!: string
-}
+import Metadata from './metadata.entity'
+import Image from './image.entity'
 
 @ObjectType()
 @Entity()
@@ -74,11 +59,11 @@ class Wiki {
   content!: string
 
   @Field(() => Language)
-  @ManyToOne(() => Language, language => language.wikis, { lazy: true })
+  @ManyToOne('Language', 'language', { lazy: true })
   language!: Language
 
   @Field(() => User)
-  @ManyToOne(() => User, user => user.wikis, { lazy: true })
+  @ManyToOne('User', 'user', { lazy: true })
   user!: User
 
   @Field(() => [Metadata])

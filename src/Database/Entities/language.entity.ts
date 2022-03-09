@@ -1,10 +1,12 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-import Wiki from './wiki.entity'
+
+import { IWiki } from './types/IWiki'
+import { ILanguage } from './types/ILanguage'
 
 @ObjectType()
 @Entity()
-class Language {
+class Language implements ILanguage {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
@@ -15,8 +17,8 @@ class Language {
   @Column('varchar')
   title = ''
 
-  @OneToMany(() => Wiki, wiki => wiki.language)
-  wikis!: Wiki[]
+  @OneToMany('Wiki', 'language')
+  wikis!: IWiki[]
 }
 
 export default Language

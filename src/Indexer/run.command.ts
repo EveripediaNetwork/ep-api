@@ -1,3 +1,10 @@
+/* eslint-disable no-promise-executor-return */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-console */
+/* eslint-disable no-restricted-syntax */
+
+// TODO: refactor towards linting rules when doing this
+
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import GraphProviderService from './Provider/graph.service'
@@ -43,7 +50,7 @@ class RunCommand implements CommandRunner {
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
-        if (this.validator.validate(content)) {
+        if (this.validator.validate(/* content */)) { // TODO: Unfinished validator
           await this.dbStoreService.storeWiki(content as ValidWiki, hash)
           console.log(`🚀 Storing IPFS: ${hash.id}`)
         } else {

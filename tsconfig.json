@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist",
-    "types": ["jest", "node", "@types/jest"]
+    "types": ["jest", "node", "@types/jest"],
+    "experimentalDecorators": true,
   },
   "include": ["src/", "test/"],
   "exclude": ["node_modules"]
