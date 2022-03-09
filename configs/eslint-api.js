@@ -35,8 +35,11 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
+    'no-promise-executor-return': 'off',
+    'no-await-in-loop': 'off',
     'class-methods-use-this': 'off',
-    "max-classes-per-file": ["error", 5],
+    'no-restricted-syntax': 'off',
+    'max-classes-per-file': ['error', 5],
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

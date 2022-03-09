@@ -1,9 +1,7 @@
-/* eslint-disable no-promise-executor-return */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
-/* eslint-disable no-restricted-syntax */
 
 // TODO: refactor towards linting rules when doing this
+// TODO: remember to review the eslint-api config file when doing so
 
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
