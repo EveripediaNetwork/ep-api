@@ -1,6 +1,8 @@
 import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
-import Wiki from './wiki.entity'
+
+import { IWiki } from './types/IWiki'
+import { ICategory } from './types/ICategory'
 
 @ObjectType()
 @Entity({
@@ -9,7 +11,7 @@ import Wiki from './wiki.entity'
     id: 'ASC',
   },
 })
-class Category {
+class Category implements ICategory {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
@@ -40,8 +42,8 @@ class Category {
   @Column('smallint')
   weight = 0
 
-  @ManyToMany(() => Wiki, wiki => wiki.categories)
-  wikis!: Wiki[]
+  @ManyToMany('Wiki', 'categories')
+  wikis!: IWiki[]
 }
 
 export default Category

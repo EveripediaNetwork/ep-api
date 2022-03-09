@@ -10,7 +10,7 @@ class IPFSGetterService {
     const response = await this.httpService
       .get(config.ipfsUrl + hash)
       .toPromise()
-    return response!.data
+    return response?.data
   }
 }
 

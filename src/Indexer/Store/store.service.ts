@@ -40,7 +40,6 @@ class DBStoreService {
   constructor(private connection: Connection) {}
 
   async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
-    console.log(wiki)
     const wikiRepository = this.connection.getRepository(Wiki)
     const languageRepository = this.connection.getRepository(Language)
     const userRepository = this.connection.getRepository(User)
@@ -49,7 +48,7 @@ class DBStoreService {
 
     let user = await userRepository.findOne(wiki.content.user.id)
     if (!user) {
-      user = await userRepository.create({
+      user = userRepository.create({
         id: wiki.content.user.id,
       })
       user = await userRepository.save(user)
@@ -57,7 +56,7 @@ class DBStoreService {
 
     let language = await languageRepository.findOne(wiki.language)
     if (!language) {
-      language = await languageRepository.create({
+      language = languageRepository.create({
         id: wiki.language,
       })
       language = await languageRepository.save(language)
@@ -66,7 +65,7 @@ class DBStoreService {
     for (const tagJSON of wiki.content.tags) {
       let tag = await tagRepository.findOne(tagJSON.id)
       if (!tag) {
-        tag = await tagRepository.create({
+        tag = tagRepository.create({
           id: tagJSON.id,
         })
         tag = await tagRepository.save(tag)
@@ -78,7 +77,7 @@ class DBStoreService {
     for (const categoryJSON of wiki.content.categories) {
       let category = await categoryRepository.findOne(categoryJSON.id)
       if (!category) {
-        category = await categoryRepository.create({
+        category = categoryRepository.create({
           id: categoryJSON.id,
         })
         category = await categoryRepository.save(category)

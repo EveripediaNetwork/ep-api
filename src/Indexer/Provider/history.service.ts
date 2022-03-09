@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common'
 
 @Injectable()
 class HistoryProviderService {
-  getIPFSHashesFromBlock(block: number): [string] {
+  getIPFSHashesFromBlock(/* block: number */): [string] {
     // TODO: get array of ipfs hashesh from a block. TODO: create interface
-    console.log(block)
     return ['']
   }
 }
