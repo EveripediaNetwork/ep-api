@@ -1,6 +1,3 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable no-restricted-syntax */
-
 import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
