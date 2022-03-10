@@ -15,6 +15,7 @@ import UserResolver from './user.resolver'
       driver: ApolloDriver,
       debug: true,
       playground: true,
+      cors: true,
       autoSchemaFile: true,
     }),
   ],
