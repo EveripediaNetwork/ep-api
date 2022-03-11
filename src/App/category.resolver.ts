@@ -15,6 +15,12 @@ class CategoryResolver {
       skip: args.offset,
     })
   }
+  
+  @Query(() => Category)
+  async categoryById(@Args('id', { type: () => String }) id: number) {
+    const repository = this.connection.getRepository(Category)
+    return repository.findOneOrFail(id)
+  }
 }
 
 export default CategoryResolver
