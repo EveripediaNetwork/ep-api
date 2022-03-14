@@ -1,7 +1,9 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
+import Wiki from '../Database/Entities/wiki.entity'
+import { IUser } from '../Database/Entities/types/IUser'
 
 @Resolver(() => User)
 class UserResolver {
@@ -14,6 +16,20 @@ class UserResolver {
       take: args.limit,
       skip: args.offset,
     })
+  }
+
+  @Query(() => User)
+  async userById(@Args('id', { type: () => String }) id: number) {
+    const repository = this.connection.getRepository(User)
+    return repository.findOneOrFail(id)
+  }
+
+  // TODO: add pagination
+  @ResolveField()
+  async wikis(@Parent() user: IUser) {
+    const { id } = user
+    const repository = this.connection.getRepository(Wiki)
+    return repository.find({ where: { user: id } })
   }
 }
 
