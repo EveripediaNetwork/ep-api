@@ -7,8 +7,7 @@ import { ITag } from '../Database/Entities/types/ITag'
 
 @Resolver(() => Tag)
 class TagResolver {
-  constructor(private connection: Connection) {
-  }
+  constructor(private connection: Connection) {}
 
   @Query(() => [Tag])
   async tags(@Args() args: PaginationArgs) {

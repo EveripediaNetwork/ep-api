@@ -55,6 +55,10 @@ class Wiki {
   @Column('smallint')
   version = 1
 
+  @Field(() => Int)
+  @Column('smallint', { default: 0 })
+  promoted = 0
+
   @Field()
   @Column('text')
   content!: string
