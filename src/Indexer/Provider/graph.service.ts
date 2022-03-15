@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
-import config from '../../config'
 
 export type Hash = {
   id: string
@@ -26,9 +26,12 @@ const query = gql`
 
 @Injectable()
 class GraphProviderService {
+  constructor(private configService: ConfigService) {}
+
   async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash]> {
     // TODO: catch errors
-    const response = await request(config.graphUrl, query, { unixtime })
+    const reqUrl = this.configService.get('graphUrl')
+    const response = await request(reqUrl, query, { unixtime })
     return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }
 }

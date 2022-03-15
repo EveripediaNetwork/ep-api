@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import config from '../../config'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 class IPFSGetterService {
-  constructor(private httpService: HttpService) {}
+  constructor(private httpService: HttpService, private configService: ConfigService) {}
 
   async getIPFSDataFromHash(hash: string): Promise<Record<string, unknown>> {
     const response = await this.httpService
-      .get(config.ipfsUrl + hash)
+      .get(this.configService.get('ipfsUrl') + hash)
       .toPromise()
     return response?.data
   }
