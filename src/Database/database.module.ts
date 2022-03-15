@@ -3,9 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { ormConfig } from './database.config'
 
 @Module({
-  imports: [
-    TypeOrmModule.forRootAsync(ormConfig),
-  ],
+  imports: [TypeOrmModule.forRootAsync(ormConfig)],
 })
 class DatabaseModule {}
 

@@ -4,7 +4,10 @@ import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 class IPFSGetterService {
-  constructor(private httpService: HttpService, private configService: ConfigService) {}
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {}
 
   async getIPFSDataFromHash(hash: string): Promise<Record<string, unknown>> {
     const response = await this.httpService

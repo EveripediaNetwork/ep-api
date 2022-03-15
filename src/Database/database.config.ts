@@ -1,4 +1,7 @@
-import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm'
+import {
+  TypeOrmModuleAsyncOptions,
+  TypeOrmModuleOptions,
+} from '@nestjs/typeorm'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import Wiki from './Entities/wiki.entity'
@@ -23,12 +26,12 @@ export default class TypeOrmConfig {
   }
 }
 
-
 export const ormConfig: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
 
-  useFactory: async (configService: ConfigService):
-    Promise<TypeOrmModuleOptions> => TypeOrmConfig.getOrmConfig(configService),
+  useFactory: async (
+    configService: ConfigService,
+  ): Promise<TypeOrmModuleOptions> => TypeOrmConfig.getOrmConfig(configService),
 
-  inject: [ConfigService]
+  inject: [ConfigService],
 }
