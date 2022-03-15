@@ -1,5 +1,5 @@
 import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { Connection, MoreThan } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
 
@@ -69,6 +69,22 @@ class WikiResolver {
       },
       take: args.limit,
       skip: args.offset,
+    })
+  }
+
+  @Query(() => [Wiki])
+  async promotedWikis(@Args() args: LangArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    return repository.find({
+      where: {
+        language: args.lang,
+        promoted: MoreThan(0),
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        promoted: 'DESC',
+      },
     })
   }
 

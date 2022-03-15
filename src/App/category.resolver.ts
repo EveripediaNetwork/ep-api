@@ -7,8 +7,7 @@ import { ICategory } from '../Database/Entities/types/ICategory'
 
 @Resolver(() => Category)
 class CategoryResolver {
-  constructor(private connection: Connection) {
-  }
+  constructor(private connection: Connection) {}
 
   @Query(() => [Category])
   async categories(@Args() args: PaginationArgs) {
