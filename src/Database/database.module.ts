@@ -1,15 +1,9 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import * as ormconfig from './ormconfig'
+import { ormConfig } from './database.config'
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      ...ormconfig,
-      autoLoadEntities: true,
-      keepConnectionAlive: true,
-    }),
-  ],
+  imports: [TypeOrmModule.forRootAsync(ormConfig)],
 })
 class DatabaseModule {}
 

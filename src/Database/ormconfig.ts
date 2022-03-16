@@ -1,23 +1,13 @@
-import { ConnectionOptions } from 'typeorm'
-import Wiki from './Entities/wiki.entity'
-import Tag from './Entities/tag.entity'
-import Category from './Entities/category.entity'
-import User from './Entities/user.entity'
-import Language from './Entities/language.entity'
-import config from '../config'
+import { NestFactory } from '@nestjs/core'
+import { TYPEORM_MODULE_OPTIONS } from '@nestjs/typeorm/dist/typeorm.constants'
+import AppModule from '../App/app.module'
 
-const dbConfig: ConnectionOptions = {
-  type: 'postgres',
-  host: config.dbHost,
-  port: 5432,
-  username: config.dbUser,
-  password: config.dbPassword,
-  database: config.dbName,
-  // logging: 'all',
-  // debug: false,
-  logger: 'advanced-console',
-  entities: [Wiki, Tag, Category, User, Language],
-  synchronize: true, // TODO: false in prod
+const setup = async () => {
+  const app = await NestFactory.create(AppModule)
+  const typeOrmModuleOptions = app.get(TYPEORM_MODULE_OPTIONS)
+  await app.close()
+
+  return typeOrmModuleOptions
 }
 
-export = dbConfig
+export = setup()
