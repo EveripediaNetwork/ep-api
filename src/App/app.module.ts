@@ -20,6 +20,7 @@ import DatabaseModule from '../Database/database.module'
       driver: ApolloDriver,
       debug: true,
       playground: true,
+      cors: true,
       autoSchemaFile: true,
     }),
     DatabaseModule,

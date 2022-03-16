@@ -1,8 +1,10 @@
-import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm'
+/* eslint-disable import/no-cycle */
+import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
 
 import { IWiki } from './types/IWiki'
 import { ICategory } from './types/ICategory'
+import Wiki from './wiki.entity'
 
 @ObjectType()
 @Entity({
@@ -42,7 +44,9 @@ class Category implements ICategory {
   @Column('smallint')
   weight = 0
 
-  @ManyToMany('Wiki', 'categories')
+  @Field(() => [Wiki])
+  @ManyToMany('Wiki', 'categories', { lazy: true })
+  @JoinTable()
   wikis!: IWiki[]
 }
 

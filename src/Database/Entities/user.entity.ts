@@ -1,8 +1,10 @@
+/* eslint-disable import/no-cycle */
 import { Entity, OneToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { IUser } from './types/IUser'
 import { IWiki } from './types/IWiki'
+import Wiki from './wiki.entity'
 
 @ObjectType()
 @Entity()
@@ -13,7 +15,8 @@ class User implements IUser {
   })
   id!: string
 
-  @OneToMany('Wiki', 'user')
+  @Field(() => [Wiki])
+  @OneToMany('Wiki', 'user', { lazy: true })
   wikis!: IWiki[]
 }
 

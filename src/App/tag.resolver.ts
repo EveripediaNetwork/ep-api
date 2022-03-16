@@ -1,7 +1,9 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
+import Wiki from '../Database/Entities/wiki.entity'
+import { ITag } from '../Database/Entities/types/ITag'
 
 @Resolver(() => Tag)
 class TagResolver {
@@ -14,6 +16,27 @@ class TagResolver {
       take: args.limit,
       skip: args.offset,
     })
+  }
+
+  @Query(() => Tag)
+  async tagById(@Args('id', { type: () => String }) id: number) {
+    const repository = this.connection.getRepository(Tag)
+    return repository.findOneOrFail(id)
+  }
+
+  // TODO: add pagination
+  @ResolveField()
+  async wikis(@Parent() tag: ITag) {
+    const { id } = tag
+    const repository = this.connection.getRepository(Wiki)
+
+    return repository
+      .createQueryBuilder('wiki')
+      .innerJoin('wiki.tags', 'tag', 'tag.id = :tagId', {
+        tagId: id,
+      })
+      .orderBy('wiki.updated', 'DESC')
+      .getMany()
   }
 }
 
