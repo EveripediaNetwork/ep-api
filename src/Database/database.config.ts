@@ -22,6 +22,7 @@ export default class TypeOrmConfig {
       logger: 'advanced-console',
       entities: [Wiki, Tag, Category, User, Language],
       synchronize: true, // TODO: false in prod
+      keepConnectionAlive: true,
     }
   }
 }

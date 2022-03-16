@@ -5,12 +5,12 @@ import AppModule from './App/app.module'
 
 async function bootstrap() {
   let app = await NestFactory.create(AppModule)
-  const configService = app.use(ConfigService)
+  const configService = app.get(ConfigService)
 
-  const port = configService.get('PORT')
+  const port = configService.get<number>('PORT')
 
   app =
-    Number(port) === 443
+    port === 443
       ? await NestFactory.create(AppModule, {
           httpsOptions: {
             cert: fs.readFileSync('../fullchain.pem'),
@@ -19,9 +19,8 @@ async function bootstrap() {
         })
       : await NestFactory.create(AppModule)
 
-
   app.enableCors()
-  await app.listen(port)
+  await app.listen(port || 5000)
 }
 
 bootstrap()
