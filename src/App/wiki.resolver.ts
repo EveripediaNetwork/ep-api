@@ -1,7 +1,22 @@
-import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
+/* eslint-disable no-promise-executor-return */
+/* eslint-disable max-classes-per-file */
+import {
+  Args,
+  ArgsType,
+  Field,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { GraphQLUpload, FileUpload } from 'graphql-upload'
+import { createWriteStream } from 'fs'
+import * as fs from 'fs/promises'
 import Wiki from '../Database/Entities/wiki.entity'
+import IpfsHash from '../model/ipfsHash'
 import PaginationArgs from './pagination.args'
+import WikiService from './wiki.service'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -35,7 +50,10 @@ class ByIdAndBlockArgs {
 
 @Resolver(() => Wiki)
 class WikiResolver {
-  constructor(private connection: Connection) {}
+  constructor(
+    private connection: Connection,
+    private readonly wikiService: WikiService,
+  ) {}
 
   @Query(() => Wiki)
   async wiki(@Args() args: ByIdAndBlockArgs) {
@@ -102,6 +120,33 @@ class WikiResolver {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+  }
+
+  @Mutation(() => IpfsHash, { name: 'pinImage' })
+  async pinImage(
+    @Args({ name: 'fileUpload', type: () => GraphQLUpload })
+    image: FileUpload,
+  ): Promise<FileUpload> {
+    const { createReadStream, filename } = await image
+    const destinationPath = `./uploads/${filename}`
+    return new Promise((res, rej) =>
+      createReadStream()
+        .pipe(createWriteStream(destinationPath))
+        .on('error', rej)
+        .on('finish', async () => {
+          const result = await this.wikiService.pinImage(destinationPath)
+          await fs.unlink(destinationPath)
+          res(result)
+        }),
+    )
+  }
+
+  @Mutation(() => IpfsHash, { name: 'pinJSON' })
+  async pinJSON(
+    @Args({ name: 'data', type: () => String })
+    data: string,
+  ): Promise<any> {
+    return this.wikiService.pinJSON(data)
   }
 }
 

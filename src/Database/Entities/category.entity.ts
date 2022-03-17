@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
 import Wiki from './wiki.entity'

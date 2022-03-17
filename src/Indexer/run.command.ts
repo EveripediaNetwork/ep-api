@@ -1,3 +1,6 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-promise-executor-return */
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import GraphProviderService from './Provider/graph.service'

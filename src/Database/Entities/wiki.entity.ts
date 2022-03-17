@@ -1,3 +1,5 @@
+/* eslint-disable import/no-cycle */
+// eslint-disable-next-line max-classes-per-file
 import {
   Column,
   Entity,

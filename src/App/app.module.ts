@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import DatabaseModule from '../Database/database.module'
@@ -7,6 +7,8 @@ import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
+import WikiService from './wiki.service'
+import WikiMiddleware from './wiki.middleware'
 
 @Module({
   imports: [
@@ -21,12 +23,17 @@ import UserResolver from './user.resolver'
   controllers: [],
   providers: [
     WikiResolver,
+    WikiService,
     LanguageResolver,
     CategoryResolver,
     TagResolver,
     UserResolver,
   ],
 })
-class AppModule {}
+class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(WikiMiddleware).forRoutes('graphql')
+  }
+}
 
 export default AppModule

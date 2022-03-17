@@ -7,14 +7,14 @@ import Language from './Entities/language.entity'
 import config from '../config'
 
 const dbConfig: ConnectionOptions = {
-  type: 'mysql',
+  type: 'postgres',
   host: config.dbHost,
-  port: 3306,
+  port: 5432,
   username: config.dbUser,
   password: config.dbPassword,
   database: config.dbName,
   // logging: 'all',
-  debug: false,
+  //   debug: false,
   logger: 'advanced-console',
   entities: [Wiki, Tag, Category, User, Language],
   synchronize: false, // TODO: false in prod
