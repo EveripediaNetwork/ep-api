@@ -85,7 +85,7 @@ describe('WikiResolver', () => {
   })
 
   it('should return a IpfsHash after successful JSON upload', async () => {
-    const data = '{ "pinName": "name", "pinTag": "tag", "pinMeta": "meta" }'
+    const data = "{ \"pinName\": \"name\", \"pinTag\": \"tag\", \"pinMeta\": \"meta\" }"
     const { res } = getMockRes<any>({
       data: {
         IpfsHash: 'QmWFxbSnYiZL9yfZJqZxXRpBLrgYrmUbs2Scvh3DxzcxG8',
