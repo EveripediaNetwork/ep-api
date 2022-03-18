@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
 import AppModule from './App/app.module'
+import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   let app = await NestFactory.create(AppModule)
@@ -20,6 +21,7 @@ async function bootstrap() {
       : await NestFactory.create(AppModule)
 
   app.enableCors()
+  app.useGlobalPipes(new ValidationPipe());
   await app.listen(port || 5000)
 }
 

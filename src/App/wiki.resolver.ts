@@ -2,6 +2,7 @@ import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
+import { MinLength } from 'class-validator';
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -12,6 +13,7 @@ class LangArgs extends PaginationArgs {
 @ArgsType()
 class TitleArgs extends LangArgs {
   @Field(() => String)
+  @MinLength(3)
   title!: string
 }
 
@@ -69,6 +71,9 @@ class WikiResolver {
       },
       take: args.limit,
       skip: args.offset,
+      order: {
+        updated: 'DESC'
+      }
     })
   }
 
@@ -110,9 +115,9 @@ class WikiResolver {
 
     return repository
       .createQueryBuilder('wiki')
-      .where('wiki.language = :lang AND wiki.title LIKE :title', {
+      .where('wiki.language = :lang AND LOWER(wiki.title) LIKE :title', {
         lang: args.lang,
-        title: `%${args.title}%`,
+        title: `%${args.title.toLowerCase()}%`,
       })
       .limit(args.limit)
       .offset(args.offset)

@@ -1,9 +1,17 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Category from '../Database/Entities/category.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ICategory } from '../Database/Entities/types/ICategory'
+import { MinLength } from 'class-validator';
+
+@ArgsType()
+class TitleArgs {
+  @Field(() => String)
+  @MinLength(3)
+  title!: string
+}
 
 @Resolver(() => Category)
 class CategoryResolver {
@@ -15,6 +23,9 @@ class CategoryResolver {
     return repository.find({
       take: args.limit,
       skip: args.offset,
+      order: {
+        weight: 'DESC'
+      }
     })
   }
 
@@ -36,6 +47,20 @@ class CategoryResolver {
         categoryId: id,
       })
       .orderBy('wiki.updated', 'DESC')
+      .getMany()
+  }
+
+  @Query(() => [Category])
+  async categoryByTitle(@Args() args: TitleArgs) {
+    const repository = this.connection.getRepository(Category)
+
+    return repository
+      .createQueryBuilder()
+      .where('LOWER(title) LIKE :title OR LOWER(id) LIKE :title', {
+        title: `%${args.title.toLowerCase()}%`,
+      })
+      .limit(10)
+      .orderBy('weight', 'DESC')
       .getMany()
   }
 }
