@@ -11,7 +11,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT')
 
   app =
-    port === 443
+    Number(port) === 443
       ? await NestFactory.create(AppModule, {
           httpsOptions: {
             cert: fs.readFileSync('../fullchain.pem'),
