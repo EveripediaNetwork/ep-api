@@ -1,10 +1,18 @@
-import { Args, ArgsType, Field, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { MinLength } from 'class-validator'
 import Category from '../Database/Entities/category.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ICategory } from '../Database/Entities/types/ICategory'
-import { MinLength } from 'class-validator';
 
 @ArgsType()
 class TitleArgs {
@@ -24,8 +32,8 @@ class CategoryResolver {
       take: args.limit,
       skip: args.offset,
       order: {
-        weight: 'DESC'
-      }
+        weight: 'DESC',
+      },
     })
   }
 

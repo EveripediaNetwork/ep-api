@@ -1,8 +1,8 @@
 import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
+import { MinLength } from 'class-validator'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
-import { MinLength } from 'class-validator';
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -72,8 +72,8 @@ class WikiResolver {
       take: args.limit,
       skip: args.offset,
       order: {
-        updated: 'DESC'
-      }
+        updated: 'DESC',
+      },
     })
   }
 
