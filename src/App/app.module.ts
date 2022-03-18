@@ -2,13 +2,13 @@ import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import DatabaseModule from '../Database/database.module'
-import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
-import WikiService from './wiki.service'
-import WikiMiddleware from './wiki.middleware'
+import WikiResolver from './wiki.resolver'
+import PinModule from './pinJSONAndImage/pin.module'
+import PinMiddleware from './pinJSONAndImage/pin.middleware'
 
 @Module({
   imports: [
@@ -22,8 +22,8 @@ import WikiMiddleware from './wiki.middleware'
   ],
   controllers: [],
   providers: [
+    PinModule,
     WikiResolver,
-    WikiService,
     LanguageResolver,
     CategoryResolver,
     TagResolver,
@@ -32,7 +32,7 @@ import WikiMiddleware from './wiki.middleware'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(WikiMiddleware).forRoutes('graphql')
+    consumer.apply(PinMiddleware).forRoutes('graphql')
   }
 }
 

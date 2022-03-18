@@ -2,14 +2,14 @@
 import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 // import * as IPFS from 'ipfs-core'
-import config from '../config'
+import config from '../../config'
 
 const pinataSDK = require('@pinata/sdk')
 
 const pinata = pinataSDK(config.ApiKey, config.ApiSecret)
 
 @Injectable()
-class WikiService {
+class PinService {
   async pinImage(file: fs.PathLike): Promise<any> {
     const readableStreamForFile = fs.createReadStream(file)
 
@@ -63,4 +63,4 @@ class WikiService {
   }
 }
 
-export default WikiService
+export default PinService
