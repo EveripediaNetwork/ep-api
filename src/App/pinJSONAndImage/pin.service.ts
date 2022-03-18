@@ -35,8 +35,8 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<any> {
-    const json = body.replace(/'/g, '"')
-    const data = JSON.parse(`${json}`)
+    // const json = body.replace(/'/g, '"')
+    const data = JSON.parse(`${body}`)
 
     const payload = {
       pinataMetadata: {

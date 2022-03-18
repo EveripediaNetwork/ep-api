@@ -83,4 +83,29 @@ describe('WikiResolver', () => {
     expect(await pinResolver.pinImage(image)).toHaveProperty('res.data')
     expect(res.data).toHaveProperty('IpfsHash')
   })
+
+  it('should return a IpfsHash after successful JSON upload', async () => {
+    const data = '{ "pinName": "name", "pinTag": "tag", "pinMeta": "meta" }'
+    const { res } = getMockRes<any>({
+      data: {
+        IpfsHash: 'QmWFxbSnYiZL9yfZJqZxXRpBLrgYrmUbs2Scvh3DxzcxG8',
+        PinSize: 5583,
+        Timestamp: '2022-03-28T21:28:14.936Z',
+        isDuplicate: true,
+      },
+    })
+    const result: any = getMockRes({
+      data: {
+        IpfsHash: 'QmeVmp4gYnd3QL6Qkdjo1sfwvuDwjGymSphmKYmnji75UQ',
+        PinSize: 5583,
+        Timestamp: '2022-03-28T21:28:14.936Z',
+        isDuplicate: true,
+      },
+    })
+
+    jest.spyOn(pinService, 'pinJSON').mockImplementation(() => result)
+
+    expect(await pinResolver.pinJSON(data)).toHaveProperty('res.data')
+    expect(res.data).toHaveProperty('IpfsHash')
+  })
 })

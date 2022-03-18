@@ -13,6 +13,7 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
 @Module({
   imports: [
     DatabaseModule,
+    PinModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,
@@ -22,7 +23,6 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
   ],
   controllers: [],
   providers: [
-    PinModule,
     WikiResolver,
     LanguageResolver,
     CategoryResolver,
