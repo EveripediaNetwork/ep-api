@@ -2,12 +2,22 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
+import { InternalServerErrorException, Logger } from '@nestjs/common'
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
 @Resolver(() => IpfsHash)
 class PinResolver {
   constructor(private readonly pinService: PinService) {}
+
+  private errorHandler(val: any) {
+    if (val.message) {
+      Logger.error(val.message)
+      throw new InternalServerErrorException()
+    } else {
+      return val
+    }
+  }
 
   @Mutation(() => IpfsHash, { name: 'pinImage' })
   async pinImage(
@@ -23,7 +33,7 @@ class PinResolver {
         .on('finish', async () => {
           const result = await this.pinService.pinImage(destinationPath)
           await fs.unlink(destinationPath)
-          res(result)
+          res(this.errorHandler(result))
         }),
     )
   }
@@ -33,7 +43,8 @@ class PinResolver {
     @Args({ name: 'data', type: () => String })
     data: string,
   ): Promise<IpfsHash> {
-    return this.pinService.pinJSON(data)
+    const res = await this.pinService.pinJSON(data)
+    return this.errorHandler(res)
   }
 }
 

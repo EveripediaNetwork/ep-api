@@ -11,8 +11,9 @@ class PinService {
   constructor(private configService: ConfigService) {}
 
   private pinata() {
-    const key = this.configService.get<string>('ApiKey')
-    const secret = this.configService.get<string>('ApiSecret')
+    const key = this.configService.get<string>('IPFS_PINATA_KEY')
+    const secret = this.configService.get<string>('IPFS_PINATA_SECRET')
+
     return pinataSDK(key, secret)
   }
 

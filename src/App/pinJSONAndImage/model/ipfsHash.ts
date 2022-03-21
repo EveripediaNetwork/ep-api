@@ -3,15 +3,15 @@ import { IsOptional } from 'class-validator'
 
 @ObjectType()
 export default class IpfsHash {
-  @Field({ nullable: true })
+  @Field()
   @IsOptional()
   IpfsHash?: string
 
-  @Field({ nullable: true })
+  @Field()
   @IsOptional()
   PinSize?: number
 
-  @Field({ nullable: true })
+  @Field()
   @IsOptional()
   Timestamp?: string
 
@@ -19,3 +19,4 @@ export default class IpfsHash {
   @IsOptional()
   IsDuplicate?: boolean
 }
+
