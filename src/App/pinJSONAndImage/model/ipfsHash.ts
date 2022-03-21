@@ -19,4 +19,3 @@ export default class IpfsHash {
   @IsOptional()
   IsDuplicate?: boolean
 }
-
