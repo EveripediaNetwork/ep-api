@@ -20,8 +20,8 @@ class RelayerService {
 
   private getRelayerInstance() {
     const credentials = {
-      apiKey: this.configService.get('API_KEY'),
-      apiSecret: this.configService.get('API_SECRET'),
+      apiKey: this.configService.get('RELAYER_API_KEY'),
+      apiSecret: this.configService.get('RELAYER_API_SECRET'),
     }
     const provider = new DefenderRelayProvider(credentials)
     const signer = new DefenderRelaySigner(credentials, provider, {
@@ -54,6 +54,9 @@ class RelayerService {
       v,
       r,
       s,
+      {
+        gasLimit: 1e6,
+      },
     )
     return result
   }
