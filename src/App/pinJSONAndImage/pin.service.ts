@@ -13,19 +13,17 @@ class PinService {
   constructor(private configService: ConfigService) {}
 
   private pinata() {
-      const key = this.configService.get<string>('ApiKey')
-      const secret = this.configService.get<string>('ApiSecret')
-      return pinataSDK(key, secret)
+    const key = this.configService.get<string>('ApiKey')
+    const secret = this.configService.get<string>('ApiSecret')
+    return pinataSDK(key, secret)
   }
 
   async pinImage(file: fs.PathLike): Promise<any> {
-    
     const readableStreamForFile = fs.createReadStream(file)
 
-    const pinImageToPinata = async (option: any) =>{
-        this.pinata().pinFileToIPFS(option)
+    const pinImageToPinata = async (option: any) => {
+      this.pinata().pinFileToIPFS(option)
     }
-    
 
     // const pinImageToIPFS = async () => {
     //   const ipfs = await IPFS.create()
@@ -59,7 +57,7 @@ class PinService {
     }
 
     const pinToPinata = async (option: any) => {
-        this.pinata().pinJSONToIPFS(option)
+      this.pinata().pinJSONToIPFS(option)
     }
 
     // const pinToIPFS = async (option: any): Promise<string> => {

@@ -1,4 +1,4 @@
-import { ConfigService } from '@nestjs/config'  
+import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { getMockRes } from '@jest-mock/express'
@@ -10,6 +10,7 @@ import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 
 jest.mock('fs')
+jest.setTimeout(30000)
 
 describe('PinResolver', () => {
   let pinResolver: PinResolver
@@ -28,8 +29,8 @@ describe('PinResolver', () => {
         {
           provide: ConfigService,
           useValue: {
-              key: '',
-              secret: ''
+            key: '',
+            secret: '',
           },
         },
       ],
