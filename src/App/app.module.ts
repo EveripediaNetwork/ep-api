@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
@@ -8,6 +8,9 @@ import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
+
+import PinModule from './pinJSONAndImage/pin.module'
+import PinMiddleware from './pinJSONAndImage/pin.middleware'
 
 import DatabaseModule from '../Database/database.module'
 
@@ -23,6 +26,7 @@ import DatabaseModule from '../Database/database.module'
       cors: true,
       autoSchemaFile: true,
     }),
+    PinModule,
     DatabaseModule,
   ],
   controllers: [],
@@ -35,6 +39,10 @@ import DatabaseModule from '../Database/database.module'
     UserResolver,
   ],
 })
-class AppModule {}
+class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(PinMiddleware).forRoutes('graphql')
+  }
+}
 
 export default AppModule
