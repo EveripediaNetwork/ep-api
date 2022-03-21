@@ -13,6 +13,7 @@ import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
 
 import DatabaseModule from '../Database/database.module'
+import RelayerModule from '../Relayer/relayer.module'
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import DatabaseModule from '../Database/database.module'
     }),
     PinModule,
     DatabaseModule,
+    RelayerModule,
   ],
   controllers: [],
   providers: [

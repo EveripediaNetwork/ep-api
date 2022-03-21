@@ -7,9 +7,13 @@ import DBStoreService from './Store/store.service'
 import IPFSValidatorService from './Validator/validator.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import DatabaseModule from '../Database/database.module'
+import { ConfigModule } from '@nestjs/config'
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     DatabaseModule,
     HttpModule.register({
       timeout: 10000,
