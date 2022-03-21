@@ -17,17 +17,5 @@ export default class IpfsHash {
 
   @Field({ nullable: true })
   @IsOptional()
-  path?: string
-
-  @Field({ nullable: true })
-  @IsOptional()
-  cid?: string
-
-  @Field({ nullable: true })
-  @IsOptional()
-  size?: number
-
-  @Field({ nullable: true })
-  @IsOptional()
-  mode?: number
+  IsDuplicate?: boolean
 }

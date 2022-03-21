@@ -2,7 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
-// import * as IPFS from 'ipfs-core'
+import IpfsHash from './model/ipfsHash'
 
 const pinataSDK = require('@pinata/sdk')
 
@@ -16,33 +16,21 @@ class PinService {
     return pinataSDK(key, secret)
   }
 
-  async pinImage(file: fs.PathLike): Promise<any> {
+  async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
 
-    const pinImageToPinata = async (option: any) => {
+    const pinImageToPinata = async (option: typeof readableStreamForFile) =>
       this.pinata().pinFileToIPFS(option)
-    }
-
-    // const pinImageToIPFS = async () => {
-    //   const ipfs = await IPFS.create()
-    //   for await (const file of ipfs.addAll(
-    //     IPFS.globSource('./uploads', '**/*'),
-    //   )) {
-    //     const result = { ...file, cid: file.cid.toString() }
-    //     return result
-    //   }
-    // }
 
     try {
       const res = await pinImageToPinata(readableStreamForFile)
       return res
-      //   return await pinImageToIPFS()
     } catch (e) {
       return e
     }
   }
 
-  async pinJSON(body: string): Promise<any> {
+  async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
 
     const payload = {
@@ -53,16 +41,9 @@ class PinService {
         ...data,
       },
     }
-
-    const pinToPinata = async (option: any) => {
+    const pinToPinata = async (option: typeof payload) =>
       this.pinata().pinJSONToIPFS(option)
-    }
 
-    // const pinToIPFS = async (option: any): Promise<string> => {
-    //   const ipfs = await IPFS.create()
-    //   const { cid } = await ipfs.add(option)
-    //   return cid.toString()
-    // }
     try {
       const res = await pinToPinata(payload)
       return res
