@@ -32,7 +32,7 @@ class PinResolver {
   async pinJSON(
     @Args({ name: 'data', type: () => String })
     data: string,
-  ): Promise<IpfsHash> { 
+  ): Promise<IpfsHash> {
     return this.pinService.pinJSON(data)
   }
 }
