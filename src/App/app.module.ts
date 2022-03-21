@@ -10,6 +10,7 @@ import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
 
 import DatabaseModule from '../Database/database.module'
+import RelayerModule from '../Relayer/relayer.module'
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import DatabaseModule from '../Database/database.module'
       autoSchemaFile: true,
     }),
     DatabaseModule,
+    RelayerModule,
   ],
   controllers: [],
   providers: [
