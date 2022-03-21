@@ -10,7 +10,6 @@ import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 
 jest.mock('fs')
-jest.setTimeout(30000)
 
 describe('PinResolver', () => {
   let pinResolver: PinResolver

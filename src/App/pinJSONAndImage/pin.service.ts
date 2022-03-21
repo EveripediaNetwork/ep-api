@@ -6,8 +6,6 @@ import * as fs from 'fs'
 
 const pinataSDK = require('@pinata/sdk')
 
-// const pinata = pinataSDK(key, secret)
-
 @Injectable()
 class PinService {
   constructor(private configService: ConfigService) {}
