@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
 import Category from '../Database/Entities/category.entity'
 import PaginationArgs from './pagination.args'
@@ -31,6 +31,9 @@ class CategoryResolver {
     return repository.find({
       take: args.limit,
       skip: args.offset,
+      where: {
+        weight: MoreThan(0)
+      },
       order: {
         weight: 'DESC',
       },
