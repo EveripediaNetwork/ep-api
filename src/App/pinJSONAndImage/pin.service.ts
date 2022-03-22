@@ -36,7 +36,7 @@ class PinService {
 
     const payload = {
       pinataMetadata: {
-        name: data.content !== undefined ? data.content.title : 'image',
+        name: data.content !== undefined ? data.title : 'image',
       },
       pinataContent: {
         ...data,
