@@ -35,8 +35,7 @@ export type ValidWiki = {
 
 @Injectable()
 class DBStoreService {
-  constructor(private connection: Connection) {
-  }
+  constructor(private connection: Connection) {}
 
   async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
     const wikiRepository = this.connection.getRepository(Wiki)
