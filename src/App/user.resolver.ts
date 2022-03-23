@@ -26,10 +26,10 @@ class UserResolver {
 
   // TODO: add pagination
   @ResolveField()
-  async wikis(@Parent() user: IUser) {
+  async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const { id } = user
     const repository = this.connection.getRepository(Wiki)
-    return repository.find({ where: { user: id } })
+    return repository.find({ where: { user: id }, take: args.limit })
   }
 }
 

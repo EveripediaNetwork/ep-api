@@ -26,7 +26,7 @@ class TagResolver {
 
   // TODO: add pagination
   @ResolveField()
-  async wikis(@Parent() tag: ITag) {
+  async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
     const { id } = tag
     const repository = this.connection.getRepository(Wiki)
 
@@ -35,6 +35,7 @@ class TagResolver {
       .innerJoin('wiki.tags', 'tag', 'tag.id = :tagId', {
         tagId: id,
       })
+      .limit(args.limit)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
   }

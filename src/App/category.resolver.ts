@@ -48,7 +48,7 @@ class CategoryResolver {
 
   // TODO: add pagination
   @ResolveField()
-  async wikis(@Parent() category: ICategory) {
+  async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
     const { id } = category
     const repository = this.connection.getRepository(Wiki)
 
@@ -57,6 +57,7 @@ class CategoryResolver {
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
         categoryId: id,
       })
+      .limit(args.limit)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
   }
