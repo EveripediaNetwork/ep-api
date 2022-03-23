@@ -29,7 +29,11 @@ class UserResolver {
   async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const { id } = user
     const repository = this.connection.getRepository(Wiki)
-    return repository.find({ where: { user: id }, take: args.limit })
+    return repository.find({
+      where: { user: id },
+      take: args.limit,
+      skip: args.offset
+    })
   }
 }
 
