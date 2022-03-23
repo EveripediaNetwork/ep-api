@@ -124,6 +124,21 @@ class WikiResolver {
       .orderBy('wiki.updated', 'DESC')
       .getMany()
   }
+
+  @Query(() => [Wiki])
+  async wikisByLanguage(@Args() args: LangArgs) {
+    const repository = this.connection.getRepository(Wiki)
+
+    return repository
+      .createQueryBuilder('wiki')
+      .innerJoin('wiki.language', 'language', 'language.id = :id', {
+        id: args.lang,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('wiki.updated', 'DESC')
+      .getMany()
+  }
 }
 
 export default WikiResolver
