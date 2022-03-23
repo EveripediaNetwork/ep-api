@@ -32,7 +32,7 @@ class CategoryResolver {
       take: args.limit,
       skip: args.offset,
       where: {
-        weight: MoreThan(0)
+        weight: MoreThan(0),
       },
       order: {
         weight: 'DESC',

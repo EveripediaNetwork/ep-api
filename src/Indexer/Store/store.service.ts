@@ -46,7 +46,7 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
 
-    let user = await userRepository.findOne(wiki.content.user.id)
+    let user = await userRepository.findOne(wiki.content.user?.id)
     if (!user) {
       user = userRepository.create({
         id: wiki.content.user.id,

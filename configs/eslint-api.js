@@ -6,6 +6,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'airbnb-base',
     'airbnb-typescript/base',
     'plugin:import/errors',
@@ -13,11 +14,15 @@ module.exports = {
     'plugin:import/typescript',
     'prettier',
   ],
+
   plugins: ['@typescript-eslint/eslint-plugin'],
+
   parserOptions: {
+    files: ['*.ts', '*.js'],
     project: 'tsconfig.json',
     sourceType: 'module',
   },
+
   settings: {
     'import/parsers': {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
@@ -33,7 +38,9 @@ module.exports = {
       },
     },
   },
+
   ignorePatterns: ['.eslintrc.js'],
+
   rules: {
     'no-promise-executor-return': 'off',
     'no-await-in-loop': 'off',

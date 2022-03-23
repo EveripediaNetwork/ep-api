@@ -1,8 +1,3 @@
-/* eslint-disable no-console */
-
-// TODO: refactor towards linting rules when doing this
-// TODO: remember to review the eslint-api config file when doing so
-
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import GraphProviderService from './Provider/graph.service'
