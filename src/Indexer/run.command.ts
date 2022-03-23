@@ -11,7 +11,7 @@ interface CommandOptions {
   loop: boolean
 }
 
-const SLEEP_TIME = 4000
+const SLEEP_TIME = 5000
 
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
