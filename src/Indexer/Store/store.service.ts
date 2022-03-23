@@ -11,27 +11,25 @@ export type ValidWiki = {
   id: string
   version: number
   language: string
-  content: {
+  title: string
+  content: string
+  tags: {
+    id: string
+  }[]
+  metadata: {
+    id: string
+    value: string
+  }[]
+  categories: {
+    id: string
     title: string
-    content: string
-    tags: {
-      id: string
-    }[]
-    metadata: {
-      id: string
-      value: string
-    }[]
-    categories: {
-      id: string
-      title: string
-    }[]
-    images: {
-      id: string
-      type: string
-    }[]
-    user: {
-      id: string
-    }
+  }[]
+  images: {
+    id: string
+    type: string
+  }[]
+  user: {
+    id: string
   }
 }
 
@@ -46,10 +44,10 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
 
-    let user = await userRepository.findOne(wiki.content.user?.id)
+    let user = await userRepository.findOne(wiki.user.id)
     if (!user) {
       user = userRepository.create({
-        id: wiki.content.user.id,
+        id: wiki.user.id,
       })
       user = await userRepository.save(user)
     }
@@ -62,7 +60,7 @@ class DBStoreService {
       language = await languageRepository.save(language)
     }
     const tags = []
-    for (const tagJSON of wiki.content.tags) {
+    for (const tagJSON of wiki.tags) {
       let tag = await tagRepository.findOne(tagJSON.id)
       if (!tag) {
         tag = tagRepository.create({
@@ -74,7 +72,7 @@ class DBStoreService {
     }
 
     const categories = []
-    for (const categoryJSON of wiki.content.categories) {
+    for (const categoryJSON of wiki.categories) {
       let category = await categoryRepository.findOne(categoryJSON.id)
       if (!category) {
         category = categoryRepository.create({
@@ -91,13 +89,13 @@ class DBStoreService {
     if (existWiki) {
       existWiki.version = wiki.version
       existWiki.language = language
-      existWiki.title = wiki.content.title
-      existWiki.content = wiki.content.content
+      existWiki.title = wiki.title
+      existWiki.content = wiki.content
       existWiki.user = user
       existWiki.tags = tags
       existWiki.categories = categories
-      existWiki.images = wiki.content.images
-      existWiki.metadata = wiki.content.metadata
+      existWiki.images = wiki.images
+      existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
@@ -108,13 +106,13 @@ class DBStoreService {
       id: wiki.id,
       version: wiki.version,
       language,
-      title: wiki.content.title,
-      content: wiki.content.content,
+      title: wiki.title,
+      content: wiki.content,
       user,
       tags,
       categories,
-      images: wiki.content.images,
-      metadata: wiki.content.metadata,
+      images: wiki.images,
+      metadata: wiki.metadata,
       block: hash.block,
       transactionHash: hash.transactionHash,
     })
