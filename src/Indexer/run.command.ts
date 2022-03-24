@@ -40,11 +40,15 @@ class RunCommand implements CommandRunner {
         }
         await new Promise(r => setTimeout(r, SLEEP_TIME))
 
-        const newHashes = await this.providerService.getIPFSHashesFromBlock(
-          unixtime,
-        )
+        if (loop) {
+          const newHashes = await this.providerService.getIPFSHashesFromBlock(
+            unixtime,
+          )
 
-        if (loop) await this.initiateIndexer(newHashes, loop, unixtime)
+          await this.initiateIndexer(newHashes, loop, unixtime)
+        }
+
+
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)
