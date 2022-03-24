@@ -5,6 +5,6 @@ module.exports = {
     args: 'indexer',
     watch: true,
     watch_delay: 1000,
-    restart_delay: 10000,
+    restart_delay: 8000,
   }]
 }
