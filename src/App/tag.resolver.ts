@@ -36,6 +36,7 @@ class TagResolver {
         tagId: id,
       })
       .limit(args.limit)
+      .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
   }
