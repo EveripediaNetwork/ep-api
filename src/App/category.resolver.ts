@@ -58,6 +58,7 @@ class CategoryResolver {
         categoryId: id,
       })
       .limit(args.limit)
+      .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
   }
