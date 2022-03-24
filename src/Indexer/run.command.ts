@@ -23,7 +23,11 @@ class RunCommand implements CommandRunner {
     private connection: Connection,
   ) {}
 
-  async initiateIndexer(hashes: Hash[], loop: boolean, unixtime: number): Promise<void> {
+  async initiateIndexer(
+    hashes: Hash[],
+    loop: boolean,
+    unixtime: number,
+  ): Promise<void> {
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
@@ -36,9 +40,11 @@ class RunCommand implements CommandRunner {
         }
         await new Promise(r => setTimeout(r, SLEEP_TIME))
 
-        const newHashes = await this.providerService.getIPFSHashesFromBlock(unixtime)
+        const newHashes = await this.providerService.getIPFSHashesFromBlock(
+          unixtime,
+        )
 
-        if(loop) await this.initiateIndexer(newHashes, loop, unixtime)
+        if (loop) await this.initiateIndexer(newHashes, loop, unixtime)
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)
@@ -82,7 +88,7 @@ class RunCommand implements CommandRunner {
 
   @Option({
     flags: '-l, --loop [boolean]',
-    description: 'keeps the command running in a loop'
+    description: 'keeps the command running in a loop',
   })
   parseBoolean(val: string): boolean {
     return JSON.parse(val)
