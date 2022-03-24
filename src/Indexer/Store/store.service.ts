@@ -47,7 +47,7 @@ class DBStoreService {
     let user = await userRepository.findOne(wiki.user.id)
     if (!user) {
       user = userRepository.create({
-        id: wiki.user.id,
+        id: wiki?.user.id,
       })
       user = await userRepository.save(user)
     }
