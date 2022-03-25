@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios'
 
 import RelayerService from './services/relayer.service'
 import RelayerController from './controllers/relayer.controller'
+import RelayerResolver from './resolvers/relayer.resolver'
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import RelayerController from './controllers/relayer.controller'
     }),
   ],
   controllers: [RelayerController],
-  providers: [RelayerService],
+  providers: [RelayerService, RelayerResolver],
 })
 class RelayerModule {}
 

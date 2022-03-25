@@ -24,7 +24,6 @@ class TagResolver {
     return repository.findOneOrFail(id)
   }
 
-  // TODO: add pagination
   @ResolveField()
   async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
     const { id } = tag
