@@ -18,4 +18,4 @@ jobs:
           script: |
             cd ep-api
             git pull
-            sudo supervisorctl restart all
+            pm2 restart ecosystem.config.js
