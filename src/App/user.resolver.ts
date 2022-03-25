@@ -32,7 +32,7 @@ class UserResolver {
     return repository.find({
       where: { user: id },
       take: args.limit,
-      skip: args.offset
+      skip: args.offset,
     })
   }
 }
