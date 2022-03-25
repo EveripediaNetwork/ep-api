@@ -12,7 +12,6 @@ class RelayerResolver {
   async relay(
     @Args({ name: 'txToRelay', type: () => SignaturePayloadInput })
     txToRelay: SignaturePayloadInput,
-
   ) {
     return this.relayerService.relayTx(
       txToRelay.ipfs,
