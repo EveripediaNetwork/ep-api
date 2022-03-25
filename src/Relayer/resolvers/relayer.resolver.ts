@@ -1,5 +1,7 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
+
 import RelayerService from '../services/relayer.service'
+import SignaturePayloadInput from './dto/signaturePayload.dto'
 import Relayer from './models/relayer'
 
 @Resolver()
@@ -8,10 +10,18 @@ class RelayerResolver {
 
   @Mutation(() => Relayer, { name: 'relayer' })
   async relay(
-    @Args({ name: 'txToRelay', type: () => String })
-    data: string,
+    @Args({ name: 'txToRelay', type: () => SignaturePayloadInput })
+    txToRelay: SignaturePayloadInput,
+
   ) {
-    return this.relayerService.graphRelayTx(data)
+    return this.relayerService.relayTx(
+      txToRelay.ipfs,
+      txToRelay.userAddr,
+      txToRelay.deadline,
+      txToRelay.v,
+      txToRelay.r,
+      txToRelay.s,
+    )
   }
 }
 export default RelayerResolver

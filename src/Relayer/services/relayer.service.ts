@@ -6,7 +6,6 @@ import {
 import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
-import SignaturePayloadInput from '../resolvers/dto/signaturePayload.dto'
 
 @Injectable()
 class RelayerService {
@@ -59,14 +58,6 @@ class RelayerService {
         gasLimit: 1e6,
       },
     )
-    return result
-  }
-
-  public async graphRelayTx(data: string) {
-    const payload: SignaturePayloadInput = JSON.parse(`${data}`)
-    const result = await this.wikiInstance.postBySig(payload, {
-      gasLimit: 1e6,
-    })
     return result
   }
 }
