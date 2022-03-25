@@ -46,7 +46,6 @@ class CategoryResolver {
     return repository.findOneOrFail(id)
   }
 
-  // TODO: add pagination
   @ResolveField()
   async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
     const { id } = category

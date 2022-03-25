@@ -24,7 +24,6 @@ class UserResolver {
     return repository.findOneOrFail(id)
   }
 
-  // TODO: add pagination
   @ResolveField()
   async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const { id } = user

@@ -47,6 +47,8 @@ class RunCommand implements CommandRunner {
 
           await this.initiateIndexer(newHashes, loop, unixtime)
         }
+
+
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)
