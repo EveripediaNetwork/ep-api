@@ -1,6 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql'
 
-
 @InputType()
 export default class SignaturePayloadInput {
   @Field() ipfs!: string
@@ -15,4 +14,3 @@ export default class SignaturePayloadInput {
 
   @Field() s!: string
 }
-
