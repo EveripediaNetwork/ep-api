@@ -1,11 +1,6 @@
 module.exports = {
   apps: [
     {
-      name: 'ep-api',
-      script: 'yarn dev',
-      watch: true,
-    },
-    {
       name: 'indexer-service',
       script: 'yarn console:dev indexer',
       args: 'indexer',
