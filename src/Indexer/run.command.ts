@@ -37,7 +37,7 @@ class RunCommand implements CommandRunner {
     loop: boolean,
     unixtime: number,
   ): Promise<void> {
-    if(!hashes) await this.loopIndexer(loop, unixtime)
+    if (!hashes) await this.loopIndexer(loop, unixtime)
 
     for (const hash of hashes) {
       try {
@@ -52,7 +52,6 @@ class RunCommand implements CommandRunner {
         await new Promise(r => setTimeout(r, SLEEP_TIME))
 
         await this.loopIndexer(loop, unixtime)
-
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)
