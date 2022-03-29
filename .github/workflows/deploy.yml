@@ -19,8 +19,4 @@ jobs:
             cd ep-api
             git pull
             yarn
-            pm2 restart app.ecosystem.config.js
-            while ! grep -m1 'Ready' < pm2 status ep-api; do
-              sleep 1
-            done
-            pm2 restart indexer.ecosystem.config.js
+            pm2 restart ecosystem.config.js
