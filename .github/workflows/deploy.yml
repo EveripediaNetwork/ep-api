@@ -18,4 +18,9 @@ jobs:
           script: |
             cd ep-api
             git pull
-            sudo supervisorctl restart all
+            yarn
+            pm2 restart ecosystem.config.js --only ep-api
+            while ! grep -m1 'Ready' < pm2 status ep-api; do
+              sleep 1
+            done
+            pm2 restart ecosystem.config.js --only indexer-service
