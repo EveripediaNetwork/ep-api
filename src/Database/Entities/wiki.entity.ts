@@ -47,6 +47,10 @@ class Wiki {
   @Column()
   transactionHash!: string
 
+  @Field()
+  @Column('varchar', {default: ''})
+  ipfs!: string
+
   @Field(() => Int)
   @Column('integer')
   views = 0

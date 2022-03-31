@@ -32,6 +32,9 @@ class UserResolver {
       where: { user: id },
       take: args.limit,
       skip: args.offset,
+      order: {
+        updated: 'DESC',
+      },
     })
   }
 }

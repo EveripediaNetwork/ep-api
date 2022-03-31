@@ -114,6 +114,7 @@ class DBStoreService {
       images: wiki.images,
       metadata: wiki.metadata,
       block: hash.block,
+      ipfs: hash.id,
       transactionHash: hash.transactionHash,
     })
 
