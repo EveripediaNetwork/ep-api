@@ -19,5 +19,3 @@ jobs:
             cd ep-api
             git pull
             yarn
-            pm2 start ecosystem.config.js --only ep-api
-            pm2 start ecosystem.config.js --only indexer-service
