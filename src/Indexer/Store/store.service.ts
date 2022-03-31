@@ -97,6 +97,7 @@ class DBStoreService {
       existWiki.images = wiki.images
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
+      existWiki.ipfs = hash.id
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       return true

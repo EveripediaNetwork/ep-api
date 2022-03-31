@@ -48,7 +48,7 @@ class Wiki {
   transactionHash!: string
 
   @Field()
-  @Column('varchar', {default: ''})
+  @Column('varchar', { default: '' })
   ipfs!: string
 
   @Field(() => Int)
