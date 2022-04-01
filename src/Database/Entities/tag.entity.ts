@@ -6,7 +6,7 @@ import { IWiki } from './types/IWiki'
 import { ITag } from './types/ITag'
 import Wiki from './wiki.entity'
 
-@ObjectType()
+@ObjectType({ description: 'Tags for Wikis' })
 @Entity()
 class Tag implements ITag {
   @Field(() => ID)
