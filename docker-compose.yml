@@ -6,6 +6,8 @@ services:
     build: .
     ports:
       - "5000:5000"
+    volumes: # volumes for dev only
+      - .:/usr/ep-api
 
   database:
     container_name: ep-db
