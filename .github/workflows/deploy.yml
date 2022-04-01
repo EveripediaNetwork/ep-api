@@ -19,4 +19,4 @@ jobs:
             cd ep-api
             git pull
             yarn
-            pm2 reload ecosystem.config.js
+            pm2 update
