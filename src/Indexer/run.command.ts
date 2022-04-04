@@ -23,21 +23,19 @@ class RunCommand implements CommandRunner {
     private connection: Connection,
   ) {}
 
-  async loopIndexer(loop: boolean, unixtime: number) {
-    if (loop) {
+  async initiateIndexer(
+    hashes: Hash[],
+    unixtime: number,
+    loop?: boolean,
+  ): Promise<void> {
+    if (hashes.length <= 0 && loop) {
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
-      await this.initiateIndexer(newHashes, loop, unixtime)
+      console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
+      console.log(`❕ Found ${newHashes.length} hashes!`)
+      await this.initiateIndexer(newHashes, unixtime, loop)
     }
-  }
-
-  async initiateIndexer(
-    hashes: Hash[],
-    loop: boolean,
-    unixtime: number,
-  ): Promise<void> {
-    if (!hashes) await this.loopIndexer(loop, unixtime)
 
     for (const hash of hashes) {
       try {
@@ -51,7 +49,13 @@ class RunCommand implements CommandRunner {
         }
         await new Promise(r => setTimeout(r, SLEEP_TIME))
 
-        await this.loopIndexer(loop, unixtime)
+        if (loop) {
+          const newHashes = await this.providerService.getIPFSHashesFromBlock(
+            unixtime,
+          )
+
+          await this.initiateIndexer(newHashes, unixtime, loop)
+        }
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)
@@ -80,7 +84,9 @@ class RunCommand implements CommandRunner {
 
     const hashes = await this.providerService.getIPFSHashesFromBlock(unixtime)
 
-    await this.initiateIndexer(hashes, loop, unixtime)
+    if (loop) await this.initiateIndexer(hashes, unixtime, loop)
+
+    await this.initiateIndexer(hashes, unixtime)
 
     process.exit()
   }
