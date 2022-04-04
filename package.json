@@ -36,7 +36,7 @@
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/typeorm": "^8.0.3",
     "@pinata/sdk": "^1.1.24",
-    "apollo-server-express": "^3.6.3",
+    "apollo-server-express": "^3.6.7",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "defender-relay-client": "^1.18.0",
