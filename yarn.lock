@@ -498,10 +498,10 @@
     "@ethersproject/logger" "^5.6.0"
     bn.js "^4.11.9"
 
-"@ethersproject/bytes@5.6.0", "@ethersproject/bytes@^5.6.0":
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.6.0.tgz#81652f2a0e04533575befadce555213c11d8aa20"
-  integrity sha512-3hJPlYemb9V4VLfJF5BfN0+55vltPZSHU3QKUyP9M3Y2TcajbiRrz65UG+xVHOzBereB1b9mn7r12o177xgN7w==
+"@ethersproject/bytes@5.6.1", "@ethersproject/bytes@^5.6.0":
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/@ethersproject/bytes/-/bytes-5.6.1.tgz#24f916e411f82a8a60412344bf4a813b917eefe7"
+  integrity sha512-NwQt7cKn5+ZE4uDn+X5RAXLp46E1chXoaMmrxAyA0rblpxz8t58lVkrHXoRIn0lz1joQElQ8410GqhTqMOwc6g==
   dependencies:
     "@ethersproject/logger" "^5.6.0"
 
@@ -592,10 +592,10 @@
   resolved "https://registry.yarnpkg.com/@ethersproject/logger/-/logger-5.6.0.tgz#d7db1bfcc22fd2e4ab574cba0bb6ad779a9a3e7a"
   integrity sha512-BiBWllUROH9w+P21RzoxJKzqoqpkyM1pRnEKG69bulE9TSQD8SAIvTQqIMZmmCO8pUNkgLP1wndX1gKghSpBmg==
 
-"@ethersproject/networks@5.6.0", "@ethersproject/networks@^5.6.0":
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.6.0.tgz#486d03fff29b4b6b5414d47a232ded09fe10de5e"
-  integrity sha512-DaVzgyThzHgSDLuURhvkp4oviGoGe9iTZW4jMEORHDRCgSZ9K9THGFKqL+qGXqPAYLEgZTf5z2w56mRrPR1MjQ==
+"@ethersproject/networks@5.6.1", "@ethersproject/networks@^5.6.0":
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.6.1.tgz#7a21ed1f83e86121737b16841961ec99ccf5c9c7"
+  integrity sha512-b2rrupf3kCTcc3jr9xOWBuHylSFtbpJf79Ga7QR98ienU2UqGimPGEsYMgbI29KHJfA5Us89XwGVmxrlxmSrMg==
   dependencies:
     "@ethersproject/logger" "^5.6.0"
 
@@ -614,10 +614,10 @@
   dependencies:
     "@ethersproject/logger" "^5.6.0"
 
-"@ethersproject/providers@5.6.1":
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.6.1.tgz#9a05f00ecbac59565bf6907c8d2af8ac33303b48"
-  integrity sha512-w8Wx15nH+aVDvnoKCyI1f3x0B5idmk/bDJXMEUqCfdO8Eadd0QpDx9lDMTMmenhOmf9vufLJXjpSm24D3ZnVpg==
+"@ethersproject/providers@5.6.2":
+  version "5.6.2"
+  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.6.2.tgz#b9807b1c8c6f59fa2ee4b3cf6519724d07a9f422"
+  integrity sha512-6/EaFW/hNWz+224FXwl8+HdMRzVHt8DpPmu5MZaIQqx/K/ELnC9eY236SMV7mleCM3NnEArFwcAAxH5kUUgaRg==
   dependencies:
     "@ethersproject/abstract-provider" "^5.6.0"
     "@ethersproject/abstract-signer" "^5.6.0"
@@ -771,12 +771,20 @@
   dependencies:
     lodash "^4.17.15"
 
-"@graphql-tools/merge@8.2.2", "@graphql-tools/merge@^8.2.1":
-  version "8.2.2"
-  resolved "https://registry.npmjs.org/@graphql-tools/merge/-/merge-8.2.2.tgz#433566c662a33f5a9c3cc5f3ce3753fb0019477a"
-  integrity sha512-2DyqhIOMUMKbCPqo8p6xSdll2OBcBxGdOrxlJJlFQvinsSaYqp/ct3dhAxNtzaIcvSVgXvttQqfD7O2ziFtE7Q==
+"@graphql-tools/merge@8.2.3":
+  version "8.2.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/merge/-/merge-8.2.3.tgz#a2861fec230ee7be9dc42d72fed2ac075c31669f"
+  integrity sha512-XCSmL6/Xg8259OTWNp69B57CPWiVL69kB7pposFrufG/zaAlI9BS68dgzrxmmSqZV5ZHU4r/6Tbf6fwnEJGiSw==
   dependencies:
-    "@graphql-tools/utils" "^8.5.1"
+    "@graphql-tools/utils" "^8.6.2"
+    tslib "~2.3.0"
+
+"@graphql-tools/merge@^8.2.3":
+  version "8.2.6"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/merge/-/merge-8.2.6.tgz#7fb615fa9c143c3151ff025e501d52bd48186d19"
+  integrity sha512-dkwTm4czMISi/Io47IVvq2Fl9q4TIGKpJ0VZjuXYdEFkECyH6A5uwxZfPVandZG+gQs8ocFFoa6RisiUJLZrJw==
+  dependencies:
+    "@graphql-tools/utils" "8.6.5"
     tslib "~2.3.0"
 
 "@graphql-tools/mock@^8.1.2":
@@ -789,20 +797,27 @@
     fast-json-stable-stringify "^2.1.0"
     tslib "~2.3.0"
 
-"@graphql-tools/schema@8.3.1", "@graphql-tools/schema@^8.0.0", "@graphql-tools/schema@^8.3.1":
-  version "8.3.1"
-  resolved "https://registry.npmjs.org/@graphql-tools/schema/-/schema-8.3.1.tgz#1ee9da494d2da457643b3c93502b94c3c4b68c74"
-  integrity sha512-3R0AJFe715p4GwF067G5i0KCr/XIdvSfDLvTLEiTDQ8V/hwbOHEKHKWlEBHGRQwkG5lwFQlW1aOn7VnlPERnWQ==
+"@graphql-tools/schema@8.3.2", "@graphql-tools/schema@^8.0.0", "@graphql-tools/schema@^8.3.1":
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/schema/-/schema-8.3.2.tgz#5b949d7a2cc3936f73507d91cc609996f1266d11"
+  integrity sha512-77feSmIuHdoxMXRbRyxE8rEziKesd/AcqKV6fmxe7Zt+PgIQITxNDew2XJJg7qFTMNM43W77Ia6njUSBxNOkwg==
   dependencies:
-    "@graphql-tools/merge" "^8.2.1"
-    "@graphql-tools/utils" "^8.5.1"
+    "@graphql-tools/merge" "^8.2.3"
+    "@graphql-tools/utils" "^8.6.2"
     tslib "~2.3.0"
     value-or-promise "1.0.11"
 
-"@graphql-tools/utils@8.6.1", "@graphql-tools/utils@^8.5.1", "@graphql-tools/utils@^8.6.0":
-  version "8.6.1"
-  resolved "https://registry.npmjs.org/@graphql-tools/utils/-/utils-8.6.1.tgz#52c7eb108f2ca2fd01bdba8eef85077ead1bf882"
-  integrity sha512-uxcfHCocp4ENoIiovPxUWZEHOnbXqj3ekWc0rm7fUhW93a1xheARNHcNKhwMTR+UKXVJbTFQdGI1Rl5XdyvDBg==
+"@graphql-tools/utils@8.6.2":
+  version "8.6.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.6.2.tgz#095408135f091aac68fe18a0a21b708e685500da"
+  integrity sha512-x1DG0cJgpJtImUlNE780B/dfp8pxvVxOD6UeykFH5rHes26S4kGokbgU8F1IgrJ1vAPm/OVBHtd2kicTsPfwdA==
+  dependencies:
+    tslib "~2.3.0"
+
+"@graphql-tools/utils@8.6.5", "@graphql-tools/utils@^8.6.0", "@graphql-tools/utils@^8.6.2":
+  version "8.6.5"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.6.5.tgz#ac04571b03f854c7a938b2ab700516a6c6d32335"
+  integrity sha512-mjOtaWiS2WIqRz/cq5gaeM3sVrllcu2xbtHROw1su1v3xWa3D3dKgn8Lrl7+tvWs5WUVySsBss/VZ3WdoPkCrA==
   dependencies:
     tslib "~2.3.0"
 
@@ -1109,14 +1124,14 @@
     tslib "2.3.1"
     uuid "8.3.2"
 
-"@nestjs/graphql@^10.0.5":
-  version "10.0.5"
-  resolved "https://registry.npmjs.org/@nestjs/graphql/-/graphql-10.0.5.tgz#8afd8b2869b34035d16e56a4a3beacc00df16b43"
-  integrity sha512-ok7dXJOIw3hqoler3IP/ehm2S9FBQLgmjKguuPB4OMe/pk4TbcDXzQO7SPzwkgVMB/H/fhol9+kHoCXrCMHf7w==
+"@nestjs/graphql@^10.0.8":
+  version "10.0.8"
+  resolved "https://registry.yarnpkg.com/@nestjs/graphql/-/graphql-10.0.8.tgz#80844517e72e71400afbf6a2d3dd4d13f12610b2"
+  integrity sha512-MM/hERFwfYg9OEbkfctVPzvsQJNlqsdnxuaLyR6XTggGTWi/RVpc6b63kHdhAOmgChAwMNhGjA3pTVM17MRJ6g==
   dependencies:
-    "@graphql-tools/merge" "8.2.2"
-    "@graphql-tools/schema" "8.3.1"
-    "@graphql-tools/utils" "8.6.1"
+    "@graphql-tools/merge" "8.2.3"
+    "@graphql-tools/schema" "8.3.2"
+    "@graphql-tools/utils" "8.6.2"
     "@nestjs/mapped-types" "1.0.1"
     chokidar "3.5.3"
     fast-glob "3.2.11"
@@ -1208,10 +1223,10 @@
     consola "^2.15.0"
     node-fetch "^2.6.1"
 
-"@pinata/sdk@^1.1.23":
-  version "1.1.23"
-  resolved "https://registry.yarnpkg.com/@pinata/sdk/-/sdk-1.1.23.tgz#91d7e289a29f514ee35d8d2ad62f8ef891b57ea0"
-  integrity sha512-ZIQI6acEu2m3tuLW9UCUNVgqbHc5U+t657ukunamV0E8XcW639vgtGa5rd5C/9mVIxoWpp5CJ9q7FA1OT88huQ==
+"@pinata/sdk@^1.1.24":
+  version "1.1.24"
+  resolved "https://registry.yarnpkg.com/@pinata/sdk/-/sdk-1.1.24.tgz#28576b3b1c5589cf864dcb26ffdb7bbd56923673"
+  integrity sha512-OvUpxEoPYTKskbWR9fYtvzDfOP8r8JypfyYIFgNZoFmpOnyLzZOvZnvAxS179RvUULqj4Gj7FnTRRFJDsvD+lw==
   dependencies:
     axios "^0.21.1"
     base-path-converter "^1.0.2"
@@ -3572,10 +3587,10 @@ etag@~1.8.1:
   resolved "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
 
-ethers@^5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.1.tgz#a56cd67f1595b745dc3dde0ccf2b5de53a41a6d0"
-  integrity sha512-qtl/2W+dwmUa5Z3JqwsbV3JEBZZHNARe5K/A2ePcNAuhJYnEKIgGOT/O9ouPwBijSqVoQnmQMzi5D48LFNOY2A==
+ethers@^5.6.2:
+  version "5.6.2"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.2.tgz#e75bac7f038c5e0fdde667dba62fc223924143a2"
+  integrity sha512-EzGCbns24/Yluu7+ToWnMca3SXJ1Jk1BvWB7CCmVNxyOeM4LLvw2OLuIHhlkhQk1dtOcj9UMsdkxUh8RiG1dxQ==
   dependencies:
     "@ethersproject/abi" "5.6.0"
     "@ethersproject/abstract-provider" "5.6.0"
@@ -3584,7 +3599,7 @@ ethers@^5.6.1:
     "@ethersproject/base64" "5.6.0"
     "@ethersproject/basex" "5.6.0"
     "@ethersproject/bignumber" "5.6.0"
-    "@ethersproject/bytes" "5.6.0"
+    "@ethersproject/bytes" "5.6.1"
     "@ethersproject/constants" "5.6.0"
     "@ethersproject/contracts" "5.6.0"
     "@ethersproject/hash" "5.6.0"
@@ -3592,10 +3607,10 @@ ethers@^5.6.1:
     "@ethersproject/json-wallets" "5.6.0"
     "@ethersproject/keccak256" "5.6.0"
     "@ethersproject/logger" "5.6.0"
-    "@ethersproject/networks" "5.6.0"
+    "@ethersproject/networks" "5.6.1"
     "@ethersproject/pbkdf2" "5.6.0"
     "@ethersproject/properties" "5.6.0"
-    "@ethersproject/providers" "5.6.1"
+    "@ethersproject/providers" "5.6.2"
     "@ethersproject/random" "5.6.0"
     "@ethersproject/rlp" "5.6.0"
     "@ethersproject/sha2" "5.6.0"
