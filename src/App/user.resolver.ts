@@ -24,7 +24,6 @@ class UserResolver {
     return repository.findOneOrFail(id)
   }
 
-  // TODO: add pagination
   @ResolveField()
   async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const { id } = user
@@ -32,7 +31,10 @@ class UserResolver {
     return repository.find({
       where: { user: id },
       take: args.limit,
-      skip: args.offset
+      skip: args.offset,
+      order: {
+        updated: 'DESC',
+      },
     })
   }
 }
