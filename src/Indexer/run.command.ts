@@ -11,7 +11,8 @@ interface CommandOptions {
   loop: boolean
 }
 
-const SLEEP_TIME = 5000
+const SLEEP_TIME = 4000
+const SLEEP_TIME_QUERY = 3000
 
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
@@ -28,7 +29,8 @@ class RunCommand implements CommandRunner {
     unixtime: number,
     loop?: boolean,
   ): Promise<void> {
-    if (hashes.length <= 0 && loop) {
+    if (hashes.length == 0 && loop) {
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
