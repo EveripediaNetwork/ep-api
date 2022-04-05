@@ -29,7 +29,7 @@ class RunCommand implements CommandRunner {
     unixtime: number,
     loop?: boolean,
   ): Promise<void> {
-    if (hashes.length == 0 && loop) {
+    if (hashes.length === 0 && loop) {
       await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
