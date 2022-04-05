@@ -1,4 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import {
   Field,
   GraphQLISODateTime,
@@ -16,7 +21,6 @@ export enum Status {
 registerEnumType(Status, {
   name: 'Status',
 })
-
 
 @ObjectType()
 @Entity()

@@ -6,6 +6,7 @@ import User from '../../Database/Entities/user.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
+import Activity, { Status } from '../../Database/Entities/activity.entity'
 
 export type ValidWiki = {
   id: string
@@ -43,6 +44,7 @@ class DBStoreService {
     const userRepository = this.connection.getRepository(User)
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
+    const activityRepository = this.connection.getRepository(Activity)
 
     let user = await userRepository.findOne(wiki.user.id)
     if (!user) {
@@ -59,7 +61,7 @@ class DBStoreService {
       })
       language = await languageRepository.save(language)
     }
-    const tags = []
+    const tags: Tag[] = []
     for (const tagJSON of wiki.tags) {
       let tag = await tagRepository.findOne(tagJSON.id)
       if (!tag) {
@@ -71,7 +73,7 @@ class DBStoreService {
       tags.push(tag)
     }
 
-    const categories = []
+    const categories: Category[] = []
     for (const categoryJSON of wiki.categories) {
       let category = await categoryRepository.findOne(categoryJSON.id)
       if (!category) {
@@ -84,9 +86,36 @@ class DBStoreService {
     }
 
     const existWiki = await wikiRepository.findOne(wiki.id)
+    const createActivity = (typ: Status) => {
+      const resp = activityRepository.create({
+        wikiId: wiki.title,
+        type: typ,
+        content: [
+          {
+            id: wiki.id,
+            title: wiki.title,
+            block: hash.block,
+            content: wiki.content,
+            version: wiki.version,
+            language,
+            user,
+            tags,
+            categories,
+            images: wiki.images,
+            metadata: wiki.metadata,
+            transactionHash: hash.transactionHash,
+            ipfs: hash.id,
+          },
+        ],
+        datetime: new Date(Date.now()),
+        ipfs: hash.id,
+      })
+      return resp
+    }
 
     // TODO: store history and delete?
     if (existWiki) {
+      await activityRepository.save(createActivity(Status.UPDATED))
       existWiki.version = wiki.version
       existWiki.language = language
       existWiki.title = wiki.title
@@ -102,6 +131,7 @@ class DBStoreService {
       await wikiRepository.save(existWiki)
       return true
     }
+    await activityRepository.save(createActivity(Status.CREATED))
 
     const newWiki = wikiRepository.create({
       id: wiki.id,
