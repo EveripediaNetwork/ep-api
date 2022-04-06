@@ -20,7 +20,7 @@ class ActivityResolver {
   constructor(private connection: Connection) {}
 
   @Query(() => [Activity])
-  async Activities(@Args() args: LangArgs) {
+  async activities(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Activity)
     return repository.createQueryBuilder('activity')
         .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
@@ -32,7 +32,7 @@ class ActivityResolver {
   }
 
   @Query(() => [Activity])
-  async ActivitiesByWikId(@Args() args: ActivityArgs) {
+  async activitiesByWikId(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
     return repository.find({
       where: {
