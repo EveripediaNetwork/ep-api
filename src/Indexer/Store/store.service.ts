@@ -89,7 +89,7 @@ class DBStoreService {
     
     const createActivity = (typ: Status) => {
       const resp = activityRepository.create({
-        wikiId: wiki.title,
+        wikiId: wiki.id,
         type: typ,
         content: [
           {
