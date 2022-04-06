@@ -9,21 +9,26 @@ class ActivityArgs extends PaginationArgs {
   wikiId!: string
 }
 
+@ArgsType()
+class LangArgs extends PaginationArgs {
+  @Field(() => String)
+  lang = 'en'
+}
+
 @Resolver(() => Activity)
 class ActivityResolver {
   constructor(private connection: Connection) {}
 
   @Query(() => [Activity])
-  async Activities(@Args() args: PaginationArgs) {
+  async Activities(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository.find({
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        datetime: 'DESC',
-      },
-      
-    })
+    return repository
+      .createQueryBuilder('activity')
+      .where(`content[0] ::jsonb @> '{"language":{"id":"${args.lang}"}} '`)
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
   }
 
   @Query(() => [Activity])

@@ -26,7 +26,7 @@ registerEnumType(Status, {
 @Entity()
 class Activity {
   @Field(() => ID)
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn('uuid')
   id!: string
 
   @Field()
@@ -34,11 +34,11 @@ class Activity {
   wikiId!: string
 
   @Field(() => Status)
-  @Column('enum', { enum: Status, nullable: true })
+  @Column('enum', { enum: Status })
   type!: Status
 
   @Field(() => [Wiki])
-  @Column('jsonb', { nullable: true })
+  @Column('jsonb')
   content!: Wiki[]
 
   @Field(() => GraphQLISODateTime)
