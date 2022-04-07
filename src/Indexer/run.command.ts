@@ -24,29 +24,39 @@ class RunCommand implements CommandRunner {
     private connection: Connection,
   ) {}
 
+  async getUnixtime() {
+    const repo = this.connection.getRepository(Wiki)
+    const lastWikiEdited = await repo.find({
+      order: {
+        updated: 'DESC',
+      },
+      take: 1,
+    })
+
+    const unixtime = Math.floor(
+      new Date(lastWikiEdited[0].updated).getTime() / 1000,
+    )
+
+    return unixtime
+  }
+
   async initiateIndexer(
     hashes: Hash[],
     unixtime: number,
     loop?: boolean,
   ): Promise<void> {
+    let newUnixtime
+
     if (hashes.length === 0 && loop) {
       await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
+
       console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
       console.log(`❕ Found ${newHashes.length} hashes!`)
-      // TODO: refactor all this (doing it from gh rn)
-      const repo = this.connection.getRepository(Wiki)
-      const lastWikiEdited = await repo.find({
-        order: {
-          updated: 'DESC',
-        },
-        take: 1,
-      })
-      const newUnixtime = Math.floor(
-        new Date(lastWikiEdited[0].updated).getTime() / 1000,
-      )
+
+      newUnixtime = await this.getUnixtime()
       await this.initiateIndexer(newHashes, newUnixtime, loop)
     }
 
@@ -66,21 +76,12 @@ class RunCommand implements CommandRunner {
         console.error(ex)
       }
     }
-      
+
     if (loop) {
       // TODO: refactor all this (doing it from gh rn)
-      const repo2 = this.connection.getRepository(Wiki)
-      const lastWikiEdited2 = await repo2.find({
-        order: {
-          updated: 'DESC',
-        },
-        take: 1,
-      })
-      const newUnixtime2 = Math.floor(
-        new Date(lastWikiEdited2[0].updated).getTime() / 1000,
-      )
-      const newHashes = await this.providerService.getIPFSHashesFromBlock(newUnixtime2)
-      await this.initiateIndexer(newHashes, newUnixtime2, loop)
+      newUnixtime = await this.getUnixtime()
+      const newHashes = await this.providerService.getIPFSHashesFromBlock(newUnixtime)
+      await this.initiateIndexer(newHashes, newUnixtime, loop)
     }
   }
 
@@ -89,16 +90,7 @@ class RunCommand implements CommandRunner {
     const loop = options?.loop || false
 
     if (options?.unixtime === undefined) {
-      const repo = this.connection.getRepository(Wiki)
-      const lastWikiEdited = await repo.find({
-        order: {
-          updated: 'DESC',
-        },
-        take: 1,
-      })
-      unixtime = Math.floor(
-        new Date(lastWikiEdited[0].updated).getTime() / 1000,
-      )
+      unixtime = await this.getUnixtime()
     } else {
       unixtime = options.unixtime
     }
