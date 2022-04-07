@@ -22,13 +22,13 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activities(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository.createQueryBuilder('activity')
-        .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
-        .limit(args.limit)
-        .offset(args.offset)
-        .orderBy('datetime', 'DESC')
-        .getMany()
-
+    return repository
+      .createQueryBuilder('activity')
+      .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
   }
 
   @Query(() => [Activity])

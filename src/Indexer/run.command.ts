@@ -78,9 +78,10 @@ class RunCommand implements CommandRunner {
     }
 
     if (loop) {
-      // TODO: refactor all this (doing it from gh rn)
       newUnixtime = await this.getUnixtime()
-      const newHashes = await this.providerService.getIPFSHashesFromBlock(newUnixtime)
+      const newHashes = await this.providerService.getIPFSHashesFromBlock(
+        newUnixtime,
+      )
       await this.initiateIndexer(newHashes, newUnixtime, loop)
     }
   }
