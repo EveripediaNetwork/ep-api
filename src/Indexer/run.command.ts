@@ -36,7 +36,18 @@ class RunCommand implements CommandRunner {
       )
       console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
       console.log(`❕ Found ${newHashes.length} hashes!`)
-      await this.initiateIndexer(newHashes, Math.floor(new Date().getTime() / 1000), loop)
+      // TODO: refactor all this (doing it from gh rn)
+      const repo = this.connection.getRepository(Wiki)
+      const lastWikiEdited = await repo.find({
+        order: {
+          updated: 'DESC',
+        },
+        take: 1,
+      })
+      const newUnixtime = Math.floor(
+        new Date(lastWikiEdited[0].updated).getTime() / 1000,
+      )
+      await this.initiateIndexer(newHashes, newUnixtime, loop)
     }
 
     for (const hash of hashes) {
@@ -57,8 +68,19 @@ class RunCommand implements CommandRunner {
     }
       
     if (loop) {
-      const newHashes = await this.providerService.getIPFSHashesFromBlock(unixtime)
-      await this.initiateIndexer(newHashes, Math.floor(new Date().getTime() / 1000), loop)
+      // TODO: refactor all this (doing it from gh rn)
+      const repo2 = this.connection.getRepository(Wiki)
+      const lastWikiEdited2 = await repo.find({
+        order: {
+          updated: 'DESC',
+        },
+        take: 1,
+      })
+      const newUnixtime2 = Math.floor(
+        new Date(lastWikiEdited2[0].updated).getTime() / 1000,
+      )
+      const newHashes = await this.providerService.getIPFSHashesFromBlock(newUnixtime2)
+      await this.initiateIndexer(newHashes, newUnixtime2, loop)
     }
   }
 
