@@ -70,7 +70,7 @@ class RunCommand implements CommandRunner {
     if (loop) {
       // TODO: refactor all this (doing it from gh rn)
       const repo2 = this.connection.getRepository(Wiki)
-      const lastWikiEdited2 = await repo.find({
+      const lastWikiEdited2 = await repo2.find({
         order: {
           updated: 'DESC',
         },
