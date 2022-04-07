@@ -67,6 +67,10 @@ class Wiki {
   @Column('text')
   content!: string
 
+  @Field()
+  @Column('varchar', { default: '' })
+  summary!: string
+
   @Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true })
   language!: Language

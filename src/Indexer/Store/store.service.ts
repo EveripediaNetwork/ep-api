@@ -14,6 +14,7 @@ export type ValidWiki = {
   language: string
   title: string
   content: string
+  summary?: string
   tags: {
     id: string
   }[]
@@ -86,7 +87,7 @@ class DBStoreService {
     }
 
     const existWiki = await wikiRepository.findOne(wiki.id)
-    
+
     const createActivity = (typ: Status) => {
       const resp = activityRepository.create({
         wikiId: wiki.id,
@@ -97,6 +98,7 @@ class DBStoreService {
             title: wiki.title,
             block: hash.block,
             content: wiki.content,
+            summary: wiki.summary,
             version: wiki.version,
             language,
             user,
@@ -121,6 +123,7 @@ class DBStoreService {
       existWiki.language = language
       existWiki.title = wiki.title
       existWiki.content = wiki.content
+      existWiki.summary = wiki.summary || ''
       existWiki.user = user
       existWiki.tags = tags
       existWiki.categories = categories
@@ -140,6 +143,7 @@ class DBStoreService {
       language,
       title: wiki.title,
       content: wiki.content,
+      summary: wiki.summary,
       user,
       tags,
       categories,
