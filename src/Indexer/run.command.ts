@@ -36,7 +36,7 @@ class RunCommand implements CommandRunner {
       )
       console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
       console.log(`❕ Found ${newHashes.length} hashes!`)
-      await this.initiateIndexer(newHashes, unixtime, loop)
+      await this.initiateIndexer(newHashes, Math.floor(new Date().getTime() / 1000), loop)
     }
 
     for (const hash of hashes) {
