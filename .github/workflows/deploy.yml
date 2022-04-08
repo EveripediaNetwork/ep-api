@@ -5,17 +5,6 @@ on:
       - main
 
 jobs:
-  setup:
-    name: setup
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Setup
-        with:
-          scripts: |
-            cd ep-api
-            git pull
-
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -57,5 +46,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            cd ep-api
+            git pull
             yarn
             pm2 update
