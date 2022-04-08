@@ -4,9 +4,47 @@ on:
     branches:
       - main
 jobs:
+  setup:
+    name: setup
+    runs-on: ubuntu-latest
+
+    with:
+      scripts: |
+        cd ep-api
+        git pull
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checks Linting
+        run: yarn lint
+
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Run tests
+        run: yarn test
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Build Application
+        run: yarn build
+
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+    needs: build
+
     steps:
       - name: deploy bot
         uses: appleboy/ssh-action@master
@@ -16,7 +54,5 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd ep-api
-            git pull
             yarn
             pm2 update
