@@ -3,15 +3,18 @@ on:
   push:
     branches:
       - main
+
 jobs:
   setup:
     name: setup
     runs-on: ubuntu-latest
 
-    with:
-      scripts: |
-        cd ep-api
-        git pull
+    steps:
+      - name: Setup
+        with:
+          scripts: |
+            cd ep-api
+            git pull
 
   lint:
     name: lint
