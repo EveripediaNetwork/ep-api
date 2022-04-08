@@ -5,39 +5,30 @@ on:
       - main
 
 jobs:
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    needs: setup
-
-    steps:
-      - name: Checks Linting
-        run: yarn lint
-
-  tests:
-    name: tests
-    runs-on: ubuntu-latest
-    needs: lint
-
-    steps:
-      - name: Run tests
-        run: yarn test
-
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Build Application
-        run: yarn build
-
   deploy:
     name: deploy
     runs-on: ubuntu-latest
     needs: build
 
     steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.4
+        with:
+          cache: yarn
+          cache-dependency-path: yarn.lock
+          node-version: 16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: tests
+        run: yarn test
+
+      - name: lints
+        run: yarn lint
+
       - name: deploy bot
         uses: appleboy/ssh-action@master
         with:
