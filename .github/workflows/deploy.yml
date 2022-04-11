@@ -22,11 +22,14 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: tests
-        run: yarn test
-
       - name: lints
         run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      - name: tests
+        run: yarn test
 
       - name: deploy bot
         uses: appleboy/ssh-action@master
