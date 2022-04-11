@@ -9,6 +9,7 @@ import Tag from './Entities/tag.entity'
 import Category from './Entities/category.entity'
 import User from './Entities/user.entity'
 import Language from './Entities/language.entity'
+import Activity from './Entities/activity.entity'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
@@ -20,7 +21,7 @@ export default class TypeOrmConfig {
       password: configService.get('DATABASE_PASS'),
       database: configService.get('DATABASE_NAME'),
       logger: 'advanced-console',
-      entities: [Wiki, Tag, Category, User, Language],
+      entities: [Wiki, Tag, Category, User, Language, Activity],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,
     }

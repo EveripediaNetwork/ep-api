@@ -8,6 +8,7 @@ import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
+import ActivityResolver from './activity.resolver'
 
 import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
@@ -39,6 +40,7 @@ import RelayerModule from '../Relayer/relayer.module'
     CategoryResolver,
     TagResolver,
     UserResolver,
+    ActivityResolver,
   ],
 })
 class AppModule {
