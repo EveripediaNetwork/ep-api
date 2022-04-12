@@ -23,14 +23,12 @@ class TokenStatsService {
     return result.data
   }
 
-  async getToken(symb: string): Promise<any> {
-    const data: any = await this.cacheManager.get('data')
+  async getToken(symb: string): Promise<TokenData[]> {
+    const data: [TokenData] | undefined = await this.cacheManager.get('data')
     const stats = (e: [TokenData]) => e.filter((v: any) => v.symbol === symb)
     if (data) {
-      console.log('from cache')
       return stats(data)
     }
-    console.log('calling api')
     return stats(await this.getStats())
   }
 }

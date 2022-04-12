@@ -9,7 +9,7 @@ class TokenStatsResolver {
   @Query(() => [TokenData], { name: 'tokenStats' })
   async getStats(
     @Args({ name: 'symbol', type: () => String }) symbol: string,
-  ): Promise<[TokenData]> {
+  ): Promise<TokenData[]> {
     return this.tokenStatsService.getToken(symbol)
   }
 }

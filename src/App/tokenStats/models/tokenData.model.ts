@@ -1,6 +1,18 @@
 import { ObjectType, Field } from '@nestjs/graphql'
 
 @ObjectType()
+export class ROI {
+  @Field()
+  times?: number
+
+  @Field()
+  currency?: string
+
+  @Field()
+  percentage?: number
+}
+
+@ObjectType()
 export default class TokenData {
   @Field()
   id?: string
@@ -75,8 +87,9 @@ export default class TokenData {
   atl_date?: string
 
   @Field({ nullable: true })
-  roi?: number
+  roi?: ROI
 
   @Field({ nullable: true })
   last_updated?: string
 }
+
