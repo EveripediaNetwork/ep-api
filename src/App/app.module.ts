@@ -32,7 +32,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
     PinModule,
     DatabaseModule,
     RelayerModule,
-    TokenStatsModule
+    TokenStatsModule,
   ],
   controllers: [],
   providers: [

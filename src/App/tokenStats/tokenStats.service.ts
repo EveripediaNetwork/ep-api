@@ -14,11 +14,8 @@ class TokenStatsService {
   ) {}
 
   async getStats(): Promise<[TokenData]> {
-    // TODO: use proper env url
-    const response = this.httpService.get(
-      // this.configService.get<string>('TOKEN_STATS_URL'),
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd',
-    )
+    const url = this.configService.get('TOKEN_STATS_URL')
+    const response = await this.httpService.get(url)
     const result = await lastValueFrom(response)
 
     await this.cacheManager.set('data', result.data)
@@ -30,8 +27,8 @@ class TokenStatsService {
     const data: any = await this.cacheManager.get('data')
     const stats = (e: [TokenData]) => e.filter((v: any) => v.symbol === symb)
     if (data) {
-        console.log('from cache')
-        return stats(data)
+      console.log('from cache')
+      return stats(data)
     }
     console.log('calling api')
     return stats(await this.getStats())
