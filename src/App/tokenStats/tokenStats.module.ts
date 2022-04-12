@@ -1,5 +1,5 @@
 import { HttpModule } from '@nestjs/axios'
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import TokenStatsResolver from './tokenStats.resolver'
 import TokenStatsService from './tokenStats.service'
 
@@ -9,6 +9,7 @@ import TokenStatsService from './tokenStats.service'
       timeout: 20000,
       maxRedirects: 5,
     }),
+    CacheModule.register({ ttl: 30 }),
   ],
   providers: [TokenStatsResolver, TokenStatsService],
 })

@@ -15,6 +15,7 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
 
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
+import TokenStatsModule from './tokenStats/tokenStats.module'
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import RelayerModule from '../Relayer/relayer.module'
     PinModule,
     DatabaseModule,
     RelayerModule,
+    TokenStatsModule
   ],
   controllers: [],
   providers: [
