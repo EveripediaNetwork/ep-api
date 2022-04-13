@@ -22,13 +22,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup API
-        with:
-          script: |
-            cd ep-api
-            git pull
-            yarn
-
       - name: lints
         run: yarn lint
 
@@ -46,4 +39,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            cd ep-api
+            git pull
+            yarn
             pm2 update
