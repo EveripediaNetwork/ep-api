@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
+import { NotFoundException } from '@nestjs/common'
 import TokenStatsService from './tokenStats.service'
 import TokenData from './models/tokenData.model'
-import { NotFoundException } from '@nestjs/common'
 
 @Resolver()
 class TokenStatsResolver {
@@ -16,10 +16,10 @@ class TokenStatsResolver {
   }
 
   @Query(() => [TokenData], { name: 'tokenStats' })
-  async getStats(
+  async getTokenStats(
     @Args({ name: 'symbol', type: () => String }) symbol: string,
   ): Promise<TokenData[]> {
-      const result = await this.tokenStatsService.getToken(symbol)
+    const result = await this.tokenStatsService.getToken(symbol)
     return this.errorHandler(result)
   }
 }
