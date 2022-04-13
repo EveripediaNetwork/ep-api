@@ -15,7 +15,7 @@ class TokenStatsService {
 
   async getStats(): Promise<[TokenData]> {
     const url = this.configService.get('TOKEN_STATS_URL')
-    const response = await this.httpService.get(url)
+    const response = this.httpService.get(url)
     const result = await lastValueFrom(response)
 
     await this.cacheManager.set('data', result.data)

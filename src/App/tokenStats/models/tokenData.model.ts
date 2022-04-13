@@ -92,4 +92,3 @@ export default class TokenData {
   @Field({ nullable: true })
   last_updated?: string
 }
-
