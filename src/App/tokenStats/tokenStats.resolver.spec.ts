@@ -33,39 +33,27 @@ describe('tokenStatsResolver', () => {
   it('should return an array of one TokenData object', async () => {
     const symbol = 'btc'
     const testData = {
-      id: 'bitcoin',
-      symbol: 'btc',
-      name: 'Bitcoin',
-      image:
-        'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579',
-      current_price: 13.168431,
-      market_cap: 250557097,
-      market_cap_rank: 1,
-      fully_diluted_valuation: 276777756,
-      total_volume: 8178482,
-      high_24h: 13.283563,
-      low_24h: 13.101506,
-      price_change_24h: -0.091509271981,
-      price_change_percentage_24h: -0.69012,
-      market_cap_change_24h: -1668257.974445641,
-      market_cap_change_percentage_24h: -0.66142,
-      circulating_supply: 19010556,
-      total_supply: 21000000,
-      max_supply: 21000000,
-      ath: 624.203,
-      ath_change_percentage: -97.89128,
-      ath_date: '2015-10-20T00:00:00.000Z',
-      atl: 6.779735,
-      atl_change_percentage: 94.14784,
-      atl_date: '2017-06-12T00:00:00.000Z',
-      roi: null,
-      last_updated: '2022-04-13T12:11:33.045Z',
+      id: 'everipedia',
+      symbol: "iq",
+      market_data: {
+        market_cap: {
+          usd: 117819864,
+        },
+        market_cap_change_percentage_24h: 4.1948,
+        price_change_percentage_24h: 4.8428,
+        fully_diluted_valuation: {
+          usd: 246892035,
+        },
+        total_volume: {
+          usd: 7662235,
+        },
+      },
     }
     const { res } = getMockRes<any>({
       data: { ...testData },
     })
     const result: any = getMockRes({ data: { ...testData } })
-    jest.spyOn(tokenStatsService, 'getToken').mockImplementation(() => result)
+    jest.spyOn(tokenStatsService, 'getStats').mockImplementation(() => result)
 
     expect(await tokenStatsResolver.getTokenStats(symbol)).toHaveProperty(
       'res.data',
@@ -77,14 +65,7 @@ describe('tokenStatsResolver', () => {
     const testData = {
       errors: [
         {
-          message: 'Not Found',
-          extensions: {
-            code: '404',
-            response: {
-              statusCode: 404,
-              message: 'Not Found',
-            },
-          },
+          message: 'Request failed with status code 404',
         },
       ],
       data: null,
@@ -93,12 +74,12 @@ describe('tokenStatsResolver', () => {
       ...testData,
     })
     const result: any = getMockRes({ data: { ...testData } })
-    jest.spyOn(tokenStatsService, 'getToken').mockImplementation(() => result)
+    jest.spyOn(tokenStatsService, 'getStats').mockImplementation(() => result)
 
     expect(await tokenStatsResolver.getTokenStats('')).toHaveProperty(
       'res.data',
     )
     expect(res.data).toBe(null)
-    expect(res.errors[0].message).toBe('Not Found')
+    expect(res.errors[0].message).toBe('Request failed with status code 404')
   })
 })

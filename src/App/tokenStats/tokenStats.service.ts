@@ -13,23 +13,17 @@ class TokenStatsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getStats(): Promise<[TokenData]> {
+  async getStats(name: string): Promise<TokenData> {
     const url = this.configService.get('TOKEN_STATS_URL')
-    const response = this.httpService.get(url)
-    const result = await lastValueFrom(response)
-
-    await this.cacheManager.set('data', result.data)
-
-    return result.data
-  }
-
-  async getToken(symb: string): Promise<TokenData[]> {
-    const data: [TokenData] | undefined = await this.cacheManager.get('data')
-    const stats = (e: [TokenData]) => e.filter((v: any) => v.symbol === symb)
-    if (data) {
-      return stats(data)
+    const cached: TokenData | undefined = await this.cacheManager.get(name.toLowerCase())
+    if (cached) {
+        return cached
     }
-    return stats(await this.getStats())
+    const response = this.httpService.get(url + name)
+    const result = await lastValueFrom(response)
+    const { id } = result.data
+    await this.cacheManager.set(id, result.data)   
+    return result.data
   }
 }
 export default TokenStatsService
