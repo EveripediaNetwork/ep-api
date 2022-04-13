@@ -3,11 +3,34 @@ on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+
     steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.4
+        with:
+          cache: yarn
+          cache-dependency-path: yarn.lock
+          node-version: 16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: lints
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      - name: tests
+        run: yarn test
+
       - name: deploy bot
         uses: appleboy/ssh-action@master
         with:
