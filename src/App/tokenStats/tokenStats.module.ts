@@ -2,6 +2,8 @@ import { HttpModule } from '@nestjs/axios'
 import { CacheModule, Module } from '@nestjs/common'
 import TokenStatsResolver from './tokenStats.resolver'
 import TokenStatsService from './tokenStats.service'
+import StatsGetterController from './CryptoStats/stats-getter.controller'
+import StatsGetterService from './CryptoStats/stats-getter.service'
 
 @Module({
   imports: [
@@ -11,6 +13,7 @@ import TokenStatsService from './tokenStats.service'
     }),
     CacheModule.register({ ttl: 30 }),
   ],
-  providers: [TokenStatsResolver, TokenStatsService],
+  controllers: [StatsGetterController],
+  providers: [TokenStatsResolver, TokenStatsService, StatsGetterService],
 })
 export default class TokenStatsModule {}

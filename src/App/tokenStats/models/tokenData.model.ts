@@ -1,30 +1,6 @@
 import { ObjectType, Field } from '@nestjs/graphql'
 
 @ObjectType()
-export class Currency {
-  @Field()
-  usd?: number
-}
-
-@ObjectType()
-export class MarketData {
-  @Field()
-  market_cap?: Currency
-
-  @Field()
-  market_cap_change_percentage_24h?: number
-
-  @Field()
-  total_volume?: Currency
-
-  @Field()
-  price_change_percentage_24h?: number
-
-  @Field()
-  fully_diluted_valuation?: Currency
-}
-
-@ObjectType()
 export default class TokenData {
   @Field()
   id?: string
@@ -36,5 +12,20 @@ export default class TokenData {
   name?: string
 
   @Field()
-  market_data?: MarketData
+  market_cap?: number
+
+  @Field()
+  market_cap_percentage_change?: number
+
+  @Field()
+  diluted_market_cap?: number
+
+  @Field()
+  diluted_market_cap_percentage_change?: number
+
+  @Field()
+  volume?: number
+
+  @Field()
+  volume_percentage_change?: number
 }

@@ -34,7 +34,7 @@ describe('tokenStatsResolver', () => {
     const symbol = 'btc'
     const testData = {
       id: 'everipedia',
-      symbol: "iq",
+      symbol: 'iq',
       market_data: {
         market_cap: {
           usd: 117819864,
