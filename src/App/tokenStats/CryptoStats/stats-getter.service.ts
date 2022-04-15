@@ -29,7 +29,7 @@ class StatsGetterService {
     const data = { ...result.data }
     const res: any = Object.values(data.data)
     const cmcData: any = res[0].quote.USD
-    
+
     // coingecko response
     // const tokenStats: TokenData = {
     //   id: data.id,
