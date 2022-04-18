@@ -12,7 +12,8 @@ class StatsGetterService {
   ) {}
 
   private makeApiCall(name: string) {
-    const url = this.configService.get('COINMARKETCAP_URL')
+    const url =
+      'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
     const key = this.configService.get('COINMARKETCAP_API_KEY')
     const response = this.httpService.get(`${url}?slug=${name}`, {
       headers: {
@@ -25,26 +26,10 @@ class StatsGetterService {
   async getStats(name: string): Promise<any> {
     const result = await lastValueFrom(this.makeApiCall(name))
 
-    // destructure result.data
     const data = { ...result.data }
     const res: any = Object.values(data.data)
     const cmcData: any = res[0].quote.USD
 
-    // coingecko response
-    // const tokenStats: TokenData = {
-    //   id: data.id,
-    //   symbol: data.symbol,
-    //   name: data.name,
-    //   market_cap: data.market_data.market_cap.usd,
-    //   market_cap_percentage_change:
-    //     data.market_data.market_cap_change_percentage_24h,
-    //   diluted_market_cap: data.market_data.fully_diluted_valuation.usd,
-    //   diluted_market_cap_percentage_change: 0,
-    //   volume: data.market_data.total_volume.usd,
-    //   volume_percentage_change: 0,
-    // }
-
-    // coinmarketcap
     const tokenStats: TokenData = {
       id: res[0].slug,
       symbol: res[0].symbol,
