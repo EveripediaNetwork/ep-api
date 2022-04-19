@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { HttpModule } from '@nestjs/axios'
 import { ConfigModule } from '@nestjs/config'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
@@ -8,6 +7,7 @@ import DBStoreService from './Store/store.service'
 import IPFSValidatorService from './Validator/validator.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import DatabaseModule from '../Database/database.module'
+import httpModule from '../httpModule'
 
 @Module({
   imports: [
@@ -15,10 +15,7 @@ import DatabaseModule from '../Database/database.module'
       isGlobal: true,
     }),
     DatabaseModule,
-    HttpModule.register({
-      timeout: 20000,
-      maxRedirects: 5,
-    }),
+    httpModule(20000),
   ],
   controllers: [],
   providers: [
