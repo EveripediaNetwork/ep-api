@@ -47,7 +47,7 @@
     "graphql-upload": "^13.0.0",
     "jest-mock": "^27.5.1",
     "mysql2": "^2.3.3",
-    "nest-commander": "^2.4.0",
+    "nest-commander": "^2.5.0",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
