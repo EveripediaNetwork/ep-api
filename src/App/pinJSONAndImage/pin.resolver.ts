@@ -1,17 +1,15 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql'
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
-import { createWriteStream, ReadStream } from 'fs'
+import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
-import { HttpException, HttpStatus, InternalServerErrorException, Logger } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common'
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
-
-interface Upload {
-  filename: string
-  mimetype: string
-  encoding: string
-  createReadStream: () => ReadStream
-}
 
 @Resolver(() => IpfsHash)
 class PinResolver {
@@ -26,12 +24,19 @@ class PinResolver {
     }
   }
 
-  private async checkFile(image: Upload) {
+  private async checkFile(image: FileUpload, context: any) {
     const type = image.mimetype.split('/')[0]
     if (type !== 'image') {
       Logger.error('Wrong file type')
       throw new HttpException(
         'Unsupported file type! Make sure file is an image.',
+        HttpStatus.BAD_REQUEST,
+      )
+    }
+    if (context.req.headers['content-length'] > 10000000) {       
+      Logger.error('File too large')
+      throw new HttpException(
+        'Too large! Make sure file is less than 10mb.',
         HttpStatus.BAD_REQUEST,
       )
     }
@@ -42,8 +47,9 @@ class PinResolver {
   async pinImage(
     @Args({ name: 'fileUpload', type: () => GraphQLUpload })
     image: FileUpload,
+    @Context() context: any,
   ): Promise<FileUpload> {
-    const { createReadStream, filename } = await this.checkFile(image)
+    const { createReadStream, filename } = await this.checkFile(image, context)
     const destinationPath = `./uploads/${filename}`
     return new Promise((res, rej) =>
       createReadStream()
