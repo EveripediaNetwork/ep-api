@@ -6,9 +6,7 @@ import RelayerResolver from './resolvers/relayer.resolver'
 import httpModule from '../httpModule'
 
 @Module({
-  imports: [
-    httpModule(10000),
-  ],
+  imports: [httpModule(10000)],
   controllers: [RelayerController],
   providers: [RelayerService, RelayerResolver],
 })
