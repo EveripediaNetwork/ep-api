@@ -28,6 +28,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
       playground: true,
       cors: true,
       autoSchemaFile: true,
+      context: ({req, res}) => ({req, res})
     }),
     PinModule,
     DatabaseModule,
