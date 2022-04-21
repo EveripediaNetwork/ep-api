@@ -33,7 +33,7 @@ class PinResolver {
         HttpStatus.BAD_REQUEST,
       )
     }
-    if (context.req.headers['content-length'] > 10000000) {       
+    if (context.req.headers['content-length'] > 10000000) {
       Logger.error('File too large')
       throw new HttpException(
         'Too large! Make sure file is less than 10mb.',
@@ -57,7 +57,9 @@ class PinResolver {
         .on('error', rej)
         .on('finish', async () => {
           const result = await this.pinService.pinImage(destinationPath)
-          await fs.unlink(destinationPath)
+          if (result) {
+            await fs.unlink(destinationPath)
+          }
           res(this.errorHandler(result))
         }),
     )
