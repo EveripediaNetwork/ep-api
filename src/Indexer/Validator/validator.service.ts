@@ -16,7 +16,7 @@ class IPFSValidatorService {
         validatingWiki.categories.length === 1 ? true : false
 
     const checkUser = (validatingWiki: ValidWiki) =>
-      validatingWiki.user.id.toLowerCase() === hashUserId ? true : false
+      validatingWiki.user.id.toLowerCase() === hashUserId.toLowerCase() ? true : false
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (validatingWiki.summary) {
