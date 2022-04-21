@@ -16,7 +16,7 @@ class IPFSValidatorService {
         validatingWiki.categories.length === 1 ? true : false
 
     const checkUser = (validatingWiki: ValidWiki) =>
-      validatingWiki.user.id === hashUserId ? true : false
+      validatingWiki.user.id.toLowerCase() === hashUserId ? true : false
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (validatingWiki.summary) {
@@ -37,16 +37,8 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkTags =  (validatingWiki: ValidWiki) => {
-      if (
-        validatingWiki.images.length >= 0 ||
-        validatingWiki.images.length <= 5
-      ) {
-        return true
-      }
-
-      return false
-    }
+    const checkTags =  (validatingWiki: ValidWiki) =>
+      validatingWiki.images.length <= 5 ? true : false
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
