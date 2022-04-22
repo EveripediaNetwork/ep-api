@@ -7,21 +7,21 @@ class IPFSValidatorService {
     const languages = ['en', 'es', 'ko', 'zh']
 
     const checkLanguage = (validatingWiki: ValidWiki) =>
-        languages.includes(validatingWiki.language) ? true : false
+      !!languages.includes(validatingWiki.language)
 
     const checkWords = (validatingWiki: ValidWiki) =>
-        validatingWiki.content.split(" ").length >= 150 ? true : false
+      validatingWiki.content.split(' ').length >= 150
 
     const checkCategories = (validatingWiki: ValidWiki) =>
-        validatingWiki.categories.length === 1 ? true : false
+      validatingWiki.categories.length === 1
 
     const checkUser = (validatingWiki: ValidWiki) =>
-      validatingWiki.user.id.toLowerCase() === hashUserId.toLowerCase() ? true : false
+      validatingWiki.user.id.toLowerCase() === hashUserId.toLowerCase()
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (validatingWiki.summary) {
-          return validatingWiki.summary.length <= 128
-        }
+        return validatingWiki.summary.length <= 128
+      }
 
       return true
     }
@@ -37,18 +37,20 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkTags =  (validatingWiki: ValidWiki) =>
-      validatingWiki.images.length <= 5 ? true : false
+    const checkTags = (validatingWiki: ValidWiki) =>
+      validatingWiki.images.length <= 5
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
-    return checkLanguage(wiki)
-      && checkWords(wiki)
-      && checkCategories(wiki)
-      && checkUser(wiki)
-      && checkTags(wiki)
-      && checkSummary(wiki)
-      && checkImages(wiki)
+    return (
+      checkLanguage(wiki) &&
+      checkWords(wiki) &&
+      checkCategories(wiki) &&
+      checkUser(wiki) &&
+      checkTags(wiki) &&
+      checkSummary(wiki) &&
+      checkImages(wiki)
+    )
   }
 }
 
