@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 
-import { getMockReq, getMockRes } from '@jest-mock/express'
+import { getMockRes } from '@jest-mock/express'
 import { createWriteStream, WriteStream } from 'fs'
 import { FileUpload } from 'graphql-upload'
 import { mocked } from 'jest-mock'
@@ -68,14 +68,6 @@ describe('PinResolver', () => {
       createReadStream: jest.fn().mockReturnValueOnce(mockReadStream),
     }
 
-    const mockContext = getMockReq<any>({
-      req: {
-        headers: {
-          'content-length': 5000,
-        },
-      },
-    })
-
     mocked(createWriteStream).mockReturnValueOnce(
       mockWriteStream as unknown as WriteStream,
     )
@@ -97,7 +89,7 @@ describe('PinResolver', () => {
     })
 
     jest.spyOn(pinService, 'pinImage').mockImplementation(() => result)
-    expect(await pinResolver.pinImage(image, mockContext)).toHaveProperty('res.data')
+    expect(await pinResolver.pinImage(image)).toHaveProperty('res.data')
     expect(res.data).toHaveProperty('IpfsHash')
   })
 
