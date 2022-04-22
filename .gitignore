@@ -397,3 +397,4 @@ Temporary Items
 .env
 .env.dev
 dist
+.vscode
