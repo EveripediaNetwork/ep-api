@@ -54,11 +54,13 @@ describe('PinResolver', () => {
           if (event === 'finish') {
             handler()
           }
+
           return this
         }),
     }
     const mockReadStream = {
-      pipe: jest.fn().mockReturnValueOnce(mockWriteStream),
+      on: jest.fn().mockReturnValue(mockWriteStream),
+      pipe: jest.fn().mockReturnValue(mockWriteStream),
     }
 
     const image: FileUpload = {

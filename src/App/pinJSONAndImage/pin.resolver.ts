@@ -11,8 +11,6 @@ import {
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
-const maxFileSize = 10000000
-
 @Resolver(() => IpfsHash)
 class PinResolver {
   constructor(private readonly pinService: PinService) {}
@@ -35,14 +33,6 @@ class PinResolver {
         HttpStatus.BAD_REQUEST,
       )
     }
-    const { createReadStream } = image
-    let bytes = 0
-    for await (const uploadChunk of createReadStream()) {
-      bytes += (uploadChunk as Buffer).byteLength
-      if (bytes > maxFileSize) {
-        break
-      }
-    }
     return image
   }
 
@@ -50,21 +40,22 @@ class PinResolver {
   async pinImage(
     @Args({ name: 'fileUpload', type: () => GraphQLUpload })
     image: FileUpload,
-  ): Promise<FileUpload> {
+  ): Promise<any> {
     const { createReadStream, filename } = await this.checkFile(image)
     const destinationPath = `./uploads/${filename}`
-    return new Promise((res, rej) =>
-      createReadStream()
-        .pipe(createWriteStream(destinationPath))
-        .on('error', rej)
-        .on('finish', async () => {
-          const result = await this.pinService.pinImage(destinationPath)
-          if (result) {
-            await fs.unlink(destinationPath)
-          }
-          res(this.errorHandler(result))
-        }),
-    )
+    return new Promise((res, rej) => {
+      const read = createReadStream()
+      read.on('error', err => {
+        rej(err)
+      })
+      read.pipe(createWriteStream(destinationPath)).on('finish', async () => {
+        const result = await this.pinService.pinImage(destinationPath)
+        if (result) {
+          await fs.unlink(destinationPath)
+        }
+        res(this.errorHandler(result))
+      })
+    })
   }
 
   @Mutation(() => IpfsHash, { name: 'pinJSON' })
