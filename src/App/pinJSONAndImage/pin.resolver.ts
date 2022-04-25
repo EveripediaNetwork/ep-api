@@ -40,7 +40,7 @@ class PinResolver {
   async pinImage(
     @Args({ name: 'fileUpload', type: () => GraphQLUpload })
     image: FileUpload,
-  ): Promise<any> {
+  ): Promise<FileUpload> {
     const { createReadStream, filename } = await this.checkFile(image)
     const destinationPath = `./uploads/${filename}`
     return new Promise((res, rej) => {
