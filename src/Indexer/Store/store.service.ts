@@ -8,6 +8,8 @@ import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
 
+const limit = 20
+
 export type ValidWiki = {
   id: string
   version: number
@@ -87,7 +89,7 @@ class DBStoreService {
     }
 
     const existWiki = await wikiRepository.findOne(wiki.id)
-
+    const wikiEdits: number = (await activityRepository.find()).length
     const createActivity = (typ: Status) => {
       const resp = activityRepository.create({
         wikiId: wiki.id,
@@ -117,7 +119,7 @@ class DBStoreService {
     }
 
     // TODO: store history and delete?
-    if (existWiki) {
+    if (existWiki && wikiEdits !== limit) {
       await activityRepository.save(createActivity(Status.UPDATED))
       existWiki.version = wiki.version
       existWiki.language = language
