@@ -3,12 +3,15 @@ import { ConfigService } from '@nestjs/config'
 import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import IpfsHash from './model/ipfsHash'
+import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 
 const pinataSDK = require('@pinata/sdk')
 
 @Injectable()
 class PinService {
   constructor(private configService: ConfigService) {}
+
+  private validator: IPFSValidatorService = new IPFSValidatorService()
 
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')
@@ -33,6 +36,7 @@ class PinService {
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
+    const isDataValid = this.validator.validate(data, true)
 
     const payload = {
       pinataMetadata: {
@@ -46,7 +50,11 @@ class PinService {
       this.pinata().pinJSONToIPFS(option)
 
     try {
-      const res = await pinToPinata(payload)
+      let res
+      if (await isDataValid) {
+        res = await pinToPinata(payload)
+      }
+
       return res
     } catch (e) {
       return e

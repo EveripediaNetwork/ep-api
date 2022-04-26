@@ -10,7 +10,9 @@ class TokenStatsResolver {
   async getTokenStats(
     @Args({ name: 'tokenName', type: () => String }) tokenName: string,
   ): Promise<TokenData> {
-    const result = await this.tokenStatsService.getStats(tokenName.toLowerCase())
+    const result = await this.tokenStatsService.getStats(
+      tokenName.toLowerCase(),
+    )
     return result
   }
 }
