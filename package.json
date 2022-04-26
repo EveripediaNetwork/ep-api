@@ -33,7 +33,7 @@
     "@nestjs/config": "^1.2.0",
     "@nestjs/core": "^8.1.1",
     "@nestjs/graphql": "^10.0.5",
-    "@nestjs/platform-express": "^8.1.1",
+    "@nestjs/platform-express": "^8.4.4",
     "@nestjs/typeorm": "^8.0.3",
     "@pinata/sdk": "^1.1.24",
     "apollo-server-express": "^3.6.3",
