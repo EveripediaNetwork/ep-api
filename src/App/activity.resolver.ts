@@ -32,6 +32,23 @@ class ActivityResolver {
   }
 
   @Query(() => [Activity])
+  async activitiesInHr(@Args() args: ActivityArgs) {
+    const repository = this.connection.getRepository(Activity)
+    return repository
+      .createQueryBuilder('activity')
+      .where(
+        `activity.wikiId = :id AND activity.datetime >= NOW() - INTERVAL '72 HOURS'`,
+        {
+          id: args.wikiId,
+        },
+      )
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
+  }
+
+  @Query(() => [Activity])
   async activitiesByWikId(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
     return repository.find({
