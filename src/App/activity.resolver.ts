@@ -62,6 +62,9 @@ class ActivityResolver {
           id: args.userId,
         },
       },
+      order: {
+        datetime: 'DESC',
+      },
     })
   }
 }
