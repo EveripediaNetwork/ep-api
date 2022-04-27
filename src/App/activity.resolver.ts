@@ -10,6 +10,12 @@ class ActivityArgs extends PaginationArgs {
 }
 
 @ArgsType()
+class ActivityArgsByUser extends PaginationArgs {
+  @Field(() => String)
+  userId!: string
+}
+
+@ArgsType()
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
@@ -42,6 +48,19 @@ class ActivityResolver {
       skip: args.offset,
       order: {
         datetime: 'DESC',
+      },
+    })
+  }
+
+  @Query(() => [Activity])
+  async activitiesByUser(@Args() args: ActivityArgsByUser) {
+    const repository = this.connection.getRepository(Activity)
+
+    return repository.find({
+      where: {
+        user: {
+          id: args.userId,
+        },
       },
     })
   }

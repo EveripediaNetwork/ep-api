@@ -5,10 +5,7 @@ import TokenStatsService from './tokenStats.service'
 import StatsGetterService from './CryptoStats/stats-getter.service'
 
 @Module({
-  imports: [
-    httpModule(20000),
-    CacheModule.register({ ttl: 30 }),
-  ],
+  imports: [httpModule(20000), CacheModule.register({ ttl: 30 })],
   providers: [TokenStatsResolver, TokenStatsService, StatsGetterService],
 })
 export default class TokenStatsModule {}
