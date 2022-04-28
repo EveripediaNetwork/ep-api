@@ -62,6 +62,8 @@ class ActivityResolver {
           id: args.userId,
         },
       },
+      take: args.limit,
+      skip: args.offset,
       order: {
         datetime: 'DESC',
       },
