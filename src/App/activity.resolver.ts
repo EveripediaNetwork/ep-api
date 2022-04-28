@@ -1,5 +1,5 @@
 import { Args, ArgsType, Field, Query, Resolver } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { Between, Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import PaginationArgs from './pagination.args'
 
