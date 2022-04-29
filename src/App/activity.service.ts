@@ -20,11 +20,11 @@ class ActivityService {
       )
       .orderBy('datetime', 'DESC')
       .getMany()
-      console.log(userActivity)
-      if (userActivity.length !== limit) {
-          return true
-      }
-      return false
+    console.log(userActivity)
+    if (userActivity.length !== limit) {
+      return true
+    }
+    return false
   }
 }
 
