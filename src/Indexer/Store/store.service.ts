@@ -91,6 +91,7 @@ class DBStoreService {
       const resp = activityRepository.create({
         wikiId: wiki.id,
         type: typ,
+        user,
         content: [
           {
             id: wiki.id,

@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+
 import {
   Field,
   GraphQLISODateTime,
@@ -11,7 +13,9 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql'
+
 import Wiki from './wiki.entity'
+import User from './user.entity'
 
 export enum Status {
   CREATED,
@@ -28,6 +32,10 @@ class Activity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id!: string
+
+  @Field(() => User)
+  @ManyToOne('User', 'user', { lazy: true })
+  user!: User
 
   @Field()
   @Column('varchar')
