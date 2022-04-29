@@ -8,6 +8,7 @@ import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
+import ActivityService from './activity.service'
 import ActivityResolver from './activity.resolver'
 
 import PinModule from './pinJSONAndImage/pin.module'
@@ -42,6 +43,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
     CategoryResolver,
     TagResolver,
     UserResolver,
+    ActivityService,
     ActivityResolver,
   ],
 })

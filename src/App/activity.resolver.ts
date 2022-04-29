@@ -37,7 +37,7 @@ class ActivityResolver {
     return repository
       .createQueryBuilder('activity')
       .where(
-        `activity.wikiId = :id AND activity.datetime >= NOW() - INTERVAL '1 HOURS'`,
+        `activity.wikiId = :id AND activity.datetime >= NOW() - INTERVAL '72 HOURS'`,
         {
           id: args.wikiId,
         },

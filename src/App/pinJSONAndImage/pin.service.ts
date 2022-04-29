@@ -3,12 +3,16 @@ import { ConfigService } from '@nestjs/config'
 import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import IpfsHash from './model/ipfsHash'
+import ActivityService from '../activity.service'
 
 const pinataSDK = require('@pinata/sdk')
 
 @Injectable()
 class PinService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private activityService: ActivityService,
+  ) {}
 
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')
@@ -33,6 +37,8 @@ class PinService {
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
+
+     await this.activityService.checkUserActivity
 
     const payload = {
       pinataMetadata: {
