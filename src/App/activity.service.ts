@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 
-const limit = 3
+const limit = 20
 
 @Injectable()
 class ActivityService {
@@ -13,14 +13,13 @@ class ActivityService {
     const userActivity = await repository
       .createQueryBuilder('activity')
       .where(
-        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '72 HOURS'`,
+        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '1 HOURS'`,
         {
           id: userId,
         },
       )
       .orderBy('datetime', 'DESC')
       .getMany()
-    console.log(userActivity, userActivity.length)
     if (userActivity.length <= limit) {
       return true
     }
