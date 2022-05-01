@@ -42,7 +42,7 @@
     "class-validator": "^0.13.2",
     "defender-relay-client": "^1.18.0",
     "ethers": "^5.6.1",
-    "graphql": "^16.3.0",
+    "graphql": "^16.4.0",
     "graphql-request": "^4.0.0",
     "graphql-upload": "^13.0.0",
     "jest-mock": "^27.5.1",
