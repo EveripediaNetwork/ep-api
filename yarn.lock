@@ -3033,24 +3033,24 @@ defaults@^1.0.3:
   dependencies:
     clone "^1.0.2"
 
-defender-base-client@^1.18.0:
-  version "1.18.0"
-  resolved "https://registry.npmjs.org/defender-base-client/-/defender-base-client-1.18.0.tgz"
-  integrity sha512-NZHcjyb1QNOlX6YvoUk7uqIC5HtClqIbru3lXWFVpNyxsSeusWzTsSENzVM4BAGGPF4pz5AX6H0E/mjuECVahg==
+defender-base-client@1.20.1:
+  version "1.20.1"
+  resolved "https://registry.yarnpkg.com/defender-base-client/-/defender-base-client-1.20.1.tgz#8bd0cfd7459c5b43f89beedaf424607fef21a0f8"
+  integrity sha512-UHVUuWJevr9sqqUKD7I2nZnIr6n4mNv0Lvu00ssC/TPNuDUyGqChwEOKI/RLwK3xubKgzSLjWp03snV7eKeSSA==
   dependencies:
     amazon-cognito-identity-js "^4.3.3"
     axios "^0.19.2"
     lodash "^4.17.19"
     node-fetch "^2.6.0"
 
-defender-relay-client@^1.18.0:
-  version "1.18.0"
-  resolved "https://registry.npmjs.org/defender-relay-client/-/defender-relay-client-1.18.0.tgz"
-  integrity sha512-3a0CIls8cv9kcL/E2m68hCHdHR5BnGib5SfBx5Cj9ECWVEr5Dc23RInQRbmAQNAVixGsKtT49J/dhZxSIooh7g==
+defender-relay-client@^1.20.1:
+  version "1.20.1"
+  resolved "https://registry.yarnpkg.com/defender-relay-client/-/defender-relay-client-1.20.1.tgz#91b0abfba6618e9d7a89b6a719f7b0f29be72dee"
+  integrity sha512-F5FYmvMhwz1Y9v/ozQyjZ8lPOh2Xls8gH28w51GuJq5lcxOXF6pmiCtLQKXR0J0raiJAlw08K7uRhqyacbSbnw==
   dependencies:
     amazon-cognito-identity-js "^4.3.3"
     axios "^0.19.2"
-    defender-base-client "^1.18.0"
+    defender-base-client "1.20.1"
     lodash "^4.17.19"
     node-fetch "^2.6.0"
 
