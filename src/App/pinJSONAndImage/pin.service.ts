@@ -38,7 +38,9 @@ class PinService {
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
 
-    await this.activityService.checkUserActivity(data.user.id)
+    const activityResult = await this.activityService.checkUserActivity(
+      data.user.id,
+    )
 
     const payload = {
       pinataMetadata: {
@@ -51,12 +53,15 @@ class PinService {
     const pinToPinata = async (option: typeof payload) =>
       this.pinata().pinJSONToIPFS(option)
 
-    try {
-      const res = await pinToPinata(payload)
-      return res
-    } catch (e) {
-      return e
+    if (activityResult) {
+      try {
+        const res = await pinToPinata(payload)
+        return res
+      } catch (e) {
+        return e
+      }
     }
+    return true
   }
 }
 

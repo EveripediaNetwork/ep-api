@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 
@@ -21,10 +21,16 @@ class ActivityService {
       .orderBy('datetime', 'DESC')
       .getMany()
     console.log(userActivity, userActivity.length)
-    if (userActivity.length !== limit) {
+    if (userActivity.length <= limit) {
       return true
     }
-    return false
+    throw new HttpException(
+      {
+        status: HttpStatus.TOO_MANY_REQUESTS,
+        error: 'Too many requests',
+      },
+      HttpStatus.TOO_MANY_REQUESTS,
+    )
   }
 }
 

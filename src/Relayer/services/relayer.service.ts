@@ -6,6 +6,7 @@ import {
 import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
+import ActivityService from '../../App/activity.service'
 
 @Injectable()
 class RelayerService {
@@ -13,7 +14,10 @@ class RelayerService {
 
   private wikiInstance: any
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private activityService: ActivityService,
+  ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
   }
@@ -47,18 +51,24 @@ class RelayerService {
     r: string,
     s: string,
   ) {
-    const result = await this.wikiInstance.postBySig(
-      ipfs,
+    const activityResult = await this.activityService.checkUserActivity(
       userAddr,
-      deadline,
-      v,
-      r,
-      s,
-      {
-        gasLimit: 1e6,
-      },
     )
-    return result
+    if (activityResult) {
+      const result = await this.wikiInstance.postBySig(
+        ipfs,
+        userAddr,
+        deadline,
+        v,
+        r,
+        s,
+        {
+          gasLimit: 1e6,
+        },
+      )
+      return result
+    }
+    return true
   }
 }
 
