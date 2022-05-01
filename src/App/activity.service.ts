@@ -13,14 +13,14 @@ class ActivityService {
     const userActivity = await repository
       .createQueryBuilder('activity')
       .where(
-        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '1 HOURS'`,
+        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '72 HOURS'`,
         {
           id: userId,
         },
       )
       .orderBy('datetime', 'DESC')
       .getMany()
-    console.log(userActivity)
+    console.log(userActivity, userActivity.length)
     if (userActivity.length !== limit) {
       return true
     }
