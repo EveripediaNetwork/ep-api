@@ -69,6 +69,12 @@ class ActivityResolver {
       },
     })
   }
+
+  @Query(() => Activity)
+  async activityById(@Args('id', { type: () => String }) id: string) {
+    const repository = this.connection.getRepository(Activity)
+    return repository.findOneOrFail(id)
+  }
 }
 
 export default ActivityResolver
