@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ConfigService } from '@nestjs/config'
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
+import ActivityService from '../activity.service'
+import USER_ACTIVITY_LIMIT from '../../globalVars'
 
 const pinataSDK = require('@pinata/sdk')
 
 @Injectable()
 class PinService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private activityService: ActivityService,
+  ) {}
 
   private validator: IPFSValidatorService = new IPFSValidatorService()
 
@@ -42,6 +47,21 @@ class PinService {
       return {
         message: 'INVALID_JSON_DATA',
       }
+    }
+
+    const activityResult = await this.activityService.countUserActivity(
+      data.user.id,
+      72,
+    )
+
+    if (activityResult > USER_ACTIVITY_LIMIT) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'Too many requests',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      )
     }
 
     const payload = {

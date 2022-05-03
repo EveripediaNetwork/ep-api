@@ -87,11 +87,11 @@ class DBStoreService {
     }
 
     const existWiki = await wikiRepository.findOne(wiki.id)
-
     const createActivity = (typ: Status) => {
       const resp = activityRepository.create({
         wikiId: wiki.id,
         type: typ,
+        user,
         content: [
           {
             id: wiki.id,
