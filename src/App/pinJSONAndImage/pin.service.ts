@@ -38,6 +38,12 @@ class PinService {
     const data = JSON.parse(`${body}`)
     const isDataValid = this.validator.validate(data, true)
 
+    if (await isDataValid) {
+      return {
+        message: 'INVALID_JSON_DATA'
+      }
+    }
+
     const payload = {
       pinataMetadata: {
         name: data.content !== undefined ? data.title : 'image',
@@ -50,10 +56,7 @@ class PinService {
       this.pinata().pinJSONToIPFS(option)
 
     try {
-      let res
-      if (await isDataValid) {
-        res = await pinToPinata(payload)
-      }
+      const res = await pinToPinata(payload)
 
       return res
     } catch (e) {
