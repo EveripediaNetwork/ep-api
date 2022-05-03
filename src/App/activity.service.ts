@@ -1,4 +1,4 @@
-import {  Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 
@@ -6,18 +6,19 @@ import Activity from '../Database/Entities/activity.entity'
 class ActivityService {
   constructor(private connection: Connection) {}
 
-  async countUserActivity(userId: string, interval: number): Promise<number> {
+  async countUserActivity(userId: string, intervalInHours: number): Promise<number> {
     const repository = this.connection.getRepository(Activity)
     const cr = await repository
       .createQueryBuilder('activity')
+      .select('COUNT(*)')
       .where(
-        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${interval} HOURS'`,
+        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${intervalInHours} HOURS'`,
         {
           id: userId,
         },
       )
-      .getCount()
-      return cr
+      .getRawOne()
+    return parseInt(cr.count, 10)
   }
 }
 
