@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config'
+import { Connection } from 'typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { getMockRes } from '@jest-mock/express'
@@ -8,6 +9,7 @@ import { mocked } from 'jest-mock'
 import * as fs from 'fs/promises'
 import PinService from './pin.service'
 import PinResolver from './pin.resolver'
+import ActivityService from '../activity.service'
 
 jest.mock('fs')
 
@@ -27,6 +29,14 @@ describe('PinResolver', () => {
         PinService,
         {
           provide: ConfigService,
+          useValue: {
+            key: '',
+            secret: '',
+          },
+        },
+        ActivityService,
+        {
+          provide: Connection,
           useValue: {
             key: '',
             secret: '',

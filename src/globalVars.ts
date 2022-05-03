@@ -1,0 +1,3 @@
+const USER_ACTIVITY_LIMIT = 20
+
+export default USER_ACTIVITY_LIMIT

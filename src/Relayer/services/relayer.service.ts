@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import {
   DefenderRelayProvider,
   DefenderRelaySigner,
@@ -6,6 +6,8 @@ import {
 import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
+import ActivityService from '../../App/activity.service'
+import USER_ACTIVITY_LIMIT from '../../globalVars'
 
 @Injectable()
 class RelayerService {
@@ -13,7 +15,10 @@ class RelayerService {
 
   private wikiInstance: any
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private activityService: ActivityService,
+  ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
   }
@@ -47,6 +52,19 @@ class RelayerService {
     r: string,
     s: string,
   ) {
+    const activityCount = await this.activityService.countUserActivity(
+      userAddr,
+      72,
+    )
+    if (activityCount > USER_ACTIVITY_LIMIT) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'Too many requests',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      )
+    }
     const result = await this.wikiInstance.postBySig(
       ipfs,
       userAddr,
