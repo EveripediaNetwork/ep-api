@@ -40,7 +40,7 @@ class PinService {
 
     if (await isDataValid) {
       return {
-        message: 'INVALID_JSON_DATA'
+        message: 'INVALID_JSON_DATA',
       }
     }
 
