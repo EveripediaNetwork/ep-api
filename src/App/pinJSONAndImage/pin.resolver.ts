@@ -26,7 +26,7 @@ class PinResolver {
   }
 
   private async optimizeFile(filePath: string, filename: string) {
-    await sharp(filePath)
+    await sharp(filePath, { animated: true })
       .webp()
       .toFile(`./uploads/preview/${filename}`)
       .catch(err => err)
@@ -54,7 +54,8 @@ class PinResolver {
   ): Promise<FileUpload> {
     const { createReadStream, filename } = await this.checkFile(image)
     const destinationPath = `./uploads/${filename}`
-    const uploadPath = `./uploads/preview/${filename}`
+    const newFilename = `${filename.split('.')[0]}.webp`
+    const uploadPath = `./uploads/preview/${newFilename}`
     return new Promise((res, rej) => {
       const read = createReadStream()
 
@@ -63,7 +64,10 @@ class PinResolver {
         rej(err)
       })
       read.pipe(createWriteStream(destinationPath)).on('finish', async () => {
-        const optimizedFile = await this.optimizeFile(destinationPath, filename)
+        const optimizedFile = await this.optimizeFile(
+          destinationPath,
+          newFilename,
+        )
         if (optimizedFile) {
           const result = await this.pinService.pinImage(uploadPath)
           if (result) {
