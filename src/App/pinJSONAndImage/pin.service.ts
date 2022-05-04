@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import IpfsHash from './model/ipfsHash'
+import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 
@@ -14,6 +15,8 @@ class PinService {
     private configService: ConfigService,
     private activityService: ActivityService,
   ) {}
+
+  private validator: IPFSValidatorService = new IPFSValidatorService()
 
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')
@@ -38,6 +41,17 @@ class PinService {
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
+    const isDataValid = await this.validator.validate(data, true)
+
+    if (!isDataValid) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Invalid JSON Data',
+        },
+        HttpStatus.BAD_REQUEST,
+      )
+    }
 
     const activityResult = await this.activityService.countUserActivity(
       data.user.id,
@@ -67,6 +81,7 @@ class PinService {
 
     try {
       const res = await pinToPinata(payload)
+
       return res
     } catch (e) {
       return e
