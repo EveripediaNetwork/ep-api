@@ -14,7 +14,7 @@ class PinService {
   constructor(
     private configService: ConfigService,
     private activityService: ActivityService,
-    private validatorService: IPFSValidatorService
+    private validatorService: IPFSValidatorService,
   ) {}
 
   private pinata() {
