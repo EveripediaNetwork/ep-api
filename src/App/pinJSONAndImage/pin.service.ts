@@ -43,7 +43,7 @@ class PinService {
       data.user.id,
       72,
     )
-    
+
     if (activityResult > USER_ACTIVITY_LIMIT) {
       throw new HttpException(
         {

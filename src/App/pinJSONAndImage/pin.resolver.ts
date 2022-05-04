@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
+import sharp from 'sharp'
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
@@ -24,6 +25,15 @@ class PinResolver {
     }
   }
 
+  private async optimizeFile(filePath: string, filename: string) {
+    await sharp(filePath)
+      .webp()
+      .toFile(`./uploads/preview/${filename}`)
+      .catch(err => err)
+
+    return true
+  }
+
   private async checkFile(image: FileUpload) {
     const type = image.mimetype.split('/')[0]
     if (type !== 'image') {
@@ -34,6 +44,7 @@ class PinResolver {
       )
     }
     return image
+    // return this.optimizeFile(image)
   }
 
   @Mutation(() => IpfsHash, { name: 'pinImage' })
@@ -43,18 +54,24 @@ class PinResolver {
   ): Promise<FileUpload> {
     const { createReadStream, filename } = await this.checkFile(image)
     const destinationPath = `./uploads/${filename}`
+    const uploadPath = `./uploads/preview/${filename}`
     return new Promise((res, rej) => {
       const read = createReadStream()
+
       read.on('error', async err => {
         await fs.unlink(destinationPath)
         rej(err)
       })
       read.pipe(createWriteStream(destinationPath)).on('finish', async () => {
-        const result = await this.pinService.pinImage(destinationPath)
-        if (result) {
-          await fs.unlink(destinationPath)
+        const optimizedFile = await this.optimizeFile(destinationPath, filename)
+        if (optimizedFile) {
+          const result = await this.pinService.pinImage(uploadPath)
+          if (result) {
+            await fs.unlink(destinationPath)
+            await fs.unlink(uploadPath)
+          }
+          res(this.errorHandler(result))
         }
-        res(this.errorHandler(result))
       })
     })
   }
