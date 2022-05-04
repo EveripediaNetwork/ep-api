@@ -54,7 +54,9 @@ class IPFSValidatorService {
       const links = linkify.find(validatingWiki.content)
       const uiLink = this.configService.get('UI_URL')
 
-      const externalURLs = links.filter(link => link.isLink && !link.href.includes(uiLink))
+      const externalURLs = links.filter(
+        link => link.isLink && !link.href.includes(uiLink),
+      )
 
       if (externalURLs.length === 0) return true
 
