@@ -6,7 +6,10 @@ import Activity from '../Database/Entities/activity.entity'
 class ActivityService {
   constructor(private connection: Connection) {}
 
-  async countUserActivity(userId: string, intervalInHours: number): Promise<number> {
+  async countUserActivity(
+    userId: string,
+    intervalInHours: number,
+  ): Promise<number> {
     const repository = this.connection.getRepository(Activity)
     const cr = await repository
       .createQueryBuilder('activity')
