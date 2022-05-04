@@ -46,6 +46,7 @@
     "graphql-request": "^4.0.0",
     "graphql-upload": "^13.0.0",
     "jest-mock": "^27.5.1",
+    "linkifyjs": "^3.0.5",
     "mysql2": "^2.3.3",
     "nest-commander": "^2.4.0",
     "pg": "^8.7.3",
