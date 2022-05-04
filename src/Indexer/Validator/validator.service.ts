@@ -7,7 +7,7 @@ import { ValidWiki } from '../Store/store.service'
 
 @Injectable()
 class IPFSValidatorService {
-  constructor(private configService: ConfigService) {}
+  private configService: ConfigService = new ConfigService()
 
   async validate(
     wiki: ValidWiki,

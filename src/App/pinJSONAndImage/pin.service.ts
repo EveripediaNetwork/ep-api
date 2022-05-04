@@ -14,8 +14,9 @@ class PinService {
   constructor(
     private configService: ConfigService,
     private activityService: ActivityService,
-    private validatorService: IPFSValidatorService,
   ) {}
+
+  private validator: IPFSValidatorService = new IPFSValidatorService()
 
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')
@@ -40,7 +41,7 @@ class PinService {
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
-    const isDataValid = await this.validatorService.validate(data, true)
+    const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid) {
       throw new HttpException(
