@@ -41,12 +41,16 @@ class PinService {
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const data = JSON.parse(`${body}`)
-    const isDataValid = this.validator.validate(data, true)
+    const isDataValid = await this.validator.validate(data, true)
 
-    if (await isDataValid) {
-      return {
-        message: 'INVALID_JSON_DATA',
-      }
+    if (!isDataValid) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Invalid JSON Data',
+        },
+        HttpStatus.BAD_REQUEST,
+      )
     }
 
     const activityResult = await this.activityService.countUserActivity(
