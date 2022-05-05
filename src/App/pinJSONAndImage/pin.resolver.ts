@@ -29,7 +29,6 @@ class PinResolver {
     await sharp(filePath, { animated: true })
       .webp()
       .toFile(`./uploads/preview/${filename}`)
-      .catch(err => err)
 
     return true
   }
@@ -44,7 +43,6 @@ class PinResolver {
       )
     }
     return image
-    // return this.optimizeFile(image)
   }
 
   @Mutation(() => IpfsHash, { name: 'pinImage' })
