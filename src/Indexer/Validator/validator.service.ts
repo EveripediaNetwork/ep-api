@@ -55,7 +55,7 @@ class IPFSValidatorService {
       const uiLink = this.configService.get('UI_URL')
 
       const externalURLs = links.filter(
-        link => link.isLink && !link.href.includes(uiLink),
+        link => link.isLink && !link.href.startsWith(uiLink),
       )
 
       if (externalURLs.length === 0) return true
