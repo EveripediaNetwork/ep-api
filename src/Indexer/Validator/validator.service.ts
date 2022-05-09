@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+
+import * as linkify from 'linkifyjs'
+
 import { ValidWiki } from '../Store/store.service'
 
 @Injectable()
 class IPFSValidatorService {
+  private configService: ConfigService = new ConfigService()
+
   async validate(
     wiki: ValidWiki,
     validateJSON?: boolean,
@@ -44,6 +50,19 @@ class IPFSValidatorService {
       return false
     }
 
+    const checkExternalUrls = (validatingWiki: ValidWiki) => {
+      const links = linkify.find(validatingWiki.content)
+      const uiLink = this.configService.get('UI_URL')
+
+      const externalURLs = links.filter(
+        link => link.isLink && !link.href.startsWith(uiLink),
+      )
+
+      if (externalURLs.length === 0) return true
+
+      return false
+    }
+
     const checkTags = (validatingWiki: ValidWiki) =>
       validatingWiki.images.length <= 5
 
@@ -56,7 +75,8 @@ class IPFSValidatorService {
       checkUser(wiki) &&
       checkTags(wiki) &&
       checkSummary(wiki) &&
-      checkImages(wiki)
+      checkImages(wiki) &&
+      checkExternalUrls(wiki)
     )
   }
 }
