@@ -23,30 +23,28 @@ class StatsGetterService {
     return response
   }
 
-  private async cgApiCall(name: string) {
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
-    const urll = `https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1&interval=daily`
-    let response: any = {}
-    const marketValueChange = this.httpService.get(url)
-    const volumeChange = this.httpService.get(urll)
-    const marketValueResult = await lastValueFrom(marketValueChange)
-    const volumeChangeResult = await lastValueFrom(volumeChange)
-    response = { ...marketValueResult.data, ...volumeChangeResult.data }
-    return response
+  private async cgApiCall(name: string): Promise<any> {
+    const marketChangeUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
+    const volumeChangeUrl = `https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1&interval=daily`
+    const [marketChangeResult, volumeChangeResult] = await Promise.all([
+      this.httpService.get(marketChangeUrl).toPromise(),
+      this.httpService.get(volumeChangeUrl).toPromise(),
+    ])
+    return { marketChangeResult, volumeChangeResult }
   }
 
   async getStats(name: string): Promise<any> {
     const cmc = await lastValueFrom(this.cmcApiCall(name))
     const cg = await this.cgApiCall(name)
+    const cgMarketData = cg.marketChangeResult.data[0]
+    const cgVolumeData = cg.volumeChangeResult.data
 
     const data = { ...cmc.data }
     const res: any = Object.values(data.data)
     const cmcData: any = res[0].quote.USD
-
-    const cgMarketData: any = Object.values(cg)[0]
     const volumeChange =
-      ((cg.total_volumes[1][1] - cg.total_volumes[0][1]) /
-        cg.total_volumes[0][1]) *
+      ((cgVolumeData.total_volumes[1][1] - cgVolumeData.total_volumes[0][1]) /
+        cgVolumeData.total_volumes[0][1]) *
       100
 
     const tokenStats: TokenData = {
