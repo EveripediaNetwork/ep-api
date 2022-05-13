@@ -73,7 +73,7 @@ class RelayerService {
       r,
       s,
       {
-        gasLimit: 1e6,
+        gasLimit: 50000,
       },
     )
     return result
