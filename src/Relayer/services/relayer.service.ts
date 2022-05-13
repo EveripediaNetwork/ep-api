@@ -30,7 +30,7 @@ class RelayerService {
     }
     const provider = new DefenderRelayProvider(credentials)
     const signer = new DefenderRelaySigner(credentials, provider, {
-      speed: 'fastest',
+      speed: 'fast',
     })
 
     return signer
