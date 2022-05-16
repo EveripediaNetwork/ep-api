@@ -12,8 +12,6 @@ import sharp from 'sharp'
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
-sharp.cache(false)
-
 @Resolver(() => IpfsHash)
 class PinResolver {
   constructor(private readonly pinService: PinService) {}
@@ -28,6 +26,7 @@ class PinResolver {
   }
 
   private async optimizeFile(filePath: string, filename: string) {
+    sharp.cache(false)
     await sharp(filePath, { animated: true })
       .webp({
         effort: 0,
