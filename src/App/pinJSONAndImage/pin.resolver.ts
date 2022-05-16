@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
+import sharp from 'sharp'
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
@@ -22,6 +23,20 @@ class PinResolver {
     } else {
       return val
     }
+  }
+
+  private async optimizeFile(filePath: string, filename: string) {
+    sharp.cache(false)
+    await sharp(filePath, { animated: true })
+      .webp({
+        effort: 0,
+        force: true,
+        quality: 60,
+      })
+
+      .toFile(`./uploads/preview/${filename}`)
+
+    return true
   }
 
   private async checkFile(image: FileUpload) {
@@ -43,6 +58,8 @@ class PinResolver {
   ): Promise<FileUpload> {
     const { createReadStream, filename } = await this.checkFile(image)
     const destinationPath = `./uploads/${filename}`
+    const newFilename = `${filename.split('.')[0]}.webp`
+    const uploadPath = `./uploads/preview/${newFilename}`
     return new Promise((res, rej) => {
       const read = createReadStream()
 
@@ -51,11 +68,18 @@ class PinResolver {
         rej(err)
       })
       read.pipe(createWriteStream(destinationPath)).on('finish', async () => {
-        const result = await this.pinService.pinImage(destinationPath)
-        if (result) {
-          await fs.unlink(destinationPath)
+        const optimizedFile = await this.optimizeFile(
+          destinationPath,
+          newFilename,
+        )
+        if (optimizedFile) {
+          const result = await this.pinService.pinImage(uploadPath)
+          if (result) {
+            await fs.unlink(destinationPath)
+            await fs.unlink(uploadPath)
+          }
+          res(this.errorHandler(result))
         }
-        res(this.errorHandler(result))
       })
     })
   }
