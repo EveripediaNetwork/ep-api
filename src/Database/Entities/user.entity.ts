@@ -2,8 +2,8 @@
 import { Entity, OneToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
-import { IUser } from './types/IUser'
-import { IWiki } from './types/IWiki'
+import { IUser } from '../../types/IUser'
+import { IWiki } from '../../types/IWiki'
 import Wiki from './wiki.entity'
 
 @ObjectType()

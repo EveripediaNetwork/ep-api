@@ -66,8 +66,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkTags = (validatingWiki: IWiki) =>
-      validatingWiki.tags.length <= 5
+    const checkTags = (validatingWiki: IWiki) => validatingWiki.tags.length <= 5
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
