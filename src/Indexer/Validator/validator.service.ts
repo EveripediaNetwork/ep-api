@@ -22,6 +22,9 @@ class IPFSValidatorService {
     const checkWords = (validatingWiki: ValidWiki) =>
       validatingWiki.content.split(' ').length >= 150
 
+    const checkMetadataChars = (validatingWiki: ValidWiki) =>
+      validatingWiki.metadata[1]?.value.length < 255
+
     const checkCategories = (validatingWiki: ValidWiki) =>
       validatingWiki.categories.length === 1
 
@@ -64,7 +67,7 @@ class IPFSValidatorService {
     }
 
     const checkTags = (validatingWiki: ValidWiki) =>
-      validatingWiki.images.length <= 5
+      validatingWiki.tags.length <= 5
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
@@ -76,7 +79,8 @@ class IPFSValidatorService {
       checkTags(wiki) &&
       checkSummary(wiki) &&
       checkImages(wiki) &&
-      checkExternalUrls(wiki)
+      checkExternalUrls(wiki) &&
+      checkMetadataChars(wiki)
     )
   }
 }
