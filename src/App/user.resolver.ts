@@ -3,7 +3,7 @@ import { Connection } from 'typeorm'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
-import { IUser } from '../Database/Entities/types/IUser'
+import { IUser } from '../types/IUser'
 
 @Resolver(() => User)
 class UserResolver {

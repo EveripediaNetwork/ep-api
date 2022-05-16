@@ -1,8 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
-import { IWiki } from './types/IWiki'
-import { ILanguage } from './types/ILanguage'
+import { IWiki } from '../../types/IWiki'
+import { ILanguage } from '../../types/ILanguage'
 
 @ObjectType()
 @Entity()

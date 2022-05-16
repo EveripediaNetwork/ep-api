@@ -3,7 +3,7 @@ import { Connection } from 'typeorm'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
-import { ITag } from '../Database/Entities/types/ITag'
+import { ITag } from '../types/ITag'
 
 @Resolver(() => Tag)
 class TagResolver {

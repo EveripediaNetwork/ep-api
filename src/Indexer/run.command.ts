@@ -3,8 +3,10 @@ import { Connection } from 'typeorm'
 import GraphProviderService, { Hash } from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
-import DBStoreService, { ValidWiki } from './Store/store.service'
+import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
+
+import { IWiki } from '../types/IWiki'
 
 interface CommandOptions {
   unixtime: number
@@ -66,7 +68,7 @@ class RunCommand implements CommandRunner {
         if (await this.validator.validate(content, false, hash.userId)) {
           console.log('✅ Validated Wiki content! IPFS going through...')
 
-          await this.dbStoreService.storeWiki(content as ValidWiki, hash)
+          await this.dbStoreService.storeWiki(content as IWiki, hash)
           console.log(`🚀 Storing IPFS: ${hash.id}`)
         } else {
           console.error(`🔥 Invalid IPFS: ${hash.id}`)

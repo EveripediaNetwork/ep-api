@@ -2,8 +2,8 @@
 import { Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
-import { IWiki } from './types/IWiki'
-import { ITag } from './types/ITag'
+import { IWiki } from '../../types/IWiki'
+import { ITag } from '../../types/ITag'
 import Wiki from './wiki.entity'
 
 @ObjectType({ description: 'Tags for Wikis' })

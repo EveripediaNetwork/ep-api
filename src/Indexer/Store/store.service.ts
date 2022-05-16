@@ -8,38 +8,13 @@ import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
 
-export type ValidWiki = {
-  id: string
-  version: number
-  language: string
-  title: string
-  content: string
-  summary?: string
-  tags: {
-    id: string
-  }[]
-  metadata: {
-    id: string
-    value: string
-  }[]
-  categories: {
-    id: string
-    title: string
-  }[]
-  images: {
-    id: string
-    type: string
-  }[]
-  user: {
-    id: string
-  }
-}
+import { IWiki } from '../../types/IWiki'
 
 @Injectable()
 class DBStoreService {
   constructor(private connection: Connection) {}
 
-  async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
+  async storeWiki(wiki: IWiki, hash: Hash): Promise<boolean> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const languageRepository = this.connection.getRepository(Language)
     const userRepository = this.connection.getRepository(User)
