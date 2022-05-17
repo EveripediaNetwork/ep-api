@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 
 import * as linkify from 'linkifyjs'
 
-import { IWiki } from '../../types/IWiki'
+import { IWiki, EditSpecificMetaIds, CommonMetaIds } from '../../types/IWiki'
 
 @Injectable()
 class IPFSValidatorService {
@@ -22,8 +22,23 @@ class IPFSValidatorService {
     const checkWords = (validatingWiki: IWiki) =>
       validatingWiki.content.split(' ').length >= 150
 
-    const checkMetadataChars = (validatingWiki: IWiki) =>
-      validatingWiki.metadata[1]?.value.length < 255
+    const checkMetadata = (validatingWiki: IWiki) => {
+      validatingWiki.metadata.forEach(MD => {
+        if (MD.value.length > 255) return false
+
+        const checkMetaIds = Object.values(CommonMetaIds).filter(MetaId => MetaId === MD.id)
+
+        const checkEditMetaIds = Object.values(EditSpecificMetaIds).filter(
+          EditMetaId => EditMetaId === MD.id,
+        )
+
+        if (!checkMetaIds || !checkEditMetaIds) return false
+
+        return true
+      })
+
+      return true
+    }
 
     const checkCategories = (validatingWiki: IWiki) =>
       validatingWiki.categories.length === 1
@@ -79,7 +94,7 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
-      checkMetadataChars(wiki)
+      checkMetadata(wiki)
     )
   }
 }
