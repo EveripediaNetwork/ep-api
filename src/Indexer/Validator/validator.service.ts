@@ -26,7 +26,9 @@ class IPFSValidatorService {
       validatingWiki.metadata.forEach(MD => {
         if (MD.value.length > 255) return false
 
-        const checkMetaIds = Object.values(CommonMetaIds).filter(MetaId => MetaId === MD.id)
+        const checkMetaIds = Object.values(CommonMetaIds).filter(
+          MetaId => MetaId === MD.id,
+        )
 
         const checkEditMetaIds = Object.values(EditSpecificMetaIds).filter(
           EditMetaId => EditMetaId === MD.id,
