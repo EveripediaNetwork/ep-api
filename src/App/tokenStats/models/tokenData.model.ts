@@ -12,6 +12,9 @@ export default class TokenData {
   name!: string
 
   @Field()
+  token_price_in_usd!: string
+
+  @Field()
   market_cap!: number
 
   @Field()
