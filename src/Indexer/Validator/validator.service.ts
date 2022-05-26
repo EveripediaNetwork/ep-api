@@ -9,7 +9,11 @@ import { ValidWiki } from '../Store/store.service'
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
 
-  async validate(wiki: ValidWiki, hashUserId?: string): Promise<boolean> {
+  async validate(
+    wiki: ValidWiki,
+    validateJSON?: boolean,
+    hashUserId?: string,
+  ): Promise<boolean> {
     const languages = ['en', 'es', 'ko', 'zh']
 
     const checkLanguage = (validatingWiki: ValidWiki) =>
@@ -21,8 +25,11 @@ class IPFSValidatorService {
     const checkCategories = (validatingWiki: ValidWiki) =>
       validatingWiki.categories.length === 1
 
-    const checkUser = (validatingWiki: ValidWiki) =>
-      validatingWiki.user.id.toLowerCase() === hashUserId?.toLowerCase()
+    const checkUser = (validatingWiki: ValidWiki) => {
+      if (validateJSON) return true
+
+      return validatingWiki.user.id.toLowerCase() === hashUserId?.toLowerCase()
+    }
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (validatingWiki.summary) {
