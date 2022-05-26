@@ -41,7 +41,7 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const data: ValidWiki = JSON.parse(`${body}`)
+    const data: ValidWiki = JSON.parse(body)
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid) {
