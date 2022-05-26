@@ -6,6 +6,7 @@ import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
+import { ValidWiki } from '../../Indexer/Store/store.service'
 
 const pinataSDK = require('@pinata/sdk')
 
@@ -40,8 +41,8 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const data = JSON.parse(`${body}`)
-    const isDataValid = await this.validator.validate(data, true)
+    const data: ValidWiki = JSON.parse(`${body}`)
+    const isDataValid = await this.validator.validate(data)
 
     if (!isDataValid) {
       throw new HttpException(
