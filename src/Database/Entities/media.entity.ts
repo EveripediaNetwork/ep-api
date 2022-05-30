@@ -13,11 +13,11 @@ export enum Source {
   YOUTUBE,
 }
 
-registerEnumType(Format,  {
+registerEnumType(Format, {
   name: 'Format',
 })
 
-registerEnumType(Source,  {
+registerEnumType(Source, {
   name: 'Source',
 })
 
