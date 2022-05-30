@@ -86,7 +86,7 @@ class Wiki {
 
   @Field(() => [Media])
   @Column('json', { nullable: true })
-  media!: Media[]
+  media?: Media[]
 
   @Field(() => [Image])
   @Column('json', { nullable: true })
