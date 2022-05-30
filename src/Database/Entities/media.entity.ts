@@ -6,29 +6,36 @@ export enum Format {
   VIDEO,
 }
 
+export enum Source {
+  IPFS,
+  VIMEO,
+  YOUTUBE,
+}
+
 @ObjectType()
 class Media {
   @Field()
   id!: string
 
   @Field()
-  size!: string
+  size?: string
 
   @Field()
-  name!: string
+  name?: string
 
   @Field()
   caption?: string
 
   @Field()
-  ipfs!: string
+  thumbnail?: string
+
+  @Field(() => Source)
+  @Column('enum', { enum: Source })
+  type!: Source
 
   @Field(() => Format)
   @Column('enum', { enum: Format })
-  type!: Format
-
-  @Field()
-  progress!: string
+  format!: Format
 }
 
 export default Media
