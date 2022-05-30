@@ -5,6 +5,7 @@ import * as linkify from 'linkifyjs'
 
 import { ValidWiki } from '../Store/store.service'
 
+
 @Injectable()
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
@@ -15,7 +16,6 @@ class IPFSValidatorService {
     hashUserId?: string,
   ): Promise<boolean> {
     const languages = ['en', 'es', 'ko', 'zh']
-
     const checkLanguage = (validatingWiki: ValidWiki) =>
       !!languages.includes(validatingWiki.language)
 
