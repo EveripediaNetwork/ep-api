@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql'
+import { Column } from 'typeorm'
 
 export enum Format {
   IMAGE,

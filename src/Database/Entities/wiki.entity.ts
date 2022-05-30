@@ -16,6 +16,7 @@ import Tag from './tag.entity'
 import User from './user.entity'
 import Language from './language.entity'
 import Metadata from './metadata.entity'
+import Media from './media.entity'
 import Image from './image.entity'
 
 @ObjectType()
@@ -82,6 +83,10 @@ class Wiki {
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
   metadata!: Metadata[]
+
+  @Field(() => [Media])
+  @Column('json', { nullable: true })
+  media!: Media[]
 
   @Field(() => [Image])
   @Column('json', { nullable: true })
