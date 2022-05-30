@@ -1,4 +1,5 @@
-import { Field, ObjectType } from '@nestjs/graphql'
+/* eslint-disable import/no-cycle */
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { Column } from 'typeorm'
 
 export enum Format {
@@ -11,6 +12,14 @@ export enum Source {
   VIMEO,
   YOUTUBE,
 }
+
+registerEnumType(Format,  {
+  name: 'Format',
+})
+
+registerEnumType(Source,  {
+  name: 'Source',
+})
 
 @ObjectType()
 class Media {
@@ -31,7 +40,7 @@ class Media {
 
   @Field(() => Source)
   @Column('enum', { enum: Source })
-  type!: Source
+  source!: Source
 
   @Field(() => Format)
   @Column('enum', { enum: Format })

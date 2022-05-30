@@ -30,6 +30,10 @@ export type ValidWiki = {
     id: string
     type: string
   }[]
+  media: {
+    id: string
+    type: string
+  }[]
   user: {
     id: string
   }
@@ -137,6 +141,7 @@ class DBStoreService {
     }
     await activityRepository.save(createActivity(Status.CREATED))
 
+
     const newWiki = wikiRepository.create({
       id: wiki.id,
       version: wiki.version,
@@ -153,6 +158,7 @@ class DBStoreService {
       ipfs: hash.id,
       transactionHash: hash.transactionHash,
     })
+
 
     await wikiRepository.save(newWiki)
     return true
