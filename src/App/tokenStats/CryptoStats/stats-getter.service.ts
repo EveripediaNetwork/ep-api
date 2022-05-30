@@ -19,7 +19,7 @@ class StatsGetterService {
       headers: {
         'X-CMC_PRO_API_KEY': key,
       },
-    })
+    })   
     return response
   }
 
@@ -51,6 +51,7 @@ class StatsGetterService {
       id: res[0].slug,
       symbol: res[0].symbol,
       name: res[0].name,
+      token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
       market_cap: cmcData.market_cap,
       market_cap_percentage_change:
