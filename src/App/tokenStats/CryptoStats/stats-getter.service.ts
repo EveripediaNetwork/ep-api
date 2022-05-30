@@ -19,7 +19,7 @@ class StatsGetterService {
       headers: {
         'X-CMC_PRO_API_KEY': key,
       },
-    })   
+    })
     return response
   }
 

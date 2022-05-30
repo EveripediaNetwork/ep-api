@@ -82,5 +82,3 @@ class IPFSValidatorService {
 }
 
 export default IPFSValidatorService
-
-
