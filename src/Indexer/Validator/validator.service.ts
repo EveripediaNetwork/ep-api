@@ -5,7 +5,6 @@ import * as linkify from 'linkifyjs'
 
 import { ValidWiki } from '../Store/store.service'
 
-
 @Injectable()
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
