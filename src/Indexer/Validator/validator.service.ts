@@ -15,7 +15,6 @@ class IPFSValidatorService {
     hashUserId?: string,
   ): Promise<boolean> {
     const languages = ['en', 'es', 'ko', 'zh']
-
     const checkLanguage = (validatingWiki: ValidWiki) =>
       !!languages.includes(validatingWiki.language)
 
@@ -82,5 +81,3 @@ class IPFSValidatorService {
 }
 
 export default IPFSValidatorService
-
-

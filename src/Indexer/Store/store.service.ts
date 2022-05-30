@@ -7,6 +7,7 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
+import { Format, Source } from '../../Database/Entities/media.entity'
 
 export type ValidWiki = {
   id: string
@@ -25,6 +26,11 @@ export type ValidWiki = {
   categories: {
     id: string
     title: string
+  }[]
+  media: {
+    id: string
+    source: Source
+    format: Format
   }[]
   images: {
     id: string
@@ -128,6 +134,7 @@ class DBStoreService {
       existWiki.tags = tags
       existWiki.categories = categories
       existWiki.images = wiki.images
+      existWiki.media = wiki.media
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
@@ -146,6 +153,7 @@ class DBStoreService {
       summary: wiki.summary,
       user,
       tags,
+      media: wiki.media,
       categories,
       images: wiki.images,
       metadata: wiki.metadata,

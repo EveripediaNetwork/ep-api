@@ -31,6 +31,7 @@ describe('PinResolver', () => {
       { id: 'percent-changed', value: '0.28' },
       { id: 'blocks-changed', value: 'content' },
     ],
+    media: [],
     user: { id: '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0' },
     images: [
       {
