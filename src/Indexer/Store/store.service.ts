@@ -7,7 +7,7 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import { Format, Source } from '../../Database/Entities/media.entity'
+import { Source } from '../../Database/Entities/media.entity'
 
 export type ValidWiki = {
   id: string
@@ -30,7 +30,6 @@ export type ValidWiki = {
   media: {
     id: string
     source: Source
-    format: Format
   }[]
   images: {
     id: string
