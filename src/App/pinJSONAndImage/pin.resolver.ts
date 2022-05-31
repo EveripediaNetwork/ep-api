@@ -5,7 +5,6 @@ import * as fs from 'fs/promises'
 import {
   HttpException,
   HttpStatus,
-  InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
 import sharp from 'sharp'
@@ -19,7 +18,6 @@ class PinResolver {
   private errorHandler(val: any) {
     if (val.message) {
       Logger.error(val.message)
-      // throw new InternalServerErrorException() // I think this breaks the app
     } else {
       return val
     }
