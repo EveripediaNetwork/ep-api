@@ -8,6 +8,9 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
+  AfterLoad,
+  AfterInsert,
+  AfterUpdate,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -69,7 +72,7 @@ class Wiki {
   content!: string
 
   @Field()
-  @Column('varchar', { default: '' })
+  @Column('varchar')
   summary!: string
 
   @Field(() => Language)
@@ -84,9 +87,9 @@ class Wiki {
   @Column('json', { nullable: true })
   metadata!: Metadata[]
 
-  @Field(() => [Media])
+  @Field(() => [Media], { nullable: true })
   @Column('json', { nullable: true })
-  media!: Media[]
+  media?: Media[]
 
   @Field(() => [Image])
   @Column('json', { nullable: true })
@@ -101,6 +104,15 @@ class Wiki {
   @ManyToMany(() => Category, { lazy: true })
   @JoinTable()
   categories!: Category[]
+
+  @AfterLoad()
+  @AfterInsert()
+  @AfterUpdate()
+  async nullField() {
+    if (!this.media) {
+      this.media = []
+    }
+  }
 }
 
 export default Wiki
