@@ -18,16 +18,16 @@ class Media {
   @Field()
   id!: string
 
-  @Field()
+  @Field({ nullable: true })
   size?: string
 
-  @Field()
+  @Field({ nullable: true })
   name?: string
 
-  @Field()
+  @Field({ nullable: true })
   caption?: string
 
-  @Field()
+  @Field({ nullable: true })
   thumbnail?: string
 
   @Field(() => Source)
