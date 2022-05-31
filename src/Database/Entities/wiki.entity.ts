@@ -72,7 +72,7 @@ class Wiki {
   content!: string
 
   @Field()
-  @Column('varchar')
+  @Column('varchar', { default: '' })
   summary!: string
 
   @Field(() => Language)
