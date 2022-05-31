@@ -3,10 +3,10 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { Column } from 'typeorm'
 
 export enum Source {
-  IPFS_IMG,
-  IPFS_VID,
-  VIMEO,
-  YOUTUBE,
+  IPFS_IMG = 'IPFS_IMG',
+  IPFS_VID = 'IPFS_VID',
+  VIMEO = 'VIMEO',
+  YOUTUBE = 'YOUTUBE',
 }
 
 registerEnumType(Source, {
