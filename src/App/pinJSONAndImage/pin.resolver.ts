@@ -19,7 +19,7 @@ class PinResolver {
   private errorHandler(val: any) {
     if (val.message) {
       Logger.error(val.message)
-      throw new InternalServerErrorException()
+      // throw new InternalServerErrorException() // I think this breaks the app
     } else {
       return val
     }
