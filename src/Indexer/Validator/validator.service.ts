@@ -49,20 +49,20 @@ class IPFSValidatorService {
       return false
     }
 
-      const checkExternalUrls = (validatingWiki: ValidWiki) => {
-        const links = linkify.find(validatingWiki.content)
-        const uiLink = this.configService.get('UI_URL')
-        const alternateURLs = uiLink.split(' ')
+    const checkExternalUrls = (validatingWiki: ValidWiki) => {
+      const links = linkify.find(validatingWiki.content)
+      const uiLink = this.configService.get('UI_URL')
+      const alternateURLs = uiLink.split(' ')
 
-        const externalURLs = links.filter(
-          link =>
-            link.isLink &&
-            alternateURLs.every((alt: string) => !link.href.startsWith(alt)),
-        )
-        if (externalURLs.length === 0) return true
+      const externalURLs = links.filter(
+        link =>
+          link.isLink &&
+          alternateURLs.every((alt: string) => !link.href.startsWith(alt)),
+      )
+      if (externalURLs.length === 0) return true
 
-        return false
-      }
+      return false
+    }
 
     const checkTags = (validatingWiki: ValidWiki) =>
       validatingWiki.images.length <= 5
