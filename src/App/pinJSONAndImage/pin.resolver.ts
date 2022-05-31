@@ -16,9 +16,9 @@ class PinResolver {
       Logger.error(val.message)
       // throw new InternalServerErrorException() // I think this breaks the app
       return val.message
-    } else {
+    } 
       return val
-    }
+    
   }
 
   private async optimizeFile(filePath: string, filename: string) {
