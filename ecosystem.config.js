@@ -2,17 +2,20 @@ module.exports = {
   apps:  [
     {
       name: 'ep-api',
-      script: 'yarn dev',
-      watch: true,
+      script: 'yarn start:prod',
+      watch: false,
       ignore_watch: ["[\/\\]\./", "uploads"],
+      restart_delay: 900000,
+      watch_delay: 10000,
+      max_memory_restart: '400M',
     },
     {
       name: 'indexer-service',
-      script: 'yarn console:dev indexer -l true',
+      script: 'yarn console indexer -l true',
       args: 'indexer',
-      watch: true,
+      watch: false,
       ignore_watch: ["[\/\\]\./", "uploads"],
-      watch_delay: 1000,
+      watch_delay: 10000,
       restart_delay: 900000,
       max_memory_restart: '400M',
     }
