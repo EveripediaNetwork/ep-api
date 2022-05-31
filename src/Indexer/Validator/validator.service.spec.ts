@@ -1,12 +1,19 @@
+// import { ConfigService } from '@nestjs/config'
+/**
+ * @jest-environment node
+ */
 import { Test, TestingModule } from '@nestjs/testing'
 import { ValidWiki } from '../Store/store.service'
 
 import IPFSValidatorService from './validator.service'
 
+process.env.NODE_ENV = 'test'
+
 jest.mock('fs')
 
 describe('PinResolver', () => {
   let ipfsValidatorService: IPFSValidatorService
+//   let configService: ConfigService
   let moduleRef: TestingModule
   const testWiki: ValidWiki = {
     id: 'komainu-(company)',
@@ -46,6 +53,7 @@ describe('PinResolver', () => {
     }).compile()
     ipfsValidatorService =
       moduleRef.get<IPFSValidatorService>(IPFSValidatorService)
+    //   UI_URL = configService.get('UI_URL')
   })
 
   it('should be defined', () => {
