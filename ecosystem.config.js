@@ -5,7 +5,7 @@ module.exports = {
       script: 'yarn start:prod',
       watch: false,
       ignore_watch: ["[\/\\]\./", "uploads"],
-      restart_delay: 900000,
+      restart_delay: 10000,
       watch_delay: 10000,
       max_memory_restart: '400M',
     },
