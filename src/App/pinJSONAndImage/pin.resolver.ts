@@ -18,6 +18,10 @@ class PinResolver {
   private errorHandler(val: any) {
     if (val.message) {
       Logger.error(val.message)
+      throw new HttpException(
+        val.message,
+        HttpStatus.BAD_REQUEST,
+      )
     } else {
       return val
     }
