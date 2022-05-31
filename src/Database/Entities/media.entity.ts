@@ -2,20 +2,12 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { Column } from 'typeorm'
 
-export enum Format {
-  IMAGE,
-  VIDEO,
-}
-
 export enum Source {
-  IPFS,
+  IPFS_IMG,
+  IPFS_VID,
   VIMEO,
   YOUTUBE,
 }
-
-registerEnumType(Format, {
-  name: 'Format',
-})
 
 registerEnumType(Source, {
   name: 'Source',
@@ -41,10 +33,6 @@ class Media {
   @Field(() => Source)
   @Column('enum', { enum: Source })
   source!: Source
-
-  @Field(() => Format)
-  @Column('enum', { enum: Format })
-  format!: Format
 }
 
 export default Media
