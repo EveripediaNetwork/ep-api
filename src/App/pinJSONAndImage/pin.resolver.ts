@@ -2,7 +2,6 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
-
 import {
   HttpException,
   HttpStatus,
@@ -26,7 +25,7 @@ class PinResolver {
       )
     } else {
       return val
-    
+    }
   }
 
   private async optimizeFile(filePath: string, filename: string) {
