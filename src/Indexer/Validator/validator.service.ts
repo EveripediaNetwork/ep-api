@@ -53,12 +53,16 @@ class IPFSValidatorService {
       const links = linkify.find(validatingWiki.content)
       const uiLink = this.configService.get('UI_URL')
       const alternateURLs = uiLink.split(' ')
-
-      const externalURLs = links.filter(
+      const validLinks = links.map(obj => ({
+        ...obj,
+        isLink: obj.value.startsWith('http') || obj.value.startsWith('www'),
+      }))
+      const externalURLs = validLinks.filter(
         link =>
           link.isLink &&
-          alternateURLs.every((alt: string) => !link.href.startsWith(alt)),
+          alternateURLs.every((alt: string) => !link.value.startsWith(alt)),
       )
+
       if (externalURLs.length === 0) return true
 
       return false
