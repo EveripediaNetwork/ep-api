@@ -1,9 +1,25 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { MinLength } from 'class-validator'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ITag } from '../Database/Entities/types/ITag'
+
+@ArgsType()
+class TagIDArgs extends PaginationArgs {
+  @Field(() => String)
+  @MinLength(3)
+  id!: string
+}
 
 @Resolver(() => Tag)
 class TagResolver {
@@ -22,6 +38,20 @@ class TagResolver {
   async tagById(@Args('id', { type: () => String }) id: number) {
     const repository = this.connection.getRepository(Tag)
     return repository.findOneOrFail(id)
+  }
+
+  @Query(() => [Tag])
+  async tagsById(@Args() args: TagIDArgs) {
+    const repository = this.connection.getRepository(Tag)
+    return repository
+      .createQueryBuilder('tag')
+      .where('LOWER(tag.id) LIKE :id', {
+        id: `%${args.id.toLowerCase()}%`,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('tag.id', 'DESC')
+      .getMany()
   }
 
   @ResolveField()
