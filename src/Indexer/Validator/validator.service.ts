@@ -2,8 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 import * as linkify from 'linkifyjs'
+import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 
 import { ValidWiki } from '../Store/store.service'
+
+export type ValidatorResult = {
+  status: boolean
+  message: string
+}
 
 @Injectable()
 class IPFSValidatorService {
@@ -13,21 +19,45 @@ class IPFSValidatorService {
     wiki: ValidWiki,
     validateJSON?: boolean,
     hashUserId?: string,
-  ): Promise<boolean> {
+  ): Promise<ValidatorResult> {
+    let message = ValidatorCodes.VALID
+
     const languages = ['en', 'es', 'ko', 'zh']
-    const checkLanguage = (validatingWiki: ValidWiki) =>
-      !!languages.includes(validatingWiki.language)
 
-    const checkWords = (validatingWiki: ValidWiki) =>
-      validatingWiki.content.split(' ').length >= 150
+    const checkLanguage = (validatingWiki: ValidWiki) => {
+      const resp = !!languages.includes(validatingWiki.language)
+      if (resp) {
+        return resp
+      }
+      message = ValidatorCodes.LANGUAGE
+      return resp
+    }
 
-    const checkCategories = (validatingWiki: ValidWiki) =>
-      validatingWiki.categories.length === 1
+    const checkWords = (validatingWiki: ValidWiki) => {
+      if (validatingWiki.content.split(' ').length >= 150) {
+        return true
+      }
+      message = ValidatorCodes.WORDS
+      return false
+    }
+
+    const checkCategories = (validatingWiki: ValidWiki) => {
+      if (validatingWiki.categories.length === 1) {
+        return true
+      }
+      message = ValidatorCodes.CATEGORY
+      return false
+    }
 
     const checkUser = (validatingWiki: ValidWiki) => {
-      if (validateJSON) return true
+      const validUser =
+        validatingWiki.user.id.toLowerCase() === hashUserId?.toLowerCase()
 
-      return validatingWiki.user.id.toLowerCase() === hashUserId?.toLowerCase()
+      if (validUser || validateJSON) {
+        return true
+      }
+      message = ValidatorCodes.USER
+      return false
     }
 
     const checkSummary = (validatingWiki: ValidWiki) => {
@@ -45,7 +75,7 @@ class IPFSValidatorService {
       ) {
         return true
       }
-
+      message = ValidatorCodes.IMAGE
       return false
     }
 
@@ -63,17 +93,25 @@ class IPFSValidatorService {
           alternateURLs.every((alt: string) => !link.value.startsWith(alt)),
       )
 
-      if (externalURLs.length === 0) return true
+      if (externalURLs.length === 0) {
 
+          return true
+      }
+      message = ValidatorCodes.URL
       return false
     }
 
-    const checkTags = (validatingWiki: ValidWiki) =>
-      validatingWiki.images.length <= 5
+    const checkTags = (validatingWiki: ValidWiki) => {   
+        if(validatingWiki.images.length <= 5) {
+            return true
+        }
+        message = ValidatorCodes.TAG
+        return false
+    }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
-    return (
+    const status =
       checkLanguage(wiki) &&
       checkWords(wiki) &&
       checkCategories(wiki) &&
@@ -82,7 +120,8 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki)
-    )
+    console.log(message)
+    return { status, message }
   }
 }
 

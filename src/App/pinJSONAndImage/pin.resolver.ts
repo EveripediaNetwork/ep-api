@@ -2,11 +2,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
-import {
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common'
+import { HttpException, HttpStatus, Logger } from '@nestjs/common'
 
 import sharp from 'sharp'
 import IpfsHash from './model/ipfsHash'
@@ -19,10 +15,7 @@ class PinResolver {
   private errorHandler(val: any) {
     if (val.message) {
       Logger.error(val.message)
-      throw new HttpException(
-        val.message,
-        HttpStatus.BAD_REQUEST,
-      )
+      throw new HttpException(val.message, HttpStatus.BAD_REQUEST)
     } else {
       return val
     }
