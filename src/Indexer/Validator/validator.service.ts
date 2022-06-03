@@ -20,7 +20,7 @@ class IPFSValidatorService {
     validateJSON?: boolean,
     hashUserId?: string,
   ): Promise<ValidatorResult> {
-    let message = ValidatorCodes.VALID
+    let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
 

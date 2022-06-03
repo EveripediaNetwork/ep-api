@@ -46,7 +46,7 @@ describe('PinResolver', () => {
   }
   const result: ValidatorResult = {
     status: true,
-    message: ValidatorCodes.VALID,
+    message: ValidatorCodes.VALID_WIKI,
   }
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
@@ -114,5 +114,4 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
-
 })
