@@ -14,5 +14,5 @@ export enum ValidatorCodes {
   CATEGORY = 'CATEGORY ERROR',
   IMAGE = 'IMAGE ERROR',
   TAG = 'TAG ERROR',
-  URL = 'EXTERNAL URL ERROR'
+  URL = 'EXTERNAL URL ERROR',
 }

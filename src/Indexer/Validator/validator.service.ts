@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
-import * as linkify from 'linkifyjs'
+// import * as linkify from 'linkifyjs'
 import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 
 import { ValidWiki } from '../Store/store.service'
@@ -80,33 +80,33 @@ class IPFSValidatorService {
     }
 
     const checkExternalUrls = (validatingWiki: ValidWiki) => {
-      const links = linkify.find(validatingWiki.content)
       const uiLink = this.configService.get('UI_URL')
-      const alternateURLs = uiLink.split(' ')
-      const validLinks = links.map(obj => ({
-        ...obj,
-        isLink: obj.value.startsWith('http') || obj.value.startsWith('www'),
-      }))
-      const externalURLs = validLinks.filter(
-        link =>
-          link.isLink &&
-          alternateURLs.every((alt: string) => !link.value.startsWith(alt)),
-      )
-
-      if (externalURLs.length === 0) {
-
-          return true
+      const whitelistedDomains = uiLink.split(' ')
+      const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
+      let isValid = true
+      markdownLinks?.every(link => {
+        const url = link.match(/\((.*?)\)/g)?.[0].replace(/\(|\)/g, '')
+        if (url && url.charAt(0) !== '#') {
+          const validURLRecognizer = new RegExp(
+            `^https?://(www\\.)?(${whitelistedDomains.join('|')})`,
+          )
+          isValid = validURLRecognizer.test(url)
+        }
+        return true
+      })
+      if (isValid) {
+        return true
       }
       message = ValidatorCodes.URL
       return false
     }
 
-    const checkTags = (validatingWiki: ValidWiki) => {   
-        if(validatingWiki.images.length <= 5) {
-            return true
-        }
-        message = ValidatorCodes.TAG
-        return false
+    const checkTags = (validatingWiki: ValidWiki) => {
+      if (validatingWiki.images.length <= 5) {
+        return true
+      }
+      message = ValidatorCodes.TAG
+      return false
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
@@ -120,7 +120,7 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki)
-    console.log(message)
+
     return { status, message }
   }
 }

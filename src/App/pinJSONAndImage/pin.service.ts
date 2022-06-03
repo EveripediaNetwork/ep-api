@@ -44,11 +44,11 @@ class PinService {
     const data: ValidWiki = JSON.parse(body)
     const isDataValid = await this.validator.validate(data, true)
 
-    if (!isDataValid) {
+    if (!isDataValid.status) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          error: 'Invalid JSON Data',
+          error: isDataValid.message,
         },
         HttpStatus.BAD_REQUEST,
       )

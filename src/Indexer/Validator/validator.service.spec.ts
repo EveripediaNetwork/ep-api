@@ -5,7 +5,7 @@ import { ValidWiki } from '../Store/store.service'
 import IPFSValidatorService, { ValidatorResult } from './validator.service'
 
 process.env.UI_URL =
-  'https://alpha.everipedia.org/ https://ipfs.everipedia.org/ipfs/ https://www.youtube.com/ https://www.vimeo.com/'
+  'youtube.com/watch youtu.be vimeo.com alpha.everipedia.org/wiki ipfs.everipedia.org/ipfs'
 
 jest.mock('fs')
 
@@ -115,15 +115,4 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
-  it('should return false for wiki content having weird links and invalid URLs', async () => {
-    const wiki: ValidWiki = {
-      ...testWiki,
-      content:
-        "Mantra DAO is an ecosystem built on Rio Chain, a blockchain, based on Parity Substrate. Mantra DAO poses itself as the leading gateway to cross-chain, multi-asset DeFi services. [4]\n Using the Mantra DAO platform, users can access a broad array of services:\n Multi-Asset Staking & Lending Platform: Mantra DAO provides cross-chain access to DeFi Products.\n Merit-Based Reward System: Mantra DAO incentivizes its users to support the ecosystem.\n Self-Governing Organization: Participants can vote on proposals to change the system parameters.\n In July 2020, Mantra DAO appointed Hex Trust, Asia's leading institutional digital asset custody provider, to be its custodian for its fundraising campaign. Hex Trust will store and secure all the funds raised by the Mantra DAO Foundation.\n [14] In July, LD Capital, one of the leading blockchain funds in Asia, announced their participation in the Mantra DAO Initial Membership Offering (IMO) for an undisclosed amount. [16] Mantra DAO also announced that it joined Hoo Labs and planned to list with Hoo.com directly after completing their Initial Membership Offering (IMO). [17]\n In August 2020, PLUTUS.VC, a US dollar investment fund, decided to join the growing list of Mantra DAO's institutional Investors. [19]\n On August 3, 2020, Mantra DAO entered into a strategic partnership with Consensus Labs. The partnership aimed to have the two companies closely working with one another to help develop and build out the DeFi ecosystem in China. [22]\n On August 4, 2020, Mantra DAO endorsed Chaos with Kusama. Kusama network launched in July 2019 with a set of 25 validators with the aim of progressively scaling to one thousand validator nodes. In August, Mantra DAO joined the list of laureates and entered the Kusama 1000 Validator Program. [23] \n On August 5, 2020, Mantra DAO announced Waterdrip Capital joined in with LD Capital, PLUTUS.VC, and Consensus Labs as Mantra DAO's newest institutional investor. [23] \n On August 24, 2020, Mantra DAO was accepted into Parity's Substrate Builders Program, which identifies, supports, and mentors current and potential Substrate-related projects that they identify as being visionary builders and teams. [25] \n In August 2020, Mantra DAO signed a digital Simple Agreement for Future Tokens, or SAFT, after completing know-your-customer activities with every single retail investor. SAFT is an investment contract offered by cryptocurrency developers, normally only to accredited investors. [26]\n Mantra DAO Initial Membership Offering\n Mantra DAO's IMO took place on August 1, 2020. There were over 1,300 individuals signed up for the whitelist, and the average dollar amount subscribed per individual has been over $12,000. [18]\n On August 2, 2020, Mantra DAO announced the total (locked and circulating) OM token supply would be set at 888,888,888 OM, and circulating supply at the outset of the Token Generation Event (‘TGE’) will begin at 101,111,111 OM. The supply schedule will be split into seven different buckets with emissions following the below details:\n Public Distribution (Includes Pre-IMO, and IMO rounds I, II, and III) 8.5% of total supply, or 75,555,555 OM; No lock-up; \n 75,555,555 OM will be circulating from at TGE; \n All 75,555,555 OM would be able to be staked and earn staking rewards from day 1 since TGE;\n The staking rewards emission schedule is designed so that early stakers receive a greater proportion of the staking rewards bucket, and this decreases over time.private Distribution 9% of total supply, or 80,000,000 OM; www.google.com Locked-up with 6 month vesting period, with 1/6th vesting on the first day of each month;\n 13,333,333 OM would begin circulating at TGE, with another 13,333,333 OM unlocking on each of the 31st, 61st, 91st, 121st and 151st days upon TGE",
-    }
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.URL,
-    })
-  })
 })
