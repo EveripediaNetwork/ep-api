@@ -8,7 +8,6 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import { MinLength } from 'class-validator'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -17,7 +16,6 @@ import { ITag } from '../Database/Entities/types/ITag'
 @ArgsType()
 class TagIDArgs extends PaginationArgs {
   @Field(() => String)
-  @MinLength(3)
   id!: string
 }
 
