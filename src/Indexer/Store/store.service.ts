@@ -110,6 +110,7 @@ class DBStoreService {
             tags,
             categories,
             images: wiki.images,
+            media: wiki.media || [],
             metadata: wiki.metadata,
             transactionHash: hash.transactionHash,
             ipfs: hash.id,
@@ -133,7 +134,7 @@ class DBStoreService {
       existWiki.tags = tags
       existWiki.categories = categories
       existWiki.images = wiki.images
-      existWiki.media = wiki.media
+      existWiki.media = wiki.media || []
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
@@ -152,7 +153,7 @@ class DBStoreService {
       summary: wiki.summary,
       user,
       tags,
-      media: wiki.media,
+      media: wiki.media || [],
       categories,
       images: wiki.images,
       metadata: wiki.metadata,
