@@ -15,9 +15,8 @@ class PinService {
   constructor(
     private configService: ConfigService,
     private activityService: ActivityService,
+    private validator: IPFSValidatorService,
   ) {}
-
-  private validator: IPFSValidatorService = new IPFSValidatorService()
 
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')

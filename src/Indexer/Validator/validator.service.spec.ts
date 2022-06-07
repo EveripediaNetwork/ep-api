@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { Connection } from 'typeorm'
 import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 import { ValidWiki } from '../Store/store.service'
 
@@ -12,6 +13,14 @@ jest.mock('fs')
 describe('PinResolver', () => {
   let ipfsValidatorService: IPFSValidatorService
   let moduleRef: TestingModule
+  const mockQuery = () => ({
+    findOneOrFail: jest.fn(),
+  })
+
+  const mockConnection = () => ({
+    getRepository: jest.fn().mockImplementation(mockQuery),
+  })
+
   const testWiki: ValidWiki = {
     id: 'komainu-(company)',
     version: 1,
@@ -23,14 +32,15 @@ describe('PinResolver', () => {
     categories: [{ id: 'protocols', title: 'Protocols' }],
     tags: [],
     metadata: [
-      { id: 'page-type', value: 'Place / Location' },
+      { id: 'page-type', value: 'generic' },
+      //   { id: 'page-type', value: 'Place / Location' },
       { id: 'references', value: '' },
       { id: 'facebook_profile', value: '' },
       { id: 'instagram_profile', value: '' },
       { id: 'twitter_profile', value: '' },
       { id: 'linkedin_profile', value: '' },
       { id: 'youtube_profile', value: '' },
-      { id: 'commit-message', value: 'bold' },
+      { id: 'commit-message', value: 'New Wiki Created 🎉' },
       { id: 'words-changed', value: '2' },
       { id: 'percent-changed', value: '0.28' },
       { id: 'blocks-changed', value: 'content' },
@@ -50,7 +60,13 @@ describe('PinResolver', () => {
   }
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
-      providers: [IPFSValidatorService],
+      providers: [
+        IPFSValidatorService,
+        {
+          provide: Connection,
+          useFactory: mockConnection,
+        },
+      ],
     }).compile()
     ipfsValidatorService =
       moduleRef.get<IPFSValidatorService>(IPFSValidatorService)
@@ -85,7 +101,7 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should return false for wiki content having external URLs', async () => {
+  it('should return status false for wiki content having external URLs', async () => {
     const wiki: ValidWiki = {
       ...testWiki,
       content:
@@ -97,7 +113,7 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should return true for wiki content having expected URLs', async () => {
+  it('should return status true for wiki content having expected URLs', async () => {
     const wiki: ValidWiki = {
       ...testWiki,
       content:
@@ -106,7 +122,7 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
-  it('should return true for wiki content having weird links', async () => {
+  it('should return status true for wiki content having weird links', async () => {
     const wiki: ValidWiki = {
       ...testWiki,
       content:
@@ -114,4 +130,93 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
+
+  it('should return status false if metadata value fields are more than 255 chars', async () => {
+    const wiki = {
+      ...testWiki,
+      metadata: [
+        {
+          id: 'page-type',
+          value: 'generic',
+        },
+        {
+          id: 'references',
+          value:
+            "**Komainu** (publicly launched 2020) is a custodian bank platform built for cryptocurrency. Komainu was developed by Global investment banking Nomura Group, hardware wallet manufacturer Ledger, and digital asset manager Coin Shares. This platform is the first hybrid custodian that provides traditional services with state-of-the-art technology that meets regulatory and institutional requirements for digital assets. It supports 20 Cryptocurrency, including Bitcoin, Ethereum, Lite coin, and Ripple..  \n  \n# Background  \n  \nIn June 17, 2020, Komainu was officially launched as a joint venture between Tokyo, Japan based financial services company Nomura Holdings, global hardware wallet manufacturer Ledger, and Channel Islands based digital asset manager Coin Shares. The name originates from the statues of Komainus that can be seen guarding the entrances of Japanese Shinto temples. Jean-Marie Mognetti, who is a Co-Founder and Chief Executive Officer of Coin Shares, is the company's CEO. Kenton Farmer, who previously worked at Credit Suisse and Hermes Fund Managers, is the Head of Operations. Andrew Morfill, who comes from serving as Global Head of Cyber Defense at Banco Santander, and developing the Cyber Intelligence division at Vodafone, is the company's Chief information security officer Officer. Susan Patterson, who formerly worked for Credit Suisse, Brevan Howard, and UBS, is the Head of Regulatory Affairs. ",
+        },
+        { id: 'facebook_profile', value: '' },
+        { id: 'instagram_profile', value: '' },
+        { id: 'twitter_profile', value: '' },
+        { id: 'linkedin_profile', value: '' },
+        { id: 'youtube_profile', value: '' },
+        { id: 'commit-message', value: 'New Wiki Created 🎉' },
+        { id: 'words-changed', value: '2' },
+        { id: 'percent-changed', value: '0.28' },
+        { id: 'blocks-changed', value: 'content' },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.METADATA,
+    })
+  })
+
+  it('should return status false if metadata pagetype is not valid', async () => {
+    const wiki = {
+      ...testWiki,
+      metadata: [
+        {
+          id: 'page-type',
+          value: 'genericc',
+        },
+        {
+          id: 'references',
+          value: '',
+        },
+        { id: 'facebook_profile', value: '' },
+        { id: 'instagram_profile', value: '' },
+        { id: 'twitter_profile', value: '' },
+        { id: 'linkedin_profile', value: '' },
+        { id: 'youtube_profile', value: '' },
+        { id: 'commit-message', value: 'New Wiki Created 🎉' },
+        { id: 'words-changed', value: '2' },
+        { id: 'percent-changed', value: '0.28' },
+        { id: 'blocks-changed', value: 'content' },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.METADATA,
+    })
+  })
+
+  it('should return status false if wiki changes do not match incoming metadata changes', async () => {
+    const wiki = {
+      ...testWiki,
+      metadata: [
+        {
+          id: 'page-type',
+          value: 'genericc',
+        },
+        {
+          id: 'references',
+          value: '',
+        },
+        { id: 'facebook_profile', value: '' },
+        { id: 'instagram_profile', value: '' },
+        { id: 'twitter_profile', value: '' },
+        { id: 'linkedin_profile', value: '' },
+        { id: 'youtube_profile', value: '' },
+        { id: 'commit-message', value: 'New Wiki Created 🎉' },
+        { id: 'words-changed', value: '2' },
+        { id: 'percent-changed', value: '0.28' },
+        { id: 'blocks-changed', value: 'content' },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.METADATA,
+    })
+  })
+
 })

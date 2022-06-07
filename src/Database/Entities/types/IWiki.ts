@@ -15,6 +15,7 @@ export enum ValidatorCodes {
   IMAGE = 'IMAGE_ERROR',
   TAG = 'TAG_ERROR',
   URL = 'EXTERNAL_URL_ERROR',
+  METADATA = 'METADATA_ERROR',
 }
 
 export enum CommonMetaIds {
@@ -25,6 +26,8 @@ export enum CommonMetaIds {
   TWITTER_PROFILE = 'twitter_profile',
   LINKEDIN_PROFILE = 'linkedin_profile',
   YOUTUBE_PROFILE = 'youtube_profile',
+  COINGECKO_PROFILE = 'coingecko_profile',
+  COMMIT_MESSAGE = 'commit-message',
 }
 
 export enum EditSpecificMetaIds {
