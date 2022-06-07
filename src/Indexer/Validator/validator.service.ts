@@ -172,7 +172,7 @@ class IPFSValidatorService {
           if (checkValues) {
             return true
           }
-          message = ValidatorCodes.TAG
+          message = ValidatorCodes.METADATA
           return false
           //   console.log(`this is new wiki changes ${validatingWiki.metadata}`)
           //   console.log(`this is percent change ${percentChanged}`)

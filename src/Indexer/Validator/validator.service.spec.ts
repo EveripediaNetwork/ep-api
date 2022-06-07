@@ -218,5 +218,4 @@ describe('PinResolver', () => {
       message: ValidatorCodes.METADATA,
     })
   })
-
 })
