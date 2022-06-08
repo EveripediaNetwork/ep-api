@@ -28,7 +28,6 @@ describe('PinResolver', () => {
       { id: 'page-type', value: 'Person' },
       { id: 'references', value: '' },
       { id: 'commit-message', value: 'New Wiki Created 🎉' },
-      { id: 'commit-message', value: 'New Wiki Created 🎉' },
     ],
     user: { id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' },
     media: [
@@ -47,7 +46,7 @@ describe('PinResolver', () => {
     ],
   }
   const mockQuery = () => ({
-    findOneOrFail: jest.fn().mockReturnValue(oldWiki),
+    findOne: jest.fn().mockReturnValue(oldWiki),
   })
 
   const mockConnection = () => ({

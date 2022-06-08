@@ -30,7 +30,8 @@ class IPFSValidatorService {
     hashUserId?: string,
   ): Promise<ValidatorResult> {
     const wikiRepository = this.connection.getRepository(Wiki)
-
+    const oldWiki = await wikiRepository.findOne(wiki.id)
+    
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
@@ -112,27 +113,30 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkMetadata = async (validatingWiki: ValidWiki) => {
+    const checkMetadata = (
+      validatingWiki: ValidWiki,
+      otherWiki: Wiki | undefined,
+    ) => {
       const ids = [
         ...Object.values(CommonMetaIds),
         ...Object.values(EditSpecificMetaIds),
       ]
+
       const valueField = validatingWiki.metadata.every(
         e =>
           e.value.length < 255 &&
           ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds),
       )
-
       const newWiki = validatingWiki.metadata.some(e =>
         e.value.includes('New Wiki Created'),
       )
+
       if (valueField && newWiki) {
         return true
       }
 
       let checkValues
-      if (!newWiki) {
-        const oldWiki = await wikiRepository.findOneOrFail(validatingWiki.id)
+      if (otherWiki) {
         const getWordCount = (str: string) =>
           str.split(' ').filter(n => n !== '').length
 
@@ -142,7 +146,7 @@ class IPFSValidatorService {
 
         let wordsAdded = 0
         let wordsRemoved = 0
-        diff(oldWiki.content, validatingWiki.content).forEach(part => {
+        diff(otherWiki.content, validatingWiki.content).forEach(part => {
           if (part[0] === 1) {
             contentAdded += part[1].length
             wordsAdded += getWordCount(part[1])
@@ -171,7 +175,7 @@ class IPFSValidatorService {
         )
       }
 
-      if (checkValues && !newWiki) {
+      if (checkValues && valueField) {
         return true
       }
       message = ValidatorCodes.METADATA
@@ -187,7 +191,7 @@ class IPFSValidatorService {
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
-
+    
     const status =
       checkLanguage(wiki) &&
       checkWords(wiki) &&
@@ -197,7 +201,7 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
-      (await checkMetadata(wiki))
+      checkMetadata(wiki, oldWiki)
 
     return { status, message }
   }
