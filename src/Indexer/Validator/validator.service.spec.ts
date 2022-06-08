@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { Connection } from 'typeorm'
+import { Source } from '../../Database/Entities/media.entity'
 import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 import { ValidWiki } from '../Store/store.service'
 
@@ -13,8 +14,40 @@ jest.mock('fs')
 describe('PinResolver', () => {
   let ipfsValidatorService: IPFSValidatorService
   let moduleRef: TestingModule
+  const oldWiki: ValidWiki = {
+    id: 'get-the-tester',
+    version: 1,
+    language: 'en',
+    title: 'Get the tester',
+    content:
+      '![giphy.gif](https://ipfs.everipedia.org/ipfs/QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m)  \nTest test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
+    summary: ' Get the tester Get the tester Get the tester Get the tester ',
+    categories: [{ id: 'people-in-crypto', title: 'People in crypto' }],
+    tags: [],
+    metadata: [
+      { id: 'page-type', value: 'Person' },
+      { id: 'references', value: '' },
+      { id: 'commit-message', value: 'New Wiki Created 🎉' },
+      { id: 'commit-message', value: 'New Wiki Created 🎉' },
+    ],
+    user: { id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' },
+    media: [
+      {
+        id: 'QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m',
+        name: 'giphy.gif',
+        size: '1.396',
+        source: Source.IPFS_IMG,
+      },
+    ],
+    images: [
+      {
+        id: 'QmajbRjon7QMoEwcEjc2wnMLGMAewvw7PbJBVh4oVJho1U',
+        type: 'image/jpeg, image/png',
+      },
+    ],
+  }
   const mockQuery = () => ({
-    findOneOrFail: jest.fn(),
+    findOneOrFail: jest.fn().mockReturnValue(oldWiki),
   })
 
   const mockConnection = () => ({
@@ -33,7 +66,6 @@ describe('PinResolver', () => {
     tags: [],
     metadata: [
       { id: 'page-type', value: 'generic' },
-      //   { id: 'page-type', value: 'Place / Location' },
       { id: 'references', value: '' },
       { id: 'facebook_profile', value: '' },
       { id: 'instagram_profile', value: '' },
@@ -161,42 +193,16 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should return status false if metadata pagetype is not valid', async () => {
-    const wiki = {
-      ...testWiki,
-      metadata: [
-        {
-          id: 'page-type',
-          value: 'genericc',
-        },
-        {
-          id: 'references',
-          value: '',
-        },
-        { id: 'facebook_profile', value: '' },
-        { id: 'instagram_profile', value: '' },
-        { id: 'twitter_profile', value: '' },
-        { id: 'linkedin_profile', value: '' },
-        { id: 'youtube_profile', value: '' },
-        { id: 'commit-message', value: 'New Wiki Created 🎉' },
-        { id: 'words-changed', value: '2' },
-        { id: 'percent-changed', value: '0.28' },
-        { id: 'blocks-changed', value: 'content' },
-      ],
-    }
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.METADATA,
-    })
-  })
-
   it('should return status false if wiki changes do not match incoming metadata changes', async () => {
     const wiki = {
-      ...testWiki,
+      ...oldWiki,
+      content:
+        '![giphy.gif](https://ipfs.everipedia.org/ipfs/QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m)  \nTest test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ',
+      summary: ' Get the tester Get the tester Get the tester Get the tester ',
       metadata: [
         {
           id: 'page-type',
-          value: 'genericc',
+          value: 'generic',
         },
         {
           id: 'references',
@@ -207,9 +213,8 @@ describe('PinResolver', () => {
         { id: 'twitter_profile', value: '' },
         { id: 'linkedin_profile', value: '' },
         { id: 'youtube_profile', value: '' },
-        { id: 'commit-message', value: 'New Wiki Created 🎉' },
-        { id: 'words-changed', value: '2' },
-        { id: 'percent-changed', value: '0.28' },
+        { id: 'words-changed', value: '21' },
+        { id: 'percent-changed', value: '5' },
         { id: 'blocks-changed', value: 'content' },
       ],
     }
