@@ -18,6 +18,12 @@ class User implements IUser {
   @Field(() => [Wiki])
   @OneToMany('Wiki', 'user', { lazy: true })
   wikis!: IWiki[]
+
+  @Field()
+  wikisCreated!: []
+
+  @Field()
+  wikisEdited!: []
 }
 
 export default User
