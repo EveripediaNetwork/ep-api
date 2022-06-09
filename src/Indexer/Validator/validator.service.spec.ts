@@ -14,33 +14,35 @@ jest.mock('fs')
 describe('PinResolver', () => {
   let ipfsValidatorService: IPFSValidatorService
   let moduleRef: TestingModule
+
   const oldWiki: ValidWiki = {
-    id: 'get-the-tester',
+    id: 'test-wiki-test',
     version: 1,
     language: 'en',
-    title: 'Get the tester',
+    title: 'test wiki test',
     content:
-      '![giphy.gif](https://ipfs.everipedia.org/ipfs/QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m)  \nTest test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test',
-    summary: ' Get the tester Get the tester Get the tester Get the tester ',
-    categories: [{ id: 'people-in-crypto', title: 'People in crypto' }],
+      'test wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki test',
+    summary:
+      'test wiki testtest wiki testtest wiki testtest wiki testtest wiki test',
+    categories: [{ id: 'cryptocurrencies', title: 'cryptocurrencies' }],
     tags: [],
     metadata: [
-      { id: 'page-type', value: 'Person' },
+      { id: 'page-type', value: 'NFT' },
       { id: 'references', value: '' },
       { id: 'commit-message', value: 'New Wiki Created 🎉' },
     ],
     user: { id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' },
     media: [
       {
-        id: 'QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m',
-        name: 'giphy.gif',
-        size: '1.396',
+        name: 'WhatsApp Image 2021-11-30 at 5.55.25 PM.jpeg',
+        size: '0.059',
+        id: 'QmQrmNX9AWeB5vPbus8eXB3CvifVDHuaMk9eGwJFFDdWya',
         source: Source.IPFS_IMG,
       },
     ],
     images: [
       {
-        id: 'QmajbRjon7QMoEwcEjc2wnMLGMAewvw7PbJBVh4oVJho1U',
+        id: 'Qme7DJxkxBCeA3CN1812ChMrhnUJ5VLDnJYHMVuL5FK7rB',
         type: 'image/jpeg, image/png',
       },
     ],
@@ -172,18 +174,18 @@ describe('PinResolver', () => {
         },
         {
           id: 'references',
-          value:
-            "**Komainu** (publicly launched 2020) is a custodian bank platform built for cryptocurrency. Komainu was developed by Global investment banking Nomura Group, hardware wallet manufacturer Ledger, and digital asset manager Coin Shares. This platform is the first hybrid custodian that provides traditional services with state-of-the-art technology that meets regulatory and institutional requirements for digital assets. It supports 20 Cryptocurrency, including Bitcoin, Ethereum, Lite coin, and Ripple..  \n  \n# Background  \n  \nIn June 17, 2020, Komainu was officially launched as a joint venture between Tokyo, Japan based financial services company Nomura Holdings, global hardware wallet manufacturer Ledger, and Channel Islands based digital asset manager Coin Shares. The name originates from the statues of Komainus that can be seen guarding the entrances of Japanese Shinto temples. Jean-Marie Mognetti, who is a Co-Founder and Chief Executive Officer of Coin Shares, is the company's CEO. Kenton Farmer, who previously worked at Credit Suisse and Hermes Fund Managers, is the Head of Operations. Andrew Morfill, who comes from serving as Global Head of Cyber Defense at Banco Santander, and developing the Cyber Intelligence division at Vodafone, is the company's Chief information security officer Officer. Susan Patterson, who formerly worked for Credit Suisse, Brevan Howard, and UBS, is the Head of Regulatory Affairs. ",
+          value: '',
         },
         { id: 'facebook_profile', value: '' },
         { id: 'instagram_profile', value: '' },
         { id: 'twitter_profile', value: '' },
         { id: 'linkedin_profile', value: '' },
-        { id: 'youtube_profile', value: '' },
+        {
+          id: 'youtube_profile',
+          value:
+            "**Komainu** (publicly launched 2020) is a custodian bank platform built for cryptocurrency. Komainu was developed by Global investment banking Nomura Group, hardware wallet manufacturer Ledger, and digital asset manager Coin Shares. This platform is the first hybrid custodian that provides traditional services with state-of-the-art technology that meets regulatory and institutional requirements for digital assets. It supports 20 Cryptocurrency, including Bitcoin, Ethereum, Lite coin, and Ripple..  \n  \n# Background  \n  \nIn June 17, 2020, Komainu was officially launched as a joint venture between Tokyo, Japan based financial services company Nomura Holdings, global hardware wallet manufacturer Ledger, and Channel Islands based digital asset manager Coin Shares. The name originates from the statues of Komainus that can be seen guarding the entrances of Japanese Shinto temples. Jean-Marie Mognetti, who is a Co-Founder and Chief Executive Officer of Coin Shares, is the company's CEO. Kenton Farmer, who previously worked at Credit Suisse and Hermes Fund Managers, is the Head of Operations. Andrew Morfill, who comes from serving as Global Head of Cyber Defense at Banco Santander, and developing the Cyber Intelligence division at Vodafone, is the company's Chief information security officer Officer. Susan Patterson, who formerly worked for Credit Suisse, Brevan Howard, and UBS, is the Head of Regulatory Affairs. ",
+        },
         { id: 'commit-message', value: 'New Wiki Created 🎉' },
-        { id: 'words-changed', value: '2' },
-        { id: 'percent-changed', value: '0.28' },
-        { id: 'blocks-changed', value: 'content' },
       ],
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
@@ -195,28 +197,18 @@ describe('PinResolver', () => {
   it('should return status false if wiki changes do not match incoming metadata changes', async () => {
     const wiki = {
       ...oldWiki,
+      id: 'test-wiki-test',
       content:
-        '![giphy.gif](https://ipfs.everipedia.org/ipfs/QmPAmxmTZfp3vEPHV46j1q5h3c1mKyFDY9SA8Mz6kmzD7m)  \nTest test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ',
-      summary: ' Get the tester Get the tester Get the tester Get the tester ',
+        'test wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki test test wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki test',
       metadata: [
-        {
-          id: 'page-type',
-          value: 'generic',
-        },
-        {
-          id: 'references',
-          value: '',
-        },
-        { id: 'facebook_profile', value: '' },
-        { id: 'instagram_profile', value: '' },
-        { id: 'twitter_profile', value: '' },
-        { id: 'linkedin_profile', value: '' },
-        { id: 'youtube_profile', value: '' },
-        { id: 'words-changed', value: '21' },
-        { id: 'percent-changed', value: '5' },
-        { id: 'blocks-changed', value: 'content' },
+        { id: 'page-type', value: 'NFT' },
+        { id: 'references', value: '' },
+        { id: 'words-changed', value: '197' },
+        { id: 'percent-changed', value: '100.0' },
+        { id: 'blocks-changed', value: 'content,categories,tags' },
       ],
     }
+
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
       message: ValidatorCodes.METADATA,

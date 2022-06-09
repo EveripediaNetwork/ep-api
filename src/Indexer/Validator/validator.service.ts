@@ -31,7 +31,7 @@ class IPFSValidatorService {
   ): Promise<ValidatorResult> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const oldWiki = await wikiRepository.findOne(wiki.id)
-    
+
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
@@ -122,21 +122,17 @@ class IPFSValidatorService {
         ...Object.values(EditSpecificMetaIds),
       ]
 
-      const valueField = validatingWiki.metadata.every(
-        e =>
-          e.value.length < 255 &&
-          ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds),
-      )
-      const newWiki = validatingWiki.metadata.some(e =>
-        e.value.includes('New Wiki Created'),
-      )
-
-      if (valueField && newWiki) {
+      const valueField = validatingWiki.metadata.every(e => {
+        ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds)
+        if (e.id !== CommonMetaIds.REFERENCES) {
+          return e.value.length < 255
+        }
         return true
-      }
+      })
 
-      let checkValues
-      if (otherWiki) {
+      let checkValues = true
+
+      if (otherWiki && otherWiki.id === validatingWiki.id) {
         const getWordCount = (str: string) =>
           str.split(' ').filter(n => n !== '').length
 
@@ -168,16 +164,20 @@ class IPFSValidatorService {
           ) / 100
 
         const wordsChanged = wordsAdded + wordsRemoved
-        checkValues = validatingWiki.metadata.some(
-          e =>
-            e.value.includes(String(percentChanged)) &&
-            e.value.includes(String(wordsChanged)),
-        )
+
+        checkValues =
+          validatingWiki.metadata.find(
+            e => e.id === EditSpecificMetaIds.PERCENT_CHANGED,
+          )?.value === String(percentChanged) &&
+          validatingWiki.metadata.find(
+            e => e.id === EditSpecificMetaIds.WORDS_CHANGED,
+          )?.value === String(wordsChanged)
       }
 
       if (checkValues && valueField) {
         return true
       }
+
       message = ValidatorCodes.METADATA
       return false
     }
@@ -191,7 +191,7 @@ class IPFSValidatorService {
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
-    
+
     const status =
       checkLanguage(wiki) &&
       checkWords(wiki) &&
