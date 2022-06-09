@@ -29,6 +29,8 @@ export type ValidWiki = {
   }[]
   media: {
     id: string
+    name: string
+    size: string
     source: Source
   }[]
   images: {

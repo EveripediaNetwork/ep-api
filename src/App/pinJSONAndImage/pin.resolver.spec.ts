@@ -10,6 +10,7 @@ import * as fs from 'fs/promises'
 import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 import ActivityService from '../activity.service'
+import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 
 jest.mock('fs')
 
@@ -35,6 +36,14 @@ describe('PinResolver', () => {
           },
         },
         ActivityService,
+        {
+          provide: Connection,
+          useValue: {
+            key: '',
+            secret: '',
+          },
+        },
+        IPFSValidatorService,
         {
           provide: Connection,
           useValue: {
