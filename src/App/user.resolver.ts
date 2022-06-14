@@ -4,6 +4,7 @@ import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { IUser } from '../Database/Entities/types/IUser'
+import Activity from '../Database/Entities/activity.entity'
 
 @Resolver(() => User)
 class UserResolver {
@@ -36,6 +37,28 @@ class UserResolver {
         updated: 'DESC',
       },
     })
+  }
+
+  @ResolveField()
+  async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
+    const { id } = user
+    const repository = this.connection.getRepository(Activity)
+    return repository.createQueryBuilder('activity')
+    .where('activity.datetime IN(SELECT MAX(activity.datetime) FROM activity GROUP BY activity.wikiId)')
+    .andWhere(`activity.type = '0' AND activity.userId = :id`, {id})
+    .orderBy('datetime', 'DESC')
+    .getMany()
+  }
+
+  @ResolveField()
+  async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
+    const { id } = user
+    const repository = this.connection.getRepository(Activity)
+    return repository.createQueryBuilder('activity')
+    .where('activity.datetime IN(SELECT MAX(activity.datetime) FROM activity GROUP BY activity.wikiId)')
+    .andWhere(`activity.type = '1' AND activity.userId = :id`, {id})
+    .orderBy('datetime', 'DESC')
+    .getMany()
   }
 }
 

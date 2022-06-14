@@ -5,6 +5,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql'
 import { IUser } from './types/IUser'
 import { IWiki } from './types/IWiki'
 import Wiki from './wiki.entity'
+import Activity from './activity.entity'
 
 @ObjectType()
 @Entity()
@@ -19,11 +20,13 @@ class User implements IUser {
   @OneToMany('Wiki', 'user', { lazy: true })
   wikis!: IWiki[]
 
-  @Field()
-  wikisCreated!: []
+  @Field(() => [Activity])
+  @OneToMany('Activity', 'user', { lazy: true })
+  wikisCreated!: Activity[]
 
-  @Field()
-  wikisEdited!: []
+  @Field(() => [Activity])
+  @OneToMany('Activity', 'user', { lazy: true })
+  wikisEdited!: Activity[]
 }
 
 export default User
