@@ -31,7 +31,7 @@ class IPFSValidatorService {
   ): Promise<ValidatorResult> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const oldWiki = await wikiRepository.findOne(wiki.id)
-    
+
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
@@ -191,7 +191,7 @@ class IPFSValidatorService {
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
-    
+
     const status =
       checkLanguage(wiki) &&
       checkWords(wiki) &&
