@@ -45,10 +45,8 @@ class UserResolver {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
-      .where(
-        'activity.datetime IN(SELECT MAX(activity.datetime) FROM activity GROUP BY activity.wikiId)',
-      )
-      .andWhere(`activity.type = '0' AND activity.userId = :id`, { id })
+      .where(`activity.type = '0' AND activity.userId = :id`, { id })
+      .groupBy('activity.wikiId, activity.id')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
@@ -61,10 +59,8 @@ class UserResolver {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
-      .where(
-        'activity.datetime IN(SELECT MAX(activity.datetime) FROM activity GROUP BY activity.wikiId)',
-      )
-      .andWhere(`activity.type = '1' AND activity.userId = :id`, { id })
+      .where(`activity.type = '1' AND activity.userId = :id`, { id })
+      .groupBy('activity.wikiId, activity.id')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
