@@ -8,6 +8,7 @@ export interface IWiki {
 
 export enum ValidatorCodes {
   VALID_WIKI = 'VALID_WIKI',
+  ID = 'ID_ERROR',
   LANGUAGE = 'LANGUAGE_ERROR',
   USER = 'USER_ERROR',
   WORDS = 'WORD_COUNT_ERROR',
