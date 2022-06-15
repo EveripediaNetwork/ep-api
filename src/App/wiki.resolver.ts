@@ -1,8 +1,10 @@
-import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
+import { IWiki } from '../Database/Entities/types/IWiki'
+import Activity from '../Database/Entities/activity.entity'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -123,6 +125,18 @@ class WikiResolver {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+  }
+
+  @ResolveField()
+  async author(@Parent() wiki: IWiki) {
+    const { id } = wiki
+    const repository = this.connection.getRepository(Activity)
+    const res = await repository.query(`
+      SELECT "userId"
+      FROM "activity"
+      WHERE "wikiId" = '${id}' AND "type" = '0'
+    `,)
+    return { id: res[0].userId }
   }
 }
 

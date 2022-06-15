@@ -45,7 +45,8 @@ class UserResolver {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
-      .where(`activity.type = '0' AND activity.userId = :id`, { id })
+      .where(`activity.userId = '${id}'`)
+      .andWhere("activity.type = '0' ")
       .groupBy('activity.wikiId, activity.id')
       .limit(args.limit)
       .offset(args.offset)
@@ -57,14 +58,19 @@ class UserResolver {
   async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const { id } = user
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .where(`activity.type = '1' AND activity.userId = :id`, { id })
-      .groupBy('activity.wikiId, activity.id')
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
+    return repository.query(`
+      SELECT d."wikiId", d."ipfs", d."type", d."content" FROM
+      (
+          SELECT "wikiId", Max(datetime) as MaxDate  
+          FROM activity
+          WHERE type = '1' AND  "activity"."userId" = '${id}'
+          GROUP BY "activity"."wikiId"
+      ) r
+      INNER JOIN "activity" d
+      ON d."wikiId"=r."wikiId" AND d.datetime=r.MaxDate
+      LIMIT ${args.limit}
+      OFFSET ${args.offset}
+    `)
   }
 }
 
