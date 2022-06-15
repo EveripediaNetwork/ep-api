@@ -84,7 +84,7 @@ class Wiki {
   @ManyToOne('User', 'user', { lazy: true })
   user!: User
 
-  @Field(() => User)
+  @Field()
   @OneToOne('User', 'wiki', { lazy: true })
   author!: User
 

@@ -21,11 +21,11 @@ class User implements IUser {
   wikis!: IWiki[]
 
   @Field(() => [Activity])
-  @OneToMany('Activity', 'user', { lazy: true })
+  @OneToMany('User', 'activities', { lazy: true })
   wikisCreated!: Activity[]
 
   @Field(() => [Activity])
-  @OneToMany('Activity', 'user', { lazy: true })
+  @OneToMany('User', 'activities', { lazy: true })
   wikisEdited!: Activity[]
 }
 
