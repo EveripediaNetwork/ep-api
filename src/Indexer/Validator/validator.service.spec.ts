@@ -56,7 +56,7 @@ describe('PinResolver', () => {
   })
 
   const testWiki: ValidWiki = {
-    id: 'komainu-(company)',
+    id: 'komainu-company',
     version: 1,
     language: 'en',
     title: 'Komainu (company)',
@@ -212,6 +212,18 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
       message: ValidatorCodes.METADATA,
+    })
+  })
+
+  it('should return status false if wiki ID is not a valid slug', async () => {
+    const wiki = {
+      ...testWiki,
+      id: 'komainu-(company)',
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.ID,
     })
   })
 })

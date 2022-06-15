@@ -4,6 +4,7 @@ import { Connection } from 'typeorm'
 // import * as linkify from 'linkifyjs'
 import diff from 'fast-diff'
 
+import slugify from 'slugify'
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
@@ -35,6 +36,19 @@ class IPFSValidatorService {
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
+
+    const checkId = (validatingWiki: ValidWiki) => {
+      const validId = slugify(validatingWiki.id.toLowerCase(), {
+        strict: true,
+        lower: true,
+        remove: /[*+~.()'"!:@]/g,
+      })
+      if (validId === validatingWiki.id) {
+        return true
+      }
+      message = ValidatorCodes.ID
+      return false
+    }
 
     const checkLanguage = (validatingWiki: ValidWiki) => {
       const resp = !!languages.includes(validatingWiki.language)
@@ -193,6 +207,7 @@ class IPFSValidatorService {
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
     const status =
+      checkId(wiki) &&
       checkLanguage(wiki) &&
       checkWords(wiki) &&
       checkCategories(wiki) &&
