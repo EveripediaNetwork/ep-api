@@ -11,6 +11,7 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
+  OneToOne,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -82,6 +83,10 @@ class Wiki {
   @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
   user!: User
+
+  @Field()
+  @OneToOne('User', 'wiki', { lazy: true })
+  author!: User
 
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
