@@ -59,7 +59,7 @@ class UserResolver {
     const { id } = user
     const repository = this.connection.getRepository(Activity)
     return repository.query(`
-      SELECT d."wikiId", d."ipfs", d."type", d."content" FROM
+      SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
       (
           SELECT "wikiId", Max(datetime) as MaxDate  
           FROM activity

@@ -11,7 +11,6 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
-  OneToOne,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -22,6 +21,7 @@ import Language from './language.entity'
 import Metadata from './metadata.entity'
 import Media from './media.entity'
 import Image from './image.entity'
+import { Author } from './types/IUser'
 
 @ObjectType()
 @Entity()
@@ -84,9 +84,8 @@ class Wiki {
   @ManyToOne('User', 'user', { lazy: true })
   user!: User
 
-  @Field()
-  @OneToOne('User', 'wiki', { lazy: true })
-  author!: User
+  @Field(() => Author, { nullable: true })
+  author?: Author
 
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
