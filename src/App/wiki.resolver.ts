@@ -145,7 +145,7 @@ class WikiResolver {
       FROM "activity"
       WHERE "wikiId" = '${id}' AND "type" = '0'
     `)
-    return { id: res[0]?.userId || null } 
+    return { id: res[0]?.userId || null }
   }
 }
 
