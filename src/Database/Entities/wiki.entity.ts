@@ -85,7 +85,6 @@ class Wiki {
   user!: User
 
   @Field(() => Author, { nullable: true })
-  @ManyToOne(() => User, user => user.wikis)
   author?: Author
 
   @Field(() => [Metadata])

@@ -21,11 +21,9 @@ class User implements IUser {
   wikis!: IWiki[]
 
   @Field(() => [Activity])
-  @OneToMany(() => Wiki, wiki => wiki.author)
   wikisCreated!: Activity[]
 
   @Field(() => [Activity])
-  @OneToMany(() => Wiki, wiki => wiki.author)
   wikisEdited!: Activity[]
 }
 
