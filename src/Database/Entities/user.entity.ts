@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { Entity, OneToMany, PrimaryColumn } from 'typeorm'
+import { Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { IUser } from './types/IUser'
@@ -21,11 +21,13 @@ class User implements IUser {
   wikis!: IWiki[]
 
   @Field(() => [Activity])
-  @OneToMany('User', 'activities', { lazy: true })
+  @OneToMany(() => Wiki, wiki => wiki.author)
+  @JoinColumn()
   wikisCreated!: Activity[]
 
   @Field(() => [Activity])
-  @OneToMany('User', 'activities', { lazy: true })
+  @OneToMany(() => Wiki, wiki => wiki.author)
+  @JoinColumn()
   wikisEdited!: Activity[]
 }
 
