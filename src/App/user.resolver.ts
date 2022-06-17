@@ -20,9 +20,11 @@ class UserResolver {
   }
 
   @Query(() => User)
-  async userById(@Args('id', { type: () => String }) id: number) {
+  async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
-    return repository.findOneOrFail(id)
+    return repository.findOneOrFail({
+      where: `"id" ILIKE '${id}'`,
+    })
   }
 
   @ResolveField()
@@ -59,11 +61,11 @@ class UserResolver {
     const { id } = user
     const repository = this.connection.getRepository(Activity)
     return repository.query(`
-      SELECT d."wikiId", d."ipfs", d."type", d."content" FROM
+      SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
       (
           SELECT "wikiId", Max(datetime) as MaxDate  
           FROM activity
-          WHERE type = '1' AND  "activity"."userId" = '${id}'
+          WHERE type = '1' AND "activity"."userId" = '${id}'
           GROUP BY "activity"."wikiId"
       ) r
       INNER JOIN "activity" d
