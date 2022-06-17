@@ -20,9 +20,11 @@ class UserResolver {
   }
 
   @Query(() => User)
-  async userById(@Args('id', { type: () => String }) id: number) {
+  async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
-    return repository.findOneOrFail(id)
+    return repository.findOneOrFail({
+      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    })
   }
 
   @ResolveField()
@@ -63,7 +65,7 @@ class UserResolver {
       (
           SELECT "wikiId", Max(datetime) as MaxDate  
           FROM activity
-          WHERE type = '1' AND  "activity"."userId" = '${id}'
+          WHERE type = '1' AND "activity"."userId" = '${id}'
           GROUP BY "activity"."wikiId"
       ) r
       INNER JOIN "activity" d
