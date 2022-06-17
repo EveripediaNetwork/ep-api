@@ -2,8 +2,8 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
-import AppModule from './App/app.module'
 import * as Sentry from '@sentry/node';
+import AppModule from './App/app.module'
 
 async function bootstrap() {
   let app = await NestFactory.create(AppModule)
@@ -24,8 +24,8 @@ async function bootstrap() {
   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
-    dsn: 'https://4e98de50242247eebc5512b55bc558a3@sentry.io/1837145',
-  });
+    dsn: 'https://3062851b00b7492c97cbe48ee24ab487@o1291176.ingest.sentry.io/6512854',
+  })
   await app.listen(port || 5000)
 }
 
