@@ -1,4 +1,13 @@
-import { Args, ArgsType, Field, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  Int,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -135,7 +144,7 @@ class WikiResolver {
       SELECT "userId"
       FROM "activity"
       WHERE "wikiId" = '${id}' AND "type" = '0'
-    `,)
+    `)
     return { id: res[0].userId }
   }
 }
