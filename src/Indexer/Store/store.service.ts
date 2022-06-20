@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UseInterceptors } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -8,6 +8,7 @@ import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
 import { Source } from '../../Database/Entities/media.entity'
+import SentryInterceptor from '../../sentry/security.interceptor'
 
 export type ValidWiki = {
   id: string
@@ -42,6 +43,7 @@ export type ValidWiki = {
   }
 }
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 class DBStoreService {
   constructor(private connection: Connection) {}

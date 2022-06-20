@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
+import SentryInterceptor from '../../sentry/security.interceptor'
 
 export type Hash = {
   id: string
@@ -24,6 +25,7 @@ const query = gql`
   }
 `
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 class GraphProviderService {
   constructor(private configService: ConfigService) {}

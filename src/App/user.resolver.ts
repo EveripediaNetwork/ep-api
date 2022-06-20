@@ -1,11 +1,14 @@
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { UseInterceptors } from '@nestjs/common'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { IUser } from '../Database/Entities/types/IUser'
 import Activity from '../Database/Entities/activity.entity'
+import SentryInterceptor from '../sentry/security.interceptor'
 
+@UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
 class UserResolver {
   constructor(private connection: Connection) {}
