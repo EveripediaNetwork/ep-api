@@ -10,10 +10,12 @@ import {
 } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
+import { UseInterceptors } from '@nestjs/common'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
 import { IWiki } from '../Database/Entities/types/IWiki'
 import Activity from '../Database/Entities/activity.entity'
+import SentryInterceptor from '../sentry/security.interceptor'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -46,6 +48,7 @@ class ByIdAndBlockArgs {
   block = -1
 }
 
+@UseInterceptors(SentryInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(private connection: Connection) {}

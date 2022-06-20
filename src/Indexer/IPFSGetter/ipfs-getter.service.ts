@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UseInterceptors } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 
 import { ValidWiki } from '../Store/store.service'
+import SentryInterceptor from '../../sentry/security.interceptor'
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 class IPFSGetterService {
   constructor(

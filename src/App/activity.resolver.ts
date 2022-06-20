@@ -1,6 +1,8 @@
+import { UseInterceptors } from '@nestjs/common'
 import { Args, ArgsType, Field, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
+import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 
 @ArgsType()
@@ -21,6 +23,7 @@ class LangArgs extends PaginationArgs {
   lang = 'en'
 }
 
+@UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class ActivityResolver {
   constructor(private connection: Connection) {}
