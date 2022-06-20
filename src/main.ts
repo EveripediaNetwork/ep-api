@@ -24,7 +24,7 @@ async function bootstrap() {
   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
-    dsn: 'https://3062851b00b7492c97cbe48ee24ab487@o1291176.ingest.sentry.io/6512854',
+    dsn: configService.get<string>('SENTRY_DSN'),
   })
   await app.listen(port || 5000)
 }

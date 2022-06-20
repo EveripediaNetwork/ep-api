@@ -2,7 +2,12 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
-import { HttpException, HttpStatus, Logger, UseInterceptors } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Logger,
+  UseInterceptors,
+} from '@nestjs/common'
 
 import sharp from 'sharp'
 import SentryInterceptor from '../../sentry/security.interceptor'
