@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Connection } from 'typeorm'
 // import * as linkify from 'linkifyjs'
@@ -13,12 +13,14 @@ import {
 import Wiki from '../../Database/Entities/wiki.entity'
 
 import { ValidWiki } from '../Store/store.service'
+import SentryInterceptor from '../../sentry/security.interceptor'
 
 export type ValidatorResult = {
   status: boolean
   message: string
 }
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
