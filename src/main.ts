@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node'
 import AppModule from './App/app.module'
 
 async function bootstrap() {

@@ -2,12 +2,15 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
-import { HttpException, HttpStatus, Logger } from '@nestjs/common'
+import { HttpException, HttpStatus, Logger, UseInterceptors } from '@nestjs/common'
 
 import sharp from 'sharp'
+import SentryInterceptor from '../../sentry/security.interceptor'
+
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 
+@UseInterceptors(SentryInterceptor)
 @Resolver(() => IpfsHash)
 class PinResolver {
   constructor(private readonly pinService: PinService) {}
