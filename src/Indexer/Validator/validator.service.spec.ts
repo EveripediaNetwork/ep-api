@@ -194,6 +194,13 @@ describe('PinResolver', () => {
     })
   })
 
+  it('should return status true if wiki exists and content is has no changes', async () => {
+    const wiki = {
+      ...oldWiki,
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
+
   it('should return status false if wiki changes do not match incoming metadata changes', async () => {
     const wiki = {
       ...oldWiki,
