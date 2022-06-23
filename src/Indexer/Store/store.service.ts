@@ -17,6 +17,8 @@ export type ValidWiki = {
   title: string
   content: string
   summary?: string
+  created?: Date
+  updated?: Date
   tags: {
     id: string
   }[]
@@ -112,6 +114,9 @@ class DBStoreService {
             language,
             user,
             tags,
+            created:
+              `${existWiki?.created}` || new Date(Date.now()).toISOString(),
+            updated: new Date(Date.now()).toISOString(),
             categories,
             images: wiki.images,
             media: wiki.media || [],
@@ -120,7 +125,7 @@ class DBStoreService {
             ipfs: hash.id,
           },
         ],
-        datetime: new Date(Date.now()),
+        datetime: new Date(Date.now()).toISOString(),
         ipfs: hash.id,
       })
       return resp

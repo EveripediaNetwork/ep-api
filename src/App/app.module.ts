@@ -27,7 +27,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
       debug: true,
       playground: true,
       cors: true,
-      autoSchemaFile: true,
+      autoSchemaFile: true
     }),
     PinModule,
     DatabaseModule,

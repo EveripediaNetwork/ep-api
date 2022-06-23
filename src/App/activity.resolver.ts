@@ -58,7 +58,6 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activitiesByUser(@Args() args: ActivityArgsByUser) {
     const repository = this.connection.getRepository(Activity)
-
     return repository.find({
       where: {
         user: {
@@ -74,9 +73,13 @@ class ActivityResolver {
   }
 
   @Query(() => Activity)
-  async activityById(@Args('id', { type: () => String }) id: string) {
+  async activityById(@Args('wikiId', { type: () => String }) wikiId: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository.findOneOrFail(id)
+    return repository.findOneOrFail({
+      where: {
+        wikiId,
+      },
+    })
   }
 }
 
