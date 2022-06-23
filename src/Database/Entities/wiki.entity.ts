@@ -12,7 +12,16 @@ import {
   AfterInsert,
   AfterUpdate,
 } from 'typeorm'
-import { Field, GraphQLISODateTime, ID, Int, ObjectType , FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql'
+import {
+  Field,
+  GraphQLISODateTime,
+  ID,
+  Int,
+  ObjectType,
+  FieldMiddleware,
+  MiddlewareContext,
+  NextFn,
+} from '@nestjs/graphql'
 
 import Category from './category.entity'
 import Tag from './tag.entity'
@@ -23,13 +32,12 @@ import Media from './media.entity'
 import Image from './image.entity'
 import { Author } from './types/IUser'
 
-
 const dateMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
   next: NextFn,
 ) => {
   const value = await next()
-  if(value === undefined){
+  if (value === undefined) {
     return null
   }
   return new Date(value)
@@ -48,11 +56,17 @@ class Wiki {
   @Column()
   title!: string
 
-  @Field(() => GraphQLISODateTime, { middleware: [dateMiddleware], nullable: true })
+  @Field(() => GraphQLISODateTime, {
+    middleware: [dateMiddleware],
+    nullable: true,
+  })
   @CreateDateColumn()
   created!: Date
 
-  @Field(() => GraphQLISODateTime, { middleware: [dateMiddleware], nullable: true })
+  @Field(() => GraphQLISODateTime, {
+    middleware: [dateMiddleware],
+    nullable: true,
+  })
   @UpdateDateColumn()
   updated!: Date
 

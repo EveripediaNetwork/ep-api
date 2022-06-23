@@ -114,7 +114,8 @@ class DBStoreService {
             language,
             user,
             tags,
-            created: `${existWiki?.created}` || new Date(Date.now()).toISOString(),
+            created:
+              `${existWiki?.created}` || new Date(Date.now()).toISOString(),
             updated: new Date(Date.now()).toISOString(),
             categories,
             images: wiki.images,
