@@ -16,6 +16,7 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
+import UserProfileResolver from './user_profile.resolver'
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
     TagResolver,
     UserResolver,
     ActivityResolver,
+    UserProfileResolver
   ],
 })
 class AppModule {

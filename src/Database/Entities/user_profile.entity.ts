@@ -1,26 +1,10 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-
-interface Links {
-  instagram?: string
-  twitter?: string
-  website?: string
-}
-
-interface Notifications {
-    EVERIPEDIA_NOTIFICATIONS: boolean
-    WIKI_OF_THE_DAY: boolean
-    WIKI_OF_THE_MONTH: boolean
-    EDIT_NOTIFICATIONS: boolean
-}
-
-interface AdvancedSettings {
-    SIGN_EDITS_WITH_RELAYER: boolean
-}
+import { Links, Notifications, AdvancedSettings } from './types/IUser'
 
 @ObjectType()
 @Entity()
-class Userprofile {
+class UserProfile {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
@@ -43,10 +27,6 @@ class Userprofile {
   email!: string
 
   @Field()
-  @Column('jsonb')
-  links!: Links
-
-  @Field()
   @Column('varchar', {
     length: 46,
   })
@@ -58,13 +38,17 @@ class Userprofile {
   })
   banner!: string
 
-  @Field()
+  @Field(() => [Links])
   @Column('jsonb')
-  nottifications!: Notifications
+  links!: Links[]
 
-  @Field()
+  @Field(() => [Notifications])
   @Column('jsonb')
-  advancedSettings!: AdvancedSettings
+  nottifications!: Notifications[]
+
+  @Field(() => [AdvancedSettings])
+  @Column('jsonb')
+  advancedSettings!: AdvancedSettings[]
 }
 
-export default Userprofile
+export default UserProfile
