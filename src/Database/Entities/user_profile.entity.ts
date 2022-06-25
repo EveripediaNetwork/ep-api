@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm'
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm'
+import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
 
 @ObjectType()
@@ -49,6 +49,14 @@ class UserProfile {
   @Field(() => [AdvancedSettings])
   @Column('jsonb')
   advancedSettings!: AdvancedSettings[]
+
+  @Field(() => GraphQLISODateTime)
+  @CreateDateColumn()
+  created!: Date
+
+  @Field(() => GraphQLISODateTime)
+  @UpdateDateColumn()
+  updated!: Date
 }
 
 export default UserProfile

@@ -42,5 +42,5 @@ export class Notifications {
 @ObjectType()
 export class AdvancedSettings {
   @Field(() => Boolean)
-  SIGN_EDITS_WITH_RELAYER = false
+  SIGN_EDITS_WITH_RELAYER = true
 }

@@ -29,6 +29,7 @@ import UserProfileResolver from './user_profile.resolver'
       playground: true,
       cors: true,
       autoSchemaFile: true,
+      context: ({ req }) => ({ req }),
     }),
     PinModule,
     DatabaseModule,
@@ -44,7 +45,7 @@ import UserProfileResolver from './user_profile.resolver'
     TagResolver,
     UserResolver,
     ActivityResolver,
-    UserProfileResolver
+    UserProfileResolver,
   ],
 })
 class AppModule {
