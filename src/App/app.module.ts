@@ -3,6 +3,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
+import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -17,6 +18,7 @@ import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './user_profile.resolver'
+import userDirectiveTransformer from '../Database/Entities/userDirectiveTransformer'
 
 @Module({
   imports: [
@@ -30,6 +32,15 @@ import UserProfileResolver from './user_profile.resolver'
       cors: true,
       autoSchemaFile: true,
       context: ({ req }) => ({ req }),
+      transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
+      buildSchemaOptions: {
+        directives: [
+          new GraphQLDirective({
+            name: 'isUser',
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+          }),
+        ],
+      },
     }),
     PinModule,
     DatabaseModule,

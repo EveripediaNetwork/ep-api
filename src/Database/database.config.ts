@@ -11,6 +11,7 @@ import User from './Entities/user.entity'
 import Language from './Entities/language.entity'
 import Activity from './Entities/activity.entity'
 import Media from './Entities/media.entity'
+import UserProfile from './Entities/user_profile.entity'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
@@ -22,7 +23,16 @@ export default class TypeOrmConfig {
       password: configService.get('DATABASE_PASS'),
       database: configService.get('DATABASE_NAME'),
       logger: 'advanced-console',
-      entities: [Wiki, Tag, Category, User, Language, Activity, Media],
+      entities: [
+        Wiki,
+        Tag,
+        Category,
+        User,
+        Language,
+        Activity,
+        Media,
+        UserProfile,
+      ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,
     }

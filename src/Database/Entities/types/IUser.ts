@@ -14,13 +14,13 @@ export class Author {
 
 @ObjectType()
 export class Links {
-  @Field()
+  @Field({ nullable: true })
   instagram?: string
 
-  @Field()
+  @Field({ nullable: true })
   twitter?: string
 
-  @Field()
+  @Field({ nullable: true })
   website?: string
 }
 

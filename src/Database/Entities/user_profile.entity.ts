@@ -1,5 +1,17 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm'
-import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm'
+import {
+  Directive,
+  Field,
+  GraphQLISODateTime,
+  ID,
+  ObjectType,
+} from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
 
 @ObjectType()
@@ -11,43 +23,52 @@ class UserProfile {
   })
   id!: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 25,
+    nullable: true,
   })
-  username!: string
+  username?: string
 
-  @Field()
-  bio!: string
+  @Field({ nullable: true })
+  @Column('varchar', {
+    length: 250,
+    nullable: true,
+  })
+  bio?: string
 
-  @Field()
+  @Directive('@isUser')
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 100,
+    nullable: true,
   })
-  email!: string
+  email?: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 46,
+    nullable: true,
   })
-  avatar!: string
+  avatar?: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 46,
+    nullable: true,
   })
-  banner!: string
+  banner?: string
 
-  @Field(() => [Links])
-  @Column('jsonb')
-  links!: Links[]
+  @Field(() => [Links], { nullable: true })
+  @Column('jsonb', { default: [] })
+  links?: Links[]
 
   @Field(() => [Notifications])
-  @Column('jsonb')
-  nottifications!: Notifications[]
+  @Column('jsonb', { default: [new Notifications()] })
+  notifications!: Notifications[]
 
   @Field(() => [AdvancedSettings])
-  @Column('jsonb')
+  @Column('jsonb', { default: [new AdvancedSettings()] })
   advancedSettings!: AdvancedSettings[]
 
   @Field(() => GraphQLISODateTime)
