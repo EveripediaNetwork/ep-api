@@ -19,8 +19,8 @@ export default function userDirectiveTransformer(
         const { resolve = defaultFieldResolver } = fieldConfig
 
         fieldConfig.resolve = async (source, args, context, info) => {
-  
           // TODO: VALIDATE USER AND RETURN EMAIL only when valid
+          console.log(context)
           const result = await resolve(source, args, context, info)
           const a = false
           if (a) {
