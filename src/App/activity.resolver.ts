@@ -73,13 +73,9 @@ class ActivityResolver {
   }
 
   @Query(() => Activity)
-  async activityById(@Args('wikiId', { type: () => String }) wikiId: string) {
+  async activityById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository.findOneOrFail({
-      where: {
-        wikiId,
-      },
-    })
+    return repository.findOneOrFail(id)
   }
 }
 
