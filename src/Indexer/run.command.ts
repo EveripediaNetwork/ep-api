@@ -35,10 +35,10 @@ class RunCommand implements CommandRunner {
       },
       take: 1,
     })
-
-    const unixtime = Math.floor(
+    
+    const unixtime = (lastWikiEdited.length > 0) ? Math.floor(
       new Date(lastWikiEdited[0].updated).getTime() / 1000,
-    )
+    ) : Math.floor(new Date().getTime() / 1000) - 86400
 
     return unixtime
   }

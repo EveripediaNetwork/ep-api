@@ -18,8 +18,8 @@ import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './user_profile.resolver'
-import userDirectiveTransformer from '../Database/Entities/userDirectiveTransformer'
 import UserService from './user.service'
+import userDirectiveTransformer from '../Database/Entities/userDirectiveTransformer'
 
 @Module({
   imports: [
@@ -31,7 +31,6 @@ import UserService from './user.service'
       debug: true,
       playground: true,
       cors: true,
-      autoSchemaFile: true,
       context: ({ req }) => ({ req }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
       buildSchemaOptions: {
@@ -42,6 +41,7 @@ import UserService from './user.service'
           }),
         ],
       },
+      autoSchemaFile: true
     }),
     PinModule,
     DatabaseModule,

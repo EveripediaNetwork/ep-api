@@ -1,16 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import * as Web3Token from 'web3-token'
+import User from '../Database/Entities/user.entity'
 import UserProfile from '../Database/Entities/user_profile.entity'
 
 @Injectable()
 class UserService {
-  constructor(private connection: Connection) {}
+  constructor(readonly connection: Connection) {}
 
-  async validateUser(token: string): Promise<boolean> {
-    const { address, body } = Web3Token.verify(token)
-    return true
+  async validateToken(token: string): Promise<string | void> {
+      const { address } = Web3Token.verify(token)
+    return address
+  }
+
+ async validateUser(token: string): Promise<boolean> {
+    const repository = this.connection.getRepository(User)
+    const id = await this.validateToken(token)
+    const user = await repository.findOneOrFail({
+      where: `LOWER(id) = '${id?.toLowerCase()}'`,
+    })
+    if (user) return true
+    return false
   }
 
   async createProfile(
