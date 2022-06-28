@@ -41,7 +41,7 @@ import userDirectiveTransformer from '../Database/Entities/userDirectiveTransfor
           }),
         ],
       },
-      autoSchemaFile: true
+      autoSchemaFile: true,
     }),
     PinModule,
     DatabaseModule,
