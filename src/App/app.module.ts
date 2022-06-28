@@ -19,7 +19,7 @@ import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './user_profile.resolver'
 import UserService from './user.service'
-import userDirectiveTransformer from '../Database/Entities/userDirectiveTransformer'
+import userDirectiveTransformer from './utils/userDirectiveTransformer'
 
 @Module({
   imports: [

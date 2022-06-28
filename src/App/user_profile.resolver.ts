@@ -16,11 +16,7 @@ class UserProfileResolver {
   @Query(() => UserProfile)
   async getProfile(
     @Args('id', { type: () => String }) id: string,
-    @Context() context: any,
   ) {
-    const { token } = context.req.headers.authorization
-    this.userService.validateUser(token)
-    // TODO: validate user and return profile
     const repository = this.connection.getRepository(UserProfile)
     return repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
