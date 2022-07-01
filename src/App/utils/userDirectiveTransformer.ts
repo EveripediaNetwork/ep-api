@@ -33,7 +33,7 @@ export default function UserDirectiveTransformer(
               .findOneOrFail({
                 where: `LOWER(id) = '${id.toLowerCase()}'`,
               })
-            if (source.id !== user.id) {
+            if (source.id.toLowerCase() !== user.id.toLowerCase()) {
               return null
             }
           }

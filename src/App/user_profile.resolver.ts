@@ -28,9 +28,9 @@ class UserProfileResolver {
     @Args({ name: 'profileInfo', type: () => String }) profileInfo: string,
     @Context() context: any,
   ) {
-    const { token } = context.req.headers.authorization
+    const { authorization } = context.req.headers
 
-    return this.userService.createProfile(profileInfo, token)
+    return this.userService.createProfile(profileInfo, authorization)
   }
 }
 

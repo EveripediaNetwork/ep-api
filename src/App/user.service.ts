@@ -11,13 +11,30 @@ class UserService {
   async createProfile(
     profileInfo: string,
     token: string,
-  ): Promise<UserProfile | any> {
+  ): Promise<UserProfile | boolean> {
     const data: UserProfile = JSON.parse(profileInfo)
     const repository = this.connection.getRepository(UserProfile)
 
     const id = validateToken(token)
-    if (id === 'Token expired' || id !== data.id)
+
+    if (id === 'Token expired' || id.toLowerCase() !== data.id.toLowerCase())
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
+
+    const existsProfile = await repository.findOne(data.id)
+
+    if (existsProfile) {
+
+      await repository
+        .createQueryBuilder()
+        .update(UserProfile)
+        .set({ ...data })
+        .where('id = :id', { id: data.id })
+        .execute()
+        
+      return existsProfile
+
+    }
+
     const newProfile = repository.create({
       id: data.id,
       username: data.username,
