@@ -10,6 +10,9 @@ class PaginationArgs {
   @Min(1)
   @Max(50)
   limit = 30
+
+  @Field(()=> Boolean)
+  hidden = false
 }
 
 export default PaginationArgs

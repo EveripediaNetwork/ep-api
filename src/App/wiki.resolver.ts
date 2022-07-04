@@ -61,11 +61,13 @@ class WikiResolver {
         ? {
             language: args.lang,
             id: args.id,
+            hidden: false,
           }
         : {
             language: args.lang,
             id: args.id,
             block: args.block,
+            hidden: false,
           }
     return repository.findOneOrFail({ where: condition })
   }
@@ -73,7 +75,7 @@ class WikiResolver {
   @Query(() => Wiki)
   async wikiByIdAndBlock(@Args('id', { type: () => String }) id: number) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.findOneOrFail(id)
+    return repository.findOneOrFail({ where: { id, hidden: false } })
   }
 
   @Query(() => [Wiki])
@@ -82,6 +84,7 @@ class WikiResolver {
     return repository.find({
       where: {
         language: args.lang,
+        hidden: args.hidden,
       },
       take: args.limit,
       skip: args.offset,
@@ -98,6 +101,7 @@ class WikiResolver {
       where: {
         language: args.lang,
         promoted: MoreThan(0),
+        hidden: args.hidden,
       },
       take: args.limit,
       skip: args.offset,
@@ -116,7 +120,10 @@ class WikiResolver {
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
         categoryId: args.category,
       })
-      .where('wiki.language = :lang', { lang: args.lang })
+      .where('wiki.language = :lang AND hidden = :status', {
+        lang: args.lang,
+        status: args.hidden,
+      })
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
@@ -129,10 +136,14 @@ class WikiResolver {
 
     return repository
       .createQueryBuilder('wiki')
-      .where('wiki.language = :lang AND LOWER(wiki.title) LIKE :title', {
-        lang: args.lang,
-        title: `%${args.title.toLowerCase()}%`,
-      })
+      .where(
+        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :status',
+        {
+          lang: args.lang,
+          status: args.hidden,
+          title: `%${args.title.toLowerCase()}%`,
+        },
+      )
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
