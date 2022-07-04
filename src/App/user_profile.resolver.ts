@@ -14,9 +14,7 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile)
-  async getProfile(
-    @Args('id', { type: () => String }) id: string,
-  ) {
+  async getProfile(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(UserProfile)
     return repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,

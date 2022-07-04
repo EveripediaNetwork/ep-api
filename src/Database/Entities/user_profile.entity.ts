@@ -32,7 +32,7 @@ class UserProfile {
   @Column('varchar', {
     length: 25,
     nullable: true,
-    unique: true 
+    unique: true,
   })
   username?: string
 
