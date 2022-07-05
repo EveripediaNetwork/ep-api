@@ -43,6 +43,7 @@ export type ValidWiki = {
   user: {
     id: string
   }
+  hidden: boolean
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -122,6 +123,7 @@ class DBStoreService {
             metadata: wiki.metadata,
             transactionHash: hash.transactionHash,
             ipfs: hash.id,
+            hidden: existWiki?.hidden || false,
           },
         ],
         datetime: new Date(Date.now()),
@@ -145,6 +147,7 @@ class DBStoreService {
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
+      existWiki.hidden = wiki.hidden
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       await activityRepository.save(createActivity(Status.UPDATED))
