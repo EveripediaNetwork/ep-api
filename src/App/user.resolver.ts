@@ -51,7 +51,7 @@ class UserResolver {
     return repository
       .createQueryBuilder('activity')
       .where(`activity.userId = '${id}'`)
-      .andWhere("activity.type = '0' ")
+      .andWhere("activity.type = '0' AND activity.hidden = false")
       .groupBy('activity.wikiId, activity.id')
       .limit(args.limit)
       .offset(args.offset)
