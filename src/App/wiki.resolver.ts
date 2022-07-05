@@ -61,15 +61,13 @@ class WikiResolver {
         ? {
             language: args.lang,
             id: args.id,
-            hidden: false,
           }
         : {
             language: args.lang,
             id: args.id,
             block: args.block,
-            hidden: false,
           }
-    return repository.findOneOrFail({ where: condition })
+    return repository.findOneOrFail({ where: { condition, hidden: false } })
   }
 
   @Query(() => Wiki)
