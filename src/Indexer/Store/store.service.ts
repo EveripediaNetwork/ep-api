@@ -123,7 +123,6 @@ class DBStoreService {
             metadata: wiki.metadata,
             transactionHash: hash.transactionHash,
             ipfs: hash.id,
-            hidden: existWiki?.hidden || false,
           },
         ],
         datetime: new Date(Date.now()),

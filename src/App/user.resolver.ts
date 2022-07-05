@@ -35,7 +35,7 @@ class UserResolver {
     const { id } = user
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
-      where: { user: id, hidden: args.hidden },
+      where: { user: id, hidden: false },
       take: args.limit,
       skip: args.offset,
       order: {
@@ -50,8 +50,9 @@ class UserResolver {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
-      .where(`activity.userId = '${id}'`)
-      .andWhere("activity.type = '0' AND activity.hidden = false")
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.userId = '${id}' AND w."hidden" = false`)
+      .andWhere("activity.type = '0'")
       .groupBy('activity.wikiId, activity.id')
       .limit(args.limit)
       .offset(args.offset)
@@ -64,17 +65,20 @@ class UserResolver {
     const { id } = user
     const repository = this.connection.getRepository(Activity)
     return repository.query(`
-      SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
-      (
-          SELECT "wikiId", Max(datetime) as MaxDate  
-          FROM activity
-          WHERE type = '1' AND "activity"."userId" = '${id}'
-          GROUP BY "activity"."wikiId"
-      ) r
-      INNER JOIN "activity" d
-      ON d."wikiId"=r."wikiId" AND d.datetime=r.MaxDate
-      LIMIT ${args.limit}
-      OFFSET ${args.offset}
+    SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
+        (
+            SELECT "wikiId", Max(datetime) as MaxDate  
+            FROM activity
+            WHERE type = '1' AND "activity"."userId" = '${id}'
+            GROUP BY "activity"."wikiId"
+        ) r
+        INNER JOIN "activity" d
+        ON d."wikiId"=r."wikiId" AND d.datetime=r.MaxDate
+        INNER JOIN "wiki" w
+        ON w."id" = d."wikiId"
+        WHERE w."hidden" = false
+        LIMIT ${args.limit}
+        OFFSET ${args.offset}
     `)
   }
 }

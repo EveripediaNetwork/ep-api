@@ -61,13 +61,15 @@ class WikiResolver {
         ? {
             language: args.lang,
             id: args.id,
+            hidden: false
           }
         : {
             language: args.lang,
             id: args.id,
             block: args.block,
+            hidden: false
           }
-    return repository.findOneOrFail({ where: { condition, hidden: false } })
+    return repository.findOneOrFail({ where: condition })
   }
 
   @Query(() => Wiki)
@@ -82,7 +84,7 @@ class WikiResolver {
     return repository.find({
       where: {
         language: args.lang,
-        hidden: args.hidden,
+        hidden: false,
       },
       take: args.limit,
       skip: args.offset,
@@ -99,7 +101,7 @@ class WikiResolver {
       where: {
         language: args.lang,
         promoted: MoreThan(0),
-        hidden: args.hidden,
+        hidden: false,
       },
       take: args.limit,
       skip: args.offset,
@@ -120,7 +122,7 @@ class WikiResolver {
       })
       .where('wiki.language = :lang AND hidden = :status', {
         lang: args.lang,
-        status: args.hidden,
+        status: false,
       })
       .limit(args.limit)
       .offset(args.offset)
@@ -138,7 +140,7 @@ class WikiResolver {
         'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :status',
         {
           lang: args.lang,
-          status: args.hidden,
+          status: false,
           title: `%${args.title.toLowerCase()}%`,
         },
       )

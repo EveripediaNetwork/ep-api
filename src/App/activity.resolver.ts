@@ -47,7 +47,6 @@ class ActivityResolver {
     return repository.find({
       where: {
         wikiId: args.wikiId,
-        hidden: args.hidden,
       },
       take: args.limit,
       skip: args.offset,
@@ -60,20 +59,19 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activitiesByUser(@Args() args: ActivityArgsByUser) {
     const repository = this.connection.getRepository(Activity)
-    return repository.find({
-      where: {
-        user: {
-          id: args.userId,
-        },
-        hidden: args.hidden,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        datetime: 'DESC',
-      },
-    })
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(` activity.userId = :user AND w."hidden" = false`, {
+        user: args.userId
+      })
+      .orderBy('activity.datetime', 'DESC')
+      .limit(args.limit)
+      .offset(args.offset)
+      .getMany()
   }
+
+
 
   @Query(() => Activity)
   async activityById(@Args('id', { type: () => String }) id: string) {

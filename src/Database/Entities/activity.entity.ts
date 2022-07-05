@@ -57,10 +57,6 @@ class Activity {
   @Field()
   @Column('varchar', { nullable: true })
   ipfs!: string
-
-  @Field()
-  @Column('boolean', { default: false })
-  hidden!: boolean
 }
 
 export default Activity
