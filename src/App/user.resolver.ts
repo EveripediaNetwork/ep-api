@@ -35,7 +35,7 @@ class UserResolver {
     const { id } = user
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
-      where: { user: id },
+      where: { user: id, hidden: args.hidden },
       take: args.limit,
       skip: args.offset,
       order: {

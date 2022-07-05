@@ -11,7 +11,7 @@ class PaginationArgs {
   @Max(50)
   limit = 30
 
-  @Field(()=> Boolean)
+  @Field(() => Boolean)
   hidden = false
 }
 

@@ -34,6 +34,7 @@ class ActivityResolver {
     return repository
       .createQueryBuilder('activity')
       .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
+      .andWhere("activity.hidden = false")
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
@@ -46,6 +47,7 @@ class ActivityResolver {
     return repository.find({
       where: {
         wikiId: args.wikiId,
+        hidden: args.hidden
       },
       take: args.limit,
       skip: args.offset,
@@ -63,6 +65,7 @@ class ActivityResolver {
         user: {
           id: args.userId,
         },
+        hidden: args.hidden
       },
       take: args.limit,
       skip: args.offset,
@@ -75,7 +78,7 @@ class ActivityResolver {
   @Query(() => Activity)
   async activityById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository.findOneOrFail(id)
+    return repository.findOneOrFail({ where: { id, hidden: false } })
   }
 }
 
