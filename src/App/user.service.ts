@@ -15,7 +15,7 @@ class UserService {
     const data: UserProfile = JSON.parse(profileInfo)
     const repository = this.connection.getRepository(UserProfile)
 
-    const id = validateToken(token) 
+    const id = validateToken(token)
 
     if (id === 'Token expired' || id.toLowerCase() !== data.id.toLowerCase())
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
