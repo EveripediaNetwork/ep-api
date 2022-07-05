@@ -18,5 +18,5 @@ jobs:
             git pull
             yarn
             yarn build
-            pm2 update
+            /home/ubuntu/.yarn/bin/pm2 update
             
