@@ -2,8 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm'
@@ -15,14 +13,11 @@ import {
   ObjectType,
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
-import User from './user.entity'
 
 @ObjectType()
 @Entity()
 class UserProfile {
   @Field(() => ID)
-  @OneToOne(() => User)
-  @JoinColumn()
   @PrimaryColumn('varchar', {
     length: 255,
   })
