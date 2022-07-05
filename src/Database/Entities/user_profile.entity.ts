@@ -69,11 +69,13 @@ class UserProfile {
   @Column('jsonb', { default: [] })
   links?: Links[]
 
-  @Field(() => [Notifications])
+  @Directive('@isUser')
+  @Field(() => [Notifications], { nullable: true })
   @Column('jsonb', { default: [new Notifications()] })
   notifications!: Notifications[]
 
-  @Field(() => [AdvancedSettings])
+  @Directive('@isUser')
+  @Field(() => [AdvancedSettings], { nullable: true })
   @Column('jsonb', { default: [new AdvancedSettings()] })
   advancedSettings!: AdvancedSettings[]
 
