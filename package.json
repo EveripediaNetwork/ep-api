@@ -26,6 +26,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@ensdomains/ensjs": "^3.0.0-alpha.2",
     "@graphql-tools/utils": "^8.7.0",
     "@jest-mock/express": "^1.4.5",
     "@nestjs/apollo": "^10.0.8",

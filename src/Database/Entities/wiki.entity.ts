@@ -56,6 +56,10 @@ class Wiki {
   @Column()
   title!: string
 
+  @Field()
+  @Column('boolean', { default: false })
+  hidden!: boolean
+
   @Field(() => GraphQLISODateTime, {
     middleware: [dateMiddleware],
     nullable: true,

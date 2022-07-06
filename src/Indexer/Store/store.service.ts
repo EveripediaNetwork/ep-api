@@ -43,6 +43,7 @@ export type ValidWiki = {
   user: {
     id: string
   }
+  hidden: boolean
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -114,9 +115,8 @@ class DBStoreService {
             language,
             user,
             tags,
-            created:
-              `${existWiki?.created}` || new Date(Date.now()).toISOString(),
-            updated: new Date(Date.now()).toISOString(),
+            created: existWiki?.created || new Date(Date.now()),
+            updated: new Date(Date.now()),
             categories,
             images: wiki.images,
             media: wiki.media || [],
@@ -125,7 +125,7 @@ class DBStoreService {
             ipfs: hash.id,
           },
         ],
-        datetime: new Date(Date.now()).toISOString(),
+        datetime: new Date(Date.now()),
         ipfs: hash.id,
       })
       return resp
@@ -133,7 +133,6 @@ class DBStoreService {
 
     // TODO: store history and delete?
     if (existWiki) {
-      await activityRepository.save(createActivity(Status.UPDATED))
       existWiki.version = wiki.version
       existWiki.language = language
       existWiki.title = wiki.title
@@ -147,11 +146,12 @@ class DBStoreService {
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
+      existWiki.hidden = wiki.hidden
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
+      await activityRepository.save(createActivity(Status.UPDATED))
       return true
     }
-    await activityRepository.save(createActivity(Status.CREATED))
 
     const newWiki = wikiRepository.create({
       id: wiki.id,
@@ -172,6 +172,9 @@ class DBStoreService {
     })
 
     await wikiRepository.save(newWiki)
+    // console.log(savedWiki)
+    await activityRepository.save(createActivity(Status.CREATED))
+
     return true
   }
 }
