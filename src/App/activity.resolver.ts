@@ -33,7 +33,10 @@ class ActivityResolver {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
-      .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(
+        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND w."hidden" = false`,
+      )
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
@@ -43,39 +46,39 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activitiesByWikId(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository.find({
-      where: {
-        wikiId: args.wikiId,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        datetime: 'DESC',
-      },
-    })
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
   }
 
   @Query(() => [Activity])
   async activitiesByUser(@Args() args: ActivityArgsByUser) {
     const repository = this.connection.getRepository(Activity)
-    return repository.find({
-      where: {
-        user: {
-          id: args.userId,
-        },
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        datetime: 'DESC',
-      },
-    })
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(` activity.userId = :user AND w."hidden" = false`, {
+        user: args.userId,
+      })
+      .orderBy('activity.datetime', 'DESC')
+      .limit(args.limit)
+      .offset(args.offset)
+      .getMany()
   }
 
   @Query(() => Activity)
   async activityById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository.findOneOrFail(id)
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.id = '${id}' AND w."hidden" = false`)
+      .getOne()
   }
 }
 

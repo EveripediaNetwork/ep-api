@@ -56,6 +56,7 @@ class CategoryResolver {
 
     return repository
       .createQueryBuilder('wiki')
+      .where('wiki.hidden = false')
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
         categoryId: id,
       })
