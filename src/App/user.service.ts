@@ -36,6 +36,7 @@ class UserService {
     const newProfile = repository.create({
       id: data.id,
       username: data.username,
+      usernameSlug: data.username?.toLowerCase(),
       bio: data.bio,
       email: data.email,
       avatar: data.avatar,

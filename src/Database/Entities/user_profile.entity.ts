@@ -33,6 +33,14 @@ class UserProfile {
 
   @Field({ nullable: true })
   @Column('varchar', {
+    length: 25,
+    nullable: true,
+    unique: true,
+  })
+  usernameSlug?: string
+
+  @Field({ nullable: true })
+  @Column('varchar', {
     length: 250,
     nullable: true,
   })
