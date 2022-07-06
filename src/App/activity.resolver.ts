@@ -34,7 +34,6 @@ class ActivityResolver {
     return repository
       .createQueryBuilder('activity')
       .where(`content @> '[{"language" : {"id": "${args.lang}"}}]'`)
-      .andWhere('activity.hidden = false')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
