@@ -11,7 +11,10 @@ const ENSInstance = new ENS()
 class UserService {
   constructor(private connection: Connection) {}
 
-  async validateEnsAddr(addr: string, addrFromRequest: string): Promise<boolean> {
+  async validateEnsAddr(
+    addr: string,
+    addrFromRequest: string,
+  ): Promise<boolean> {
     const profile = await ENSInstance.getProfile(addr)
     console.log(profile)
     return true

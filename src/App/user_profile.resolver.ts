@@ -30,6 +30,18 @@ class UserProfileResolver {
 
     return this.userService.createProfile(profileInfo, authorization)
   }
+
+  @Query(() => Boolean)
+  async usernameTaken(@Args('username') username: string){
+    const repository = this.connection.getRepository(UserProfile)
+    const name = await repository.query(
+      `SELECT username FROM "user_profile" WHERE username = '${username}'`,
+    )
+    if(name[0]?.username) {
+        return true
+    }
+    return false
+  }
 }
 
 export default UserProfileResolver
