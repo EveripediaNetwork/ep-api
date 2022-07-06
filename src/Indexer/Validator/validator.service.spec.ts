@@ -46,7 +46,7 @@ describe('PinResolver', () => {
         type: 'image/jpeg, image/png',
       },
     ],
-    hidden: false
+    hidden: false,
   }
   const mockQuery = () => ({
     findOne: jest.fn().mockReturnValue(oldWiki),
@@ -87,7 +87,7 @@ describe('PinResolver', () => {
         type: 'image/jpeg, image/png',
       },
     ],
-    hidden: false
+    hidden: false,
   }
   const result: ValidatorResult = {
     status: true,

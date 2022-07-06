@@ -61,13 +61,13 @@ class WikiResolver {
         ? {
             language: args.lang,
             id: args.id,
-            hidden: false
+            hidden: false,
           }
         : {
             language: args.lang,
             id: args.id,
             block: args.block,
-            hidden: false
+            hidden: false,
           }
     return repository.findOneOrFail({ where: condition })
   }

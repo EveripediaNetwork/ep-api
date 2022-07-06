@@ -63,7 +63,7 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(` activity.userId = :user AND w."hidden" = false`, {
-        user: args.userId
+        user: args.userId,
       })
       .orderBy('activity.datetime', 'DESC')
       .limit(args.limit)
@@ -74,7 +74,8 @@ class ActivityResolver {
   @Query(() => Activity)
   async activityById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository.createQueryBuilder('activity')
+    return repository
+      .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.id = '${id}' AND w."hidden" = false`)
       .getOne()
