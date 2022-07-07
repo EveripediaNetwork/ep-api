@@ -23,10 +23,7 @@ class UserService {
     addrFromRequest: string,
   ): Promise<boolean> {
     const address = await this.provider().resolveName(addr)
-    if (address === addrFromRequest) {
-      return true
-    }
-    return false
+    return address === addrFromRequest 
   }
 
   async createProfile(
@@ -42,7 +39,7 @@ class UserService {
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
     if (data.username?.includes('.')) {
-      const validEns = this.validateEnsAddr(data.username, id)
+      const validEns = await this.validateEnsAddr(data.username, id)
       if (!validEns) {
         throw new HttpException(
           'Invalid ENS, validate your ENS name or use a plain string.',
