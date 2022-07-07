@@ -3,6 +3,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
+import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -16,6 +17,9 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
+import UserProfileResolver from './user_profile.resolver'
+import UserService from './user.service'
+import userDirectiveTransformer from './utils/userDirectiveTransformer'
 
 @Module({
   imports: [
@@ -28,6 +32,16 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
       playground: true,
       cors: true,
       autoSchemaFile: true,
+      context: ({ req }) => ({ req }),
+      transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
+      buildSchemaOptions: {
+        directives: [
+          new GraphQLDirective({
+            name: 'isUser',
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+          }),
+        ],
+      },
     }),
     PinModule,
     DatabaseModule,
@@ -42,7 +56,9 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
     CategoryResolver,
     TagResolver,
     UserResolver,
+    UserService,
     ActivityResolver,
+    UserProfileResolver,
   ],
 })
 class AppModule {
