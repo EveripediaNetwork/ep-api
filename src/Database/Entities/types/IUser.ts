@@ -16,15 +16,15 @@ export class Author {
 @ObjectType()
 export class Links {
   @Field({ nullable: true })
-  @Max(50)
+  @Max(255)
   instagram?: string
 
   @Field({ nullable: true })
-  @Max(50)
+  @Max(255)
   twitter?: string
 
   @Field({ nullable: true })
-  @Max(50)
+  @Max(255)
   website?: string
 }
 
