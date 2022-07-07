@@ -42,10 +42,13 @@ class UserService {
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
     if (data.username?.includes('.')) {
-        const validEns =  this.validateEnsAddr(data.username, id)
-        if(!validEns) {
-            throw new HttpException('Invalid ENS, validate your ENS name or use a plain string.', HttpStatus.UNAUTHORIZED)
-        }
+      const validEns = this.validateEnsAddr(data.username, id)
+      if (!validEns) {
+        throw new HttpException(
+          'Invalid ENS, validate your ENS name or use a plain string.',
+          HttpStatus.UNAUTHORIZED,
+        )
+      }
     }
 
     const existsProfile = await repository.findOne(data.id)
