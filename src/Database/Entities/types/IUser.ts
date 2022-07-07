@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql'
+import { Max } from 'class-validator'
 import { IWiki } from './IWiki'
 
 export interface IUser {
@@ -15,12 +16,15 @@ export class Author {
 @ObjectType()
 export class Links {
   @Field({ nullable: true })
+  @Max(50)
   instagram?: string
 
   @Field({ nullable: true })
+  @Max(50)
   twitter?: string
 
   @Field({ nullable: true })
+  @Max(50)
   website?: string
 }
 

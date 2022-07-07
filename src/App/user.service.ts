@@ -23,7 +23,7 @@ class UserService {
     addrFromRequest: string,
   ): Promise<boolean> {
     const address = await this.provider().resolveName(addr)
-    return address === addrFromRequest 
+    return address === addrFromRequest
   }
 
   async createProfile(
@@ -38,7 +38,7 @@ class UserService {
     if (id === 'Token expired' || id.toLowerCase() !== data.id.toLowerCase())
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
-    if (data.username?.includes('.')) {
+    if (data.username?.endsWith('.eth')) {
       const validEns = await this.validateEnsAddr(data.username, id)
       if (!validEns) {
         throw new HttpException(
@@ -64,7 +64,6 @@ class UserService {
     const newProfile = repository.create({
       id: data.id,
       username: data.username,
-      usernameSlug: data.username?.toLowerCase(),
       bio: data.bio,
       email: data.email,
       avatar: data.avatar,
