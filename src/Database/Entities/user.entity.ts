@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from 'typeorm'
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+import {  Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { IUser } from './types/IUser'
 import { IWiki } from './types/IWiki'
@@ -17,6 +17,7 @@ class User implements IUser {
   })
   id!: string
 
+  @Field(() => UserProfile, { nullable: true })
   @OneToOne(() => UserProfile)
   @JoinColumn()
   profile!: UserProfile

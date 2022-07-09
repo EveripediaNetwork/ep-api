@@ -23,10 +23,13 @@ export default function UserDirectiveTransformer(
 
         fieldConfig.resolve = async (source, args, context, info) => {
           const { authorization } = context.req.headers
+
           const id = validateToken(authorization)
+
           const result = await resolve(source, args, context, info)
-          if (id === 'Token expired') return null
+          
           if (info.path.prev?.key === 'getProfile') {
+            if (id === 'Token expired') return null
             const user = await getConnection()
               .getRepository(User)
               .findOneOrFail({
@@ -35,6 +38,8 @@ export default function UserDirectiveTransformer(
             if (source.id.toLowerCase() !== user.id.toLowerCase()) {
               return null
             }
+          } else if (info.path.prev?.key !== 'userById') {
+            return null
           }
 
           return result

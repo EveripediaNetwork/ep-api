@@ -1,4 +1,11 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Directive,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
 import User from '../Database/Entities/user.entity'
@@ -7,6 +14,7 @@ import Wiki from '../Database/Entities/wiki.entity'
 import { IUser } from '../Database/Entities/types/IUser'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import UserProfile from '../Database/Entities/user_profile.entity'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
@@ -80,6 +88,16 @@ class UserResolver {
         LIMIT ${args.limit}
         OFFSET ${args.offset}
     `)
+  }
+
+  @ResolveField(() => UserProfile)
+  @Directive('@isUser')
+  async profile(@Parent() user: IUser) {
+    const { id } = user
+    const repository = this.connection.getRepository(UserProfile)
+    return repository.findOneOrFail({
+      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    })
   }
 }
 
