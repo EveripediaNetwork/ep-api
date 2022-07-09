@@ -1,5 +1,5 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Field, Query, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
@@ -21,6 +21,15 @@ class ActivityArgsByUser extends PaginationArgs {
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
+}
+
+@ArgsType()
+class ByIdAndBlockArgs extends ActivityArgs {
+  @Field(() => String)
+  lang = 'en'
+
+  @Field(() => Int)
+  block!: number
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -78,6 +87,19 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.id = '${id}' AND w."hidden" = false`)
+      .getOne()
+  }
+
+  @Query(() => Activity)
+  async activityByWikiIdAndBlock(@Args() args: ByIdAndBlockArgs) {
+    const repository = this.connection.getRepository(Activity)
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
+      .andWhere(
+        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND activity.content @>  '[{"block" :  "${args.block}"}]'`,
+      )
       .getOne()
   }
 }
