@@ -14,10 +14,15 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile)
-  async getProfile(@Args('id', { type: () => String }) id: string) {
+  async getProfile(
+    @Args('id', { type: () => String, nullable: true, defaultValue: '' })
+    id: string,
+    @Args('username', { type: () => String, nullable: true, defaultValue: '' })
+    username: string,
+  ) {
     const repository = this.connection.getRepository(UserProfile)
     return repository.findOneOrFail({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+      where: `LOWER(id) = '${id.toLowerCase()}' OR LOWER(username) = '${username.toLowerCase()}'`,
     })
   }
 
