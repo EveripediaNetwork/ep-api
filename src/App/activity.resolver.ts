@@ -7,8 +7,11 @@ import PaginationArgs from './pagination.args'
 
 @ArgsType()
 class ActivityArgs extends PaginationArgs {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   wikiId!: string
+
+  @Field(() => String)
+  lang = 'en'
 }
 
 @ArgsType()
@@ -18,16 +21,7 @@ class ActivityArgsByUser extends PaginationArgs {
 }
 
 @ArgsType()
-class LangArgs extends PaginationArgs {
-  @Field(() => String)
-  lang = 'en'
-}
-
-@ArgsType()
 class ByIdAndBlockArgs extends ActivityArgs {
-  @Field(() => String)
-  lang = 'en'
-
   @Field(() => Int)
   block!: number
 }
@@ -38,7 +32,7 @@ class ActivityResolver {
   constructor(private connection: Connection) {}
 
   @Query(() => [Activity])
-  async activities(@Args() args: LangArgs) {
+  async activities(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
