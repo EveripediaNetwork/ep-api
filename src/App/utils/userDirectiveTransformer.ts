@@ -27,7 +27,7 @@ export default function UserDirectiveTransformer(
           const id = validateToken(authorization)
 
           const result = await resolve(source, args, context, info)
-          
+
           if (info.path.prev?.key === 'getProfile') {
             if (id === 'Token expired') return null
             const user = await getConnection()

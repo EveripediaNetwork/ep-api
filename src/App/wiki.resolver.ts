@@ -36,9 +36,12 @@ class CategoryArgs extends LangArgs {
 }
 
 @ArgsType()
-class ByIdArgs extends LangArgs {
+class ByIdArgs {
   @Field(() => String)
   id!: string
+
+  @Field(() => String)
+  lang = 'en'
 }
 
 @UseInterceptors(SentryInterceptor)
