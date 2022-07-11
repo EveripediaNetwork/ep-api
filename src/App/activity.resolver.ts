@@ -1,5 +1,5 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Field, Query, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
@@ -7,8 +7,11 @@ import PaginationArgs from './pagination.args'
 
 @ArgsType()
 class ActivityArgs extends PaginationArgs {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   wikiId!: string
+
+  @Field(() => String)
+  lang = 'en'
 }
 
 @ArgsType()
@@ -18,9 +21,9 @@ class ActivityArgsByUser extends PaginationArgs {
 }
 
 @ArgsType()
-class LangArgs extends PaginationArgs {
-  @Field(() => String)
-  lang = 'en'
+class ByIdAndBlockArgs extends ActivityArgs {
+  @Field(() => Int)
+  block!: number
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -29,7 +32,7 @@ class ActivityResolver {
   constructor(private connection: Connection) {}
 
   @Query(() => [Activity])
-  async activities(@Args() args: LangArgs) {
+  async activities(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
     return repository
       .createQueryBuilder('activity')
@@ -78,6 +81,19 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.id = '${id}' AND w."hidden" = false`)
+      .getOne()
+  }
+
+  @Query(() => Activity)
+  async activityByWikiIdAndBlock(@Args() args: ByIdAndBlockArgs) {
+    const repository = this.connection.getRepository(Activity)
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
+      .andWhere(
+        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND activity.content @>  '[{"block" :  "${args.block}"}]'`,
+      )
       .getOne()
   }
 }

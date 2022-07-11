@@ -2,7 +2,6 @@ import {
   Args,
   ArgsType,
   Field,
-  Int,
   Parent,
   Query,
   ResolveField,
@@ -36,47 +35,10 @@ class CategoryArgs extends LangArgs {
   category!: string
 }
 
-@ArgsType()
-class ByIdAndBlockArgs {
-  @Field(() => String)
-  id!: string
-
-  @Field(() => String)
-  lang = 'en'
-
-  @Field(() => Int)
-  block = -1
-}
-
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(private connection: Connection) {}
-
-  @Query(() => Wiki)
-  async wiki(@Args() args: ByIdAndBlockArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const condition =
-      args.block === -1
-        ? {
-            language: args.lang,
-            id: args.id,
-            hidden: false,
-          }
-        : {
-            language: args.lang,
-            id: args.id,
-            block: args.block,
-            hidden: false,
-          }
-    return repository.findOneOrFail({ where: condition })
-  }
-
-  @Query(() => Wiki)
-  async wikiByIdAndBlock(@Args('id', { type: () => String }) id: number) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.findOneOrFail({ where: { id, hidden: false } })
-  }
 
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
