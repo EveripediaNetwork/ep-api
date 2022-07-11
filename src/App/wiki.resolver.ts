@@ -35,10 +35,30 @@ class CategoryArgs extends LangArgs {
   category!: string
 }
 
+@ArgsType()
+class ByIdArgs {
+  @Field(() => String)
+  id!: string
+
+  @Field(() => String)
+  lang = 'en'
+}
+
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(private connection: Connection) {}
+
+  @Query(() => Wiki)
+  async wiki(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    return repository.findOneOrFail({
+      where: {
+        language: args.lang,
+        id: args.id,
+      },
+    })
+  }
 
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
