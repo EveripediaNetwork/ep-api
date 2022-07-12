@@ -11,12 +11,14 @@ import {
   Field,
   GraphQLISODateTime,
   ID,
+  Int,
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql'
 
 import Wiki from './wiki.entity'
 import User from './user.entity'
+import Language from './language.entity'
 
 export enum Status {
   CREATED,
@@ -41,6 +43,14 @@ class Activity {
   @Field()
   @Column('varchar')
   wikiId!: string
+
+  @Field(() => Language)
+  @ManyToOne('Language', 'language', { lazy: true })
+  language!: Language
+
+  @Field(() => Int)
+  @Column('integer')
+  block!: number
 
   @Field(() => Status)
   @Column('enum', { enum: Status })
