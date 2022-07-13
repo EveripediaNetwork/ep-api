@@ -38,7 +38,7 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
-        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND w."hidden" = false`,
+        `activity.language = '${args.lang}' AND w."hidden" = false`,
       )
       .limit(args.limit)
       .offset(args.offset)
