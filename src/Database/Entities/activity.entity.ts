@@ -45,7 +45,7 @@ class Activity {
   wikiId!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language')
+  @ManyToOne('Language', 'language', { lazy: true, nullable: true })
   language!: Language
 
   @Field(() => Int)
