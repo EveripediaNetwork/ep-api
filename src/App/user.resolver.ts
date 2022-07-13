@@ -95,7 +95,7 @@ class UserResolver {
   async profile(@Parent() user: IUser) {
     const { id } = user
     const repository = this.connection.getRepository(UserProfile)
-    return repository.findOneOrFail({
+    return repository.findOne({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
   }
