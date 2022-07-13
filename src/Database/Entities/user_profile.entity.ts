@@ -11,8 +11,22 @@ import {
   GraphQLISODateTime,
   ID,
   ObjectType,
+  FieldMiddleware,
+  MiddlewareContext,
+  NextFn,
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
+
+export const skipMiddleware: FieldMiddleware = async (
+  ctx: MiddlewareContext,
+  next: NextFn,
+) => {
+  const value = await next()
+  if (ctx.info.path.prev?.key !== ('userById' || 'getProfile')) {
+    return null
+  }
+  return value
+}
 
 @ObjectType()
 @Entity()
@@ -39,7 +53,7 @@ class UserProfile {
   bio?: string
 
   @Directive('@isUser')
-  @Field({ nullable: true })
+  @Field({ nullable: true, middleware: [skipMiddleware] })
   @Column('varchar', {
     length: 100,
     nullable: true,
@@ -65,12 +79,18 @@ class UserProfile {
   links?: Links[]
 
   @Directive('@isUser')
-  @Field(() => [Notifications], { nullable: true })
+  @Field(() => [Notifications], {
+    nullable: true,
+    middleware: [skipMiddleware],
+  })
   @Column('jsonb', { default: [new Notifications()] })
   notifications!: Notifications[]
 
   @Directive('@isUser')
-  @Field(() => [AdvancedSettings], { nullable: true })
+  @Field(() => [AdvancedSettings], {
+    nullable: true,
+    middleware: [skipMiddleware],
+  })
   @Column('jsonb', { default: [new AdvancedSettings()] })
   advancedSettings!: AdvancedSettings[]
 

@@ -38,10 +38,7 @@ export default function UserDirectiveTransformer(
             if (source.id.toLowerCase() !== user.id.toLowerCase()) {
               return null
             }
-          } else if (info.path.prev?.key !== 'userById') {
-            return null
           }
-
           return result
         }
         return fieldConfig
