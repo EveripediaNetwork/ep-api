@@ -38,7 +38,7 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
-        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND w."hidden" = false`,
+        `activity.language = '${args.lang}' AND w."hidden" = false`,
       )
       .limit(args.limit)
       .offset(args.offset)
@@ -92,7 +92,7 @@ class ActivityResolver {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
       .andWhere(
-        `activity.content @> '[{"language" : {"id": "${args.lang}"}}]' AND activity.content @>  '[{"block" :  "${args.block}"}]'`,
+        `activity.language = '${args.lang}' AND activity.block = '${args.block}'`,
       )
       .getOne()
   }

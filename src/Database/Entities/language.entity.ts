@@ -19,6 +19,9 @@ class Language implements ILanguage {
 
   @OneToMany('Wiki', 'language')
   wikis!: IWiki[]
+
+  @OneToMany('Activity', 'language')
+  activities!: IWiki[]
 }
 
 export default Language
