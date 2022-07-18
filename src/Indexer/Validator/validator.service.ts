@@ -101,7 +101,9 @@ class IPFSValidatorService {
         validatingWiki.images.length >= 1 &&
         validatingWiki.images.length <= 5
       ) {
-        return true
+        validatingWiki.images.forEach(
+          image => image.id.length === 46 && image.type.includes('image'),
+        )
       }
       message = ValidatorCodes.IMAGE
       return false
