@@ -1,7 +1,9 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Field, Int, Query, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
+import { Author } from '../Database/Entities/types/IUser'
+import { IWiki } from '../Database/Entities/types/IWiki'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 
@@ -93,6 +95,17 @@ class ActivityResolver {
         `activity.language = '${args.lang}' AND activity.block = '${args.block}'`,
       )
       .getOne()
+  }
+
+  @ResolveField(() => Author)
+  async author(@Parent() wiki: IWiki) {
+    const { id } = wiki
+    const repository = this.connection.getRepository(Activity)
+    const res = await repository.query(`SELECT "userId", u.* 
+        FROM activity
+        LEFT JOIN "user_profile" u ON u."id" = "userId"
+        WHERE "id" = '${id}' AND "type" = '0'`)
+    return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }
 
