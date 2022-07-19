@@ -1,5 +1,7 @@
+/* eslint-disable import/no-cycle */
 import { Field, ObjectType } from '@nestjs/graphql'
 import { Max } from 'class-validator'
+import UserProfile from '../user_profile.entity'
 import { IWiki } from './IWiki'
 
 export interface IUser {
@@ -11,6 +13,9 @@ export interface IUser {
 export class Author {
   @Field({ nullable: true })
   id?: string
+
+  @Field(() => UserProfile, { nullable: true })
+  profile!: UserProfile
 }
 
 @ObjectType()

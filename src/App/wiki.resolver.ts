@@ -15,6 +15,7 @@ import PaginationArgs from './pagination.args'
 import { IWiki } from '../Database/Entities/types/IWiki'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import { Author } from '../Database/Entities/types/IUser'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -132,16 +133,15 @@ class WikiResolver {
       .getMany()
   }
 
-  @ResolveField()
+  @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
     const repository = this.connection.getRepository(Activity)
-    const res = await repository.query(`
-      SELECT "userId"
-      FROM "activity"
-      WHERE "wikiId" = '${id}' AND "type" = '0'
-    `)
-    return { id: res[0]?.userId || null }
+    const res = await repository.query(`SELECT "userId", u.* 
+        FROM activity
+        LEFT JOIN "user_profile" u ON u."id" = "userId"
+        WHERE "wikiId" = '${id}' AND "type" = '0'`)
+    return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }
 
