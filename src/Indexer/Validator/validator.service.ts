@@ -119,7 +119,8 @@ class IPFSValidatorService {
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
       markdownLinks?.every(link => {
-        const url = link.match(/\((.*?)\)/g)?.[0].replace(/\(|\)/g, '')
+        const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
+        const url = linkMatch?.[2]
         if (url && url.charAt(0) !== '#') {
           const validURLRecognizer = new RegExp(
             `^https?://(www\\.)?(${whitelistedDomains?.join('|')})`,
