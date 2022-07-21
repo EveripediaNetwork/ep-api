@@ -62,7 +62,7 @@ class IPFSValidatorService {
     }
 
     const checkWords = (validatingWiki: ValidWiki) => {
-      if (validatingWiki.content.split(' ').length >= 150) {
+      if (validatingWiki.content.split(' ').length >= 100) {
         return true
       }
       message = ValidatorCodes.WORDS
