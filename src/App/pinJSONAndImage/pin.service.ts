@@ -2,6 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
+import { ValidatorCodes } from "../../Database/Entities/types/IWiki";
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
@@ -62,7 +63,7 @@ class PinService {
       throw new HttpException(
         {
           status: HttpStatus.TOO_MANY_REQUESTS,
-          error: 'Too many requests',
+          error: ValidatorCodes.GLOBAL_RATE_LIMIT,
         },
         HttpStatus.TOO_MANY_REQUESTS,
       )

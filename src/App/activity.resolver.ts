@@ -1,5 +1,14 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Field, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  Int,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import { Author } from '../Database/Entities/types/IUser'
