@@ -60,7 +60,7 @@ import userDirectiveTransformer from './utils/userDirectiveTransformer'
     UserService,
     ActivityResolver,
     UserProfileResolver,
-    StatsResolver
+    StatsResolver,
   ],
 })
 class AppModule {
