@@ -107,8 +107,8 @@ class StatsResolver {
         `LOWER(activity.userId) = '${args.userId.toLowerCase()}' AND w."hidden" = false AND type = '0'`,
       )
       .groupBy('activity.userId')
-      .getRawMany()
-    return response[0]
+      .getRawOne()
+    return response
   }
 
   @Query(() => WikiUserStats)
@@ -126,8 +126,8 @@ class StatsResolver {
         `LOWER(activity.userId) = '${args.userId.toLowerCase()}' AND w."hidden" = false AND type = '1'`,
       )
       .groupBy('activity.userId')
-      .getRawMany()
-    return response[0]
+      .getRawOne()
+    return response
   }
 }
 
