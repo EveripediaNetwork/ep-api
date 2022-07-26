@@ -34,6 +34,7 @@ export default class TypeOrmConfig {
         UserProfile,
       ],
       synchronize: true, // TODO: false in prod
+      logging: true, //
       keepConnectionAlive: true,
     }
   }

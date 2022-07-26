@@ -33,20 +33,47 @@ class StatsResolver {
     const repository = this.connection.getRepository(Activity)
     const respo = await repository
       .createQueryBuilder('activity')
-      .select(['activity.wikiId', 'COUNT(*)', 'Min(datetime)', 'Max(datetime)'])
+      .select('activity.userId')
+        .addSelect('Count(*)', 'amount')
+    //   .addSelect([
+    //     'activity.wikiId',
+    //     'COUNT(*)',
+    //     'Min(datetime)',
+    //     'Max(datetime)',
+    //   ])
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
-        `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false`,
+        `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false AND type = '0'`,
       )
-      .groupBy('activity.wikiId, activity.id')
-      .getMany()
+      .groupBy('activity.userId')
+      .printSql()
+      .getRawMany()
     console.log(respo)
     return respo
   }
 
   @Query(() => Number)
   async wikisEditedByUser() {
-    return true
+     const repository = this.connection.getRepository(Activity)
+     const respo = await repository
+       .createQueryBuilder('activity')
+       .select('activity.userId')
+       .addSelect('Count(*)', 'amount')
+       //   .addSelect([
+       //     'activity.wikiId',
+       //     'COUNT(*)',
+       //     'Min(datetime)',
+       //     'Max(datetime)',
+       //   ])
+       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+       .where(
+         `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false AND type = '0'`,
+       )
+       .groupBy('activity.userId')
+       .printSql()
+       .getRawMany()
+     console.log(respo)
+     return respo
   }
 }
 
