@@ -23,7 +23,7 @@ class UserService {
     addrFromRequest: string,
   ): Promise<boolean> {
     const address = await this.provider().resolveName(addr)
-    return address === addrFromRequest
+    return address?.toLowerCase() === addrFromRequest.toLowerCase()
   }
 
   async createProfile(
