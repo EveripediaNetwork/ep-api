@@ -15,30 +15,30 @@ import SentryInterceptor from '../sentry/security.interceptor'
 @ObjectType()
 export class WikiStats {
   @Field()
-  starton!: Date
+  startOn!: Date
 
   @Field()
-  endon!: Date
+  endOn!: Date
 
-  @Field(() => String)
-  amount!: string
+  @Field(() => Int)
+  amount!: number
 }
 @ObjectType()
 export class WikiUserStats {
   @Field()
   address!: string
 
-  @Field(() => String)
-  amount!: string
+  @Field(() => Int)
+  amount!: number
 }
 
 @ArgsType()
 class DateArgs {
   @Field(() => Int)
-  startdate = Math.round(new Date().setDate(new Date().getDate() - 7) / 1000)
+  startDate = Math.round(new Date().setDate(new Date().getDate() - 7) / 1000)
 
   @Field(() => Int)
-  enddate = Math.round(Date.now() / 1000)
+  endDate = Math.round(Date.now() / 1000)
 }
 
 @ArgsType()
@@ -46,43 +46,50 @@ class UserArgs extends DateArgs {
   @Field(() => String)
   userId!: string
 }
+
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class StatsResolver {
   constructor(private connection: Connection) {}
 
-  @Query(() => WikiStats)
+  @Query(() => [WikiStats])
   async wikisCreated(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
-      .select(
-        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
-        'amount',
-      )
-      .addSelect('Min(datetime)', 'starton')
-      .addSelect('Max(datetime)', 'endon')
+      .select(`Count(*)`, 'amount')
+      .addSelect('Min(datetime)', 'startOn')
+      .addSelect('Max(datetime)', 'endOn')
+      .addSelect(`date_trunc('hour', datetime) AS interval`)
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '0'`)
+      .andWhere(
+        `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+      )
+      .groupBy('interval')
+      .orderBy('amount', 'DESC')
       .getRawMany()
-    return response[0]
+    return response
   }
 
-  @Query(() => WikiStats)
+  @Query(() => [WikiStats])
   async wikisEdited(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
-      .select(
-        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
-        'amount',
-      )
-      .addSelect('Min(datetime)', 'starton')
-      .addSelect('Max(datetime)', 'endon')
+      .select(`Count(*)`, 'amount')
+      .addSelect('Min(datetime)', 'startOn')
+      .addSelect('Max(datetime)', 'endOn')
+      .addSelect(`date_trunc('hour', datetime) AS interval`)
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '1'`)
+      .andWhere(
+        `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+      )
+      .groupBy('interval')
+      .orderBy('amount', 'DESC')
       .getRawMany()
-    return response[0]
+    return response
   }
 
   @Query(() => WikiUserStats)
@@ -92,7 +99,7 @@ class StatsResolver {
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
       .addSelect(
-        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate}))`,
         'amount',
       )
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
@@ -111,7 +118,7 @@ class StatsResolver {
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
       .addSelect(
-        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate}))`,
         'amount',
       )
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
