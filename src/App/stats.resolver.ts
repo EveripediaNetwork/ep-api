@@ -97,7 +97,7 @@ class StatsResolver {
       )
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
-        `activity.userId = '${args.userId}' AND w."hidden" = false AND type = '0'`,
+        `LOWER(activity.userId) = '${args.userId.toLowerCase()}' AND w."hidden" = false AND type = '0'`,
       )
       .groupBy('activity.userId')
       .getRawMany()
@@ -116,7 +116,7 @@ class StatsResolver {
       )
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
-        `activity.userId = '${args.userId}' AND w."hidden" = false AND type = '1'`,
+        `LOWER(activity.userId) = '${args.userId.toLowerCase()}' AND w."hidden" = false AND type = '1'`,
       )
       .groupBy('activity.userId')
       .getRawMany()
