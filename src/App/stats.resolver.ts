@@ -1,5 +1,13 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Field, Int, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  Int,
+  ObjectType,
+  Query,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
@@ -35,8 +43,8 @@ class DateArgs {
 
 @ArgsType()
 class UserArgs extends DateArgs {
-   @Field(() => String)
-   userId!: string
+  @Field(() => String)
+  userId!: string
 }
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
@@ -46,7 +54,7 @@ class StatsResolver {
   @Query(() => WikiStats)
   async wikisCreated(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
-    const respo = await repository
+    const response = await repository
       .createQueryBuilder('activity')
       .select(
         `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
@@ -57,13 +65,13 @@ class StatsResolver {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '0'`)
       .getRawMany()
-    return respo[0]
+    return response[0]
   }
 
   @Query(() => WikiStats)
   async wikisEdited(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
-    const respo = await repository
+    const response = await repository
       .createQueryBuilder('activity')
       .select(
         `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(${args.startdate}) AND activity.datetime <= to_timestamp(${args.enddate}))`,
@@ -74,13 +82,13 @@ class StatsResolver {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '1'`)
       .getRawMany()
-    return respo[0]
+    return response[0]
   }
 
   @Query(() => WikiUserStats)
   async wikisCreatedByUser(@Args() args: UserArgs) {
     const repository = this.connection.getRepository(Activity)
-    const respo = await repository
+    const response = await repository
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
       .addSelect(
@@ -93,13 +101,13 @@ class StatsResolver {
       )
       .groupBy('activity.userId')
       .getRawMany()
-    return respo[0]
+    return response[0]
   }
 
   @Query(() => WikiUserStats)
   async wikisEditedByUser(@Args() args: UserArgs) {
     const repository = this.connection.getRepository(Activity)
-    const respo = await repository
+    const response = await repository
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
       .addSelect(
@@ -112,7 +120,7 @@ class StatsResolver {
       )
       .groupBy('activity.userId')
       .getRawMany()
-    return respo[0]
+    return response[0]
   }
 }
 
