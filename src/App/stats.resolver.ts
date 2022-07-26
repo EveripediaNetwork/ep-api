@@ -5,6 +5,17 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 
 @ObjectType()
+export class WikiStats {
+  @Field()
+  starton!: Date
+
+  @Field()
+  endon!: Date
+
+  @Field(() => String)
+  amount!: string
+}
+@ObjectType()
 export class WikiUserStats {
   @Field()
   address!: string
@@ -18,14 +29,42 @@ export class WikiUserStats {
 class StatsResolver {
   constructor(private connection: Connection) {}
 
-  @Query(() => Number)
+  @Query(() => WikiStats)
   async wikisCreated() {
-    return true
+    const repository = this.connection.getRepository(Activity)
+    const respo = await repository
+      .createQueryBuilder('activity')
+      .select(
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(1655308896) AND activity.datetime <= to_timestamp(1658216851))`,
+        'amount',
+      )
+      .addSelect('Min(datetime)', 'starton')
+      .addSelect('Max(datetime)', 'endon')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`w."hidden" = false AND type = '0'`)
+      .printSql()
+      .getRawMany()
+    console.log(respo)
+    return respo[0]
   }
 
-  @Query(() => Number)
+  @Query(() => WikiStats)
   async wikisEdited() {
-    return true
+    const repository = this.connection.getRepository(Activity)
+    const respo = await repository
+      .createQueryBuilder('activity')
+      .select(
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(1655308896) AND activity.datetime <= to_timestamp(1658216851))`,
+        'amount',
+      )
+      .addSelect('Min(datetime)', 'starton')
+      .addSelect('Max(datetime)', 'endon')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`w."hidden" = false AND type = '1'`)
+      .printSql()
+      .getRawMany()
+    console.log(respo)
+    return respo[0]
   }
 
   @Query(() => WikiUserStats)
@@ -33,14 +72,11 @@ class StatsResolver {
     const repository = this.connection.getRepository(Activity)
     const respo = await repository
       .createQueryBuilder('activity')
-      .select('activity.userId')
-        .addSelect('Count(*)', 'amount')
-    //   .addSelect([
-    //     'activity.wikiId',
-    //     'COUNT(*)',
-    //     'Min(datetime)',
-    //     'Max(datetime)',
-    //   ])
+      .select('activity.userId', 'address')
+      .addSelect(
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(1655308896) AND activity.datetime <= to_timestamp(1658216851))`,
+        'amount',
+      )
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(
         `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false AND type = '0'`,
@@ -49,31 +85,28 @@ class StatsResolver {
       .printSql()
       .getRawMany()
     console.log(respo)
-    return respo
+    return respo[0]
   }
 
-  @Query(() => Number)
+  @Query(() => WikiUserStats)
   async wikisEditedByUser() {
-     const repository = this.connection.getRepository(Activity)
-     const respo = await repository
-       .createQueryBuilder('activity')
-       .select('activity.userId')
-       .addSelect('Count(*)', 'amount')
-       //   .addSelect([
-       //     'activity.wikiId',
-       //     'COUNT(*)',
-       //     'Min(datetime)',
-       //     'Max(datetime)',
-       //   ])
-       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-       .where(
-         `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false AND type = '0'`,
-       )
-       .groupBy('activity.userId')
-       .printSql()
-       .getRawMany()
-     console.log(respo)
-     return respo
+    const repository = this.connection.getRepository(Activity)
+    const respo = await repository
+      .createQueryBuilder('activity')
+      .select('activity.userId', 'address')
+      .addSelect(
+        `Count(*) FILTER(WHERE activity.datetime >= to_timestamp(1655308896) AND activity.datetime <= to_timestamp(1658216851))`,
+        'amount',
+      )
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(
+        `activity.userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e' AND w."hidden" = false AND type = '1'`,
+      )
+      .groupBy('activity.userId')
+      .printSql()
+      .getRawMany()
+    console.log(respo)
+    return respo[0]
   }
 }
 
