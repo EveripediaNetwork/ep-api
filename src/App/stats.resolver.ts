@@ -39,6 +39,9 @@ class DateArgs {
 
   @Field(() => Int)
   endDate = Math.round(Date.now() / 1000)
+
+  @Field(() => String)
+  interval = 'hour'
 }
 
 @ArgsType()
@@ -60,7 +63,7 @@ class StatsResolver {
       .select(`Count(*)`, 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
-      .addSelect(`date_trunc('hour', datetime) AS interval`)
+      .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '0'`)
       .andWhere(
@@ -80,7 +83,7 @@ class StatsResolver {
       .select(`Count(*)`, 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
-      .addSelect(`date_trunc('hour', datetime) AS interval`)
+      .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '1'`)
       .andWhere(
