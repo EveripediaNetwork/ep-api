@@ -25,10 +25,6 @@ export default class AuthGuard implements CanActivate {
     if (id === 'Token expired')
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
-    if (!whitelist.includes(id.toLowerCase())) {
-      return false
-    }
-
-    return true
+    return whitelist.includes(id.toLowerCase())
   }
 }
