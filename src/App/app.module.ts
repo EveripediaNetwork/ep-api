@@ -19,6 +19,7 @@ import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './user_profile.resolver'
 import UserService from './user.service'
+import StatsResolver from './stats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 
 @Module({
@@ -59,6 +60,7 @@ import userDirectiveTransformer from './utils/userDirectiveTransformer'
     UserService,
     ActivityResolver,
     UserProfileResolver,
+    StatsResolver,
   ],
 })
 class AppModule {
