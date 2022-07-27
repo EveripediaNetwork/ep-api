@@ -140,8 +140,8 @@ class WikiResolver {
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
     return repository.save({
-        ...wiki,
-        hidden: true,
+      ...wiki,
+      hidden: true,
     })
   }
 
