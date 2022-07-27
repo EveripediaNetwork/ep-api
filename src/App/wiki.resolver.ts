@@ -9,13 +9,14 @@ import {
 } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
-import { UseInterceptors } from '@nestjs/common'
+import { UseGuards, UseInterceptors } from '@nestjs/common'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
 import { IWiki } from '../Database/Entities/types/IWiki'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
+import AuthGuard from './utils/admin.guard'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -131,6 +132,17 @@ class WikiResolver {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+  }
+
+  @Query(() => Wiki)
+  @UseGuards(AuthGuard)
+  async hideWiki(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    return repository.save({
+        ...wiki,
+        hidden: true,
+    })
   }
 
   @ResolveField(() => Author)
