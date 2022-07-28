@@ -33,9 +33,9 @@ class PinResolver {
     sharp.cache(false)
     await sharp(filePath, { animated: true })
       .webp({
-        effort: 0,
+        effort: 4,
         force: true,
-        quality: 60,
+        quality: 95,
       })
 
       .toFile(`./uploads/preview/${filename}`)
