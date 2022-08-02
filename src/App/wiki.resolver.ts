@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import {
   Args,
   ArgsType,
@@ -46,9 +47,11 @@ class ByIdArgs {
 
   @Field(() => String)
   lang = 'en'
-
+}
+@ArgsType()
+class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
-  number = 0
+  level = 0
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -102,17 +105,15 @@ class WikiResolver {
 
   @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
-  async promoteWiki(@Args() args: ByIdArgs) {
+  async promoteWiki(@Args() args: PromoteWikiArgs) {
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
-    if (wiki) {
-      await repository
-        .createQueryBuilder()
-        .update(Wiki)
-        .set({ promoted: args.number })
-        .where('id = :id', { id: args.id })
-        .execute()
-    }
+    await repository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ promoted: args.level })
+      .where('id = :id', { id: args.id })
+      .execute()
     return wiki
   }
 
