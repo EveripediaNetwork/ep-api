@@ -23,7 +23,7 @@ export default class PinJSONErrorWebhook {
   }
 
   async postException(errorMessage: string, data: ValidWiki) {
-    const webhook = this.configService.get<string>('TEST_CHANNEL_WEBHOOK') || ''
+    const webhook = this.configService.get<string>('DISCORD_CHANNEL_WEBHOOK') || ''
     const boundary = this.makeid(10)
 
     await fss.writeFile(
@@ -60,15 +60,11 @@ export default class PinJSONErrorWebhook {
       `--${boundary}--`
 
     this.httpService
-      .post(
-        webhook,
-        content,
-        {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
+      .post(webhook, content, {
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
         },
-      )
+      })
       .subscribe({
         complete: async () => {
           await fss.unlink(`./uploads/message.json`)

@@ -15,7 +15,7 @@ class UserProfileResolver {
 
   @Query(() => UserProfile)
   async getProfile(
-    @Args('id', { type: () => String, nullable: true})
+    @Args('id', { type: () => String, nullable: true })
     id: string,
     @Args('username', { type: () => String, nullable: true })
     username: string,

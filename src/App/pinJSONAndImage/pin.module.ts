@@ -8,6 +8,12 @@ import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 
 @Module({
   imports: [HttpModule],
-  providers: [PinResolver, PinService, ActivityService, IPFSValidatorService, PinJSONErrorWebhook],
+  providers: [
+    PinResolver,
+    PinService,
+    ActivityService,
+    IPFSValidatorService,
+    PinJSONErrorWebhook,
+  ],
 })
 export default class PinModule {}

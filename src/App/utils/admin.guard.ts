@@ -14,7 +14,7 @@ export default class AuthGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const whitelist = JSON.parse(process.env.ADMIN_USERS || '') 
+    const whitelist = JSON.parse(process.env.ADMIN_USERS || '')
 
     const ctx = GqlExecutionContext.create(context).getContext()
     const { authorization } = ctx.req.headers
