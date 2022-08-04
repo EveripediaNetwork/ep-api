@@ -15,15 +15,29 @@ class UserProfileResolver {
 
   @Query(() => UserProfile)
   async getProfile(
-    @Args('id', { type: () => String, nullable: true, defaultValue: '' })
+    @Args('id', { type: () => String, nullable: true })
     id: string,
-    @Args('username', { type: () => String, nullable: true, defaultValue: '' })
+    @Args('username', { type: () => String, nullable: true })
     username: string,
   ) {
     const repository = this.connection.getRepository(UserProfile)
     return repository.findOneOrFail({
-      where: `LOWER(id) = '${id.toLowerCase()}' OR LOWER(username) = '${username.toLowerCase()}'`,
+      where: `LOWER(id) = '${id?.toLowerCase()}' OR LOWER(username) = '${username?.toLowerCase()}'`,
     })
+  }
+
+  @Query(() => [UserProfile])
+  async getProfileLikeUsername(
+    @Args('username', { type: () => String, nullable: true })
+    username: string,
+  ) {
+    const repository = this.connection.getRepository(UserProfile)
+    return repository
+      .createQueryBuilder('user_profile')
+      .where('LOWER(username) LIKE :username', {
+        username: `%${username?.toLowerCase()}%`,
+      })
+      .getMany()
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })

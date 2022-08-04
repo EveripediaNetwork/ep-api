@@ -7,10 +7,12 @@ import { createWriteStream, WriteStream } from 'fs'
 import { FileUpload } from 'graphql-upload'
 import { mocked } from 'jest-mock'
 import * as fs from 'fs/promises'
+import { HttpModule } from '@nestjs/axios'
 import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 import ActivityService from '../activity.service'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
+import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 
 jest.mock('fs')
 
@@ -25,6 +27,7 @@ describe('PinResolver', () => {
 
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
+      imports: [HttpModule],
       providers: [
         PinResolver,
         PinService,
@@ -35,6 +38,7 @@ describe('PinResolver', () => {
             secret: '',
           },
         },
+        PinJSONErrorWebhook,
         ActivityService,
         {
           provide: Connection,

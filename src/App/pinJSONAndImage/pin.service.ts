@@ -8,6 +8,7 @@ import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import { ValidWiki } from '../../Indexer/Store/store.service'
+import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 
 const pinataSDK = require('@pinata/sdk')
 
@@ -17,6 +18,7 @@ class PinService {
     private configService: ConfigService,
     private activityService: ActivityService,
     private validator: IPFSValidatorService,
+    private readonly pinJSONErrorWebhook: PinJSONErrorWebhook,
   ) {}
 
   private pinata() {
@@ -45,6 +47,7 @@ class PinService {
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid.status) {
+      this.pinJSONErrorWebhook.postException(isDataValid.message, data)
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
