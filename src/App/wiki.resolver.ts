@@ -156,7 +156,7 @@ class WikiResolver {
       .getMany()
   }
 
-  @Query(() => Wiki)
+  @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
   async hideWiki(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
