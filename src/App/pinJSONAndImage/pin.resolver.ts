@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
 import * as fs from 'fs/promises'
@@ -92,9 +92,8 @@ class PinResolver {
   async pinJSON(
     @Args({ name: 'data', type: () => String })
     data: string,
-    @Context('req') req: any,
   ): Promise<IpfsHash> {
-    const res = await this.pinService.pinJSON(data, req)
+    const res = await this.pinService.pinJSON(data)
     return this.errorHandler(res)
   }
 }
