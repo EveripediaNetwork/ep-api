@@ -167,6 +167,23 @@ class WikiResolver {
     })
   }
 
+  @Query(() => [Wiki])
+  @UseGuards(AuthGuard)
+  async wikisHidden(@Args() args: LangArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    return repository.find({
+      where: {
+        language: args.lang,
+        hidden: true,
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        updated: 'DESC',
+      },
+    })
+  }
+
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
