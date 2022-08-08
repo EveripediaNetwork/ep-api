@@ -28,6 +28,8 @@ class UserProfileResolver {
 
   @Query(() => [UserProfile])
   async getProfileLikeUsername(
+    @Args('id', { type: () => String, nullable: true })
+    id: string,
     @Args('username', { type: () => String, nullable: true })
     username: string,
   ) {
@@ -36,6 +38,9 @@ class UserProfileResolver {
       .createQueryBuilder('user_profile')
       .where('LOWER(username) LIKE :username', {
         username: `%${username?.toLowerCase()}%`,
+      })
+      .orWhere('LOWER(id) LIKE :id', {
+        id: `%${id?.toLowerCase()}%`,
       })
       .getMany()
   }
