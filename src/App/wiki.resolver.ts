@@ -87,18 +87,6 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  async validWikiId(@Args() args: ByIdArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        hidden: true,
-        id: args.id,
-      },
-    })
-  }
-
-  @Query(() => [Wiki])
   async promotedWikis(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
