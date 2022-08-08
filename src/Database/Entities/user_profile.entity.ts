@@ -23,7 +23,14 @@ export const skipMiddleware: FieldMiddleware = async (
   next: NextFn,
 ) => {
   const value = await next()
-  if (ctx.info.path.prev?.key !== ('userById' || 'getProfile')) {
+  const allowedEndpoints = ['userById', 'getProfile', 'getProfileLikeUsername']
+  const { prev } = ctx.info.path
+  const allowed = allowedEndpoints.some(
+    endpoint =>
+      endpoint === `${prev?.prev?.key}` ||
+      endpoint === `${prev?.key}`,
+  )
+  if (!allowed) {
     return null
   }
   return value
