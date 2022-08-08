@@ -85,6 +85,7 @@ class UserResolver {
         INNER JOIN "wiki" w
         ON w."id" = d."wikiId"
         WHERE w."hidden" = false
+        ORDER BY d."datetime" DESC
         LIMIT ${args.limit}
         OFFSET ${args.offset}
     `)
