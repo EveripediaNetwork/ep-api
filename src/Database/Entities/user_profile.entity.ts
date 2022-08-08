@@ -27,8 +27,7 @@ export const skipMiddleware: FieldMiddleware = async (
   const { prev } = ctx.info.path
   const allowed = allowedEndpoints.some(
     endpoint =>
-      endpoint === `${prev?.prev?.key}` ||
-      endpoint === `${prev?.key}`,
+      endpoint === `${prev?.prev?.key}` || endpoint === `${prev?.key}`,
   )
   if (!allowed) {
     return null
