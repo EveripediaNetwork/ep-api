@@ -153,10 +153,12 @@ class IPFSValidatorService {
         return true
       })
 
-      console.log(validatingWiki.content === otherWiki?.content)
+      //   console.log(validatingWiki.content === otherWiki?.content)
 
+      if (!validateJSON) {
+        return true
+      }
       let checkValues = true
-
       if (validatingWiki.content !== otherWiki?.content) {
         if (otherWiki && otherWiki.id === validatingWiki.id) {
           const getWordCount = (str: string) =>
