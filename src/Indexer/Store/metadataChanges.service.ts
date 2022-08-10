@@ -80,10 +80,7 @@ class MetadataChangesService {
     return percentScore
   }
 
-  async calculateChanges(
-    oldWiki: Wiki,
-    newWiki: ValidWiki,
-  ): Promise<Wiki> {
+  async calculateChanges(oldWiki: Wiki, newWiki: ValidWiki): Promise<Wiki> {
     const changes = []
     const blocksChanged = []
 

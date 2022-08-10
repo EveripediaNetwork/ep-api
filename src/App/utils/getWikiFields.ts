@@ -30,7 +30,6 @@ export const getWikiMetadataById = (
   id: CommonMetaIds | EditSpecificMetaIds,
 ) => wiki.metadata.find((m: Metadata) => m.id === id)
 
-
 export const contentQuality = (wordCount: number): number => {
   const scoreMin = 0.0
   const scoreMax = 1.0

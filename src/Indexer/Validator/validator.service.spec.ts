@@ -212,27 +212,6 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
-  it('should return status false if wiki changes do not match incoming metadata changes', async () => {
-    const wiki = {
-      ...oldWiki,
-      id: 'test-wiki-test',
-      content:
-        'test wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki test test wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki testtest wiki test',
-      metadata: [
-        { id: 'page-type', value: 'NFT' },
-        { id: 'references', value: '' },
-        { id: 'words-changed', value: '197' },
-        { id: 'percent-changed', value: '100.0' },
-        { id: 'blocks-changed', value: 'content,categories,tags' },
-      ],
-    }
-
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.METADATA,
-    })
-  })
-
   it('should return status false if wiki image is null or not a valid hash', async () => {
     const wiki = {
       ...oldWiki,
