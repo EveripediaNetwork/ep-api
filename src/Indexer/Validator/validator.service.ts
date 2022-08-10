@@ -1,9 +1,7 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Connection } from 'typeorm'
-// import * as linkify from 'linkifyjs'
 import diff from 'fast-diff'
-
 import slugify from 'slugify'
 import {
   CommonMetaIds,
@@ -153,9 +151,7 @@ class IPFSValidatorService {
         return true
       })
 
-      //   console.log(validatingWiki.content === otherWiki?.content)
-
-      if (!validateJSON) {
+      if (validateJSON) {
         return true
       }
       let checkValues = true
@@ -190,9 +186,7 @@ class IPFSValidatorService {
                 Number.EPSILON) *
                 100,
             ) / 100
-
           const wordsChanged = wordsAdded + wordsRemoved
-
           checkValues =
             validatingWiki.metadata.find(
               e => e.id === EditSpecificMetaIds.PERCENT_CHANGED,

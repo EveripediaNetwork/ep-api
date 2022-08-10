@@ -7,6 +7,7 @@ import IPFSValidatorService from './Validator/validator.service'
 import DBStoreService, { ValidWiki } from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import MetadataChangesService from './Store/metadataChanges.service'
 
 interface CommandOptions {
   unixtime: number
@@ -25,6 +26,7 @@ class RunCommand implements CommandRunner {
     private validator: IPFSValidatorService,
     private dbStoreService: DBStoreService,
     private connection: Connection,
+    private metaChanges: MetadataChangesService,
   ) {}
 
   async getUnixtime() {
@@ -67,7 +69,12 @@ class RunCommand implements CommandRunner {
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
-        const stat = await this.validator.validate(content, false, hash.userId)
+        const completeWiki = await this.metaChanges.appendMetadata(content)
+        const stat = await this.validator.validate(
+          completeWiki,
+          false,
+          hash.userId,
+        )
         if (stat.status) {
           console.log(stat)
           console.log('✅ Validated Wiki content! IPFS going through...')
