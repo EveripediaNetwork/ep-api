@@ -25,7 +25,6 @@ class IPFSValidatorService {
     validateJSON?: boolean,
     hashUserId?: string,
   ): Promise<ValidatorResult> {
-
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
@@ -127,9 +126,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkMetadata = (
-      validatingWiki: ValidWiki,
-    ) => {
+    const checkMetadata = (validatingWiki: ValidWiki) => {
       const ids = [
         ...Object.values(CommonMetaIds),
         ...Object.values(EditSpecificMetaIds),
