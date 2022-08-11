@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { UseInterceptors } from '@nestjs/common'
 import {
   Args,
@@ -13,23 +14,24 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 
 @ObjectType()
-export class WikiStats {
+export class Count {
+  @Field(() => Int)
+  amount!: number
+}
+
+@ObjectType()
+export class WikiStats extends Count {
   @Field()
   startOn!: Date
 
   @Field()
   endOn!: Date
-
-  @Field(() => Int)
-  amount!: number
 }
+
 @ObjectType()
-export class WikiUserStats {
+export class WikiUserStats extends Count {
   @Field()
   address!: string
-
-  @Field(() => Int)
-  amount!: number
 }
 
 @ArgsType()
@@ -48,6 +50,12 @@ class DateArgs {
 class UserArgs extends DateArgs {
   @Field(() => String)
   userId!: string
+}
+
+@ArgsType()
+class EditorArgs extends DateArgs {
+  @Field(() => Int)
+  status = 1
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -129,6 +137,21 @@ class StatsResolver {
         `LOWER(activity.userId) = '${args.userId.toLowerCase()}' AND w."hidden" = false AND type = '1'`,
       )
       .groupBy('activity.userId')
+      .getRawOne()
+    return response
+  }
+
+  @Query(() => Count)
+  async EditorCount(@Args() args: EditorArgs) {
+    const repository = this.connection.getRepository(Activity)
+    const response = await repository
+      .createQueryBuilder('activity')
+      .select(`Count(distinct activity."userId")`, 'amount')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`w."hidden" = false AND type = '${args.status}'`)
+      .andWhere(
+        `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+      )
       .getRawOne()
     return response
   }
