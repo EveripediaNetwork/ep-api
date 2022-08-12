@@ -84,7 +84,6 @@ class MetadataChangesService {
     const changes = []
     const blocksChanged = []
 
-    // root level block changes
     if (oldWiki.content !== newWiki.content) {
       blocksChanged.push('content')
     }

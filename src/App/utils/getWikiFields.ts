@@ -10,21 +10,6 @@ const MIN_CONTENT_WORD_COUNT = 10
 const GOOD_CONTENT_WORD_COUNT = 500
 const IDEAL_CONTENT_WORD_COUNT = 1500
 
-// const CONTENT_SCORE_WEIGHT = 0.8
-// const INTERNAL_LINKS_SCORE_WEIGHT = 0.5
-// const CITATIONS_SCORE_WEIGHT = 0.5
-// const MEDIA_SCORE_WEIGHT = 0.3
-// const TAGS_SCORE_WEIGHT = 0.3
-// const SUMMARY_SCORE_WEIGHT = 0.5
-// const SOCIAL_SCORE_WEIGHT = 0.5
-
-// const IDEAL_INTERNAL_LINKS_COUNT = 10
-// const IDEAL_CITATIONS_COUNT = 10
-// const IDEAL_MEDIA_COUNT = 5
-// const IDEAL_TAGS_COUNT = 3
-// const IDEAL_SUMMARY_LENGTH = 100
-// const IDEAL_SOCIAL_MEDIA_COUNT = 4
-
 export const getWikiMetadataById = (
   wiki: Wiki,
   id: CommonMetaIds | EditSpecificMetaIds,
