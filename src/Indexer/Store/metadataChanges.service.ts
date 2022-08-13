@@ -11,6 +11,8 @@ import {
   getWikiCitationLinks,
   getWikiInternalLinks,
 } from '../../App/utils/getWikiFields'
+import Metadata from '../../Database/Entities/metadata.entity'
+import { EditSpecificMetaIds } from '../../Database/Entities/types/IWiki'
 
 export type ValidatorResult = {
   status: boolean
@@ -22,7 +24,7 @@ export type ValidatorResult = {
 class MetadataChangesService {
   constructor(private connection: Connection) {}
 
-  private calculateWikiScore(wiki: ValidWiki): number {
+  private async calculateWikiScore(wiki: ValidWiki): Promise<number> {
     const CONTENT_SCORE_WEIGHT = 0.8
     const INTERNAL_LINKS_SCORE_WEIGHT = 0.5
     const CITATIONS_SCORE_WEIGHT = 0.5
@@ -80,8 +82,8 @@ class MetadataChangesService {
     return percentScore
   }
 
-  async calculateChanges(oldWiki: Wiki, newWiki: ValidWiki): Promise<Wiki> {
-    const changes = []
+  async calculateChanges(newWiki: ValidWiki, oldWiki: Wiki): Promise<Wiki> {
+    const changes: Metadata[] = []
     const blocksChanged = []
 
     if (oldWiki.content !== newWiki.content) {
@@ -128,29 +130,62 @@ class MetadataChangesService {
           100,
       ) / 100
     const wordsChanged = wordsAdded + wordsRemoved
-    changes.push({ id: 'words-changed', value: `${wordsChanged}` })
-    changes.push({ id: 'percent-changed', value: `${percentChanged}` })
-    changes.push({ id: 'blocks-changed', value: blocksChanged.join(', ') })
     changes.push({
-      id: 'wiki-score',
+      id: EditSpecificMetaIds.WORDS_CHANGED,
+      value: `${wordsChanged}`,
+    })
+    changes.push({
+      id: EditSpecificMetaIds.PERCENT_CHANGED,
+      value: `${percentChanged}`,
+    })
+    changes.push({
+      id: EditSpecificMetaIds.BLOCKS_CHANGED,
+      value: blocksChanged.join(', '),
+    })
+    changes.push({
+      id: EditSpecificMetaIds.WIKI_SCORE,
       value: `${this.calculateWikiScore(newWiki)}`,
     })
 
-    const changeWiki = {
+    let update
+    const meta = [
+      ...Object.values(EditSpecificMetaIds).filter(
+        k => k !== EditSpecificMetaIds.COMMIT_MESSAGE,
+      ),
+    ]
+    update = newWiki.metadata.filter(
+      m => !meta.includes(m.id as EditSpecificMetaIds),
+    )
+    update = update.concat(changes)
+
+    const changedWiki = {
       ...newWiki,
-      metadata: newWiki.metadata.concat(changes),
+      metadata: update,
     }
-    return changeWiki as unknown as Wiki
+
+    return changedWiki as unknown as Wiki
   }
 
   async appendMetadata(IPFSWiki: ValidWiki): Promise<ValidWiki> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const oldWiki = await wikiRepository.findOne(IPFSWiki.id)
+    let wiki
     if (!oldWiki) {
-      return IPFSWiki
+      wiki = {
+        ...IPFSWiki,
+        metadata: IPFSWiki.metadata.concat([
+          {
+            id: EditSpecificMetaIds.WIKI_SCORE,
+            value: `${await this.calculateWikiScore(IPFSWiki)}`,
+          },
+        ]),
+      }
+      return wiki
     }
-    const w = this.calculateChanges(oldWiki, IPFSWiki)
-    return w as unknown as ValidWiki
+
+    wiki = await this.calculateChanges(IPFSWiki, oldWiki)
+
+    return wiki as unknown as ValidWiki
   }
 }
 
