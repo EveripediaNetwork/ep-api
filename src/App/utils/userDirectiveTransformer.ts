@@ -32,10 +32,10 @@ export default function UserDirectiveTransformer(
             if (id === 'Token expired') return null
             const user = await getConnection()
               .getRepository(User)
-              .findOneOrFail({
+              .findOne({
                 where: `LOWER(id) = '${id.toLowerCase()}'`,
               })
-            if (source.id.toLowerCase() !== user.id.toLowerCase()) {
+            if (source.id.toLowerCase() !== user?.id.toLowerCase()) {
               return null
             }
           }
