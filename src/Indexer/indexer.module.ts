@@ -8,6 +8,7 @@ import IPFSValidatorService from './Validator/validator.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import DatabaseModule from '../Database/database.module'
 import httpModule from '../httpModule'
+import MetadataChangesService from './Store/metadataChanges.service'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import httpModule from '../httpModule'
     HistoryProviderService,
     DBStoreService,
     IPFSValidatorService,
+    MetadataChangesService,
     IPFSGetterService,
     RunCommand,
   ],

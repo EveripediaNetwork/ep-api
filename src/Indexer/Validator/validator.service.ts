@@ -1,16 +1,11 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Connection } from 'typeorm'
-// import * as linkify from 'linkifyjs'
-import diff from 'fast-diff'
-
 import slugify from 'slugify'
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
   ValidatorCodes,
 } from '../../Database/Entities/types/IWiki'
-import Wiki from '../../Database/Entities/wiki.entity'
 
 import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
@@ -25,16 +20,11 @@ export type ValidatorResult = {
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
 
-  constructor(private connection: Connection) {}
-
   async validate(
     wiki: ValidWiki,
     validateJSON?: boolean,
     hashUserId?: string,
   ): Promise<ValidatorResult> {
-    const wikiRepository = this.connection.getRepository(Wiki)
-    const oldWiki = await wikiRepository.findOne(wiki.id)
-
     let message = ValidatorCodes.VALID_WIKI
 
     const languages = ['en', 'es', 'ko', 'zh']
@@ -136,10 +126,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkMetadata = (
-      validatingWiki: ValidWiki,
-      otherWiki: Wiki | undefined,
-    ) => {
+    const checkMetadata = (validatingWiki: ValidWiki) => {
       const ids = [
         ...Object.values(CommonMetaIds),
         ...Object.values(EditSpecificMetaIds),
@@ -153,54 +140,7 @@ class IPFSValidatorService {
         return true
       })
 
-      console.log(validatingWiki.content === otherWiki?.content)
-
-      let checkValues = true
-
-      if (validatingWiki.content !== otherWiki?.content) {
-        if (otherWiki && otherWiki.id === validatingWiki.id) {
-          const getWordCount = (str: string) =>
-            str.split(' ').filter(n => n !== '').length
-
-          let contentAdded = 0
-          let contentRemoved = 0
-          let contentUnchanged = 0
-
-          let wordsAdded = 0
-          let wordsRemoved = 0
-          diff(otherWiki.content, validatingWiki.content).forEach(part => {
-            if (part[0] === 1) {
-              contentAdded += part[1].length
-              wordsAdded += getWordCount(part[1])
-            }
-            if (part[0] === -1) {
-              contentRemoved += part[1].length
-              wordsRemoved += getWordCount(part[1])
-            }
-            if (part[0] === 0) {
-              contentUnchanged += part[1].length
-            }
-          })
-
-          const percentChanged =
-            Math.round(
-              (((contentAdded + contentRemoved) / contentUnchanged) * 100 +
-                Number.EPSILON) *
-                100,
-            ) / 100
-
-          const wordsChanged = wordsAdded + wordsRemoved
-
-          checkValues =
-            validatingWiki.metadata.find(
-              e => e.id === EditSpecificMetaIds.PERCENT_CHANGED,
-            )?.value === String(percentChanged) &&
-            validatingWiki.metadata.find(
-              e => e.id === EditSpecificMetaIds.WORDS_CHANGED,
-            )?.value === String(wordsChanged)
-        }
-      }
-      if (checkValues && valueField) {
+      if (valueField) {
         return true
       }
 
@@ -228,7 +168,7 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
-      checkMetadata(wiki, oldWiki)
+      checkMetadata(wiki)
 
     return { status, message }
   }
