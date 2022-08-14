@@ -76,10 +76,8 @@ class RunCommand implements CommandRunner {
           hash.userId,
         )
         if (stat.status) {
-          console.log(stat)
           console.log('✅ Validated Wiki content! IPFS going through...')
-
-          await this.dbStoreService.storeWiki(content as ValidWiki, hash)
+          await this.dbStoreService.storeWiki(completeWiki as ValidWiki, hash)
           console.log(`🚀 Storing IPFS: ${hash.id}`)
         } else {
           console.log(stat)

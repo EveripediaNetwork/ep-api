@@ -9,6 +9,7 @@ import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import { ValidWiki } from '../../Indexer/Store/store.service'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
+import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 
 const pinataSDK = require('@pinata/sdk')
 
@@ -18,6 +19,7 @@ class PinService {
     private configService: ConfigService,
     private activityService: ActivityService,
     private validator: IPFSValidatorService,
+    private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: PinJSONErrorWebhook,
   ) {}
 
@@ -43,7 +45,8 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const data: ValidWiki = JSON.parse(body)
+    const wiki: ValidWiki = JSON.parse(body)
+    const data = await this.metadataChanges.removeEditMetadata(wiki)
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid.status) {

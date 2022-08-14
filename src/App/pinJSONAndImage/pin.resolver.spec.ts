@@ -13,6 +13,7 @@ import PinResolver from './pin.resolver'
 import ActivityService from '../activity.service'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
+import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 
 jest.mock('fs')
 
@@ -39,6 +40,7 @@ describe('PinResolver', () => {
           },
         },
         PinJSONErrorWebhook,
+        MetadataChangesService,
         ActivityService,
         {
           provide: Connection,
