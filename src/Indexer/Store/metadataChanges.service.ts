@@ -81,7 +81,7 @@ class MetadataChangesService {
     const percentScore = Math.floor(score * 100)
     return percentScore
   }
-
+  
   async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
     const meta = [
       ...Object.values(EditSpecificMetaIds).filter(
