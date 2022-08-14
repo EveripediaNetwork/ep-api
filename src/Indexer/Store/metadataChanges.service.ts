@@ -82,10 +82,9 @@ class MetadataChangesService {
     return percentScore
   }
 
-  private async findWiki(id: string ): Promise<Wiki | undefined> {
+  private async findWiki(id: string): Promise<Wiki | undefined> {
     const wikiRepository = this.connection.getRepository(Wiki)
-    const oldWiki = await wikiRepository.findOne(id)
-    return oldWiki
+    return wikiRepository.findOne(id)
   }
 
   async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
@@ -127,14 +126,22 @@ class MetadataChangesService {
     if (oldWiki.content !== newWiki.content) {
       blocksChanged.push('content')
     }
-    if (oldWiki.title !== newWiki.title) blocksChanged.push('title')
-    if (oldWiki.categories !== newWiki.categories)
+    if (oldWiki.title !== newWiki.title) {
+      blocksChanged.push('title')
+    }
+    if (oldWiki.categories !== newWiki.categories) {
       blocksChanged.push('categories')
-    if (oldWiki.tags !== newWiki.tags) blocksChanged.push('tags')
-    if (oldWiki.summary !== newWiki.summary) blocksChanged.push('summary')
+    }
+    if (oldWiki.tags !== newWiki.tags) {
+      blocksChanged.push('tags')
+    }
+    if (oldWiki.summary !== newWiki.summary) {
+      blocksChanged.push('summary')
+    }
 
     const oldImgId = oldWiki.images && oldWiki.images[0].id
     const newImgId = newWiki.images && newWiki.images[0].id
+
     if (oldImgId !== newImgId) {
       blocksChanged.push('image')
     }
