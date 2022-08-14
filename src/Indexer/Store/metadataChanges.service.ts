@@ -82,6 +82,8 @@ class MetadataChangesService {
     return percentScore
   }
 
+<<<<<<<<< Temporary merge branch 1
+=========
   async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
     const meta = [
       ...Object.values(EditSpecificMetaIds).filter(
