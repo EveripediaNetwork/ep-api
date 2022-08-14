@@ -21,7 +21,7 @@ class UserProfileResolver {
     username: string,
   ) {
     const repository = this.connection.getRepository(UserProfile)
-    return repository.findOneOrFail({
+    return repository.findOne({
       where: `LOWER(id) = '${id?.toLowerCase()}' OR LOWER(username) = '${username?.toLowerCase()}'`,
     })
   }
