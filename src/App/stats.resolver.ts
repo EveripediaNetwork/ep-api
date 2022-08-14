@@ -142,7 +142,7 @@ class StatsResolver {
   }
 
   @Query(() => Count)
-  async EditorCount(@Args() args: EditorArgs) {
+  async editorCount(@Args() args: EditorArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
