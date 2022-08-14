@@ -82,16 +82,38 @@ class MetadataChangesService {
     return percentScore
   }
 
+  private async findWiki(id: string ): Promise<Wiki | undefined> {
+    const wikiRepository = this.connection.getRepository(Wiki)
+    const oldWiki = await wikiRepository.findOne(id)
+    return oldWiki
+  }
+
   async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
+    const oldWiki = await this.findWiki(data.id)
+
     const meta = [
       ...Object.values(EditSpecificMetaIds).filter(
-        k => k !== EditSpecificMetaIds.COMMIT_MESSAGE,
+        k =>
+          k !== EditSpecificMetaIds.COMMIT_MESSAGE &&
+          k !== EditSpecificMetaIds.PREVIOUS_CID,
       ),
     ]
     const update = data.metadata.filter(
       m => !meta.includes(m.id as EditSpecificMetaIds),
     )
-    const wiki = {
+
+    let wiki
+    if (oldWiki) {
+      wiki = {
+        ...data,
+        metadata: update.concat([
+          { id: EditSpecificMetaIds.PREVIOUS_CID, value: oldWiki.ipfs },
+        ]),
+      }
+      return wiki
+    }
+
+    wiki = {
       ...data,
       metadata: update,
     }
@@ -172,8 +194,7 @@ class MetadataChangesService {
   }
 
   async appendMetadata(IPFSWiki: ValidWiki): Promise<ValidWiki> {
-    const wikiRepository = this.connection.getRepository(Wiki)
-    const oldWiki = await wikiRepository.findOne(IPFSWiki.id)
+    const oldWiki = await this.findWiki(IPFSWiki.id)
     let wiki
     if (!oldWiki) {
       wiki = {
