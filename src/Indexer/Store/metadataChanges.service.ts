@@ -82,6 +82,22 @@ class MetadataChangesService {
     return percentScore
   }
 
+  async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
+    const meta = [
+      ...Object.values(EditSpecificMetaIds).filter(
+        k => k !== EditSpecificMetaIds.COMMIT_MESSAGE,
+      ),
+    ]
+    const update = data.metadata.filter(
+      m => !meta.includes(m.id as EditSpecificMetaIds),
+    )
+    const wiki = {
+      ...data,
+      metadata: update,
+    }
+    return wiki
+  }
+
   async calculateChanges(newWiki: ValidWiki, oldWiki: Wiki): Promise<Wiki> {
     const changes: Metadata[] = []
     const blocksChanged = []
@@ -144,23 +160,12 @@ class MetadataChangesService {
     })
     changes.push({
       id: EditSpecificMetaIds.WIKI_SCORE,
-      value: `${this.calculateWikiScore(newWiki)}`,
+      value: `${await this.calculateWikiScore(newWiki)}`,
     })
-
-    let update
-    const meta = [
-      ...Object.values(EditSpecificMetaIds).filter(
-        k => k !== EditSpecificMetaIds.COMMIT_MESSAGE,
-      ),
-    ]
-    update = newWiki.metadata.filter(
-      m => !meta.includes(m.id as EditSpecificMetaIds),
-    )
-    update = update.concat(changes)
 
     const changedWiki = {
       ...newWiki,
-      metadata: update,
+      metadata: newWiki.metadata.concat(changes),
     }
 
     return changedWiki as unknown as Wiki

@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/axios'
 import { Module } from '@nestjs/common'
+import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
 import PinResolver from './pin.resolver'
@@ -13,6 +14,7 @@ import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
     PinService,
     ActivityService,
     IPFSValidatorService,
+    MetadataChangesService,
     PinJSONErrorWebhook,
   ],
 })
