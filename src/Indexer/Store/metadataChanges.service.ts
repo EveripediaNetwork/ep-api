@@ -84,7 +84,8 @@ class MetadataChangesService {
 
   private async findWiki(id: string): Promise<Wiki | undefined> {
     const wikiRepository = this.connection.getRepository(Wiki)
-    return wikiRepository.findOne(id)
+    const c = await wikiRepository.findOne(id)
+    return c
   }
 
   async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
@@ -123,22 +124,41 @@ class MetadataChangesService {
     const changes: Metadata[] = []
     const blocksChanged = []
 
+    const oldTags: { id: string }[] = []
+    for (const t of await Promise.resolve(oldWiki.tags)) {
+      oldTags.push({ id: t.id })
+    }
+    const oldCategories = []
+    for (const c of await Promise.resolve(oldWiki.categories)) {
+      oldCategories.push({ id: c.id, title: c.title })
+    }
+
+    const ot = oldTags.map(t => t.id)
+    const nt = newWiki.tags.map(t => t.id)
+
+    const tags = nt.filter(t => !ot.includes(t))
+
+    const oc = oldCategories.map(c => c.id)
+    const nc = newWiki.categories.map(c => c.id)
+
+    const categories = nc.filter(c => !oc.includes(c))
+
+
     if (oldWiki.content !== newWiki.content) {
       blocksChanged.push('content')
     }
     if (oldWiki.title !== newWiki.title) {
       blocksChanged.push('title')
     }
-    if (oldWiki.categories !== newWiki.categories) {
+    if (categories.length > 0) {
       blocksChanged.push('categories')
     }
-    if (oldWiki.tags !== newWiki.tags) {
+    if (tags.length > 0) {
       blocksChanged.push('tags')
     }
-    if (oldWiki.summary !== newWiki.summary) {
+    if (oldWiki?.summary !== newWiki.summary) {
       blocksChanged.push('summary')
     }
-
     const oldImgId = oldWiki.images && oldWiki.images[0].id
     const newImgId = newWiki.images && newWiki.images[0].id
 
