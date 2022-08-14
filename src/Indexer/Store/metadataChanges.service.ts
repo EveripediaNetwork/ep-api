@@ -143,7 +143,6 @@ class MetadataChangesService {
 
     const categories = nc.filter(c => !oc.includes(c))
 
-
     if (oldWiki.content !== newWiki.content) {
       blocksChanged.push('content')
     }
