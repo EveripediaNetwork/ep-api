@@ -158,8 +158,8 @@ class MetadataChangesService {
     }
     if (
       tags.length > 0 ||
-      (checkSameArrayValues(tags, oldTags) && oldTags.length !== tags.length) ||
-      tags.length < oldTags.length
+      checkSameArrayValues(tags, oldTags) ||
+      oldTags.length !== tags.length
     ) {
       blocksChanged.push('tags')
     }
