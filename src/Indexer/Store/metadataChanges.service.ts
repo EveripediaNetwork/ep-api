@@ -153,11 +153,7 @@ class MetadataChangesService {
     if (oldWiki.title !== newWiki.title) {
       blocksChanged.push('title')
     }
-    if (
-      categories.length > 0 ||
-      checkSameArrayValues(tags, oldTags) ||
-      oldCategories.length !== categories.length
-    ) {
+    if (categories.length > 0) {
       blocksChanged.push('categories')
     }
     if (
