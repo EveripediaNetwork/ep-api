@@ -143,16 +143,28 @@ class MetadataChangesService {
 
     const categories = nc.filter(c => !oc.includes(c))
 
+    const checkSameArrayValues = (a: any[], b: any[]) =>
+      a.length === b.length &&
+      a.every((element: string, index: number) => element === b[index])
+
     if (oldWiki.content !== newWiki.content) {
       blocksChanged.push('content')
     }
     if (oldWiki.title !== newWiki.title) {
       blocksChanged.push('title')
     }
-    if (categories.length > 0) {
+    if (
+      categories.length > 0 ||
+      checkSameArrayValues(tags, oldTags) ||
+      oldCategories.length !== categories.length
+    ) {
       blocksChanged.push('categories')
     }
-    if (tags.length > 0) {
+    if (
+      tags.length > 0 ||
+      checkSameArrayValues(tags, oldTags) ||
+      oldTags.length !== tags.length
+    ) {
       blocksChanged.push('tags')
     }
     if (oldWiki?.summary !== newWiki.summary) {
