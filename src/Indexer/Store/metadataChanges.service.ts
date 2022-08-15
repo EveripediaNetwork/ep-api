@@ -158,7 +158,8 @@ class MetadataChangesService {
     }
     if (
       tags.length > 0 ||
-      (checkSameArrayValues(tags, oldTags) && oldTags.length !== tags.length)
+      checkSameArrayValues(tags, oldTags) ||
+      oldTags.length !== tags.length
     ) {
       blocksChanged.push('tags')
     }
@@ -226,7 +227,7 @@ class MetadataChangesService {
 
     const nonEmptyChanges = changes.filter(e => e.value !== '')
 
-    const finalChanges = nonEmptyChanges.length > 1 ? nonEmptyChanges : changes
+    const finalChanges = nonEmptyChanges.length > 0 ? nonEmptyChanges : changes
 
     const changedWiki = {
       ...newWiki,
