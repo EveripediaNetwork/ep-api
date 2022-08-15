@@ -133,15 +133,15 @@ class MetadataChangesService {
       oldCategories.push({ id: c.id, title: c.title })
     }
 
-    const ot = oldTags.map(t => t.id)
-    const nt = newWiki.tags.map(t => t.id)
+    const oldTagIds = oldTags.map(t => t.id)
+    const newTagIds = newWiki.tags.map(t => t.id)
 
-    const tags = nt.filter(t => !ot.includes(t))
+    const tags = newTagIds.filter(t => !oldTagIds.includes(t))
 
-    const oc = oldCategories.map(c => c.id)
-    const nc = newWiki.categories.map(c => c.id)
+    const oldCategoryIds = oldCategories.map(c => c.id)
+    const newCategoryIds = newWiki.categories.map(c => c.id)
 
-    const categories = nc.filter(c => !oc.includes(c))
+    const categories = newCategoryIds.filter(c => !oldCategoryIds.includes(c))
 
     const checkSameArrayValues = (a: any[], b: any[]) =>
       a.length === b.length &&
@@ -158,8 +158,7 @@ class MetadataChangesService {
     }
     if (
       tags.length > 0 ||
-      checkSameArrayValues(tags, oldTags) ||
-      oldTags.length !== tags.length
+      (checkSameArrayValues(tags, oldTags) && oldTags.length !== tags.length)
     ) {
       blocksChanged.push('tags')
     }
@@ -204,11 +203,11 @@ class MetadataChangesService {
     const wordsChanged = wordsAdded + wordsRemoved
     changes.push({
       id: EditSpecificMetaIds.WORDS_CHANGED,
-      value: `${wordsChanged}`,
+      value: `${wordsChanged || ''}`,
     })
     changes.push({
       id: EditSpecificMetaIds.PERCENT_CHANGED,
-      value: `${percentChanged}`,
+      value: `${percentChanged || ''}`,
     })
     changes.push({
       id: EditSpecificMetaIds.BLOCKS_CHANGED,
@@ -219,9 +218,19 @@ class MetadataChangesService {
       value: `${await this.calculateWikiScore(newWiki)}`,
     })
 
+    const noChanges = () => {
+      let checkChanges = true
+      checkChanges = changes.every(e => e.value === '')
+      return checkChanges
+    }
+
+    const nonEmptyChanges = changes.filter(e => e.value !== '')
+
+    const finalChanges = nonEmptyChanges.length > 1 ? nonEmptyChanges : changes
+
     const changedWiki = {
       ...newWiki,
-      metadata: newWiki.metadata.concat(changes),
+      metadata: newWiki.metadata.concat(noChanges() ? [] : finalChanges),
     }
 
     return changedWiki as unknown as Wiki
