@@ -47,8 +47,6 @@ class PinService {
   async pinJSON(body: string): Promise<IpfsHash | any> {
     const wiki: ValidWiki = JSON.parse(body)
     const data = await this.metadataChanges.removeEditMetadata(wiki)
-    const c = await this.metadataChanges.appendMetadata(wiki)
-    console.log(c)
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid.status) {
