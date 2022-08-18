@@ -20,7 +20,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
-import { Slug, ValidSlug } from './utils/validSlug'
+import { ResultUnion, ValidSlug } from './utils/validSlug'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -157,32 +157,21 @@ class WikiResolver {
       .getMany()
   }
 
-  @Query(() => Slug)
-  async validWikiId(@Args() args: ByIdArgs) {
+  @ResolveField(() => ResultUnion)
+  @Query(() => ResultUnion)
+  async validWikiId(@Args() args: ByIdArgs){
     const repository = this.connection.getRepository(Wiki)
     const slugs = await repository
       .createQueryBuilder('wiki')
-      .where('LOWER(wiki.id) LIKE :id', {
+      .where('LOWER(wiki.id) LIKE :id AND hidden =  :status', {
         lang: args.lang,
-        //    status: false,
+        status: true,
         id: `%${args.id.toLowerCase()}%`,
       })
       .orderBy('wiki.created', 'DESC')
       .getMany()
-    const d = await this.validSlug.validateSlug(slugs[0].id)
-    console.log(d)
-    return { slug: d }
-    //    return Promise.resolve(d)
-    // return repository.find({
-    //   where: {
-    //     language: args.lang,
-    //     // hidden: true,
-    //     id: args.id,
-    //   },
-    //   order: {
-    //     created: 'DESC'
-    //   }
-    // })
+    
+    return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
   @Mutation(() => Wiki)

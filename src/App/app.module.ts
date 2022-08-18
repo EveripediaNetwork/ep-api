@@ -62,7 +62,7 @@ import { ValidSlug } from './utils/validSlug'
     ActivityResolver,
     UserProfileResolver,
     StatsResolver,
-    ValidSlug
+    ValidSlug,
   ],
 })
 class AppModule {
