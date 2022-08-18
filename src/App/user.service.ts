@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/user_profile.entity'
 import validateToken from './utils/validateToken'
+import User from '../Database/Entities/user.entity'
 
 @Injectable()
 class UserService {
@@ -30,7 +31,8 @@ class UserService {
     profileInfo: string,
     token: string,
   ): Promise<UserProfile | boolean> {
-    const repository = this.connection.getRepository(UserProfile)
+    const profileRepository = this.connection.getRepository(UserProfile)
+    const userRepository = this.connection.getRepository(User)
     const data: UserProfile = JSON.parse(profileInfo)
 
     const id = validateToken(token)
@@ -48,10 +50,14 @@ class UserService {
       }
     }
 
-    const existsProfile = await repository.findOne(data.id)
+    const existsProfile = await profileRepository.findOne(data.id)
+    const existsUser = await userRepository
+      .createQueryBuilder()
+      .where({ id: data.id })
+      .getRawOne()
 
-    if (existsProfile) {
-      await repository
+    if (existsProfile && existsUser.User_profileId !== null) {
+      await profileRepository
         .createQueryBuilder()
         .update(UserProfile)
         .set({ ...data })
@@ -61,7 +67,7 @@ class UserService {
       return existsProfile
     }
 
-    const newProfile = repository.create({
+    const createProfile = profileRepository.create({
       id: data.id,
       username: data.username,
       bio: data.bio,
@@ -72,9 +78,26 @@ class UserService {
       notifications: data.notifications,
       advancedSettings: data.advancedSettings,
     })
-    const newUser = await repository.save(newProfile)
 
-    return newUser
+    const newProfile = await profileRepository.save(createProfile)
+
+    if (existsUser && existsUser.User_profileId === null) {
+      await userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ profile: newProfile })
+        .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
+        .execute()
+    }
+
+    const createUser = userRepository.create({
+      id: data.id,
+      profile: newProfile,
+    })
+
+    await userRepository.save(createUser)
+
+    return newProfile
   }
 }
 
