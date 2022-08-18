@@ -1,5 +1,3 @@
-/* eslint-disable max-classes-per-file */
-/* eslint-disable no-underscore-dangle */
 import { Injectable } from '@nestjs/common'
 import { createUnionType, Field, ObjectType } from '@nestjs/graphql'
 
