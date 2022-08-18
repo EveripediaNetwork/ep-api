@@ -21,6 +21,7 @@ import UserProfileResolver from './user_profile.resolver'
 import UserService from './user.service'
 import StatsResolver from './stats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
+import { ValidSlug } from './utils/validSlug'
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import userDirectiveTransformer from './utils/userDirectiveTransformer'
     ActivityResolver,
     UserProfileResolver,
     StatsResolver,
+    ValidSlug,
   ],
 })
 class AppModule {

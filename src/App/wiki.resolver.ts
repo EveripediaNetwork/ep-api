@@ -20,6 +20,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
+import { SlugResult, ValidSlug } from './utils/validSlug'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -57,7 +58,7 @@ class PromoteWikiArgs extends ByIdArgs {
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
-  constructor(private connection: Connection) {}
+  constructor(private connection: Connection, private validSlug: ValidSlug) {}
 
   @Query(() => Wiki)
   async wiki(@Args() args: ByIdArgs) {
@@ -154,6 +155,22 @@ class WikiResolver {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+  }
+
+  @Query(() => SlugResult)
+  async validWikiSlug(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const slugs = await repository
+      .createQueryBuilder('wiki')
+      .where('LOWER(wiki.id) LIKE :id AND hidden =  :status', {
+        lang: args.lang,
+        status: true,
+        id: `%${args.id.toLowerCase()}%`,
+      })
+      .orderBy('wiki.created', 'DESC')
+      .getMany()
+
+    return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
   @Mutation(() => Wiki)
