@@ -13,8 +13,8 @@ export class Valid {
   valid!: boolean
 }
 
-export const ResultUnion = createUnionType({
-  name: 'ResultUnion',
+export const SlugResult = createUnionType({
+  name: 'SlugResult',
   types: () => [Slug, Valid] as const,
   resolveType(value) {
     if (value.id) {

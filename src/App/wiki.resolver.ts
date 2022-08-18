@@ -20,7 +20,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
-import { ResultUnion, ValidSlug } from './utils/validSlug'
+import { SlugResult, ValidSlug } from './utils/validSlug'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -157,7 +157,7 @@ class WikiResolver {
       .getMany()
   }
 
-  @Query(() => ResultUnion)
+  @Query(() => SlugResult)
   async validWikiSlug(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
     const slugs = await repository
