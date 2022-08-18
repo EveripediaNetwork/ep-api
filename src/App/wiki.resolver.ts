@@ -157,9 +157,8 @@ class WikiResolver {
       .getMany()
   }
 
-  @ResolveField(() => ResultUnion)
   @Query(() => ResultUnion)
-  async validWikiId(@Args() args: ByIdArgs){
+  async validWikiSlug(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
     const slugs = await repository
       .createQueryBuilder('wiki')
@@ -170,7 +169,7 @@ class WikiResolver {
       })
       .orderBy('wiki.created', 'DESC')
       .getMany()
-    
+
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
