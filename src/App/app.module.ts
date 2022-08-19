@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { MiddlewareConsumer, Module } from '@nestjs/common'
+import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
@@ -17,17 +17,22 @@ import PinMiddleware from './pinJSONAndImage/pin.middleware'
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
-import UserProfileResolver from './user_profile.resolver'
+import UserProfileResolver from './userProfile.resolver'
 import UserService from './user.service'
 import StatsResolver from './stats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
+import PageViewsResolver from './pageViews.resolver'
+import PageViewsService from './pageViews.service'
+import httpModule from '../httpModule'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    httpModule(20000),
+    CacheModule.register({ ttl: 30 }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,
@@ -63,6 +68,8 @@ import { ValidSlug } from './utils/validSlug'
     UserProfileResolver,
     StatsResolver,
     ValidSlug,
+    PageViewsResolver,
+    PageViewsService,
   ],
 })
 class AppModule {

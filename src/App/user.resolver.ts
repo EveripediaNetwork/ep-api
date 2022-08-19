@@ -14,7 +14,7 @@ import Wiki from '../Database/Entities/wiki.entity'
 import { IUser } from '../Database/Entities/types/IUser'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
-import UserProfile from '../Database/Entities/user_profile.entity'
+import UserProfile from '../Database/Entities/userProfile.entity'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
