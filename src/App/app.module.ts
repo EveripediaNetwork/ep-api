@@ -31,7 +31,8 @@ import httpModule from '../httpModule'
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    httpModule(20000), CacheModule.register({ ttl: 30 }),
+    httpModule(20000),
+    CacheModule.register({ ttl: 30 }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,

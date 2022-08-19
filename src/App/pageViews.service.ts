@@ -3,9 +3,7 @@ import { Cache } from 'cache-manager'
 
 @Injectable()
 class PageViewsService {
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   async updateCount(id: string): Promise<boolean> {
     console.log(id)
