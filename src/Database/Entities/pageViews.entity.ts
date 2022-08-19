@@ -1,4 +1,3 @@
-
 import { Column, Entity, PrimaryColumn } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -13,8 +12,7 @@ class PageViews {
 
   @Field(() => Int)
   @Column('integer')
-  views!: number
-
+  views = 0
 }
 
 export default PageViews
