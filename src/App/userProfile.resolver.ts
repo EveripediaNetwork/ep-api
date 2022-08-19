@@ -1,7 +1,7 @@
 import { UseInterceptors } from '@nestjs/common'
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import UserProfile from '../Database/Entities/user_profile.entity'
+import UserProfile from '../Database/Entities/userProfile.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import UserService from './user.service'
 

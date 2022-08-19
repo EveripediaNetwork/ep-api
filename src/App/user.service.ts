@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
 import { Connection } from 'typeorm'
-import UserProfile from '../Database/Entities/user_profile.entity'
+import UserProfile from '../Database/Entities/userProfile.entity'
 import validateToken from './utils/validateToken'
 import User from '../Database/Entities/user.entity'
 

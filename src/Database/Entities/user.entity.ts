@@ -6,7 +6,7 @@ import { IUser } from './types/IUser'
 import { IWiki } from './types/IWiki'
 import Wiki from './wiki.entity'
 import Activity from './activity.entity'
-import UserProfile from './user_profile.entity'
+import UserProfile from './userProfile.entity'
 
 @ObjectType()
 @Entity()

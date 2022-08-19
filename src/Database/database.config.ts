@@ -11,7 +11,7 @@ import User from './Entities/user.entity'
 import Language from './Entities/language.entity'
 import Activity from './Entities/activity.entity'
 import Media from './Entities/media.entity'
-import UserProfile from './Entities/user_profile.entity'
+import UserProfile from './Entities/userProfile.entity'
 import PageViews from './Entities/pageViews.entity'
 
 export default class TypeOrmConfig {
@@ -33,7 +33,7 @@ export default class TypeOrmConfig {
         Activity,
         Media,
         UserProfile,
-        PageViews
+        PageViews,
       ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,

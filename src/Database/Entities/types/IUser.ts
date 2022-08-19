@@ -1,7 +1,7 @@
 /* eslint-disable import/no-cycle */
 import { Field, ObjectType } from '@nestjs/graphql'
 import { Max } from 'class-validator'
-import UserProfile from '../user_profile.entity'
+import UserProfile from '../userProfile.entity'
 import { IWiki } from './IWiki'
 
 export interface IUser {

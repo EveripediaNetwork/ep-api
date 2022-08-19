@@ -1,20 +1,26 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import PageViewsService from './pageViews.service'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Number)
 class PageViewsResolver {
-  constructor(private connection: Connection) {}
+  constructor(
+    private connection: Connection,
+    private pageViewsService: PageViewsService,
+  ) {}
 
-  @Query(() => Number)
-  async updateViewCount(@Args('id', { type: () => String }) id: string) {
+  @Mutation(() => Number)
+  async wikiViewCount(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.find({
+
+    const wiki = await repository.findOneOrFail({
       id,
     })
+    return this.pageViewsService.updateCount(wiki.id)
   }
 }
 
