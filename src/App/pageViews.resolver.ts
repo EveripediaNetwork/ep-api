@@ -22,13 +22,11 @@ class PageViewsResolver {
   }
 
   @Query(() => PageViews)
-  async wikiPageViews(
-    @Args('id', { type: () => String }) id: string,
-  ) {
+  async wikiPageViews(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(PageViews)
     const pageViews = await repository.findOne({ wiki_id: id })
-    if(!pageViews){
-        return 0 as PageViews["views"]
+    if (!pageViews) {
+      return 0 as PageViews['views']
     }
     return pageViews
   }
