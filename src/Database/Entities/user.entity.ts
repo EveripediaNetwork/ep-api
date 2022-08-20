@@ -1,5 +1,12 @@
 /* eslint-disable import/no-cycle */
-import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from 'typeorm'
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { IUser } from './types/IUser'
@@ -21,6 +28,10 @@ class User implements IUser {
   @OneToOne(() => UserProfile)
   @JoinColumn()
   profile!: UserProfile
+
+  //   @Field(() => Boolean)
+  @Column('boolean', { default: true })
+  active!: boolean
 
   @Field(() => [Wiki])
   @OneToMany('Wiki', 'user', { lazy: true })

@@ -1,6 +1,7 @@
 import {
   Args,
   Directive,
+  Mutation,
   Parent,
   Query,
   ResolveField,
@@ -36,6 +37,22 @@ class UserResolver {
     return repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
+  }
+
+  @Mutation(() => User)
+  async banUserById(@Args('id', { type: () => String }) id: string) {
+    const repository = this.connection.getRepository(User)
+    const user = await repository.findOneOrFail({
+      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    })
+    await repository
+      .createQueryBuilder()
+      .update(User)
+      .set({ active: false })
+      .where({ id: user.id })
+      .execute()
+
+    return user
   }
 
   @ResolveField()
