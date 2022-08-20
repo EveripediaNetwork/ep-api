@@ -11,8 +11,8 @@ class PageViews {
   wiki_id!: string
 
   @Field(() => Int)
-  @Column('integer')
-  views = 0
+  @Column('integer', { default: 0 })
+  views!: number
 }
 
 export default PageViews

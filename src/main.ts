@@ -3,7 +3,6 @@ import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
 import * as Sentry from '@sentry/node'
-import * as requestIp from 'request-ip'
 import AppModule from './App/app.module'
 
 async function bootstrap() {
@@ -23,7 +22,6 @@ async function bootstrap() {
       : await NestFactory.create(AppModule)
 
   app.enableCors()
-  app.use(requestIp.mw())
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
