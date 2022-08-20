@@ -15,33 +15,27 @@ class PageViewsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async updateCount(id: string, ip: string): Promise<boolean> {
+  async updateCount(id: string, ip: string): Promise<number> {
     const repository = this.connection.getRepository(PageViews)
-    console.log(ip)
-    console.log(typeof ip)
     const cached: WikiViewed | undefined = await this.cacheManager.get(id)
     if (cached) {
-      return true
+      return 0
     }
-    // find wiki from wiki table
-    const wiki = await repository.findOne({
+    const wiki = await repository.findOneOrFail({
       wiki_id: id,
     })
-    if (wiki) {
-      await repository
-        .createQueryBuilder()
-        .update(PageViews)
-        .set({ views: () => 'views + 1' })
-        .where('wiki_id = :wiki_id', { wiki_id: id })
-        .execute()
-    }
-    // add one to  view
+
+    await repository
+      .createQueryBuilder()
+      .update(PageViews)
+      .set({ views: () => 'views + 1' })
+      .where('wiki_id = :wiki_id', { wiki_id: id })
+      .execute()
+
     const createView = repository.create({ wiki_id: id })
     await repository.save(createView)
-    // no wiki found, create one and updateCount
-    console.log(id)
     await this.cacheManager.set(id, ip)
-    return true
+    return wiki.views
   }
 }
 export default PageViewsService

@@ -10,7 +10,7 @@ class PageViews {
   })
   wiki_id!: string
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @Column('integer', { default: 0 })
   views!: number
 }
