@@ -36,7 +36,6 @@ export default class IsActiveGuard implements CanActivate {
     const user = await repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
-    console.log(user.active)
     if (user.active || undefined) {
       return true
     }
@@ -46,7 +45,6 @@ export default class IsActiveGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    // const whitelist = JSON.parse(process.env.ADMIN_USERS || '')
     const ctx = GqlExecutionContext.create(context)
     console.log(ctx.getArgByIndex(1))
     if (ctx.getInfo().path.key === 'pinJSON') {

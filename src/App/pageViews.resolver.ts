@@ -18,8 +18,8 @@ class PageViewsResolver {
     @Args('id', { type: () => String }) id: string,
     @Context() ctx: any,
   ) {
-    return this.pageViewsService.updateCount(id, ctx.req.ip)    
-}
+    return this.pageViewsService.updateCount(id, ctx.req.ip)
+  }
 
   @Query(() => PageViews)
   async wikiPageViews(@Args('id', { type: () => String }) id: string) {
