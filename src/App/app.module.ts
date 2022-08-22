@@ -24,15 +24,13 @@ import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews.resolver'
 import PageViewsService from './pageViews.service'
-import httpModule from '../httpModule'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    httpModule(20000),
-    CacheModule.register({ ttl: 30 }),
+    CacheModule.register({ ttl: 3600 }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,
