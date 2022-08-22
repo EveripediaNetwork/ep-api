@@ -17,6 +17,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
+import IsActiveGuard from './utils/isActive.guard'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
@@ -33,6 +34,7 @@ class UserResolver {
   }
 
   @Query(() => User)
+  @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
     return repository.findOneOrFail({

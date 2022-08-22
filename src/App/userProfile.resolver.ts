@@ -48,6 +48,7 @@ class UserProfileResolver {
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
+  @UseGuards(IsActiveGuard)
   async createProfile(
     @Args({ name: 'profileInfo', type: () => String }) profileInfo: string,
     @Context() context: any,
