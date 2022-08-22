@@ -6,6 +6,7 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 
@@ -14,6 +15,7 @@ import SentryInterceptor from '../../sentry/security.interceptor'
 
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
+import IsActiveGuard from '../utils/isActive.guard'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => IpfsHash)
@@ -89,6 +91,7 @@ class PinResolver {
   }
 
   @Mutation(() => IpfsHash, { name: 'pinJSON' })
+  @UseGuards(IsActiveGuard)
   async pinJSON(
     @Args({ name: 'data', type: () => String })
     data: string,
