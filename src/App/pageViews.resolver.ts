@@ -1,7 +1,7 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import Wiki from '../Database/Entities/wiki.entity'
+import PageViews from '../Database/Entities/pageViews.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PageViewsService from './pageViews.service'
 
@@ -18,15 +18,17 @@ class PageViewsResolver {
     @Args('id', { type: () => String }) id: string,
     @Context() ctx: any,
   ) {
-    console.log('ip from context', ctx.req.ip)
-    console.log('localAddress from context', ctx.req.socket.localAddress)
-    console.log('remoteAddress from context', ctx.req.socket.remoteAddress)
-    const repository = this.connection.getRepository(Wiki)
+    return this.pageViewsService.updateCount(id, ctx.req.ip)    
+}
 
-    const wiki = await repository.findOneOrFail({
-      id,
-    })
-    return this.pageViewsService.updateCount(wiki.id)
+  @Query(() => PageViews)
+  async wikiPageViews(@Args('id', { type: () => String }) id: string) {
+    const repository = this.connection.getRepository(PageViews)
+    const pageViews = await repository.findOne({ wiki_id: id })
+    if (!pageViews) {
+      return 0 as PageViews['views']
+    }
+    return pageViews
   }
 }
 
