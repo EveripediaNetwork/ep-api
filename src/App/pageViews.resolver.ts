@@ -1,10 +1,9 @@
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import { UseInterceptors } from '@nestjs/common'
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import PageViews from '../Database/Entities/pageViews.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PageViewsService from './pageViews.service'
-import IsActiveGuard from './utils/isActive.guard'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Number)
@@ -15,7 +14,6 @@ class PageViewsResolver {
   ) {}
 
   @Mutation(() => Number)
-  @UseGuards(IsActiveGuard)
   async wikiViewCount(
     @Args('id', { type: () => String }) id: string,
     @Context() ctx: any,
