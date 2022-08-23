@@ -21,21 +21,22 @@ class PageViewsService {
     if (cached) {
       return 0
     }
-    const wiki = await repository.findOneOrFail({
+    const wiki = await repository.findOne({
       wiki_id: id,
     })
-
-    await repository
-      .createQueryBuilder()
-      .update(PageViews)
-      .set({ views: () => 'views + 1' })
-      .where('wiki_id = :wiki_id', { wiki_id: id })
-      .execute()
+    if (wiki) {
+      await repository
+        .createQueryBuilder()
+        .update(PageViews)
+        .set({ views: () => 'views + 1' })
+        .where('wiki_id = :wiki_id', { wiki_id: id })
+        .execute()
+    }
 
     const createView = repository.create({ wiki_id: id })
     await repository.save(createView)
     await this.cacheManager.set(id, ip)
-    return wiki.views
+    return 1
   }
 }
 export default PageViewsService
