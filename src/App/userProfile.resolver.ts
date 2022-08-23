@@ -1,9 +1,10 @@
-import { UseInterceptors } from '@nestjs/common'
+import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import UserService from './user.service'
+import IsActiveGuard from './utils/isActive.guard'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => UserProfile)
@@ -14,6 +15,7 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile)
+  @UseGuards(IsActiveGuard)
   async getProfile(
     @Args('id', { type: () => String, nullable: true })
     id: string,
@@ -46,6 +48,7 @@ class UserProfileResolver {
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
+  @UseGuards(IsActiveGuard)
   async createProfile(
     @Args({ name: 'profileInfo', type: () => String }) profileInfo: string,
     @Context() context: any,

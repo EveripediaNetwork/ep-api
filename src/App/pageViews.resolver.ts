@@ -17,7 +17,7 @@ class PageViewsResolver {
   async wikiViewCount(
     @Args('id', { type: () => String }) id: string,
     @Context() ctx: any,
-  ): Promise<number | boolean> {
+  ) {
     return this.pageViewsService.updateCount(id, ctx.req.ip)
   }
 

@@ -1,13 +1,14 @@
 import {
   Args,
   Directive,
+  Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import { UseInterceptors } from '@nestjs/common'
+import { UseGuards, UseInterceptors } from '@nestjs/common'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -15,6 +16,8 @@ import { IUser } from '../Database/Entities/types/IUser'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import UserProfile from '../Database/Entities/userProfile.entity'
+import AuthGuard from './utils/admin.guard'
+import IsActiveGuard from './utils/isActive.guard'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
@@ -31,11 +34,29 @@ class UserResolver {
   }
 
   @Query(() => User)
+  @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
     return repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
+  }
+
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async banUserById(@Args('id', { type: () => String }) id: string) {
+    const repository = this.connection.getRepository(User)
+    const user = await repository.findOneOrFail({
+      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    })
+    await repository
+      .createQueryBuilder()
+      .update(User)
+      .set({ active: false })
+      .where({ id: user.id })
+      .execute()
+
+    return user
   }
 
   @ResolveField()
