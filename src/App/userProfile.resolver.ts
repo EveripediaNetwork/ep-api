@@ -1,10 +1,13 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common'
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
+import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { IUser } from '../Database/Entities/types/IUser'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import IsActiveGuard from './utils/isActive.guard'
+import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => UserProfile)
@@ -66,6 +69,16 @@ class UserProfileResolver {
       where: { username },
     })
     return name[0]?.username === username
+  }
+
+  @ResolveField()
+  async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
+    queryWikisCreated(user, args.limit, args.offset)
+  }
+
+  @ResolveField()
+  async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
+    queryWikisEdited(user, args.limit, args.offset)
   }
 }
 

@@ -17,6 +17,7 @@ import {
   NextFn,
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
+import Activity from './activity.entity'
 
 export const skipMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
@@ -108,6 +109,12 @@ class UserProfile {
   @Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
   updated!: Date
+
+  @Field(() => [Activity])
+  wikisCreated!: Activity[]
+
+  @Field(() => [Activity])
+  wikisEdited!: Activity[]
 }
 
 export default UserProfile

@@ -107,20 +107,6 @@ class WikiResolver {
     })
   }
 
-  @Mutation(() => Wiki)
-  @UseGuards(AuthGuard)
-  async promoteWiki(@Args() args: PromoteWikiArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
-    await repository
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ promoted: args.level })
-      .where('id = :id', { id: args.id })
-      .execute()
-    return wiki
-  }
-
   @Query(() => [Wiki])
   async wikisByCategory(@Args() args: CategoryArgs) {
     const repository = this.connection.getRepository(Wiki)
@@ -175,17 +161,6 @@ class WikiResolver {
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
-  @Mutation(() => Wiki)
-  @UseGuards(AuthGuard)
-  async hideWiki(@Args() args: ByIdArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
-    return repository.save({
-      ...wiki,
-      hidden: true,
-    })
-  }
-
   @Query(() => [Wiki])
   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
@@ -200,6 +175,31 @@ class WikiResolver {
       order: {
         updated: 'DESC',
       },
+    })
+  }
+
+  @Mutation(() => Wiki)
+  @UseGuards(AuthGuard)
+  async promoteWiki(@Args() args: PromoteWikiArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    await repository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ promoted: args.level })
+      .where('id = :id', { id: args.id })
+      .execute()
+    return wiki
+  }
+
+  @Mutation(() => Wiki)
+  @UseGuards(AuthGuard)
+  async hideWiki(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    return repository.save({
+      ...wiki,
+      hidden: true,
     })
   }
 
