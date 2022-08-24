@@ -21,11 +21,15 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
+import { orderWikis, SortTypes } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
+
+  @Field(() => String)
+  sort = 'DESC'
 }
 
 @ArgsType()
@@ -49,6 +53,7 @@ class ByIdArgs {
   @Field(() => String)
   lang = 'en'
 }
+
 @ArgsType()
 class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
@@ -81,9 +86,7 @@ class WikiResolver {
       },
       take: args.limit,
       skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
+      order: orderWikis(args.sort as SortTypes),
     })
   }
 
@@ -121,7 +124,6 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikisByCategory(@Args() args: CategoryArgs) {
     const repository = this.connection.getRepository(Wiki)
-
     return repository
       .createQueryBuilder('wiki')
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
