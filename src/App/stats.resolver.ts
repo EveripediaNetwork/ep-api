@@ -12,6 +12,7 @@ import {
 import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
+import PageViews from '../Database/Entities/pageViews.entity'
 
 @ObjectType()
 export class Count {
@@ -151,6 +152,20 @@ class StatsResolver {
       .where(`w."hidden" = false AND type = '${args.status}'`)
       .andWhere(
         `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+      )
+      .getRawOne()
+    return response
+  }
+
+  @Query(() => Count)
+  async pageViewsCount(@Args() args: DateArgs) {
+    const repository = this.connection.getRepository(PageViews)
+    const response = await repository
+      .createQueryBuilder('pageViews')
+      .select(`Sum(pageViews."views")`, 'amount')
+      .leftJoin('wiki', 'w', 'w."id" = pageViews.wikiId')
+      .where(
+        `wiki.updated >= to_timestamp(${args.startDate}) AND wiki.updated <= to_timestamp(${args.endDate})`,
       )
       .getRawOne()
     return response

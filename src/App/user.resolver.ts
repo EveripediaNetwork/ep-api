@@ -1,6 +1,8 @@
 import {
-  Args, ArgsType,
-  Directive, Field,
+  Args,
+  ArgsType,
+  Directive,
+  Field,
   Mutation,
   Parent,
   Query,
@@ -37,6 +39,18 @@ class UserResolver {
   async users(@Args() args: PaginationArgs) {
     const repository = this.connection.getRepository(User)
     return repository.find({
+      take: args.limit,
+      skip: args.offset,
+    })
+  }
+
+  @Query(() => [User])
+  async usersHidden(@Args() args: PaginationArgs) {
+    const repository = this.connection.getRepository(User)
+    return repository.find({
+      where: {
+        active: false,
+      },
       take: args.limit,
       skip: args.offset,
     })
