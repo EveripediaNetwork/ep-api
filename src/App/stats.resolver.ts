@@ -161,11 +161,11 @@ class StatsResolver {
   async pageViewsCount(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(PageViews)
     const response = await repository
-      .createQueryBuilder('pageViews')
-      .select(`Sum(pageViews."views")`, 'amount')
-      .leftJoin('wiki', 'w', 'w."id" = pageViews.wikiId')
+      .createQueryBuilder('p')
+      .select(`Sum(p."views")`, 'amount')
+      .leftJoin('wiki', 'w', 'w."id" = p.wiki_id')
       .where(
-        `wiki.updated >= to_timestamp(${args.startDate}) AND wiki.updated <= to_timestamp(${args.endDate})`,
+        `w.updated >= to_timestamp(${args.startDate}) AND w.updated <= to_timestamp(${args.endDate})`,
       )
       .getRawOne()
     return response
