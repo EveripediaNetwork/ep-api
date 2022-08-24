@@ -44,7 +44,7 @@ class UserResolver {
 
   @Mutation(() => User)
   @UseGuards(AuthGuard)
-  async banUserById(@Args('id', { type: () => String }) id: string) {
+  async toggleUserStateById(@Args('id', { type: () => String }, @Args('active', { type: () => Boolean }) active: boolean) {
     const repository = this.connection.getRepository(User)
     const user = await repository.findOneOrFail({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
@@ -52,7 +52,7 @@ class UserResolver {
     await repository
       .createQueryBuilder()
       .update(User)
-      .set({ active: false })
+      .set({ active: active })
       .where({ id: user.id })
       .execute()
 
