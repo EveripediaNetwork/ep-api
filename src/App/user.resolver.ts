@@ -1,6 +1,6 @@
 import {
-  Args,
-  Directive,
+  Args, ArgsType,
+  Directive, Field,
   Mutation,
   Parent,
   Query,
@@ -18,6 +18,15 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
+
+@ArgsType()
+class UserStateArgs {
+  @Field(() => String)
+  id!: string
+
+  @Field(() => Boolean)
+  active = true
+}
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => User)
@@ -44,15 +53,15 @@ class UserResolver {
 
   @Mutation(() => User)
   @UseGuards(AuthGuard)
-  async toggleUserStateById(@Args('id', { type: () => String }), @Args('active', { type: () => Boolean }) active: boolean) {
+  async toggleUserStateById(@Args() args: UserStateArgs) {
     const repository = this.connection.getRepository(User)
     const user = await repository.findOneOrFail({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+      where: `LOWER(id) = '${args.id.toLowerCase()}'`,
     })
     await repository
       .createQueryBuilder()
       .update(User)
-      .set({ active: active })
+      .set({ active: args.active })
       .where({ id: user.id })
       .execute()
 
