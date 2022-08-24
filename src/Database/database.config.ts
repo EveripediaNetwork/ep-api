@@ -36,6 +36,7 @@ export default class TypeOrmConfig {
         PageViews,
       ],
       synchronize: true, // TODO: false in prod
+      logging: true,
       keepConnectionAlive: true,
     }
   }

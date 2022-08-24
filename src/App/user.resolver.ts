@@ -1,6 +1,8 @@
 import {
-  Args, ArgsType,
-  Directive, Field,
+  Args,
+  ArgsType,
+  Directive,
+  Field,
   Mutation,
   Parent,
   Query,
