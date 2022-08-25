@@ -79,7 +79,7 @@ class StatsResolver {
         `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
       )
       .groupBy('interval')
-      .orderBy('amount', 'DESC')
+      .orderBy('Min(datetime)', 'ASC')
       .getRawMany()
     return response
   }
@@ -99,7 +99,7 @@ class StatsResolver {
         `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
       )
       .groupBy('interval')
-      .orderBy('amount', 'DESC')
+      .orderBy('Min(datetime)', 'ASC')
       .getRawMany()
     return response
   }

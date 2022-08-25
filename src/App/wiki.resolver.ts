@@ -21,11 +21,18 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
+import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
+
+  @Field(() => String)
+  order = 'DESC'
+
+  @Field(() => String)
+  direction = 'updated'
 }
 
 @ArgsType()
@@ -49,6 +56,7 @@ class ByIdArgs {
   @Field(() => String)
   lang = 'en'
 }
+
 @ArgsType()
 class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
@@ -81,9 +89,7 @@ class WikiResolver {
       },
       take: args.limit,
       skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
+      order: orderWikis(args.order as OrderBy, args.direction as Direction),
     })
   }
 
@@ -104,24 +110,9 @@ class WikiResolver {
     })
   }
 
-  @Mutation(() => Wiki)
-  @UseGuards(AuthGuard)
-  async promoteWiki(@Args() args: PromoteWikiArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
-    await repository
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ promoted: args.level })
-      .where('id = :id', { id: args.id })
-      .execute()
-    return wiki
-  }
-
   @Query(() => [Wiki])
   async wikisByCategory(@Args() args: CategoryArgs) {
     const repository = this.connection.getRepository(Wiki)
-
     return repository
       .createQueryBuilder('wiki')
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
@@ -173,17 +164,6 @@ class WikiResolver {
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
-  @Mutation(() => Wiki)
-  @UseGuards(AuthGuard)
-  async hideWiki(@Args() args: ByIdArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
-    return repository.save({
-      ...wiki,
-      hidden: true,
-    })
-  }
-
   @Query(() => [Wiki])
   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
@@ -198,6 +178,31 @@ class WikiResolver {
       order: {
         updated: 'DESC',
       },
+    })
+  }
+
+  @Mutation(() => Wiki)
+  @UseGuards(AuthGuard)
+  async promoteWiki(@Args() args: PromoteWikiArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    await repository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ promoted: args.level })
+      .where('id = :id', { id: args.id })
+      .execute()
+    return wiki
+  }
+
+  @Mutation(() => Wiki)
+  @UseGuards(AuthGuard)
+  async hideWiki(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    return repository.save({
+      ...wiki,
+      hidden: true,
     })
   }
 
