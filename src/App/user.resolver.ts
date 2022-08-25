@@ -98,12 +98,12 @@ class UserResolver {
 
   @ResolveField()
   async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    queryWikisCreated(user, args.limit, args.offset)
+    return queryWikisCreated(user, args.limit, args.offset)
   }
 
   @ResolveField()
   async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    queryWikisEdited(user, args.limit, args.offset)
+    return queryWikisEdited(user, args.limit, args.offset)
   }
 
   @ResolveField(() => UserProfile)
