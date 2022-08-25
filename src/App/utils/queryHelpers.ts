@@ -13,21 +13,17 @@ export enum Direction {
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
-  switch (order && direction) {
-    case OrderBy.UPDATED && Direction.ASC: {
-      sortValue = { updated: 'ASC' }
+  switch (order) {
+    case OrderBy.UPDATED: {
+      sortValue = { updated: direction }
       break
     }
-    case OrderBy.ID && Direction.ASC: {
-      sortValue = { id: 'ASC' }
-      break
-    }
-    case OrderBy.ID && Direction.DESC: {
-      sortValue = { id: 'DESC' }
+    case OrderBy.ID: {
+      sortValue = { id: direction }
       break
     }
     default:
-      sortValue = { updated: 'DESC' }
+      sortValue = { updated: direction }
   }
   return sortValue
 }
