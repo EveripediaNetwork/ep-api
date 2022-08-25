@@ -1,23 +1,28 @@
 import { getConnection } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 
-export enum SortTypes {
-  ASC = 'ASC',
-  DESC = 'DESC',
+export enum SortBy {
   ALPHABET_ASC = 'ALPB ASC',
   ALPHABET_DESC = 'ALPB DESC',
 }
 
+export enum OrderBy {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+export type SortTypes = SortBy | OrderBy
+
 export const orderWikis = (sortValue: SortTypes) => {
   let sort = {}
   switch (sortValue) {
-    case SortTypes.ASC:
+    case OrderBy.ASC:
       sort = { updated: 'ASC' }
       break
-    case SortTypes.ALPHABET_ASC:
+    case SortBy.ALPHABET_ASC:
       sort = { id: 'ASC' }
       break
-    case SortTypes.ALPHABET_DESC:
+    case SortBy.ALPHABET_DESC:
       sort = { id: 'DESC' }
       break
     default:
