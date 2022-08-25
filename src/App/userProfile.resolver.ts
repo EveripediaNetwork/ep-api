@@ -1,5 +1,13 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common'
-import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { IUser } from '../Database/Entities/types/IUser'
 import UserProfile from '../Database/Entities/userProfile.entity'
