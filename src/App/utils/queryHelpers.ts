@@ -26,17 +26,20 @@ export const orderWikis = (sortValue: SortTypes) => {
   return sort
 }
 
-export const queryWikisCreated = (
-  user: { id: string },
+export const queryWikisCreated = async (
+  user: { id?: string },
   limit: number,
   offset: number,
-) => {
+): Promise<Activity[] | undefined> => {
   const { id } = user
   const repository = getConnection().getRepository(Activity)
+
   return repository
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .where(`activity.userId = '${id}' AND w."hidden" = false`)
+    .where(
+      `LOWER(activity.userId) = '${id?.toLowerCase()}' AND w."hidden" = false`,
+    )
     .andWhere("activity.type = '0'")
     .groupBy('activity.wikiId, activity.id')
     .limit(limit)
@@ -44,23 +47,11 @@ export const queryWikisCreated = (
     .orderBy('datetime', 'DESC')
     .getMany()
 }
-export const queryWikisEdited = (
-  user: { id: string },
+export const queryWikisEdited = async (
+  user: { id?: string },
   limit: number,
   offset: number,
-) => {
-  //   const { id } = user
-  //   const repository = getConnection().getRepository(Activity)
-  //   return repository
-  //     .createQueryBuilder('activity')
-  //     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-  //     .where(`activity.userId = '${id}' AND w."hidden" = false`)
-  //     .andWhere("activity.type = '0'")
-  //     .groupBy('activity.wikiId, activity.id')
-  //     .limit(limit)
-  //     .offset(offset)
-  //     .orderBy('datetime', 'DESC')
-  //     .getMany()
+): Promise<Activity[] | undefined> => {
   const { id } = user
   const repository = getConnection().getRepository(Activity)
   return repository.query(`

@@ -1,7 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import {
   Args,
+  ArgsType,
   Context,
+  Field,
   Mutation,
   Parent,
   Query,
@@ -9,13 +11,21 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import { IUser } from '../Database/Entities/types/IUser'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
+
+@ArgsType()
+class GetProfileArgs {
+  @Field({ nullable: true })
+  id?: string
+
+  @Field({ nullable: true })
+  username?: string
+}
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => UserProfile)
@@ -26,34 +36,23 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile)
-  @UseGuards(IsActiveGuard)
-  async getProfile(
-    @Args('id', { type: () => String, nullable: true })
-    id: string,
-    @Args('username', { type: () => String, nullable: true })
-    username: string,
-  ) {
+  async getProfile(@Args() args: GetProfileArgs) {
     const repository = this.connection.getRepository(UserProfile)
     return repository.findOne({
-      where: `LOWER(id) = '${id?.toLowerCase()}' OR LOWER(username) = '${username?.toLowerCase()}'`,
+      where: `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
     })
   }
 
   @Query(() => [UserProfile])
-  async getProfileLikeUsername(
-    @Args('id', { type: () => String, nullable: true })
-    id: string,
-    @Args('username', { type: () => String, nullable: true })
-    username: string,
-  ) {
+  async getProfileLikeUsername(@Args() args: GetProfileArgs) {
     const repository = this.connection.getRepository(UserProfile)
     return repository
       .createQueryBuilder('user_profile')
       .where('LOWER(username) LIKE :username', {
-        username: `%${username?.toLowerCase()}%`,
+        username: `%${args.username?.toLowerCase()}%`,
       })
       .orWhere('LOWER(id) LIKE :id', {
-        id: `%${id?.toLowerCase()}%`,
+        id: `%${args.id?.toLowerCase()}%`,
       })
       .getMany()
   }
@@ -80,13 +79,19 @@ class UserProfileResolver {
   }
 
   @ResolveField()
-  async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    queryWikisCreated(user, args.limit, args.offset)
+  async wikisCreated(
+    @Parent() user: GetProfileArgs,
+    @Args() args: PaginationArgs,
+  ) {
+    return queryWikisCreated(user, args.limit, args.offset)
   }
 
   @ResolveField()
-  async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    queryWikisEdited(user, args.limit, args.offset)
+  async wikisEdited(
+    @Parent() user: GetProfileArgs,
+    @Args() args: PaginationArgs,
+  ) {
+    return queryWikisEdited(user, args.limit, args.offset)
   }
 }
 
