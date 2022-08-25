@@ -21,7 +21,7 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
-import { orderWikis, SortTypes } from './utils/queryHelpers'
+import { OrderBy, orderWikis, SortBy } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -29,7 +29,10 @@ class LangArgs extends PaginationArgs {
   lang = 'en'
 
   @Field(() => String)
-  sort = 'DESC'
+  sort = 'updated'
+
+  @Field(() => String)
+  order = 'DESC'
 }
 
 @ArgsType()
@@ -86,7 +89,7 @@ class WikiResolver {
       },
       take: args.limit,
       skip: args.offset,
-      order: orderWikis(args.sort as SortTypes),
+      order: orderWikis(args.sort as SortBy, args.order as OrderBy),
     })
   }
 

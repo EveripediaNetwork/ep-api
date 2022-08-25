@@ -2,8 +2,8 @@ import { getConnection } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 
 export enum SortBy {
-  ALPHABET_ASC = 'ALPB ASC',
-  ALPHABET_DESC = 'ALPB DESC',
+  ID = 'id',
+  UPDATED = 'updated',
 }
 
 export enum OrderBy {
@@ -11,24 +11,25 @@ export enum OrderBy {
   DESC = 'DESC',
 }
 
-export type SortTypes = SortBy | OrderBy
-
-export const orderWikis = (sortValue: SortTypes) => {
-  let sort = {}
-  switch (sortValue) {
-    case OrderBy.ASC:
-      sort = { updated: 'ASC' }
+export const orderWikis = (sort: SortBy, order: OrderBy) => {
+  let sortValue = {}
+  switch (order && sort) {
+    case OrderBy.ASC && SortBy.UPDATED: {
+      sortValue = { updated: 'ASC' }
       break
-    case SortBy.ALPHABET_ASC:
-      sort = { id: 'ASC' }
+    }
+    case OrderBy.ASC && SortBy.ID: {
+      sortValue = { id: 'ASC' }
       break
-    case SortBy.ALPHABET_DESC:
-      sort = { id: 'DESC' }
+    }
+    case OrderBy.DESC && SortBy.ID: {
+      sortValue = { id: 'DESC' }
       break
+    }
     default:
-      sort = { updated: 'DESC' }
+      sortValue = { updated: 'DESC' }
   }
-  return sort
+  return sortValue
 }
 
 export const queryWikisCreated = async (
