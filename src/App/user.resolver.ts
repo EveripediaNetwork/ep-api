@@ -44,6 +44,18 @@ class UserResolver {
     })
   }
 
+  @Query(() => [User])
+  async usersHidden(@Args() args: PaginationArgs) {
+    const repository = this.connection.getRepository(User)
+    return repository.find({
+      where: {
+        active: false,
+      },
+      take: args.limit,
+      skip: args.offset,
+    })
+  }
+
   @Query(() => User)
   @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
