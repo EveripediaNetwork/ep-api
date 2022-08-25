@@ -29,6 +29,7 @@ class User implements IUser {
   @JoinColumn()
   profile!: UserProfile
 
+  @Field(() => Boolean)
   @Column('boolean', { default: true })
   active!: boolean
 
