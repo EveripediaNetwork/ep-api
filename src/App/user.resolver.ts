@@ -20,6 +20,7 @@ import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
+import { MinLength } from 'class-validator'
 
 @ArgsType()
 class UserStateArgs {
@@ -28,6 +29,13 @@ class UserStateArgs {
 
   @Field(() => Boolean)
   active = true
+}
+
+@ArgsType()
+class UsersByIdArgs extends PaginationArgs {
+  @Field(() => String)
+  @MinLength(3)
+  id!: string
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -54,6 +62,19 @@ class UserResolver {
       take: args.limit,
       skip: args.offset,
     })
+  }
+
+  @Query(() => [User])
+  async usersById(@Args() args: UsersByIdArgs) {
+    const repository = this.connection.getRepository(User)
+    return repository
+      .createQueryBuilder()
+      .where('LOWER(id) LIKE :id', {
+        id: `%${args.id.toLowerCase()}%`,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .getMany()
   }
 
   @Query(() => User)
