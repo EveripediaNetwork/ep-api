@@ -11,6 +11,7 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
+import { MinLength } from 'class-validator'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -20,7 +21,6 @@ import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
-import { MinLength } from 'class-validator'
 
 @ArgsType()
 class UserStateArgs {
