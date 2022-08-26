@@ -31,9 +31,11 @@ class PageViewsService {
         .set({ views: () => 'views + 1' })
         .where('wiki_id = :wiki_id', { wiki_id: id })
         .execute()
+      await this.cacheManager.set(id, ip)
+      return wiki.views + 1
     }
 
-    const createView = repository.create({ wiki_id: id })
+    const createView = repository.create({ wiki_id: id, views: 1 })
     await repository.save(createView)
     await this.cacheManager.set(id, ip)
     return 1
