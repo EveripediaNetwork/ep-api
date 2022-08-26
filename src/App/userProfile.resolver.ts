@@ -93,6 +93,17 @@ class UserProfileResolver {
   ) {
     return queryWikisEdited(user, args.limit, args.offset)
   }
+
+  @ResolveField()
+  async active(@Parent() user: GetProfileArgs) {
+    const { id } = user
+    const repository = this.connection.getRepository(UserProfile)
+    const a = await repository.query(`SELECT u."active" 
+        FROM "user_profile"
+        LEFT JOIN "user" u on u."id" = "user_profile"."id"
+        WHERE "user_profile"."id" = '${id}'`)
+    return a[0].active
+  }
 }
 
 export default UserProfileResolver
