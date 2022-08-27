@@ -110,6 +110,9 @@ class UserProfile {
   @UpdateDateColumn()
   updated!: Date
 
+  @Field(() => Boolean)
+  active!: boolean
+
   @Field(() => [Activity])
   wikisCreated!: Activity[]
 
