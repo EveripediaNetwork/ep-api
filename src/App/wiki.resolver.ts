@@ -205,6 +205,17 @@ class WikiResolver {
       hidden: true,
     })
   }
+  
+  @Mutation(() => Wiki)
+  @UseGuards(AuthGuard)
+  async unhideWiki(@Args() args: ByIdArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki = await repository.findOneOrFail(args.id)
+    return repository.save({
+      ...wiki,
+      hidden: false,
+    })
+  }
 
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
