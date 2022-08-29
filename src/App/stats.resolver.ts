@@ -172,25 +172,28 @@ class StatsResolver {
     return response
   }
 
-  @Query(() => [Tag])
-  async mostUsedTags() {
+  @Query(() => [Tag], { nullable: true })
+  async mostUsedTags(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository.query(
       `
         SELECT *, COUNT(*) AS amount
         FROM 
             (
-                SELECT CAST(activity.content -> 0 ->> 'tags' AS jsonb) AS tag 
-                FROM activity
+                SELECT CAST(activityTags.content -> 0 ->> 'tags' AS jsonb) tag 
+                FROM (
+                    SELECT *
+                    FROM activity
+                    WHERE activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})
+                    ) AS activityTags
             ) AS tags
         WHERE tag IS NOT NULL AND tag <> '[]'
         GROUP BY tag
         ORDER BY amount DESC
-        LIMIT 1
-        
+        LIMIT 1        
         `,
     )
-    return response[0].tag
+    return response[0]?.tag
   }
 }
 
