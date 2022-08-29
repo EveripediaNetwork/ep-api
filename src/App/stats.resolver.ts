@@ -177,7 +177,7 @@ class StatsResolver {
 
   @Query(() => [Tag])
   async tagsPopular(@Args() args: DateArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.connection.getRepository(Tag)
     return repository.query(
       `
         SELECT "tagId" as id, COUNT(*) AS amount
