@@ -205,7 +205,7 @@ class WikiResolver {
       hidden: true,
     })
   }
-  
+
   @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
   async unhideWiki(@Args() args: ByIdArgs) {
