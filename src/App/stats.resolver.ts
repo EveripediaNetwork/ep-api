@@ -13,6 +13,7 @@ import { Connection } from 'typeorm'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PageViews from '../Database/Entities/pageViews.entity'
+import Tag from '../Database/Entities/tag.entity'
 
 @ObjectType()
 export class Count {
@@ -169,6 +170,27 @@ class StatsResolver {
       )
       .getRawOne()
     return response
+  }
+
+  @Query(() => [Tag])
+  async mostUsedTags() {
+    const repository = this.connection.getRepository(Activity)
+    const response = await repository.query(
+      `
+        SELECT *, COUNT(*) AS amount
+        FROM 
+            (
+                SELECT CAST(activity.content -> 0 ->> 'tags' AS jsonb) AS tag 
+                FROM activity
+            ) AS tags
+        WHERE tag IS NOT NULL AND tag <> '[]'
+        GROUP BY tag
+        ORDER BY amount DESC
+        LIMIT 1
+        
+        `,
+    )
+    return response[0].tag
   }
 }
 
