@@ -43,7 +43,10 @@ class DateArgs {
 
   @Field(() => Int)
   endDate = Math.round(Date.now() / 1000)
+}
 
+@ArgsType()
+class IntervalArgs extends DateArgs {
   @Field(() => String)
   interval = 'hour'
 }
@@ -66,7 +69,7 @@ class StatsResolver {
   constructor(private connection: Connection) {}
 
   @Query(() => [WikiStats])
-  async wikisCreated(@Args() args: DateArgs) {
+  async wikisCreated(@Args() args: IntervalArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
@@ -86,7 +89,7 @@ class StatsResolver {
   }
 
   @Query(() => [WikiStats])
-  async wikisEdited(@Args() args: DateArgs) {
+  async wikisEdited(@Args() args: IntervalArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
@@ -172,28 +175,20 @@ class StatsResolver {
     return response
   }
 
-  @Query(() => [Tag], { nullable: true })
-  async mostUsedTags(@Args() args: DateArgs) {
-    const repository = this.connection.getRepository(Activity)
-    const response = await repository.query(
+  @Query(() => [Tag])
+  async tagsPopular(@Args() args: DateArgs) {
+    const repository = this.connection.getRepository(Tag)
+    return repository.query(
       `
-        SELECT *, COUNT(*) AS amount
-        FROM 
-            (
-                SELECT CAST(activityTags.content -> 0 ->> 'tags' AS jsonb) tag 
-                FROM (
-                    SELECT *
-                    FROM activity
-                    WHERE activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})
-                    ) AS activityTags
-            ) AS tags
-        WHERE tag IS NOT NULL AND tag <> '[]'
-        GROUP BY tag
-        ORDER BY amount DESC
-        LIMIT 1        
+        SELECT "tagId" as id, COUNT(*) AS amount
+        FROM public.wiki_tags_tag tags
+        INNER JOIN wiki w ON w.id  = tags."wikiId"
+        WHERE w.updated >= to_timestamp(${args.startDate}) AND w.updated <= to_timestamp(${args.endDate})
+        GROUP BY "tagId" 
+        ORDER BY amount DESC 
+        LIMIT 15       
         `,
     )
-    return response[0]?.tag
   }
 }
 
