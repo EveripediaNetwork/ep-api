@@ -200,10 +200,13 @@ class WikiResolver {
   async hideWiki(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
-    return repository.save({
-      ...wiki,
-      hidden: true,
-    })
+    await repository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ hidden: true })
+      .where('id = :id', { id: args.id })
+      .execute()
+    return wiki
   }
 
   @Mutation(() => Wiki)
@@ -211,10 +214,13 @@ class WikiResolver {
   async unhideWiki(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
-    return repository.save({
-      ...wiki,
-      hidden: false,
-    })
+    await repository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ hidden: false })
+      .where('id = :id', { id: args.id })
+      .execute()
+    return wiki
   }
 
   @ResolveField(() => Author)
