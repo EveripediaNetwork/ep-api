@@ -103,14 +103,32 @@ class IPFSValidatorService {
       return false
     }
 
+    const isValidUrl = (urlString: string) => {
+      try {
+        return Boolean(new URL(urlString))
+      } catch (e) {
+        return false
+      }
+    }
+
     const checkExternalUrls = (validatingWiki: ValidWiki) => {
-      const uiLink = this.configService.get<string>('UI_URL')
-      const whitelistedDomains = uiLink?.split(' ')
+      const whitelistedDomains = this.configService
+        .get<string>('UI_URL')
+        ?.split(' ')
+      const WidgetNames =
+        this.configService.get<string>('WIDGET_NAMES')?.split(' ') || []
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
       markdownLinks?.every(link => {
         const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
+        const text = linkMatch?.[1]
         const url = linkMatch?.[2]
+
+        if (text && url && WidgetNames.includes(text) && !isValidUrl(url)) {
+          isValid = true
+          return true
+        }
+
         if (url && url.charAt(0) !== '#') {
           const validURLRecognizer = new RegExp(
             `^https?://(www\\.)?(${whitelistedDomains?.join('|')})`,

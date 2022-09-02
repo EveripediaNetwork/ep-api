@@ -9,6 +9,8 @@ import IPFSValidatorService, { ValidatorResult } from './validator.service'
 process.env.UI_URL =
   'youtube.com/watch youtu.be vimeo.com alpha.everipedia.org/wiki ipfs.everipedia.org/ipfs'
 
+process.env.WIDGET_NAMES = 'YOUTUBE@VID'
+
 jest.mock('fs')
 
 describe('PinResolver', () => {
