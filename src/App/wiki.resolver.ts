@@ -22,6 +22,10 @@ import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
 import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
+import {
+  RevalidatePageService,
+  RevalidateEndpoints,
+} from './utils/revalidatePage.service'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -66,7 +70,11 @@ class PromoteWikiArgs extends ByIdArgs {
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
-  constructor(private connection: Connection, private validSlug: ValidSlug) {}
+  constructor(
+    private connection: Connection,
+    private validSlug: ValidSlug,
+    private revalidate: RevalidatePageService,
+  ) {}
 
   @Query(() => Wiki)
   async wiki(@Args() args: ByIdArgs) {
@@ -192,6 +200,7 @@ class WikiResolver {
       .set({ promoted: args.level })
       .where('id = :id', { id: args.id })
       .execute()
+    this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
     return wiki
   }
 

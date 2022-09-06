@@ -9,6 +9,10 @@ import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
 import { Source } from '../../Database/Entities/media.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
+import {
+  RevalidatePageService,
+  RevalidateEndpoints,
+} from '../../App/utils/revalidatePage.service'
 
 export type ValidWiki = {
   id: string
@@ -49,7 +53,10 @@ export type ValidWiki = {
 @UseInterceptors(SentryInterceptor)
 @Injectable()
 class DBStoreService {
-  constructor(private connection: Connection) {}
+  constructor(
+    private connection: Connection,
+    private revalidate: RevalidatePageService,
+  ) {}
 
   async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
     const wikiRepository = this.connection.getRepository(Wiki)
@@ -152,6 +159,7 @@ class DBStoreService {
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       await activityRepository.save(createActivity(Status.UPDATED))
+      this.revalidate.revalidatePage(RevalidateEndpoints.UPDATE_WIKI)
       return true
     }
 
@@ -174,9 +182,8 @@ class DBStoreService {
     })
 
     await wikiRepository.save(newWiki)
-    // console.log(savedWiki)
     await activityRepository.save(createActivity(Status.CREATED))
-
+    this.revalidate.revalidatePage(RevalidateEndpoints.CREATE_WIKI)
     return true
   }
 }
