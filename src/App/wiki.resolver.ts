@@ -236,7 +236,7 @@ class WikiResolver {
       .set({ hidden: false })
       .where('id = :id', { id: args.id })
       .execute()
-    
+
     this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
       wiki.user.id,
