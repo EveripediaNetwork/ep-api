@@ -17,6 +17,7 @@ import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
+import { RevalidateEndpoints, RevalidatePageService } from './utils/revalidatePage.service'
 
 @ArgsType()
 class GetProfileArgs {
@@ -33,6 +34,7 @@ class UserProfileResolver {
   constructor(
     private connection: Connection,
     private userService: UserService,
+    private revalidate: RevalidatePageService,
   ) {}
 
   @Query(() => UserProfile)
@@ -64,7 +66,7 @@ class UserProfileResolver {
     @Context() context: any,
   ) {
     const { authorization } = context.req.headers
-
+    this.revalidate.revalidatePage(RevalidateEndpoints.CREATE_PROFILE)
     return this.userService.createProfile(profileInfo, authorization)
   }
 

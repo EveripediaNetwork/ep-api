@@ -215,6 +215,7 @@ class WikiResolver {
       .set({ hidden: true })
       .where('id = :id', { id: args.id })
       .execute()
+      this.revalidate.revalidatePage(RevalidateEndpoints.WIKIS_HIDDEN)
     return wiki
   }
 
@@ -229,6 +230,7 @@ class WikiResolver {
       .set({ hidden: false })
       .where('id = :id', { id: args.id })
       .execute()
+      this.revalidate.revalidatePage(RevalidateEndpoints.WIKIS_HIDDEN)
     return wiki
   }
 

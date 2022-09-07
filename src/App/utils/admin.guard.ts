@@ -19,7 +19,7 @@ export default class AuthGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context).getContext()
     const { authorization } = ctx.req.headers
     const id = validateToken(authorization)
-    
+
     if (id === 'Token expired')
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
