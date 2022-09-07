@@ -24,7 +24,8 @@ import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews.resolver'
 import PageViewsService from './pageViews.service'
-import { RevalidatePageService } from './utils/revalidatePage.service'
+import { RevalidatePageService } from './utils/revalidatePage/revalidatePage.service'
+import httpModule from '../httpModule'
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RevalidatePageService } from './utils/revalidatePage.service'
         ],
       },
     }),
+    httpModule(20000),
     PinModule,
     DatabaseModule,
     RelayerModule,

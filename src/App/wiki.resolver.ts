@@ -25,7 +25,7 @@ import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from './utils/revalidatePage.service'
+} from './utils/revalidatePage/revalidatePage.service'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -200,6 +200,7 @@ class WikiResolver {
       .set({ promoted: args.level })
       .where('id = :id', { id: args.id })
       .execute()
+
     this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
     return wiki
   }
@@ -215,7 +216,12 @@ class WikiResolver {
       .set({ hidden: true })
       .where('id = :id', { id: args.id })
       .execute()
-      this.revalidate.revalidatePage(RevalidateEndpoints.WIKIS_HIDDEN)
+
+    this.revalidate.revalidatePage(
+      RevalidateEndpoints.HIDE_WIKI,
+      wiki.user.id,
+      wiki.id,
+    )
     return wiki
   }
 
@@ -230,7 +236,12 @@ class WikiResolver {
       .set({ hidden: false })
       .where('id = :id', { id: args.id })
       .execute()
-      this.revalidate.revalidatePage(RevalidateEndpoints.WIKIS_HIDDEN)
+    
+    this.revalidate.revalidatePage(
+      RevalidateEndpoints.HIDE_WIKI,
+      wiki.user.id,
+      wiki.id,
+    )
     return wiki
   }
 

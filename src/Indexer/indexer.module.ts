@@ -9,7 +9,7 @@ import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import DatabaseModule from '../Database/database.module'
 import httpModule from '../httpModule'
 import MetadataChangesService from './Store/metadataChanges.service'
-import { RevalidatePageService } from '../App/utils/revalidatePage.service'
+import { RevalidatePageService } from '../App/utils/revalidatePage/revalidatePage.service'
 
 @Module({
   imports: [
