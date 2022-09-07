@@ -1,6 +1,8 @@
+import { getMockRes } from '@jest-mock/express'
 import { HttpModule } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
+import { of } from 'rxjs'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
 
 describe('revalidate', () => {
@@ -24,13 +26,27 @@ describe('revalidate', () => {
   })
 
   it('should return the object containing true with path matching "/" ', async () => {
-    const data = {
+    const dat = {
       revalidated: 'true',
       path: '/' as Routes,
     }
 
-    ;(await service.revalidate(Routes.HOMEPAGE)).subscribe((r: any) => {
-      expect(r.data).toEqual(data)
+    const result: any = getMockRes({
+      data: {
+        revalidated: 'true',
+        path: '/' as Routes,
+      },
+    })
+
+    jest.spyOn(service, 'revalidate').mockResolvedValue(of(result))
+    ;(await service.revalidate(Routes.HOMEPAGE)).subscribe({
+      next: val => val,
+      error: err => {
+        throw err
+      },
+      complete: () => {
+        expect(result.data).toEqual(dat)
+      },
     })
   })
 })
