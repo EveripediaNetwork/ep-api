@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config'
 import { map, Observable } from 'rxjs'
 
 export enum RevalidateEndpoints {
-  HIDE_WIKI = 'hideWiki', // activity page
-  PROMOTE_WIKI = 'promoteWiki', // homepage
-  STORE_WIKI = 'storeWiki', // UserPage{id}, activityPage
-  CREATE_PROFILE = 'createProfile', // userPage{id}
+  HIDE_WIKI = 'hideWiki', 
+  PROMOTE_WIKI = 'promoteWiki', 
+  STORE_WIKI = 'storeWiki', 
+  CREATE_PROFILE = 'createProfile', 
 }
 
 export enum Routes {
