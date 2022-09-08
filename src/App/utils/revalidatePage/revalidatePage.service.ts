@@ -67,7 +67,7 @@ export class RevalidatePageService {
     if (page === RevalidateEndpoints.STORE_WIKI) {
       await this.revalidate(Routes.ACTIVITY)
       await this.revalidate(Routes.WIKI_PAGE, undefined, slug)
-      await this.revalidate(Routes.USER_PAGE, id)
+      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.PROMOTE_WIKI) {
@@ -77,11 +77,11 @@ export class RevalidatePageService {
     if (page === RevalidateEndpoints.HIDE_WIKI) {
       await this.revalidate(Routes.ACTIVITY)
       await this.revalidate(Routes.WIKI_PAGE, undefined, slug)
-      await this.revalidate(Routes.USER_PAGE, id)
+      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.CREATE_PROFILE) {
-      await this.revalidate(Routes.USER_PAGE, id)
+      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     console.log(`Revalidating ${page}`)
