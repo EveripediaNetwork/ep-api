@@ -7,7 +7,7 @@ import { ValidWiki } from '../Store/store.service'
 import IPFSValidatorService, { ValidatorResult } from './validator.service'
 
 process.env.UI_URL =
-  'youtube.com/watch youtu.be vimeo.com alpha.everipedia.org/wiki ipfs.everipedia.org/ipfs'
+  'youtube.com/watch youtu.be vimeo.com alpha.everipedia.org/wiki ipfs.everipedia.org/ipfs iq.wiki/wiki'
 
 process.env.WIDGET_NAMES = 'YOUTUBE@VID'
 

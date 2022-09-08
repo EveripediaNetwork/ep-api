@@ -6,12 +6,17 @@ import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import validateToken from './utils/validateToken'
 import User from '../Database/Entities/user.entity'
+import {
+  RevalidateEndpoints,
+  RevalidatePageService,
+} from './utils/revalidatePage/revalidatePage.service'
 
 @Injectable()
 class UserService {
   constructor(
     private configService: ConfigService,
     private connection: Connection,
+    private revalidate: RevalidatePageService,
   ) {}
 
   private provider() {
@@ -64,6 +69,10 @@ class UserService {
         .where('id = :id', { id: data.id })
         .execute()
 
+      this.revalidate.revalidatePage(
+        RevalidateEndpoints.CREATE_PROFILE,
+        data.id,
+      )
       return existsProfile
     }
 
@@ -88,6 +97,11 @@ class UserService {
         .set({ profile: newProfile })
         .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
         .execute()
+
+      this.revalidate.revalidatePage(
+        RevalidateEndpoints.CREATE_PROFILE,
+        data.id,
+      )
     }
 
     const createUser = userRepository.create({
@@ -96,7 +110,7 @@ class UserService {
     })
 
     await userRepository.save(createUser)
-
+    this.revalidate.revalidatePage(RevalidateEndpoints.CREATE_PROFILE, data.id)
     return newProfile
   }
 }

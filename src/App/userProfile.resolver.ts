@@ -64,7 +64,6 @@ class UserProfileResolver {
     @Context() context: any,
   ) {
     const { authorization } = context.req.headers
-
     return this.userService.createProfile(profileInfo, authorization)
   }
 
