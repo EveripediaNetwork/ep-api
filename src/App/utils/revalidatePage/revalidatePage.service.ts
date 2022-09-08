@@ -1,13 +1,12 @@
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { map, Observable } from 'rxjs'
 
 export enum RevalidateEndpoints {
-  HIDE_WIKI = 'hideWiki', 
-  PROMOTE_WIKI = 'promoteWiki', 
-  STORE_WIKI = 'storeWiki', 
-  CREATE_PROFILE = 'createProfile', 
+  HIDE_WIKI = 'hideWiki',
+  PROMOTE_WIKI = 'promoteWiki',
+  STORE_WIKI = 'storeWiki',
+  CREATE_PROFILE = 'createProfile',
 }
 
 export enum Routes {
@@ -36,11 +35,7 @@ export class RevalidatePageService {
     return { secret, url }
   }
 
-  async revalidate(
-    route: string,
-    id?: string,
-    slug?: string,
-  ): Promise<Observable<RevalidateStatus>> {
+  async revalidate(route: string, id?: string, slug?: string): Promise<any> {
     if (slug) {
       return this.httpService
         .get(
@@ -48,7 +43,7 @@ export class RevalidatePageService {
             this.getSecrets().secret
           }&path=${route}/${slug}`,
         )
-        .pipe(map(response => response.data))
+        .toPromise()
     }
     if (id) {
       return this.httpService
@@ -57,7 +52,7 @@ export class RevalidatePageService {
             this.getSecrets().secret
           }&path=${route}/${id}`,
         )
-        .pipe(map(response => response.data))
+        .toPromise()
     }
     return this.httpService
       .get(
@@ -65,7 +60,7 @@ export class RevalidatePageService {
           this.getSecrets().secret
         }&path=${route}`,
       )
-      .pipe(map(response => response.data))
+      .toPromise()
   }
 
   async revalidatePage(page: RevalidateEndpoints, id?: string, slug?: string) {
