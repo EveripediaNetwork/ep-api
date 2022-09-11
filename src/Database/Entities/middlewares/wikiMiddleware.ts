@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql'
-import { getWikiSummary } from '~/../src/App/utils/getWikiSummary'
+import { getWikiSummary } from '../../../App/utils/getWikiSummary'
 
 export const dateMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
