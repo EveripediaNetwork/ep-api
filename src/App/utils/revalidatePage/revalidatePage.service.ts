@@ -67,6 +67,7 @@ export class RevalidatePageService {
     if (page === RevalidateEndpoints.STORE_WIKI) {
       await this.revalidate(Routes.ACTIVITY)
       await this.revalidate(Routes.WIKI_PAGE, undefined, slug)
+      await this.revalidate(`/wiki/${slug}/history`)
       // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
