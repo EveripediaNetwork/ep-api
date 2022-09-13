@@ -7,6 +7,7 @@ import {
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
 import * as Sentry from '@sentry/node'
+// import cors from '@fastify/cors'
 import AppModule from './App/app.module'
 
 async function bootstrap() {
@@ -18,22 +19,23 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT')
 
-if (Number(port) === 443) {
-  const httpsOptions = {
-    cert: fs.readFileSync('../fullchain.pem'),
-    key: fs.readFileSync('../privkey.pem'),
+  if (Number(port) === 443) {
+    const httpsOptions = {
+      cert: fs.readFileSync('../fullchain.pem'),
+      key: fs.readFileSync('../privkey.pem'),
+    }
+    app = await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      new FastifyAdapter({ https: httpsOptions }),
+    )
+  } else {
+    app = await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      new FastifyAdapter({ logger: true }),
+    )
   }
-  app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({ https: httpsOptions }),
-  )
-} else {
-  app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
-  )
-}
-
+  //   app.register(cors)
+//   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),

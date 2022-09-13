@@ -37,7 +37,7 @@ import httpModule from '../httpModule'
       driver: ApolloDriver,
       debug: true,
       playground: true,
-      cors: true,
+    //   cors: true,
       autoSchemaFile: true,
       context: ({ req }) => ({ req }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
