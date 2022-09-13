@@ -18,6 +18,31 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT')
 
+  const CORS_OPTIONS = {
+    origin: true,
+    allowedHeaders: [
+      'Access-Control-Allow-Origin',
+      'Origin',
+      'X-Requested-With',
+      'Accept',
+      'Content-Type',
+      'Authorization',
+    ],
+    exposedHeaders: 'Authorization',
+    methods: ['GET', 'PUT', 'OPTIONS', 'POST', 'DELETE'],
+  }
+
+  const adapter = (opts?: { cert: Buffer; key: Buffer }) => {
+    if (opts) {
+      const socket = new FastifyAdapter({ https: opts })
+      socket.enableCors(CORS_OPTIONS)
+      return socket
+    }
+    const socket = new FastifyAdapter()
+    socket.enableCors(CORS_OPTIONS)
+    return socket
+  }
+
   if (Number(port) === 443) {
     const httpsOptions = {
       cert: fs.readFileSync('../fullchain.pem'),
@@ -25,15 +50,12 @@ async function bootstrap() {
     }
     app = await NestFactory.create<NestFastifyApplication>(
       AppModule,
-      new FastifyAdapter({ https: httpsOptions }),
+      adapter(httpsOptions),
     )
   } else {
-    app = await NestFactory.create<NestFastifyApplication>(
-      AppModule,
-      new FastifyAdapter({ logger: true }),
-    )
+    app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter())
   }
-  app.enableCors()
+
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
