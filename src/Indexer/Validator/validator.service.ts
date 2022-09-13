@@ -9,6 +9,7 @@ import {
 
 import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
+import { isValidUrl } from '../../App/utils/getWikiFields'
 
 export type ValidatorResult = {
   status: boolean
@@ -101,14 +102,6 @@ class IPFSValidatorService {
         return result
       }
       return false
-    }
-
-    const isValidUrl = (urlString: string) => {
-      try {
-        return Boolean(new URL(urlString))
-      } catch (e) {
-        return false
-      }
     }
 
     const checkExternalUrls = (validatingWiki: ValidWiki) => {

@@ -77,14 +77,21 @@ export const countQuality = (idealCount: number, realCount: number): number => {
   return score
 }
 
+export const isValidUrl = (urlString: string) => {
+  try {
+    return Boolean(new URL(urlString))
+  } catch (e) {
+    return false
+  }
+}
+
 export const getWikiInternalLinks = (content: string): number => {
   const markdownLinks = content.match(/\[(.*?)\]\((.*?)\)/g)
   let internalLinksCount = 0
-
   markdownLinks?.forEach(link => {
     const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
     const url = linkMatch?.[2]
-    if (url && url.charAt(0) !== '#') {
+    if (url && url.charAt(0) !== '#' && isValidUrl(url)) {
       const urlURL = new URL(url)
       if (
         urlURL.hostname === 'everipedia.org' ||
