@@ -26,7 +26,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@fastify/cors": "^7.0.0",
     "@graphql-tools/utils": "^8.7.0",
     "@jest-mock/express": "^1.4.5",
     "@nestjs/apollo": "^10.0.8",
@@ -36,7 +35,7 @@
     "@nestjs/core": "^8.1.1",
     "@nestjs/graphql": "^10.0.21",
     "@nestjs/platform-express": "^8.1.1",
-    "@nestjs/platform-fastify": "8.3.0",
+    "@nestjs/platform-fastify": "^8.4.5",
     "@nestjs/typeorm": "^8.0.3",
     "@pinata/sdk": "^1.1.24",
     "@sentry/minimal": "^6.19.7",
