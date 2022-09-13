@@ -7,7 +7,6 @@ import {
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
 import * as Sentry from '@sentry/node'
-// import cors from '@fastify/cors'
 import AppModule from './App/app.module'
 
 async function bootstrap() {
@@ -34,8 +33,7 @@ async function bootstrap() {
       new FastifyAdapter({ logger: true }),
     )
   }
-  //   app.register(cors)
-//   app.enableCors()
+  app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
