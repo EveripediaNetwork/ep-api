@@ -4,6 +4,8 @@ module.exports = {
       name: 'ep-api',
       script: 'yarn start:prod',
       watch: false,
+      instances : "max",
+      exec_mode : "cluster",
       ignore_watch: ["[\/\\]\./", "uploads"],
       restart_delay: 10000,
       watch_delay: 10000,
