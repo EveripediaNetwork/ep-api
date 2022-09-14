@@ -86,6 +86,12 @@ class UserResolver {
     })
   }
 
+  @Query(() => Boolean)
+  @UseGuards(AuthGuard)
+  async isAdmin() {
+    return true
+  }
+
   @Mutation(() => User)
   @UseGuards(AuthGuard)
   async toggleUserStateById(@Args() args: UserStateArgs) {
