@@ -242,4 +242,202 @@ describe('PinResolver', () => {
       message: ValidatorCodes.ID,
     })
   })
+
+  it('should return status true for valid media', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
+          size: '0.022',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          size: '0.107',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+      ],
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
+
+  it('should return status false for incorrect youtube link or invalid ipfs hash', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1',
+          size: '0.022',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          size: '0.107',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyy',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+      ],
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.MEDIA,
+    })
+  })
+
+  it('should return status false for invalid media length', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
+          size: '0.022',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          size: '0.107',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+      ],
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.MEDIA,
+    })
+  })
 })

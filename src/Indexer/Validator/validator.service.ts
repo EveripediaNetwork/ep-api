@@ -169,26 +169,26 @@ class IPFSValidatorService {
     }
 
     const checkMedia = (validatingWiki: ValidWiki) => {
-        const size = validatingWiki.media.length 
-        let contentCheck = true
-        validatingWiki.media.forEach((m) => {
-            if (m.source === Source.IPFS_IMG || m.source === Source.IPFS_VID) {
-              contentCheck = m.id.length === 46
-            }
-            if (m.source === Source.YOUTUBE) {
-                contentCheck = m.id === `https://www.youtube.com/watch?v=${m.name}`
-            }
-            if (m.source === Source.VIMEO) {
-                contentCheck = m.id === `https://vimeo.com/${m.name}`
-            }
-            return contentCheck
-        })
+      const size = validatingWiki.media.length
 
-        if(size <= 12 && contentCheck){
-            return true
+      const contentCheck = validatingWiki.media.every(m => {
+        if (m.source === Source.IPFS_IMG || m.source === Source.IPFS_VID) {
+          return m.id.length === 46
         }
-        message = ValidatorCodes.MEDIA
-        return false
+        if (m.source === Source.YOUTUBE) {
+          return  m.id === `https://www.youtube.com/watch?v=${m.name}`
+        }
+        if (m.source === Source.VIMEO) {
+          return m.id === `https://vimeo.com/${m.name}`
+        }
+        return true
+      })
+
+      if (size <= 12 && contentCheck) {
+        return true
+      }
+      message = ValidatorCodes.MEDIA
+      return false
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
