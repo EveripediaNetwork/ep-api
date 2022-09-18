@@ -176,7 +176,12 @@ class IPFSValidatorService {
           return m.id.length === 46
         }
         if (m.source === Source.YOUTUBE) {
-          return  m.id === `https://www.youtube.com/watch?v=${m.name}`
+          const validYTLinkReg =
+            /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
+          return (
+            m.id === `https://www.youtube.com/watch?v=${m.name}` &&
+            validYTLinkReg.test(m.id)
+          )
         }
         if (m.source === Source.VIMEO) {
           return m.id === `https://vimeo.com/${m.name}`
