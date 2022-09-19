@@ -10,6 +10,7 @@ import {
 import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
+import { Source } from '../../Database/Entities/media.entity'
 
 export type ValidatorResult = {
   status: boolean
@@ -167,6 +168,34 @@ class IPFSValidatorService {
       return false
     }
 
+    const checkMedia = (validatingWiki: ValidWiki) => {
+      const size = validatingWiki.media.length
+
+      const contentCheck = validatingWiki.media.every(m => {
+        if (m.source === Source.IPFS_IMG || m.source === Source.IPFS_VID) {
+          return m.id.length === 46
+        }
+        if (m.source === Source.YOUTUBE) {
+          const validYTLinkReg =
+            /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
+          return (
+            m.id === `https://www.youtube.com/watch?v=${m.name}` &&
+            validYTLinkReg.test(m.id)
+          )
+        }
+        if (m.source === Source.VIMEO) {
+          return m.id === `https://vimeo.com/${m.name}`
+        }
+        return true
+      })
+
+      if (size <= 12 && contentCheck) {
+        return true
+      }
+      message = ValidatorCodes.MEDIA
+      return false
+    }
+
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
     const status =
@@ -179,7 +208,8 @@ class IPFSValidatorService {
       checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
-      checkMetadata(wiki)
+      checkMetadata(wiki) &&
+      checkMedia(wiki)
 
     return { status, message }
   }
