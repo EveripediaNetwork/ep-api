@@ -4,6 +4,11 @@ import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { ValidWiki } from '../../../Indexer/Store/store.service'
 
+export interface WikiWebhookError {
+  errorMessage: string
+  data: ValidWiki
+}
+
 @Injectable()
 export default class PinJSONErrorWebhook {
   constructor(
