@@ -73,7 +73,7 @@ class CategoryResolver {
     return repository
       .createQueryBuilder()
       .where(
-        'LOWER(title) LIKE :title AND weight > 0',
+        '(LOWER(title) LIKE :title OR LOWER(id) LIKE :title) AND weight > 0',
         {
           title: `%${args.title.toLowerCase()}%`,
         },
