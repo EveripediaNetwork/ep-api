@@ -26,6 +26,7 @@ import PageViewsResolver from './pageViews.resolver'
 import PageViewsService from './pageViews.service'
 import { RevalidatePageService } from './utils/revalidatePage/revalidatePage.service'
 import httpModule from '../httpModule'
+import RevalidatePageResolver from './utils/revalidatePage/revalidatePage.resolver'
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import httpModule from '../httpModule'
     PageViewsResolver,
     PageViewsService,
     RevalidatePageService,
+    RevalidatePageResolver,
   ],
 })
 class AppModule {
