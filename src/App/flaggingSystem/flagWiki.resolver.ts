@@ -1,9 +1,20 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Mutation, Resolver } from '@nestjs/graphql'
+import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
 
 import SentryInterceptor from '../../sentry/security.interceptor'
 import FlagWikiService from './flagWiki.service'
 
+@ArgsType()
+class FlagWikiArgs {
+  @Field(() => String)
+  report!: string
+
+  @Field(() => String)
+  wikiId!: string
+
+  @Field(() => String, { nullable: true })
+  userId?: string
+}
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Boolean)
@@ -11,8 +22,8 @@ class FlagWikiResolver {
   constructor(private flagWikiService: FlagWikiService) {}
 
   @Mutation(() => Boolean)
-  async flagWiki() {
-    await this.flagWikiService.flagWiki()
+  async flagWiki(@Args() args: FlagWikiArgs) {
+    await this.flagWikiService.flagWiki(args.report, args.wikiId, args.userId)
     return true
   }
 }

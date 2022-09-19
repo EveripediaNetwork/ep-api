@@ -173,7 +173,7 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-//   @UseGuards(AuthGuard)
+  //   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({

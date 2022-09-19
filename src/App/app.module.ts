@@ -77,7 +77,7 @@ import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
     RevalidatePageService,
     RevalidatePageResolver,
     FlagWikiService,
-    FlagWikiResolver
+    FlagWikiResolver,
   ],
 })
 class AppModule {
