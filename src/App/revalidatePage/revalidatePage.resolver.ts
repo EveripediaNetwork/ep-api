@@ -1,8 +1,8 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { Args, Mutation, Resolver, ArgsType, Field } from '@nestjs/graphql'
 
-import SentryInterceptor from '../../../sentry/security.interceptor'
-import AuthGuard from '../admin.guard'
+import SentryInterceptor from '../../sentry/security.interceptor'
+import AuthGuard from '../utils/admin.guard'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
 
 @ArgsType()

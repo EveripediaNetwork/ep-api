@@ -25,7 +25,7 @@ import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from './utils/revalidatePage/revalidatePage.service'
+} from './revalidatePage/revalidatePage.service'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -173,7 +173,7 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  @UseGuards(AuthGuard)
+//   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
