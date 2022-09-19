@@ -10,10 +10,10 @@ class RouteArgs {
   @Field(() => String)
   route!: Routes
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   id?: string
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   slug?: string
 }
 
