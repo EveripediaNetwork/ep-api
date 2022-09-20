@@ -25,7 +25,7 @@ import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from './utils/revalidatePage/revalidatePage.service'
+} from './revalidatePage/revalidatePage.service'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {

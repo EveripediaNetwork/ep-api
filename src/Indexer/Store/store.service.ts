@@ -12,7 +12,7 @@ import SentryInterceptor from '../../sentry/security.interceptor'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from '../../App/utils/revalidatePage/revalidatePage.service'
+} from '../../App/revalidatePage/revalidatePage.service'
 
 export type ValidWiki = {
   id: string

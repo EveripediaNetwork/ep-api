@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
+import WebhookHandler from '../utils/discordWebhookHandler'
 import PinResolver from './pin.resolver'
 import PinService from './pin.service'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
@@ -16,6 +17,7 @@ import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
     IPFSValidatorService,
     MetadataChangesService,
     PinJSONErrorWebhook,
+    WebhookHandler,
   ],
 })
 export default class PinModule {}

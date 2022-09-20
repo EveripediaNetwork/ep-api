@@ -49,6 +49,7 @@ export const queryWikisCreated = async (
     .orderBy('datetime', 'DESC')
     .getMany()
 }
+
 export const queryWikisEdited = async (
   user: { id?: string },
   limit: number,

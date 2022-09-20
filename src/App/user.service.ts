@@ -9,7 +9,7 @@ import User from '../Database/Entities/user.entity'
 import {
   RevalidateEndpoints,
   RevalidatePageService,
-} from './utils/revalidatePage/revalidatePage.service'
+} from './revalidatePage/revalidatePage.service'
 
 @Injectable()
 class UserService {
