@@ -29,6 +29,7 @@ import httpModule from '../httpModule'
 import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
 import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
+import WebhookHandler from './utils/discordWebhookHandler'
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
     RevalidatePageResolver,
     FlagWikiService,
     FlagWikiResolver,
+    WebhookHandler,
   ],
 })
 class AppModule {

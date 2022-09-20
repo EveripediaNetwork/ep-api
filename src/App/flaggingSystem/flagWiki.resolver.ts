@@ -12,8 +12,8 @@ class FlagWikiArgs {
   @Field(() => String)
   wikiId!: string
 
-  @Field(() => String, { nullable: true })
-  userId?: string
+  @Field(() => String)
+  userId!: string
 }
 
 @UseInterceptors(SentryInterceptor)

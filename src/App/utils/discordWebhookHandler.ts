@@ -1,21 +1,18 @@
+/* eslint-disable import/no-cycle */
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
+import { FlagWikiWebhook } from "../flaggingSystem/flagWiki.service";
 // import { promises as fss } from 'fs'
-// import { FlagWikiWebhook } from "../flaggingSystem/flagWiki.service";
-// import { WikiWebhookError } from "../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook";
 
-// interface WebHookParams {
-//     values: FlagWikiWebhook | WikiWebhookError
-// }
+import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 
+export type WebhookParams = FlagWikiWebhook | WikiWebhookError
 
 @Injectable()
 export default class WebhookHandler {
-  constructor(
-    private readonly httpService: HttpService,
-  ) {}
+  constructor(private readonly httpService: HttpService) {}
 
-  private makeid(length: number) {
+  private makeId(length: number) {
     let result = ''
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -26,18 +23,15 @@ export default class WebhookHandler {
     return result
   }
 
-  async postException() {
-    return true
+  private async embedWebhook() {
     // const webhook =
     //   this.configService.get<string>('DISCORD_CHANNEL_WEBHOOK') || ''
     // const boundary = this.makeid(10)
-
     // await fss.writeFile(
     //   `./uploads/message.json`,
     //   `${JSON.stringify(data, null, 2)}`,
     // )
     // const readText = await fss.readFile(`./uploads/message.json`)
-
     // const jsonContent = JSON.stringify({
     //   username: 'EP Alarm',
     //   embeds: [
@@ -53,32 +47,43 @@ export default class WebhookHandler {
     //     },
     //   ],
     // })
+    //     const content =
+    //       `--${boundary}\n` +
+    //       `Content-Disposition: form-data; name="payload_json"\n` +
+    //       `Content-Type: application/json\n\n` +
+    //       `${jsonContent}\n` +
+    //       `--${boundary}\n` +
+    //       `Content-Disposition: form-data; name="files[0]"; filename="message.json"\n` +
+    //       `Content-Type: application/json\n\n` +
+    //       `${readText} \n` +
+    //       `--${boundary}--`
+    //     this.httpService
+    //       .post(webhook, content, {
+    //         headers: {
+    //           'Content-Type': `multipart/form-data; boundary=${boundary}`,
+    //         },
+    //       })
+    //       .subscribe({
+    //         complete: async () => {
+    //           await fss.unlink(`./uploads/message.json`)
+    //         },
+    //         error: async err => {
+    //           await fss.unlink(`./uploads/message.json`)
+    //           console.log(err.response)
+    //         },
+    //       })
+  }
 
-//     const content =
-//       `--${boundary}\n` +
-//       `Content-Disposition: form-data; name="payload_json"\n` +
-//       `Content-Type: application/json\n\n` +
-//       `${jsonContent}\n` +
-//       `--${boundary}\n` +
-//       `Content-Disposition: form-data; name="files[0]"; filename="message.json"\n` +
-//       `Content-Type: application/json\n\n` +
-//       `${readText} \n` +
-//       `--${boundary}--`
-
-//     this.httpService
-//       .post(webhook, content, {
-//         headers: {
-//           'Content-Type': `multipart/form-data; boundary=${boundary}`,
-//         },
-//       })
-//       .subscribe({
-//         complete: async () => {
-//           await fss.unlink(`./uploads/message.json`)
-//         },
-//         error: async err => {
-//           await fss.unlink(`./uploads/message.json`)
-//           console.log(err.response)
-//         },
-//       })
+  async postWebhook(
+    flagWiki?: FlagWikiWebhook,
+    wikiException?: WikiWebhookError,
+  ) {
+    if (flagWiki) {
+      console.log(true)
+    }
+    if (wikiException) {
+      console.log(true)
+    }
+    return true
   }
 }

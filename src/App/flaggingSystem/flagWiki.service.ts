@@ -1,15 +1,24 @@
+/* eslint-disable import/no-cycle */
 import { Injectable } from '@nestjs/common'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 export interface FlagWikiWebhook {
-  errorMessage: string
+  report: string
   wikiId: string
   userId: string
 }
 
 @Injectable()
 class FlagWikiService {
-  async flagWiki(report: string, wikiId: string, userId?: string) {
+  constructor(private webhookHandler: WebhookHandler) {}
+
+  async flagWiki(report: string, wikiId: string, userId: string) {
     console.log(report, wikiId, userId)
+    await this.webhookHandler.postWebhook({
+      report,
+      wikiId,
+      userId,
+    })
     return true
   }
 }
