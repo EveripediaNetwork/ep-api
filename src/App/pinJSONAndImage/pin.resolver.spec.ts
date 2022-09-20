@@ -14,6 +14,7 @@ import ActivityService from '../activity.service'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 jest.mock('fs')
 
@@ -40,6 +41,7 @@ describe('PinResolver', () => {
           },
         },
         PinJSONErrorWebhook,
+        WebhookHandler,
         MetadataChangesService,
         ActivityService,
         {
