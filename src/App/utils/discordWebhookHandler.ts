@@ -3,11 +3,12 @@ import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
+import { Connection } from 'typeorm'
+import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
-
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 
-enum ChannelTypes {
+export enum ChannelTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
 }
@@ -16,6 +17,7 @@ enum ChannelTypes {
 export default class WebhookHandler {
   constructor(
     private configService: ConfigService,
+    private connection: Connection,
     private readonly httpService: HttpService,
   ) {}
 
@@ -44,6 +46,8 @@ export default class WebhookHandler {
   ) {
     if (channelType === ChannelTypes.FLAG_WIKI) {
       const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
+      const repository = this.connection.getRepository(UserProfile)
+      const user = await repository.findOne(flagWiki?.userId)
 
       const boundary = this.makeId(10)
       const jsonContent = JSON.stringify({
@@ -51,11 +55,10 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0xff9900,
-            title: `Report on Wiki - ${flagWiki?.report}`,
-            description:
-              "In March 2022, ApeCoin DAO launched its own token separate from Yuga Labs known as ApeCoin. On October 31, 2021, the Bored Ape Yacht Club project's team held its first annual Ape Fest. The fest began in New York City and saw Bored Ape holders worldwide. The first event, APED NYC, at Bright Moments Gallery alone saw around 700 participants lined up outside the gallery",
+            title: `Report on Wiki - ${flagWiki?.wikiId}`,
+            description: `${flagWiki?.report}`,
             footer: {
-              text: 'Flagged by user',
+              text: `Flagged by ${user?.username || 'user'}`,
             },
           },
         ],
@@ -134,17 +137,15 @@ export default class WebhookHandler {
   }
 
   async postWebhook(
+    channelType: ChannelTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
-  ): Promise<any> {
+  ) {
     if (flagWiki) {
-      return this.embedWebhook(ChannelTypes.FLAG_WIKI, flagWiki)
+      return this.embedWebhook(channelType, flagWiki)
     }
     if (wikiException) {
-      return this.embedWebhook(
-        ChannelTypes.PINJSON_ERROR,
-        // wikiException,
-      )
+      return this.embedWebhook(channelType, undefined, wikiException)
     }
     return true
   }
