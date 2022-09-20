@@ -13,9 +13,13 @@ export default class PinJSONErrorWebhook {
   constructor(private webhookHandler: WebhookHandler) {}
 
   async postException(errorMessage: string, data: ValidWiki) {
-    return this.webhookHandler.postWebhook(ChannelTypes.PINJSON_ERROR, undefined, {
-      errorMessage,
-      data,
-    })
+    return this.webhookHandler.postWebhook(
+      ChannelTypes.PINJSON_ERROR,
+      undefined,
+      {
+        errorMessage,
+        data,
+      },
+    )
   }
 }
