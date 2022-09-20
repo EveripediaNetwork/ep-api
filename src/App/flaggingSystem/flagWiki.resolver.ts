@@ -23,7 +23,7 @@ class FlagWikiResolver {
 
   @Mutation(() => Boolean)
   async flagWiki(@Args() args: FlagWikiArgs) {
-    await this.flagWikiService.flagWiki(args.report, args.wikiId, args.userId)
+    await this.flagWikiService.flagWiki(args)
     return true
   }
 }

@@ -12,13 +12,8 @@ export interface FlagWikiWebhook {
 class FlagWikiService {
   constructor(private webhookHandler: WebhookHandler) {}
 
-  async flagWiki(report: string, wikiId: string, userId: string) {
-    console.log(report, wikiId, userId)
-    await this.webhookHandler.postWebhook({
-      report,
-      wikiId,
-      userId,
-    })
+  async flagWiki(data: FlagWikiWebhook) {
+    await this.webhookHandler.postWebhook(data)
     return true
   }
 }
