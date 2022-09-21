@@ -68,10 +68,6 @@ class Wiki {
   ipfs!: string
 
   @Field(() => Int)
-  @Column('integer')
-  views = 0
-
-  @Field(() => Int)
   @Column('smallint')
   version = 1
 
