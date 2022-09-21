@@ -432,6 +432,54 @@ describe('PinResolver', () => {
           size: '0.065',
           source: Source.IPFS_IMG,
         },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: Source.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: Source.IPFS_IMG,
+        },
       ],
     }
 
