@@ -1,18 +1,13 @@
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify'
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
 import * as Sentry from '@sentry/node'
 import AppModule from './App/app.module'
 
 async function bootstrap() {
-  let app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
+  let app = await NestFactory.create(
+    AppModule
   )
   const configService = app.get(ConfigService)
 
@@ -20,9 +15,8 @@ async function bootstrap() {
 
   app =
     Number(port) === 443
-      ? await NestFactory.create<NestFastifyApplication>(
+      ? await NestFactory.create(
           AppModule,
-          new FastifyAdapter(),
           {
             httpsOptions: {
               cert: fs.readFileSync('../fullchain.pem'),
@@ -30,9 +24,8 @@ async function bootstrap() {
             },
           },
         )
-      : await NestFactory.create<NestFastifyApplication>(
-          AppModule,
-          new FastifyAdapter(),
+      : await NestFactory.create(
+          AppModule
         )
 
   app.enableCors()
