@@ -189,7 +189,7 @@ class IPFSValidatorService {
         return true
       })
 
-      if (size <= 12 && contentCheck) {
+      if (size <= 20 && contentCheck) {
         return true
       }
       message = ValidatorCodes.MEDIA
