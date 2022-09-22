@@ -86,9 +86,9 @@ export class RevalidatePageService {
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.HIDE_WIKI) {
-        if (level && level > 0) {
-          await this.revalidate(Routes.HOMEPAGE)
-        }
+      if (level && level > 0) {
+        await this.revalidate(Routes.HOMEPAGE)
+      }
       await Promise.all([
         this.revalidate(Routes.ACTIVITY),
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),

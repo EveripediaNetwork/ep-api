@@ -83,7 +83,6 @@ class WikiResolver {
       where: {
         language: args.lang,
         id: args.id,
-        hidden: false,
       },
     })
   }
@@ -220,8 +219,8 @@ class WikiResolver {
 
     await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
-      wiki.user.id,
-      wiki.id,
+      undefined,
+      undefined,
       wiki.promoted,
     )
     return wiki
@@ -241,8 +240,8 @@ class WikiResolver {
 
     await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
-      wiki.user.id,
-      wiki.id,
+      undefined,
+      undefined,
       wiki.promoted,
     )
     return wiki
