@@ -34,6 +34,10 @@ export default class IsActiveGuard implements CanActivate {
       const { id } = JSON.parse(requestBody.data).user
       return this.authorizeUser(id)
     }
+    if (ctx.getInfo().path.key === 'createProfile') {
+      const { id } = JSON.parse(requestBody.profileInfo)
+      return this.authorizeUser(id)
+    }
     return this.authorizeUser(requestBody.id)
   }
 }
