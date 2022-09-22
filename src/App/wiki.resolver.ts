@@ -202,7 +202,7 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+    await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
     return wiki
   }
 
@@ -218,7 +218,7 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    this.revalidate.revalidatePage(
+    await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
       wiki.user.id,
       wiki.id,
@@ -238,7 +238,7 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    this.revalidate.revalidatePage(
+    await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
       wiki.user.id,
       wiki.id,

@@ -68,7 +68,6 @@ export class RevalidatePageService {
       await Promise.all([
         this.revalidate(Routes.ACTIVITY),
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
-        this.revalidate(Routes.HOMEPAGE),
         this.revalidate(`/wiki/${slug}/history`),
       ])
       // await this.revalidate(Routes.USER_PAGE, id)
@@ -81,7 +80,6 @@ export class RevalidatePageService {
     if (page === RevalidateEndpoints.HIDE_WIKI) {
       await Promise.all([
         this.revalidate(Routes.ACTIVITY),
-        this.revalidate(Routes.HOMEPAGE),
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
       ])
       // await this.revalidate(Routes.USER_PAGE, id)

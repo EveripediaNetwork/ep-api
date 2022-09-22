@@ -159,7 +159,7 @@ class DBStoreService {
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       await activityRepository.save(createActivity(Status.UPDATED))
-      this.revalidate.revalidatePage(
+      await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
         existWiki.user.id,
         existWiki.id,
@@ -187,7 +187,7 @@ class DBStoreService {
 
     await wikiRepository.save(newWiki)
     await activityRepository.save(createActivity(Status.CREATED))
-    this.revalidate.revalidatePage(
+    await this.revalidate.revalidatePage(
       RevalidateEndpoints.STORE_WIKI,
       newWiki.user.id,
       newWiki.id,
