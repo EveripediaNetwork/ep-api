@@ -69,7 +69,7 @@ class UserService {
         .where('id = :id', { id: data.id })
         .execute()
 
-      this.revalidate.revalidatePage(
+      await this.revalidate.revalidatePage(
         RevalidateEndpoints.CREATE_PROFILE,
         data.id,
       )
@@ -98,7 +98,7 @@ class UserService {
         .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
         .execute()
 
-      this.revalidate.revalidatePage(
+      await this.revalidate.revalidatePage(
         RevalidateEndpoints.CREATE_PROFILE,
         data.id,
       )
@@ -110,7 +110,10 @@ class UserService {
     })
 
     await userRepository.save(createUser)
-    this.revalidate.revalidatePage(RevalidateEndpoints.CREATE_PROFILE, data.id)
+    await this.revalidate.revalidatePage(
+      RevalidateEndpoints.CREATE_PROFILE,
+      data.id,
+    )
     return newProfile
   }
 }
