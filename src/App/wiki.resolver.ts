@@ -83,7 +83,7 @@ class WikiResolver {
       where: {
         language: args.lang,
         id: args.id,
-        hidden: false
+        hidden: false,
       },
     })
   }
