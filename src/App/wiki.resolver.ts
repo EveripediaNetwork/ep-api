@@ -222,6 +222,7 @@ class WikiResolver {
       RevalidateEndpoints.HIDE_WIKI,
       wiki.user.id,
       wiki.id,
+      wiki.promoted,
     )
     return wiki
   }
@@ -242,6 +243,7 @@ class WikiResolver {
       RevalidateEndpoints.HIDE_WIKI,
       wiki.user.id,
       wiki.id,
+      wiki.promoted,
     )
     return wiki
   }

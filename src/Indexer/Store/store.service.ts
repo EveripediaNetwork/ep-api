@@ -163,6 +163,7 @@ class DBStoreService {
         RevalidateEndpoints.STORE_WIKI,
         existWiki.user.id,
         existWiki.id,
+        existWiki.promoted,
       )
       return true
     }
