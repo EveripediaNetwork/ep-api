@@ -220,7 +220,7 @@ class WikiResolver {
     await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
       undefined,
-      undefined,
+      wiki.id,
       wiki.promoted,
     )
     return wiki
@@ -241,7 +241,7 @@ class WikiResolver {
     await this.revalidate.revalidatePage(
       RevalidateEndpoints.HIDE_WIKI,
       undefined,
-      undefined,
+      wiki.id,
       wiki.promoted,
     )
     return wiki
