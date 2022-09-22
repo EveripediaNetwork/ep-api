@@ -110,7 +110,10 @@ class UserService {
     })
 
     await userRepository.save(createUser)
-    await this.revalidate.revalidatePage(RevalidateEndpoints.CREATE_PROFILE, data.id)
+    await this.revalidate.revalidatePage(
+      RevalidateEndpoints.CREATE_PROFILE,
+      data.id,
+    )
     return newProfile
   }
 }
