@@ -37,7 +37,6 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile)
-  @UseGuards(IsActiveGuard)
   async getProfile(@Args() args: GetProfileArgs) {
     const repository = this.connection.getRepository(UserProfile)
     const profile = await repository.findOne({
