@@ -13,15 +13,12 @@ async function bootstrap() {
 
   app =
     Number(port) === 443
-      ? await NestFactory.create(
-          AppModule,
-          {
-            httpsOptions: {
-              cert: fs.readFileSync('../fullchain.pem'),
-              key: fs.readFileSync('../privkey.pem'),
-            },
+      ? await NestFactory.create(AppModule, {
+          httpsOptions: {
+            cert: fs.readFileSync('../fullchain.pem'),
+            key: fs.readFileSync('../privkey.pem'),
           },
-        )
+        })
       : await NestFactory.create(AppModule)
 
   app.enableCors()
