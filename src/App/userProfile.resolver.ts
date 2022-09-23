@@ -48,7 +48,7 @@ class UserProfileResolver {
       throw new GqlError(
         HttpStatus.NOT_FOUND,
         'User profile does not exist',
-        ErrorTypes.USER_PROFILE_NOT_FOUND_ERROR,
+        ErrorTypes.NOT_FOUND,
       )
     }
     return profile

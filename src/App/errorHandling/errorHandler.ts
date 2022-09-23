@@ -1,7 +1,7 @@
 import { HttpException } from '@nestjs/common'
 
 export enum ErrorTypes {
-    USER_PROFILE_NOT_FOUND_ERROR = 'UserProfileNotFoundError'
+    NOT_FOUND = 'NotFoundError'
 }
 
 
