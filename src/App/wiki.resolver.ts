@@ -174,7 +174,7 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  @UseGuards(AuthGuard)
+//   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
@@ -210,7 +210,7 @@ class WikiResolver {
   //   @UseGuards(AuthGuard)
   async wikiPromoteRandom() {
     const viewsRepository = this.connection.getRepository(PageViews)
-    const wikiRepository = await this.connection.getRepository(Wiki)
+    const wikiRepository = this.connection.getRepository(Wiki)
     const wikisRandom = await viewsRepository.query(`
         SELECT "wiki_id" FROM
             (SELECT "wiki_id" FROM "page_views"
@@ -227,12 +227,37 @@ class WikiResolver {
         hidden: false,
       },
       take: 10,
+      skip: 1,
       order: {
         promoted: 'DESC',
       },
     })
-    console.log(wikisPromoted)
+    if (wikisPromoted) {
+      wikisPromoted.forEach(async e => {
+        console.log(e.id)
+        await wikiRepository
+          .createQueryBuilder()
+          .update(Wiki)
+          .set({ promoted: 0 })
+          .where('id = :id', { id: e.id })
+          .execute()
+      })
+    }
+    console.log('this is wikisRandom', wikisRandom.length)
+    if (wikisRandom) {
+      for (let i = 0; i < wikisRandom.length; i += 1) {
+        console.log(wikisRandom[i].wiki_id, i)
+        await wikiRepository
+          .createQueryBuilder()
+          .update(Wiki)
+          .set({ promoted: i + 1 })
+          .where('id = :id', { id: wikisRandom[i].wiki_id })
+          .execute()
+      }
+      await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+    }
     console.log(wikisRandom)
+    console.log(wikisPromoted)
     return wikisRandom
   }
 

@@ -54,6 +54,7 @@ export class RevalidatePageService {
         )
         .toPromise()
     }
+    console.log('jome')
     return this.httpService
       .get(
         `${this.getSecrets().url}api/revalidate?secret=${
@@ -82,6 +83,7 @@ export class RevalidatePageService {
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.PROMOTE_WIKI) {
+        console.log('wikis are being promoted')
       await this.revalidate(Routes.HOMEPAGE)
       console.log(`Revalidating ${page}`)
     }
