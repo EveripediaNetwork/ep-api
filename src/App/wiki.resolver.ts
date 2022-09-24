@@ -26,6 +26,7 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
+import PageViews from '../Database/Entities/pageViews.entity'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -203,6 +204,36 @@ class WikiResolver {
 
     await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
     return wiki
+  }
+
+  @Query(() => [PageViews])
+  //   @UseGuards(AuthGuard)
+  async wikiPromoteRandom() {
+    const viewsRepository = this.connection.getRepository(PageViews)
+    const wikiRepository = await this.connection.getRepository(Wiki)
+    const wikisRandom = await viewsRepository.query(`
+        SELECT "wiki_id" FROM
+            (SELECT "wiki_id" FROM "page_views"
+            ORDER BY views desc
+            LIMIT 50) as top50
+        ORDER BY random()
+        LIMIT 3
+    `)
+    const wikisPromoted = await wikiRepository.find({
+      select: ['id', 'promoted'],
+      where: {
+        language: 'en',
+        promoted: MoreThan(0),
+        hidden: false,
+      },
+      take: 10,
+      order: {
+        promoted: 'DESC',
+      },
+    })
+    console.log(wikisPromoted)
+    console.log(wikisRandom)
+    return wikisRandom
   }
 
   @Mutation(() => Wiki)
