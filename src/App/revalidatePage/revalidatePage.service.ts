@@ -83,7 +83,7 @@ export class RevalidatePageService {
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.PROMOTE_WIKI) {
-        console.log('wikis are being promoted')
+      console.log('wikis are being promoted')
       await this.revalidate(Routes.HOMEPAGE)
       console.log(`Revalidating ${page}`)
     }

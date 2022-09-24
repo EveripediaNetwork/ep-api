@@ -174,7 +174,7 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-//   @UseGuards(AuthGuard)
+  //   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
@@ -213,9 +213,13 @@ class WikiResolver {
     const wikiRepository = this.connection.getRepository(Wiki)
     const wikisRandom = await viewsRepository.query(`
         SELECT "wiki_id" FROM
-            (SELECT "wiki_id" FROM "page_views"
-            ORDER BY views desc
-            LIMIT 50) as top50
+            (
+                SELECT "wiki_id" FROM "page_views"
+                LEFT JOIN wiki w ON w.id = "wiki_id"
+	 	        WHERE w.hidden = false
+                ORDER BY views desc
+                LIMIT 50
+            ) as top50
         ORDER BY random()
         LIMIT 3
     `)
