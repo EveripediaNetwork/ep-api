@@ -54,7 +54,6 @@ export class RevalidatePageService {
         )
         .toPromise()
     }
-    console.log('jome')
     return this.httpService
       .get(
         `${this.getSecrets().url}api/revalidate?secret=${
@@ -79,7 +78,6 @@ export class RevalidatePageService {
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
         this.revalidate(`/wiki/${slug}/history`),
       ])
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.PROMOTE_WIKI) {
@@ -95,11 +93,9 @@ export class RevalidatePageService {
         this.revalidate(Routes.ACTIVITY),
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
       ])
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.CREATE_PROFILE) {
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     console.log(`Revalidating ${page}`)

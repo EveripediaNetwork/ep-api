@@ -21,12 +21,10 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
-import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
-import PageViews from '../Database/Entities/pageViews.entity'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -34,10 +32,10 @@ class LangArgs extends PaginationArgs {
   lang = 'en'
 
   @Field(() => String)
-  order = 'DESC'
+  direction = 'DESC'
 
   @Field(() => String)
-  direction = 'updated'
+  order = 'updated'
 }
 
 @ArgsType()
@@ -91,15 +89,13 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        hidden: false,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: orderWikis(args.order as OrderBy, args.direction as Direction),
-    })
+    return repository.query(`
+        SELECT * FROM wiki
+        LEFT JOIN "page_views" "v" ON v."wiki_id" = wiki."id" 
+        WHERE "wiki"."languageId" = '${args.lang}' AND hidden = false 
+        ORDER BY ${args.order} ${args.direction} NULLS LAST
+        LIMIT ${args.limit}
+    `)
   }
 
   @Query(() => [Wiki])
@@ -174,7 +170,7 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  //   @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
@@ -204,65 +200,6 @@ class WikiResolver {
 
     await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
     return wiki
-  }
-
-  @Query(() => [PageViews])
-  //   @UseGuards(AuthGuard)
-  async wikiPromoteRandom() {
-    const viewsRepository = this.connection.getRepository(PageViews)
-    const wikiRepository = this.connection.getRepository(Wiki)
-    const wikisRandom = await viewsRepository.query(`
-        SELECT "wiki_id" FROM
-            (
-                SELECT "wiki_id" FROM "page_views"
-                LEFT JOIN wiki w ON w.id = "wiki_id"
-	 	        WHERE w.hidden = false
-                ORDER BY views desc
-                LIMIT 50
-            ) as top50
-        ORDER BY random()
-        LIMIT 3
-    `)
-    const wikisPromoted = await wikiRepository.find({
-      select: ['id', 'promoted'],
-      where: {
-        language: 'en',
-        promoted: MoreThan(0),
-        hidden: false,
-      },
-      take: 10,
-      skip: 1,
-      order: {
-        promoted: 'DESC',
-      },
-    })
-    if (wikisPromoted) {
-      wikisPromoted.forEach(async e => {
-        console.log(e.id)
-        await wikiRepository
-          .createQueryBuilder()
-          .update(Wiki)
-          .set({ promoted: 0 })
-          .where('id = :id', { id: e.id })
-          .execute()
-      })
-    }
-    console.log('this is wikisRandom', wikisRandom.length)
-    if (wikisRandom) {
-      for (let i = 0; i < wikisRandom.length; i += 1) {
-        console.log(wikisRandom[i].wiki_id, i)
-        await wikiRepository
-          .createQueryBuilder()
-          .update(Wiki)
-          .set({ promoted: i + 1 })
-          .where('id = :id', { id: wikisRandom[i].wiki_id })
-          .execute()
-      }
-      await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
-    }
-    console.log(wikisRandom)
-    console.log(wikisPromoted)
-    return wikisRandom
   }
 
   @Mutation(() => Wiki)
