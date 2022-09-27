@@ -25,17 +25,18 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
+import { OrderBy, Direction } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
 
-  @Field(() => String)
-  direction = 'DESC'
+  @Field(() => Direction)
+  direction = Direction.DESC
 
-  @Field(() => String)
-  order = 'updated'
+  @Field(() => OrderBy)
+  order = OrderBy.UPDATED
 }
 
 @ArgsType()
