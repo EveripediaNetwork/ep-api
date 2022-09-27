@@ -25,7 +25,7 @@ class RevalidatePageResolver {
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard)
   async revalidatePage(@Args() args: RouteArgs) {
-    await this.revalidateService.revalidate(args.route, args.id, args.slug)
+    await this.revalidateService.revalidate(args.route)
     return true
   }
 }
