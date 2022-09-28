@@ -25,7 +25,7 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
-import { OrderBy, Direction } from './utils/queryHelpers'
+import { OrderBy, Direction, orderWikis } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -90,13 +90,15 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.query(`
-        SELECT * FROM wiki
-        LEFT JOIN "page_views" "v" ON v."wiki_id" = wiki."id" 
-        WHERE "wiki"."languageId" = '${args.lang}' AND hidden = false 
-        ORDER BY ${args.order} ${args.direction} NULLS LAST
-        LIMIT ${args.limit}
-    `)
+    return repository.find({
+      where: {
+        language: args.lang,
+        hidden: false,
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: orderWikis(args.order as OrderBy, args.direction as Direction),
+    })
   }
 
   @Query(() => [Wiki])

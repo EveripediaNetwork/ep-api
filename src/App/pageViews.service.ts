@@ -1,7 +1,6 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { Connection } from 'typeorm'
-import PageViews from '../Database/Entities/pageViews.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 
 interface WikiViewed {
@@ -17,7 +16,6 @@ class PageViewsService {
   ) {}
 
   async updateCount(id: string, ip: string): Promise<number> {
-    const viewRepository = this.connection.getRepository(PageViews)
     const wikiRepository = this.connection.getRepository(Wiki)
     const cached: WikiViewed | undefined = await this.cacheManager.get(id)
     const existWiki = await wikiRepository.findOne({
@@ -26,22 +24,26 @@ class PageViewsService {
     if (cached || !existWiki) {
       return 0
     }
-    const viewedWiki = await viewRepository.findOne({
-      wiki_id: id,
+    const viewedWiki = await wikiRepository.findOne({
+      id,
     })
     if (viewedWiki) {
-      await viewRepository
+      await wikiRepository
         .createQueryBuilder()
-        .update(PageViews)
+        .update(Wiki)
         .set({ views: () => 'views + 1' })
-        .where('wiki_id = :wiki_id', { wiki_id: id })
+        .where('id = :id', { id })
         .execute()
       await this.cacheManager.set(id, ip)
       return viewedWiki.views + 1
     }
+    await wikiRepository
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ views: 1 })
+      .where('id = :id', { id })
+      .execute()
 
-    const createView = viewRepository.create({ wiki_id: id, views: 1 })
-    await viewRepository.save(createView)
     await this.cacheManager.set(id, ip)
     return 1
   }

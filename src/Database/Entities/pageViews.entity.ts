@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { Column, Entity, PrimaryColumn } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
 
