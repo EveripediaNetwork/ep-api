@@ -1,5 +1,5 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, Context, Mutation,Resolver } from '@nestjs/graphql'
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PageViewsService from './pageViews.service'
@@ -19,7 +19,6 @@ class PageViewsResolver {
   ) {
     return this.pageViewsService.updateCount(id, ctx.req.ip)
   }
-
 }
 
 export default PageViewsResolver
