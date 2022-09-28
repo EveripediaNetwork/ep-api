@@ -71,6 +71,9 @@ class Wiki {
   @Column('smallint')
   version = 1
 
+  @Field(() => Int, { nullable: true })
+  views?: number
+
   @Field(() => Int)
   @Column('smallint', { default: 0 })
   promoted = 0

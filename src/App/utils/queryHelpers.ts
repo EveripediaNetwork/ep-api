@@ -1,8 +1,12 @@
+import { registerEnumType } from '@nestjs/graphql'
 import { getConnection } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 
 export enum OrderBy {
   ID = 'id',
+  VIEWS = 'views',
+  BLOCK = 'block',
+  CREATED = 'created',
   UPDATED = 'updated',
 }
 
@@ -10,6 +14,9 @@ export enum Direction {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+registerEnumType(OrderBy, { name: 'OrderBy' })
+registerEnumType(Direction, { name: 'Direction' })
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}

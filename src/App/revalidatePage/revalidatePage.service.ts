@@ -78,10 +78,10 @@ export class RevalidatePageService {
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
         this.revalidate(`/wiki/${slug}/history`),
       ])
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.PROMOTE_WIKI) {
+      console.log('wikis are being promoted')
       await this.revalidate(Routes.HOMEPAGE)
       console.log(`Revalidating ${page}`)
     }
@@ -93,11 +93,9 @@ export class RevalidatePageService {
         this.revalidate(Routes.ACTIVITY),
         this.revalidate(Routes.WIKI_PAGE, undefined, slug),
       ])
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     if (page === RevalidateEndpoints.CREATE_PROFILE) {
-      // await this.revalidate(Routes.USER_PAGE, id)
       console.log(`Revalidating ${page}`)
     }
     console.log(`Revalidating ${page}`)

@@ -21,22 +21,22 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult, ValidSlug } from './utils/validSlug'
-import { OrderBy, orderWikis, Direction } from './utils/queryHelpers'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
+import { OrderBy, Direction } from './utils/queryHelpers'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
   @Field(() => String)
   lang = 'en'
 
-  @Field(() => String)
-  order = 'DESC'
+  @Field(() => Direction)
+  direction = Direction.DESC
 
-  @Field(() => String)
-  direction = 'updated'
+  @Field(() => OrderBy)
+  order = OrderBy.UPDATED
 }
 
 @ArgsType()
@@ -90,15 +90,13 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        hidden: false,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: orderWikis(args.order as OrderBy, args.direction as Direction),
-    })
+    return repository.query(`
+        SELECT * FROM wiki
+        LEFT JOIN "page_views" "v" ON v."wiki_id" = wiki."id" 
+        WHERE "wiki"."languageId" = '${args.lang}' AND hidden = false 
+        ORDER BY ${args.order} ${args.direction} NULLS LAST
+        LIMIT ${args.limit}
+    `)
   }
 
   @Query(() => [Wiki])
