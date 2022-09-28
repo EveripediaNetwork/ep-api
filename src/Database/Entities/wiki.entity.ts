@@ -72,7 +72,8 @@ class Wiki {
   version = 1
 
   @Field(() => Int, { nullable: true })
-  views?: number
+  @Column('integer', { default: 0 })
+  views!: number
 
   @Field(() => Int)
   @Column('smallint', { default: 0 })

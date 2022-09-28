@@ -25,8 +25,20 @@ export const orderWikis = (order: OrderBy, direction: Direction) => {
       sortValue = { updated: direction }
       break
     }
+    case OrderBy.CREATED: {
+      sortValue = { created: direction }
+      break
+    }
     case OrderBy.ID: {
       sortValue = { id: direction }
+      break
+    }
+    case OrderBy.VIEWS: {
+      sortValue = { views: direction }
+      break
+    }
+    case OrderBy.BLOCK: {
+      sortValue = { block: direction }
       break
     }
     default:
