@@ -79,42 +79,18 @@ class WikiResolver {
   @Query(() => Wiki)
   async wiki(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail({
+    return repository.findOneOrFail({
       where: {
         language: args.lang,
         id: args.id,
       },
     })
-    // console.log(wiki)
-    return wiki
   }
 
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
     const repository = this.connection.getRepository(Wiki)
-    console.log(args)
-    // const wikis = await repository.query(`
-    //     SELECT *, c.* as categories, t.* as tags
-    //     FROM "wiki" "Wiki"
-    //     LEFT JOIN "page_views" "v" ON v."wiki_id" = "Wiki".id
-    //     LEFT JOIN "wiki_tags_tag" "t" ON "t"."wikiId" = "Wiki".id
-    //     INNER JOIN "wiki_categories_category" "c" ON "c"."wikiId" = "Wiki".id
-    //     WHERE "Wiki"."languageId" = 'en' AND "Wiki"."id" = "Wiki".id
-    //     ORDER BY views DESC NULLS LAST
-    //     LIMIT 30
-    // `)
-    // console.log(wikis)
-    //  const wikis = await repository.query(`
-    //     SELECT *
-    //     FROM "wiki" "Wiki"
-    //     LEFT JOIN "page_views" "v" ON v."wiki_id" = "Wiki".id
-    //     LEFT JOIN "wiki_tags_tag" "t" ON "t"."wikiId" = "Wiki".id
-    //     LEFT JOIN "wiki_categories_category" "c" ON "c"."wikiId" = "Wiki".id
-    //     WHERE "wiki"."languageId" = '${args.lang}' AND hidden = false  AND "Wiki"."id" = "Wiki".id
-    //     ORDER BY ${args.order} ${args.direction} NULLS LAST
-    //     LIMIT ${args.limit}
-    // `)
-    const wikis = await repository.find({
+    return repository.find({
       where: {
         language: args.lang,
         hidden: false,
@@ -123,8 +99,6 @@ class WikiResolver {
       skip: args.offset,
       order: orderWikis(args.order as OrderBy, args.direction as Direction),
     })
-    // console.log(wikis)
-    return wikis
   }
 
   @Query(() => [Wiki])

@@ -14,7 +14,6 @@ class PageViews {
   @Field(() => Int, { nullable: true })
   @Column('integer', { default: 0 })
   views!: number
-
 }
 
 export default PageViews
