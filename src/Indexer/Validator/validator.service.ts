@@ -161,7 +161,7 @@ class IPFSValidatorService {
     }
 
     const checkTags = (validatingWiki: ValidWiki) => {
-      if (validatingWiki.images.length <= 5) {
+      if (validatingWiki.tags.length <= 5) {
         return true
       }
       message = ValidatorCodes.TAG
