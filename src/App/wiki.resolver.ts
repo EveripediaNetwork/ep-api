@@ -44,6 +44,9 @@ class TitleArgs extends LangArgs {
   @Field(() => String)
   @MinLength(3)
   title!: string
+
+  @Field(() => Boolean)
+  hidden = false
 }
 
 @ArgsType()
@@ -143,10 +146,10 @@ class WikiResolver {
     return repository
       .createQueryBuilder('wiki')
       .where(
-        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :status',
+        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
         {
           lang: args.lang,
-          status: false,
+          hidden: args.hidden,
           title: `%${args.title.toLowerCase()}%`,
         },
       )
