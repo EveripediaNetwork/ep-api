@@ -29,7 +29,7 @@ export default class WebhookHandler {
   }
 
   private getWebpageUrl() {
-     return this.configService.get<string>('WEBSITE_URL') || ''
+    return this.configService.get<string>('WEBSITE_URL') || ''
   }
 
   private makeId(length: number) {
@@ -59,7 +59,7 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0xff9900,
-            title: `📢   Wiki report on ${flagWiki?.wikiId} 📢  `,
+            title: `📢   Wiki report on ${flagWiki?.wikiId}  📢`,
             url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
             description: `${flagWiki?.report}`,
             footer: {
