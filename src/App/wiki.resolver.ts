@@ -216,7 +216,7 @@ class WikiResolver {
     await repository
       .createQueryBuilder()
       .update(Wiki)
-      .set({ hidden: true })
+      .set({ hidden: true, promoted: 0 })
       .where('id = :id', { id: args.id })
       .execute()
 

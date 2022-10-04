@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -30,6 +31,7 @@ import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
 import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
+import LoggingInterceptor from './utils/adminLogs.interceptor'
 
 @Module({
   imports: [
@@ -55,6 +57,7 @@ import WebhookHandler from './utils/discordWebhookHandler'
       },
     }),
     httpModule(20000),
+    EventEmitterModule.forRoot(),
     PinModule,
     DatabaseModule,
     RelayerModule,
@@ -80,6 +83,7 @@ import WebhookHandler from './utils/discordWebhookHandler'
     FlagWikiService,
     FlagWikiResolver,
     WebhookHandler,
+    LoggingInterceptor,
   ],
 })
 class AppModule {
