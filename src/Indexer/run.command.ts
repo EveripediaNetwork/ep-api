@@ -69,6 +69,7 @@ class RunCommand implements CommandRunner {
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
+        console.log('the content is: ', content)
         const completeWiki = await this.metaChanges.appendMetadata(content)
         const stat = await this.validator.validate(
           completeWiki,
