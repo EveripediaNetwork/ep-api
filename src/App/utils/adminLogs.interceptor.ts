@@ -13,13 +13,18 @@ import { Cache } from 'cache-manager'
 // import validateToken from './validateToken'
 
 export class AdminLogPayload {
-  address?: string
+  address!: string
 
-  endpoint?: string
+  endpoint!: string
 
-  id?: string
+  id!: string
+}
 
-  status = false
+export enum AdminMutations {
+    PROMOTE_WIKI = 'promoteWiki',
+    HIDE_WIKI = 'hideWiki',
+    UNHIDE_WIKI = 'unhideWiki',
+    REVALIDATE_PAGE = 'revalidatePage',
 }
 
 @Injectable()
@@ -38,7 +43,7 @@ export default class LoggingInterceptor implements NestInterceptor {
     adminPayload.address = authorization
     adminPayload.endpoint = ctx.getArgByIndex(3).fieldName
     adminPayload.id =
-      ctx.getArgByIndex(3).fieldName === 'revalidatePage'
+      ctx.getArgByIndex(3).fieldName === AdminMutations.REVALIDATE_PAGE
         ? ctx.getArgByIndex(1).route
         : ctx.getArgByIndex(1).id
 

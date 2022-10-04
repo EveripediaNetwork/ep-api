@@ -1,7 +1,14 @@
 /* eslint-disable import/no-duplicates */
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { Args, Mutation, Resolver, ArgsType, Field, Context } from '@nestjs/graphql'
+import {
+  Args,
+  Mutation,
+  Resolver,
+  ArgsType,
+  Field,
+  Context,
+} from '@nestjs/graphql'
 
 import SentryInterceptor from '../../sentry/security.interceptor'
 import AuthGuard from '../utils/admin.guard'

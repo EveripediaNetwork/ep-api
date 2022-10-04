@@ -9,7 +9,6 @@ import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 // import validateToken from './validateToken'
 
-
 @Injectable()
 export default class AuthGuard implements CanActivate {
   canActivate(
