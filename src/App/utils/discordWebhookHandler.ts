@@ -28,6 +28,10 @@ export default class WebhookHandler {
     return { BRAINDAO_ALARMS, INTERNAL_ACTIVITY }
   }
 
+  private getWebpageUrl() {
+    return this.configService.get<string>('WEBSITE_URL') || ''
+  }
+
   private makeId(length: number) {
     let result = ''
     const characters =
@@ -55,7 +59,8 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0xff9900,
-            title: `Report on Wiki - ${flagWiki?.wikiId}`,
+            title: `📢   Wiki report on ${flagWiki?.wikiId}  📢`,
+            url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
             description: `${flagWiki?.report}`,
             footer: {
               text: `Flagged by ${user?.username || 'user'}`,
