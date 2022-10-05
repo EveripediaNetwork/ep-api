@@ -113,6 +113,18 @@ describe('PinResolver', () => {
     expect(ipfsValidatorService).toBeDefined()
   })
 
+  it('should throw summary error, summary exceeded limit', async () => {
+    const wiki = {
+        ...testWiki,
+      summary:
+        'Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\, Polygon...........Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\,',
+    } 
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.SUMMARY,
+    })
+  })
+
   it('should return status true for a valid wiki', async () => {
     expect(await ipfsValidatorService.validate(testWiki, true)).toEqual(result)
   })

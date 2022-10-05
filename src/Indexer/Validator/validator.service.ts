@@ -81,11 +81,11 @@ class IPFSValidatorService {
     }
 
     const checkSummary = (validatingWiki: ValidWiki) => {
-      if (validatingWiki.summary) {
-        return validatingWiki.summary.length <= 128
+      if (validatingWiki.summary && validatingWiki.summary.length <= 255) {
+        return true
       }
-
-      return true
+      message = ValidatorCodes.SUMMARY
+      return false
     }
 
     const checkImages = (validatingWiki: ValidWiki) => {
