@@ -18,7 +18,7 @@ module.exports = {
       watch: false,
       ignore_watch: ["[\/\\]\./", "uploads"],
       watch_delay: 10000,
-      restart_delay: 900000,
+      exp_backoff_restart_delay: 1000,
       max_memory_restart: '400M',
     }
   ]
