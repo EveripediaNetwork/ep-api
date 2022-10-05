@@ -4,13 +4,16 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { Connection } from 'typeorm'
+import { AdminMutations } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
+import { AdminLogPayload } from './adminLogs.interceptor'
 
 export enum ChannelTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
+  ADMIN_ACTION = 'adminAction',
 }
 
 @Injectable()
@@ -47,7 +50,66 @@ export default class WebhookHandler {
     channelType: ChannelTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
   ) {
+    if (channelType === ChannelTypes.ADMIN_ACTION) {
+      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
+      let message
+      switch (adminLog?.endpoint) {
+        case AdminMutations.HIDE_WIKI: {
+          message = `${adminLog?.address} hides ${adminLog?.id}`
+          break
+        }
+        case AdminMutations.UNHIDE_WIKI: {
+          message = `${adminLog?.address} unhides ${adminLog?.id}`
+          break
+        }
+        case AdminMutations.PROMOTE_WIKI: {
+          message = `${
+            adminLog?.address
+          } promoted ${this.getWebpageUrl()}wiki/${adminLog?.id}`
+          break
+        }
+        case AdminMutations.REVALIDATE_PAGE: {
+          message = `${adminLog?.address} revalidated route - ${adminLog?.id}`
+          break
+        }
+        default:
+            message = ''
+      }
+
+      const boundary = this.makeId(10)
+      const jsonContent = JSON.stringify({
+        username: 'EP Admin 🔐',
+        embeds: [
+          {
+            color: 0x0c71e0,
+            title: `🚧  Admin activity  🚧`,
+            // url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
+            description: message,
+            // footer: {
+            //   text: `Flagged by ${user?.username || 'user'}`,
+            // },
+          },
+        ],
+      })
+      const content =
+        `--${boundary}\n` +
+        `Content-Disposition: form-data; name="payload_json"\n\n` +
+        `${jsonContent}\n` +
+        `--${boundary}\n` +
+        `Content-Disposition: form-data; name="tts" \n\n` +
+        `true\n` +
+        `--${boundary}--`
+
+      this.httpService
+        .post(webhook, content, {
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          },
+        })
+        .toPromise()
+    }
     if (channelType === ChannelTypes.FLAG_WIKI) {
       const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
       const repository = this.connection.getRepository(UserProfile)
@@ -60,7 +122,7 @@ export default class WebhookHandler {
           {
             color: 0xff9900,
             title: `📢   Wiki report on ${flagWiki?.wikiId}  📢`,
-            url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
+            url: `${this.getWebpageUrl()}wiki/${flagWiki?.wikiId}`,
             description: `${flagWiki?.report}`,
             footer: {
               text: `Flagged by ${user?.username || 'user'}`,
@@ -145,12 +207,16 @@ export default class WebhookHandler {
     channelType: ChannelTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
   ) {
     if (flagWiki) {
       return this.embedWebhook(channelType, flagWiki)
     }
     if (wikiException) {
       return this.embedWebhook(channelType, undefined, wikiException)
+    }
+    if (adminLog) {
+      return this.embedWebhook(channelType, undefined, undefined, adminLog)
     }
     return true
   }

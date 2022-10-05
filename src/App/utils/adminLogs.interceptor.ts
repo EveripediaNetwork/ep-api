@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import {
   Injectable,
   NestInterceptor,
@@ -10,6 +11,7 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 import { Cache } from 'cache-manager'
+import WebhookHandler, { ChannelTypes } from './discordWebhookHandler'
 // import validateToken from './validateToken'
 
 export class AdminLogPayload {
@@ -21,15 +23,18 @@ export class AdminLogPayload {
 }
 
 export enum AdminMutations {
-    PROMOTE_WIKI = 'promoteWiki',
-    HIDE_WIKI = 'hideWiki',
-    UNHIDE_WIKI = 'unhideWiki',
-    REVALIDATE_PAGE = 'revalidatePage',
+  PROMOTE_WIKI = 'promoteWiki',
+  HIDE_WIKI = 'hideWiki',
+  UNHIDE_WIKI = 'unhideWiki',
+  REVALIDATE_PAGE = 'revalidatePage',
 }
 
 @Injectable()
-export default class LoggingInterceptor implements NestInterceptor {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+export default class AdminLogsInterceptor implements NestInterceptor {
+  constructor(
+    private webhookHandler: WebhookHandler,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async intercept(
     context: ExecutionContext,
@@ -56,10 +61,18 @@ export default class LoggingInterceptor implements NestInterceptor {
   }
 
   @OnEvent('admin.action')
-  async sendLog(payload: string) {
-    console.log(payload)
-    const vals = await this.cacheManager.get(payload)
-    console.log(vals)
+  async sendAdminLog(cacheId: string) {
+    const payload = await this.cacheManager.get(cacheId)
+    if (payload) {
+        console.log(payload)
+      await this.webhookHandler.postWebhook(
+        ChannelTypes.ADMIN_ACTION,
+        undefined,
+        undefined,
+        payload as AdminLogPayload,
+      )
+    }
+
     console.log('We have a lift off')
 
     return true

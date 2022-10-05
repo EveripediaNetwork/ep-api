@@ -12,7 +12,7 @@ import {
 
 import SentryInterceptor from '../../sentry/security.interceptor'
 import AuthGuard from '../utils/admin.guard'
-import LoggingInterceptor from '../utils/adminLogs.interceptor'
+import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
 
 @ArgsType()
@@ -28,7 +28,7 @@ class RouteArgs {
 }
 
 @UseInterceptors(SentryInterceptor)
-@UseInterceptors(LoggingInterceptor)
+@UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Boolean)
 class RevalidatePageResolver {
   constructor(

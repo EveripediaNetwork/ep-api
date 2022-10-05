@@ -31,7 +31,7 @@ import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
 import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
-import LoggingInterceptor from './utils/adminLogs.interceptor'
+import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 
 @Module({
   imports: [
@@ -83,7 +83,7 @@ import LoggingInterceptor from './utils/adminLogs.interceptor'
     FlagWikiService,
     FlagWikiResolver,
     WebhookHandler,
-    LoggingInterceptor,
+    AdminLogsInterceptor,
   ],
 })
 class AppModule {
