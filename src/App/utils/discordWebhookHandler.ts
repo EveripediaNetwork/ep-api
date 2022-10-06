@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable import/no-cycle */
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { Connection } from 'typeorm'
+import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 
-export enum ChannelTypes {
+export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
+  ADMIN_ACTION = 'adminAction',
 }
 
 @Injectable()
@@ -44,11 +47,89 @@ export default class WebhookHandler {
   }
 
   private async embedWebhook(
-    channelType: ChannelTypes,
+    actionType: ActionTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
   ) {
-    if (channelType === ChannelTypes.FLAG_WIKI) {
+    if (actionType=== ActionTypes.ADMIN_ACTION) {
+      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
+      const repository = this.connection.getRepository(UserProfile)
+      const user = await repository.findOne({
+        where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
+      })
+
+      let message
+      switch (adminLog?.endpoint) {
+        case AdminMutations.HIDE_WIKI: {
+          message = `**Wiki archvied** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          } 🔒 \n\n _Performed by_ ***${adminLog?.address}***`
+          break
+        }
+        case AdminMutations.UNHIDE_WIKI: {
+          message = `**Wiki unarchvied** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          } 🔓 \n\n _Performed by_ ***${adminLog?.address}***`
+          break
+        }
+        case AdminMutations.PROMOTE_WIKI: {
+          message = `**Wiki promoted** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          }  📌 \n\n _Performed by_ ***${adminLog?.address}***`
+          break
+        }
+        case AdminMutations.REVALIDATE_PAGE: {
+          message = `**Route revalidated** - ${this.getWebpageUrl()}wiki${
+            adminLog?.id
+          }  ♻️ \n\n _Performed by_ ***${adminLog?.address}*** `
+          break
+        }
+        case AdminMutations.TOGGLE_USER_STATE: {
+          adminLog?.status === true
+            ? (message = `**User unbanned** - ${this.getWebpageUrl()}account/${
+                adminLog?.id
+              }  ✅ \n\n _Performed by_ ***${adminLog?.address}*** `)
+            : (message = `**User banned** - ${this.getWebpageUrl()}account/${
+                adminLog?.id
+              } ❌ \n\n _Performed by_ ***${
+                user?.username !== '' ? user?.username : adminLog?.address
+              }*** `)
+          break
+        }
+        default:
+          message = ''
+      }
+
+      const boundary = this.makeId(10)
+      const jsonContent = JSON.stringify({
+        username: 'EP Admin 🔐',
+        embeds: [
+          {
+            color: 0x0c71e0,
+            title: `🚧  Admin activity  🚧`,
+            description: message,
+          },
+        ],
+      })
+      const content =
+        `--${boundary}\n` +
+        `Content-Disposition: form-data; name="payload_json"\n\n` +
+        `${jsonContent}\n` +
+        `--${boundary}\n` +
+        `Content-Disposition: form-data; name="tts" \n\n` +
+        `true\n` +
+        `--${boundary}--`
+
+        this.httpService
+          .post(webhook, content, {
+            headers: {
+              'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            },
+          })
+          .toPromise()
+    }
+    if (actionType=== ActionTypes.FLAG_WIKI) {
       const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
       const repository = this.connection.getRepository(UserProfile)
       const user = await repository.findOne(flagWiki?.userId)
@@ -60,7 +141,7 @@ export default class WebhookHandler {
           {
             color: 0xff9900,
             title: `📢   Wiki report on ${flagWiki?.wikiId}  📢`,
-            url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
+            url: `${this.getWebpageUrl()}wiki/${flagWiki?.wikiId}`,
             description: `${flagWiki?.report}`,
             footer: {
               text: `Flagged by ${user?.username || 'user'}`,
@@ -85,7 +166,7 @@ export default class WebhookHandler {
         })
         .toPromise()
     }
-    if (channelType === ChannelTypes.PINJSON_ERROR) {
+    if (actionType=== ActionTypes.PINJSON_ERROR) {
       const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
       const boundary = this.makeId(10)
 
@@ -142,15 +223,19 @@ export default class WebhookHandler {
   }
 
   async postWebhook(
-    channelType: ChannelTypes,
+    actionType: ActionTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
   ) {
     if (flagWiki) {
-      return this.embedWebhook(channelType, flagWiki)
+      return this.embedWebhook(actionType, flagWiki)
     }
     if (wikiException) {
-      return this.embedWebhook(channelType, undefined, wikiException)
+      return this.embedWebhook(actionType, undefined, wikiException)
+    }
+    if (adminLog) {
+      return this.embedWebhook(actionType, undefined, undefined, adminLog)
     }
     return true
   }

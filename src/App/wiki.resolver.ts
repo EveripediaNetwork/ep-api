@@ -2,6 +2,7 @@
 import {
   Args,
   ArgsType,
+  Context,
   Field,
   Int,
   Mutation,
@@ -13,6 +14,7 @@ import {
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength } from 'class-validator'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
 import { IWiki } from '../Database/Entities/types/IWiki'
@@ -26,6 +28,7 @@ import {
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
 import { OrderBy, Direction, orderWikis } from './utils/queryHelpers'
+import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 
 @ArgsType()
 class LangArgs extends PaginationArgs {
@@ -71,12 +74,14 @@ class PromoteWikiArgs extends ByIdArgs {
 }
 
 @UseInterceptors(SentryInterceptor)
+@UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
     private connection: Connection,
     private validSlug: ValidSlug,
     private revalidate: RevalidatePageService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   @Query(() => Wiki)
@@ -194,7 +199,9 @@ class WikiResolver {
 
   @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
-  async promoteWiki(@Args() args: PromoteWikiArgs) {
+  async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
+    const cacheId = ctx.req.ip + args.id
+
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
     await repository
@@ -205,18 +212,22 @@ class WikiResolver {
       .execute()
 
     await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
   @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
-  async hideWiki(@Args() args: ByIdArgs) {
+  async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
+    const cacheId = ctx.req.ip + args.id
+
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
-      .set({ hidden: true })
+      .set({ hidden: true, promoted: 0 })
       .where('id = :id', { id: args.id })
       .execute()
 
@@ -226,12 +237,16 @@ class WikiResolver {
       wiki.id,
       wiki.promoted,
     )
+
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
   @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
-  async unhideWiki(@Args() args: ByIdArgs) {
+  async unhideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
+    const cacheId = ctx.req.ip + args.id
+
     const repository = this.connection.getRepository(Wiki)
     const wiki = await repository.findOneOrFail(args.id)
     await repository
@@ -247,6 +262,7 @@ class WikiResolver {
       wiki.id,
       wiki.promoted,
     )
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
