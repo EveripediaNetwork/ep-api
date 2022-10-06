@@ -103,7 +103,7 @@ class UserResolver {
   @UseGuards(AuthGuard)
   async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
-    
+
     const repository = this.connection.getRepository(User)
     const user = await repository.findOneOrFail({
       where: `LOWER(id) = '${args.id.toLowerCase()}'`,

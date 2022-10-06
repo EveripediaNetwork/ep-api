@@ -11,8 +11,8 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 import { Cache } from 'cache-manager'
-import WebhookHandler, { ChannelTypes } from './discordWebhookHandler'
-// import validateToken from './validateToken'
+import WebhookHandler, { ActionTypes } from './discordWebhookHandler'
+import validateToken from './validateToken'
 
 export class AdminLogPayload {
   address!: string
@@ -45,10 +45,10 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   ): Promise<Observable<boolean>> {
     const ctx = GqlExecutionContext.create(context)
     const { authorization } = ctx.getContext().req.headers
-    // const id = validateToken(authorization)
+    const id = validateToken(authorization)
 
     const adminPayload = new AdminLogPayload()
-    adminPayload.address = authorization
+    adminPayload.address = id
     adminPayload.endpoint = ctx.getArgByIndex(3).fieldName
     adminPayload.status =
       ctx.getArgByIndex(3).fieldName === AdminMutations.TOGGLE_USER_STATE
@@ -71,17 +71,13 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   async sendAdminLog(cacheId: string) {
     const payload = await this.cacheManager.get(cacheId)
     if (payload) {
-      console.log(payload)
       await this.webhookHandler.postWebhook(
-        ChannelTypes.ADMIN_ACTION,
+        ActionTypes.ADMIN_ACTION,
         undefined,
         undefined,
         payload as AdminLogPayload,
       )
     }
-
-    console.log('We have a lift off')
-
     return true
   }
 }

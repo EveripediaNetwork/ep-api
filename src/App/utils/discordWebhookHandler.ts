@@ -10,7 +10,7 @@ import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 
-export enum ChannelTypes {
+export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
   ADMIN_ACTION = 'adminAction',
@@ -47,13 +47,18 @@ export default class WebhookHandler {
   }
 
   private async embedWebhook(
-    channelType: ChannelTypes,
+    actionType: ActionTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
   ) {
-    if (channelType === ChannelTypes.ADMIN_ACTION) {
+    if (actionType=== ActionTypes.ADMIN_ACTION) {
       const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
+      const repository = this.connection.getRepository(UserProfile)
+      const user = await repository.findOne({
+        where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
+      })
+
       let message
       switch (adminLog?.endpoint) {
         case AdminMutations.HIDE_WIKI: {
@@ -87,7 +92,9 @@ export default class WebhookHandler {
               }  ✅ \n\n _Performed by_ ***${adminLog?.address}*** `)
             : (message = `**User banned** - ${this.getWebpageUrl()}account/${
                 adminLog?.id
-              } ❌ \n\n _Performed by_ ***${adminLog?.address}*** `)
+              } ❌ \n\n _Performed by_ ***${
+                user?.username !== '' ? user?.username : adminLog?.address
+              }*** `)
           break
         }
         default:
@@ -114,15 +121,15 @@ export default class WebhookHandler {
         `true\n` +
         `--${boundary}--`
 
-      this.httpService
-        .post(webhook, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .toPromise()
+        this.httpService
+          .post(webhook, content, {
+            headers: {
+              'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            },
+          })
+          .toPromise()
     }
-    if (channelType === ChannelTypes.FLAG_WIKI) {
+    if (actionType=== ActionTypes.FLAG_WIKI) {
       const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
       const repository = this.connection.getRepository(UserProfile)
       const user = await repository.findOne(flagWiki?.userId)
@@ -159,7 +166,7 @@ export default class WebhookHandler {
         })
         .toPromise()
     }
-    if (channelType === ChannelTypes.PINJSON_ERROR) {
+    if (actionType=== ActionTypes.PINJSON_ERROR) {
       const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
       const boundary = this.makeId(10)
 
@@ -216,19 +223,19 @@ export default class WebhookHandler {
   }
 
   async postWebhook(
-    channelType: ChannelTypes,
+    actionType: ActionTypes,
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
   ) {
     if (flagWiki) {
-      return this.embedWebhook(channelType, flagWiki)
+      return this.embedWebhook(actionType, flagWiki)
     }
     if (wikiException) {
-      return this.embedWebhook(channelType, undefined, wikiException)
+      return this.embedWebhook(actionType, undefined, wikiException)
     }
     if (adminLog) {
-      return this.embedWebhook(channelType, undefined, undefined, adminLog)
+      return this.embedWebhook(actionType, undefined, undefined, adminLog)
     }
     return true
   }

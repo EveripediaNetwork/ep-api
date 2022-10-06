@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { Injectable } from '@nestjs/common'
-import WebhookHandler, { ChannelTypes } from '../utils/discordWebhookHandler'
+import WebhookHandler, { ActionTypes } from '../utils/discordWebhookHandler'
 
 export interface FlagWikiWebhook {
   report: string
@@ -13,7 +13,7 @@ class FlagWikiService {
   constructor(private webhookHandler: WebhookHandler) {}
 
   async flagWiki(data: FlagWikiWebhook) {
-    await this.webhookHandler.postWebhook(ChannelTypes.FLAG_WIKI, data)
+    await this.webhookHandler.postWebhook(ActionTypes.FLAG_WIKI, data)
     return true
   }
 }
