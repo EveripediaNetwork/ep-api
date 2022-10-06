@@ -64,7 +64,7 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   async sendAdminLog(cacheId: string) {
     const payload = await this.cacheManager.get(cacheId)
     if (payload) {
-        console.log(payload)
+      console.log(payload)
       await this.webhookHandler.postWebhook(
         ChannelTypes.ADMIN_ACTION,
         undefined,

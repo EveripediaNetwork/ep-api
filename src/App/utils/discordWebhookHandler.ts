@@ -4,11 +4,10 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { Connection } from 'typeorm'
-import { AdminMutations } from './adminLogs.interceptor'
+import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
-import { AdminLogPayload } from './adminLogs.interceptor'
 
 export enum ChannelTypes {
   FLAG_WIKI = 'flagwiki',
@@ -57,25 +56,31 @@ export default class WebhookHandler {
       let message
       switch (adminLog?.endpoint) {
         case AdminMutations.HIDE_WIKI: {
-          message = `${adminLog?.address} hides ${adminLog?.id}`
+          message = `**Wiki archvied** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          } 🔒 \n\n _Performed by_ ***${adminLog?.address}***`
           break
         }
         case AdminMutations.UNHIDE_WIKI: {
-          message = `${adminLog?.address} unhides ${adminLog?.id}`
+          message = `**Wiki unarchvied** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          } 🔓 \n\n _Performed by_ ***${adminLog?.address}***`
           break
         }
         case AdminMutations.PROMOTE_WIKI: {
-          message = `${
-            adminLog?.address
-          } promoted ${this.getWebpageUrl()}wiki/${adminLog?.id}`
+          message = `**Wiki promoted** - ${this.getWebpageUrl()}wiki/${
+            adminLog?.id
+          }  📌 \n\n _Performed by_ ***${adminLog?.address}***`
           break
         }
         case AdminMutations.REVALIDATE_PAGE: {
-          message = `${adminLog?.address} revalidated route - ${adminLog?.id}`
+          message = `**Route revalidated** - ${this.getWebpageUrl()}wiki${
+            adminLog?.id
+          }  ♻️ \n\n _Performed by_ ***${adminLog?.address}*** `
           break
         }
         default:
-            message = ''
+          message = ''
       }
 
       const boundary = this.makeId(10)
@@ -85,11 +90,7 @@ export default class WebhookHandler {
           {
             color: 0x0c71e0,
             title: `🚧  Admin activity  🚧`,
-            // url: `${this.getWebpageUrl()}/wiki/${flagWiki?.wikiId}`,
             description: message,
-            // footer: {
-            //   text: `Flagged by ${user?.username || 'user'}`,
-            // },
           },
         ],
       })
