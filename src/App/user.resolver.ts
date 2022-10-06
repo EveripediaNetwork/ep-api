@@ -1,6 +1,7 @@
 import {
   Args,
   ArgsType,
+  Context,
   Directive,
   Field,
   Mutation,
@@ -12,6 +13,7 @@ import {
 import { Connection } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { MinLength } from 'class-validator'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -21,6 +23,7 @@ import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
+import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 
 @ArgsType()
 class UserStateArgs {
@@ -39,9 +42,13 @@ class UsersByIdArgs extends PaginationArgs {
 }
 
 @UseInterceptors(SentryInterceptor)
+@UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
 class UserResolver {
-  constructor(private connection: Connection) {}
+  constructor(
+    private connection: Connection,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   @Query(() => [User])
   async users(@Args() args: PaginationArgs) {
@@ -94,7 +101,9 @@ class UserResolver {
 
   @Mutation(() => User)
   @UseGuards(AuthGuard)
-  async toggleUserStateById(@Args() args: UserStateArgs) {
+  async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
+    const cacheId = ctx.req.ip + args.id
+    
     const repository = this.connection.getRepository(User)
     const user = await repository.findOneOrFail({
       where: `LOWER(id) = '${args.id.toLowerCase()}'`,
@@ -105,6 +114,8 @@ class UserResolver {
       .set({ active: args.active })
       .where({ id: user.id })
       .execute()
+
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
 
     return user
   }

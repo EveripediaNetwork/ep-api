@@ -20,6 +20,8 @@ export class AdminLogPayload {
   endpoint!: string
 
   id!: string
+
+  status?: boolean
 }
 
 export enum AdminMutations {
@@ -27,6 +29,7 @@ export enum AdminMutations {
   HIDE_WIKI = 'hideWiki',
   UNHIDE_WIKI = 'unhideWiki',
   REVALIDATE_PAGE = 'revalidatePage',
+  TOGGLE_USER_STATE = 'toggleUserStateById',
 }
 
 @Injectable()
@@ -47,6 +50,10 @@ export default class AdminLogsInterceptor implements NestInterceptor {
     const adminPayload = new AdminLogPayload()
     adminPayload.address = authorization
     adminPayload.endpoint = ctx.getArgByIndex(3).fieldName
+    adminPayload.status =
+      ctx.getArgByIndex(3).fieldName === AdminMutations.TOGGLE_USER_STATE
+        ? ctx.getArgByIndex(1).active
+        : undefined
     adminPayload.id =
       ctx.getArgByIndex(3).fieldName === AdminMutations.REVALIDATE_PAGE
         ? ctx.getArgByIndex(1).route

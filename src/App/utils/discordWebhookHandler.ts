@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable import/no-cycle */
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
@@ -77,6 +78,16 @@ export default class WebhookHandler {
           message = `**Route revalidated** - ${this.getWebpageUrl()}wiki${
             adminLog?.id
           }  ♻️ \n\n _Performed by_ ***${adminLog?.address}*** `
+          break
+        }
+        case AdminMutations.TOGGLE_USER_STATE: {
+          adminLog?.status === true
+            ? (message = `**User unbanned** - ${this.getWebpageUrl()}account/${
+                adminLog?.id
+              }  ✅ \n\n _Performed by_ ***${adminLog?.address}*** `)
+            : (message = `**User banned** - ${this.getWebpageUrl()}account/${
+                adminLog?.id
+              } ❌ \n\n _Performed by_ ***${adminLog?.address}*** `)
           break
         }
         default:
