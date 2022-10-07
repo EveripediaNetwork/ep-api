@@ -2,12 +2,12 @@ import {
   Injectable,
   ExecutionContext,
   CanActivate,
-  //   HttpException,
-  //   HttpStatus,
+    HttpException,
+    HttpStatus,
 } from '@nestjs/common'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
-// import validateToken from './validateToken'
+import validateToken from './validateToken'
 
 @Injectable()
 export default class AuthGuard implements CanActivate {
@@ -18,14 +18,11 @@ export default class AuthGuard implements CanActivate {
 
     const ctx = GqlExecutionContext.create(context)
     const { authorization } = ctx.getContext().req.headers
-    // const id = validateToken(authorization)
+    const id = validateToken(authorization)
 
-    // if (id === 'Token expired')
-    //   throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
+    if (id === 'Token expired')
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
 
-    return whitelist.some(
-      (e: string) => e.toLowerCase() === authorization.toLowerCase(),
-    )
-    // return whitelist.some((e: string) => e.toLowerCase() === id.toLowerCase())
+    return whitelist.some((e: string) => e.toLowerCase() === id.toLowerCase())
   }
 }
