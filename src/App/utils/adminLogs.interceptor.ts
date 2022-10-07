@@ -67,7 +67,7 @@ export default class AdminLogsInterceptor implements NestInterceptor {
     return next.handle().pipe()
   }
 
-  @OnEvent('admin.action')
+  @OnEvent('admin.action', { async: true })
   async sendAdminLog(cacheId: string) {
     const payload = await this.cacheManager.get(cacheId)
     if (payload) {

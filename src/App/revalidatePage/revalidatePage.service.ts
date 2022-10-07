@@ -91,7 +91,7 @@ export class RevalidatePageService {
       }
       await Promise.all([
         this.revalidate(Routes.ACTIVITY),
-        this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+        // this.revalidate(Routes.WIKI_PAGE, undefined, slug),
       ])
       console.log(`Revalidating ${page}`)
     }

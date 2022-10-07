@@ -58,8 +58,14 @@ export default class WebhookHandler {
       const user = await repository.findOne({
         where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
       })
-      const adminUser =
-        user?.username !== '' ? user?.username : adminLog?.address
+
+      let adminUser
+      
+      if (!user) {
+        adminUser = adminLog?.address
+      } else {
+        adminUser = user.username
+      }
 
       let message
       switch (adminLog?.endpoint) {
