@@ -2,8 +2,8 @@ import {
   Injectable,
   ExecutionContext,
   CanActivate,
-    HttpException,
-    HttpStatus,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
