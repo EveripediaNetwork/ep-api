@@ -61,6 +61,14 @@ export default class WebhookHandler {
       const adminUser =
         user?.username !== '' ? user?.username : adminLog?.address
 
+      let adminUser
+      
+      if (!user) {
+        adminUser = adminLog?.address
+      } else {
+        adminUser = user.username
+      }
+
       let message
       switch (adminLog?.endpoint) {
         case AdminMutations.HIDE_WIKI: {
