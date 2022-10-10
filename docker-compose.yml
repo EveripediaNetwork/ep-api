@@ -1,20 +1,43 @@
-version: '2.0'
-
 services:
-  api:
-    container_name: ep-api
+  ep-api:
     build: .
     ports:
-      - "5000:5000"
-    volumes: # volumes for dev only
-      - .:/usr/ep-api
-
-  database:
-    container_name: ep-db
-    image: postgres
+      - 5000:5000
+      - 5001:443
+      - 5002:80
+    depends_on:
+      - "db"
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASS: ${DATABASE_PASS}
+      WIDGET_NAMES: ${WIDGET_NAMES}
+      DISCORD_CHANNEL_WEBHOOKS: ${DISCORD_CHANNEL_WEBHOOKS}
+      ADMIN_USERS: ${ADMIN_USERS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      graphUrl: ${graphUrl}
+      ipfsUrl: ${ipfsUrl}
+      RELAYER_API_KEY: ${RELAYER_API_KEY}
+      RELAYER_API_SECRET: ${RELAYER_API_SECRET}
+      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
+      WIKI_CONTRACT_ADDRESS: ${WIKI_CONTRACT_ADDRESS}
+      IPFS_PINATA_KEY: ${IPFS_PINATA_KEY}
+      IPFS_PINATA_SECRET: ${IPFS_PINATA_SECRET}
+      UI_URL: ${UI_URL}
+      etherScanApiKey: ${etherScanApiKey}
+      WEBSITE_URL: ${WEBSITE_URL}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET}
+      PORT: ${PORT}
+  db:
+    image: postgres:alpine
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASS}
     ports:
-      - "5432:5432"
+      - 5432:5432
+    #volumes:
+     # - pgdata:/var/lib/postgresql/data
+  #volumes:
+    #pgdata:

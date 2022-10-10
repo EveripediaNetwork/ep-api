@@ -11,15 +11,15 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT')
 
-  app =
-    Number(port) === 443
-      ? await NestFactory.create(AppModule, {
-          httpsOptions: {
-            cert: fs.readFileSync('../fullchain.pem'),
-            key: fs.readFileSync('../privkey.pem'),
-          },
-        })
-      : await NestFactory.create(AppModule)
+//  app =
+//    Number(port) === 443
+//      ? await NestFactory.create(AppModule, {
+//          httpsOptions: {
+//            cert: fs.readFileSync('../fullchain.pem'),
+//            key: fs.readFileSync('../privkey.pem'),
+//          },
+//        })
+//      : await NestFactory.create(AppModule)
 
   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())

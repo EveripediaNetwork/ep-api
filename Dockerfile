@@ -1,9 +1,12 @@
-FROM node:14-alpine3.15
+FROM node:alpine3.16
 
-WORKDIR /usr/ep-api
+WORKDIR /app
 
-RUN apk update && apk upgrade
+ADD . .
+
 RUN yarn
 RUN yarn global add pm2
+# yarn build:production
+RUN yarn build
 
-CMD ["pm2-runtime", "ecosystem.config.js", "--only", "ep-api"]
+CMD [ "pm2-runtime", "ecosystem.config.js" ]
