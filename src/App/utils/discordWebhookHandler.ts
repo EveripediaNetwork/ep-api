@@ -60,7 +60,7 @@ export default class WebhookHandler {
       })
 
       let adminUser
-      
+
       if (!user) {
         adminUser = adminLog?.address
       } else {

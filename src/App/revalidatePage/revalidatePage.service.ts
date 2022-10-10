@@ -70,27 +70,27 @@ export class RevalidatePageService {
     level?: number,
   ) {
     try {
-        if (page === RevalidateEndpoints.STORE_WIKI) {
-          if (level && level > 0) {
-            await this.revalidate(Routes.HOMEPAGE)
-          }
-          await Promise.all([
-            this.revalidate(Routes.ACTIVITY),
-            this.revalidate(Routes.WIKI_PAGE, undefined, slug),
-            this.revalidate(`/wiki/${slug}/history`),
-          ])
-        }
-        if (page === RevalidateEndpoints.PROMOTE_WIKI) {
+      if (page === RevalidateEndpoints.STORE_WIKI) {
+        if (level && level > 0) {
           await this.revalidate(Routes.HOMEPAGE)
         }
-        if (page === RevalidateEndpoints.HIDE_WIKI) {
-          if (level && level > 0) {
-            await this.revalidate(Routes.HOMEPAGE)
-          }
-          await this.revalidate(Routes.ACTIVITY)
+        await Promise.all([
+          this.revalidate(Routes.ACTIVITY),
+          this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+          this.revalidate(`/wiki/${slug}/history`),
+        ])
+      }
+      if (page === RevalidateEndpoints.PROMOTE_WIKI) {
+        await this.revalidate(Routes.HOMEPAGE)
+      }
+      if (page === RevalidateEndpoints.HIDE_WIKI) {
+        if (level && level > 0) {
+          await this.revalidate(Routes.HOMEPAGE)
         }
+        await this.revalidate(Routes.ACTIVITY)
+      }
     } catch (e: any) {
-        console.error(e.response.data, e.request.path.split('path=')[1])
+      console.error(e.response.data, e.request.path.split('path=')[1])
     }
   }
 }
