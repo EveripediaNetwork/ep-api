@@ -77,6 +77,7 @@ export default class AdminLogsInterceptor implements NestInterceptor {
         undefined,
         payload as AdminLogPayload,
       )
+      await this.cacheManager.del(`${cacheId}`)
     }
     return true
   }
