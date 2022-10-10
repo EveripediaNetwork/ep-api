@@ -70,35 +70,35 @@ export default class WebhookHandler {
       let message
       switch (adminLog?.endpoint) {
         case AdminMutations.HIDE_WIKI: {
-          message = `**Wiki archived** - ${this.getWebpageUrl()}wiki/${
+          message = `**Wiki archived** - ${this.getWebpageUrl()}/wiki/${
             adminLog?.id
           } 🔒 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.UNHIDE_WIKI: {
-          message = `**Wiki unarchived** - ${this.getWebpageUrl()}wiki/${
+          message = `**Wiki unarchived** - ${this.getWebpageUrl()}/wiki/${
             adminLog?.id
           } 🔓 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.PROMOTE_WIKI: {
-          message = `**Wiki promoted** - ${this.getWebpageUrl()}wiki/${
+          message = `**Wiki promoted** - ${this.getWebpageUrl()}/wiki/${
             adminLog?.id
           }  📌 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.REVALIDATE_PAGE: {
-          message = `**Route revalidated** - ${this.getWebpageUrl()}wiki${
+          message = `**Route revalidated** - ${this.getWebpageUrl()}${
             adminLog?.id
           }  ♻️ \n\n _Performed by_ ***${adminUser}*** `
           break
         }
         case AdminMutations.TOGGLE_USER_STATE: {
           adminLog?.status === true
-            ? (message = `**User unbanned** - ${this.getWebpageUrl()}account/${
+            ? (message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
                 adminLog?.id
               }  ✅ \n\n _Performed by_ ***${adminUser}*** `)
-            : (message = `**User banned** - ${this.getWebpageUrl()}account/${
+            : (message = `**User banned** - ${this.getWebpageUrl()}/account/${
                 adminLog?.id
               } ❌ \n\n _Performed by_ ***${adminUser}*** `)
           break

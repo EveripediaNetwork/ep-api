@@ -39,7 +39,7 @@ export class RevalidatePageService {
     if (slug) {
       return this.httpService
         .get(
-          `${this.getSecrets().url}api/revalidate?secret=${
+          `${this.getSecrets().url}/api/revalidate?secret=${
             this.getSecrets().secret
           }&path=${route}/${slug}`,
         )
@@ -48,7 +48,7 @@ export class RevalidatePageService {
     if (id) {
       return this.httpService
         .get(
-          `${this.getSecrets().url}api/revalidate?secret=${
+          `${this.getSecrets().url}/api/revalidate?secret=${
             this.getSecrets().secret
           }&path=${route}/${id}`,
         )
@@ -56,7 +56,7 @@ export class RevalidatePageService {
     }
     return this.httpService
       .get(
-        `${this.getSecrets().url}api/revalidate?secret=${
+        `${this.getSecrets().url}/api/revalidate?secret=${
           this.getSecrets().secret
         }&path=${route}`,
       )
