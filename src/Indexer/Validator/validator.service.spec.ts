@@ -125,6 +125,17 @@ describe('PinResolver', () => {
     })
   })
 
+  it('should throw summary error, wiki ID has exceeded the limit', async () => {
+    const wiki = {
+      ...testWiki,
+      id: 'Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. ',
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.ID,
+    })
+  })
+
   it('should return status true for a valid wiki', async () => {
     expect(await ipfsValidatorService.validate(testWiki, true)).toEqual(result)
   })

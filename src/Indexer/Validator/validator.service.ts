@@ -37,7 +37,7 @@ class IPFSValidatorService {
         lower: true,
         remove: /[*+~.()'"!:@]/g,
       })
-      if (validId === validatingWiki.id) {
+      if (validId === validatingWiki.id && validatingWiki.id.length <= 60) {
         return true
       }
       message = ValidatorCodes.ID
