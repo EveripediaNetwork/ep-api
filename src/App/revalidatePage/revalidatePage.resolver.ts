@@ -39,7 +39,6 @@ class RevalidatePageResolver {
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard)
   async revalidatePage(@Args() args: RouteArgs, @Context() ctx: any) {
-    console.log(args)
     const cacheId = ctx.req.ip + args.route
     const c = await this.revalidateService.revalidate(args.route)
     if (c) {
