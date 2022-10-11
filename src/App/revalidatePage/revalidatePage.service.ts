@@ -87,7 +87,10 @@ export class RevalidatePageService {
         if (level && level > 0) {
           await this.revalidate(Routes.HOMEPAGE)
         }
-        await this.revalidate(Routes.ACTIVITY)
+        await Promise.all([
+          this.revalidate(Routes.ACTIVITY),
+          this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+        ])
       }
     } catch (e: any) {
       console.error(e.response.data, e.request.path.split('path=')[1])
