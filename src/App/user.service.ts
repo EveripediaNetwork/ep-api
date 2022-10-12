@@ -61,7 +61,15 @@ class UserService {
       .where({ id: data.id })
       .getRawOne()
 
-    if (existsProfile && existsUser.User_profileId !== null) {
+    if (!existsUser) {
+      await userRepository
+        .createQueryBuilder()
+        .insert()
+        .values([{ id: data.id, profile: data }])
+        .execute()
+    }
+
+    if (existsProfile && existsUser && existsUser.User_profileId !== null) {
       await profileRepository
         .createQueryBuilder()
         .update(UserProfile)
