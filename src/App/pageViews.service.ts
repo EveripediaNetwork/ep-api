@@ -18,34 +18,21 @@ class PageViewsService {
   async updateCount(id: string, ip: string): Promise<number> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const cached: WikiViewed | undefined = await this.cacheManager.get(id)
-    const existWiki = await wikiRepository.findOne({
-      id,
-    })
-    if (cached || !existWiki) {
+
+    if (cached) {
       return 0
     }
-    const viewedWiki = await wikiRepository.findOne({
-      id,
-    })
-    if (viewedWiki) {
-      await wikiRepository
-        .createQueryBuilder()
-        .update(Wiki)
-        .set({ views: () => 'views + 1' })
-        .where('id = :id', { id })
-        .execute()
-      await this.cacheManager.set(id, ip)
-      return viewedWiki.views + 1
-    }
-    await wikiRepository
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ views: 1 })
-      .where('id = :id', { id })
-      .execute()
 
-    await this.cacheManager.set(id, ip)
-    return 1
+    try {
+      await wikiRepository.query(
+        `UPDATE wiki SET views = views + $1, updated = updated where id = $2`,
+        [1, id],
+      )
+      await this.cacheManager.set(id, ip)
+      return 1
+    } catch (err) {
+      return 0
+    }
   }
 }
 export default PageViewsService
