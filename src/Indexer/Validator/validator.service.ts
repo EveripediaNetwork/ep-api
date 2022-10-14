@@ -81,7 +81,7 @@ class IPFSValidatorService {
     }
 
     const checkSummary = (validatingWiki: ValidWiki) => {
-      if (validatingWiki.summary && validatingWiki.summary.length <= 255) {
+      if (validatingWiki.summary && validatingWiki.summary.length <= 255 || validateJSON)  {
         return true
       }
       message = ValidatorCodes.SUMMARY
