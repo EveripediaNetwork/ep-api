@@ -9,4 +9,4 @@ RUN yarn global add pm2
 # yarn build:production
 RUN yarn build
 
-CMD [ "pm2-runtime", "ecosystem.config.js" ]
+CMD [ "pm2-runtime", "ecosystem.config.js", "--only", "indexer-service"]

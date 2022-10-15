@@ -1,10 +1,33 @@
 services:
   ep-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-ep-api
     ports:
-      - 5000:5000
       - 5001:443
       - 5002:80
+    depends_on:
+      - "db"
+    environment:
+      DISCORD_CHANNEL_WEBHOOKS: ${DISCORD_CHANNEL_WEBHOOKS}
+      ADMIN_USERS: ${ADMIN_USERS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      RELAYER_API_KEY: ${RELAYER_API_KEY}
+      RELAYER_API_SECRET: ${RELAYER_API_SECRET}
+      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
+      WIKI_CONTRACT_ADDRESS: ${WIKI_CONTRACT_ADDRESS}
+      ipfsUrl: ${ipfsUrl}
+      IPFS_PINATA_KEY: ${IPFS_PINATA_KEY}
+      IPFS_PINATA_SECRET: ${IPFS_PINATA_SECRET}
+      WEBSITE_URL: ${WEBSITE_URL}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET}
+      PORT: ${PORT}
+  indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile-indexer
+    ports:
+      - 5000:5000
     depends_on:
       - "db"
     environment:
@@ -13,22 +36,12 @@ services:
       DATABASE_USERNAME: ${DATABASE_USERNAME}
       DATABASE_PASS: ${DATABASE_PASS}
       WIDGET_NAMES: ${WIDGET_NAMES}
-      DISCORD_CHANNEL_WEBHOOKS: ${DISCORD_CHANNEL_WEBHOOKS}
-      ADMIN_USERS: ${ADMIN_USERS}
-      SENTRY_DSN: ${SENTRY_DSN}
       graphUrl: ${graphUrl}
       ipfsUrl: ${ipfsUrl}
-      RELAYER_API_KEY: ${RELAYER_API_KEY}
-      RELAYER_API_SECRET: ${RELAYER_API_SECRET}
-      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
-      WIKI_CONTRACT_ADDRESS: ${WIKI_CONTRACT_ADDRESS}
       IPFS_PINATA_KEY: ${IPFS_PINATA_KEY}
       IPFS_PINATA_SECRET: ${IPFS_PINATA_SECRET}
       UI_URL: ${UI_URL}
       etherScanApiKey: ${etherScanApiKey}
-      WEBSITE_URL: ${WEBSITE_URL}
-      REVALIDATE_SECRET: ${REVALIDATE_SECRET}
-      PORT: ${PORT}
   db:
     image: postgres:alpine
     environment:
