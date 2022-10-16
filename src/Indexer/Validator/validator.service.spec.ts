@@ -119,10 +119,35 @@ describe('PinResolver', () => {
       summary:
         'Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\, Polygon...........Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\,',
     }
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+    expect(
+      await ipfsValidatorService.validate(
+        wiki,
+        false,
+        '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
+      ),
+    ).toEqual({
       status: false,
       message: ValidatorCodes.SUMMARY,
     })
+  })
+
+  it('should throw summary error, wiki ID has exceeded the limit', async () => {
+    const wiki = {
+      ...testWiki,
+      id: 'Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. ',
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.ID,
+    })
+  })
+
+  it('should throw summary error, wiki ID has exceeded the limit', async () => {
+    const wiki = {
+      ...testWiki,
+      summary: '',
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
   it('should return status true for a valid wiki', async () => {

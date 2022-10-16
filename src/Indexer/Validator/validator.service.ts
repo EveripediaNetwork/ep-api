@@ -37,7 +37,7 @@ class IPFSValidatorService {
         lower: true,
         remove: /[*+~.()'"!:@]/g,
       })
-      if (validId === validatingWiki.id) {
+      if (validId === validatingWiki.id && validatingWiki.id.length <= 60) {
         return true
       }
       message = ValidatorCodes.ID
@@ -81,7 +81,7 @@ class IPFSValidatorService {
     }
 
     const checkSummary = (validatingWiki: ValidWiki) => {
-      if (validatingWiki.summary && validatingWiki.summary.length <= 255) {
+      if (validatingWiki.summary && validatingWiki.summary.length <= 255 || validateJSON)  {
         return true
       }
       message = ValidatorCodes.SUMMARY
