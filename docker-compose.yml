@@ -37,9 +37,6 @@ services:
       DATABASE_PASS: ${DATABASE_PASS}
       WIDGET_NAMES: ${WIDGET_NAMES}
       graphUrl: ${graphUrl}
-      ipfsUrl: ${ipfsUrl}
-      IPFS_PINATA_KEY: ${IPFS_PINATA_KEY}
-      IPFS_PINATA_SECRET: ${IPFS_PINATA_SECRET}
       UI_URL: ${UI_URL}
       etherScanApiKey: ${etherScanApiKey}
   db:
