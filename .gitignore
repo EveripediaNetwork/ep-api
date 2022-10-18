@@ -399,3 +399,5 @@ Temporary Items
 dist
 .vscode
 ngrok.yml
+./src/App/tests
+src/App/tests/user.service.spec.ts

@@ -6,17 +6,12 @@ import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import validateToken from './utils/validateToken'
 import User from '../Database/Entities/user.entity'
-import {
-  RevalidateEndpoints,
-  RevalidatePageService,
-} from './revalidatePage/revalidatePage.service'
 
 @Injectable()
 class UserService {
   constructor(
     private configService: ConfigService,
     private connection: Connection,
-    private revalidate: RevalidatePageService,
   ) {}
 
   private provider() {
@@ -61,30 +56,7 @@ class UserService {
       .where({ id: data.id })
       .getRawOne()
 
-    if (!existsUser) {
-      await userRepository
-        .createQueryBuilder()
-        .insert()
-        .values([{ id: data.id, profile: data }])
-        .execute()
-    }
-
-    if (existsProfile && existsUser && existsUser.User_profileId !== null) {
-      await profileRepository
-        .createQueryBuilder()
-        .update(UserProfile)
-        .set({ ...data })
-        .where('id = :id', { id: data.id })
-        .execute()
-
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.CREATE_PROFILE,
-        data.id,
-      )
-      return existsProfile
-    }
-
-    const createProfile = profileRepository.create({
+    const profile = profileRepository.create({
       id: data.id,
       username: data.username,
       bio: data.bio,
@@ -96,32 +68,45 @@ class UserService {
       advancedSettings: data.advancedSettings,
     })
 
-    const newProfile = await profileRepository.save(createProfile)
+    const createUser = async (arg?: UserProfile) => {
+      const user = userRepository.create({ id: data.id, profile: arg })
+      await userRepository.save(user)
+      return true
+    }
+    const createProfile = async () => {
+      const newProfile = await profileRepository.save(profile)
+      return newProfile
+    }
+    const updateProfile = async () =>
+      profileRepository
+        .createQueryBuilder()
+        .update(UserProfile)
+        .set({ ...data })
+        .where('id = :id', { id: data.id })
+        .execute()
 
-    if (existsUser && existsUser.User_profileId === null) {
-      await userRepository
+    if (existsUser && existsProfile) {
+      await updateProfile()
+      return existsProfile
+    }
+    if (existsUser && !existsProfile) {
+      const newProfile = await createProfile()
+      userRepository
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
         .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
         .execute()
-
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.CREATE_PROFILE,
-        data.id,
-      )
+      return newProfile
+    }
+    if (!existsUser && existsProfile) {
+      await createUser(profile)
+      await updateProfile()
+      return existsProfile
     }
 
-    const createUser = userRepository.create({
-      id: data.id,
-      profile: newProfile,
-    })
-
-    await userRepository.save(createUser)
-    await this.revalidate.revalidatePage(
-      RevalidateEndpoints.CREATE_PROFILE,
-      data.id,
-    )
+    const newProfile = await createProfile()
+    await createUser(newProfile)
     return newProfile
   }
 }
