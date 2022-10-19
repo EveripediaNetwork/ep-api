@@ -12,7 +12,8 @@ class TokenStatsResolver {
   @Query(() => TokenData, { name: 'tokenStats' })
   async getTokenStats(
     @Args({ name: 'tokenName', type: () => String }) tokenName: string,
-    @Args({ name: 'tokenName', type: () => String, nullable: true }) cmcTokenName?: string,
+    @Args({ name: 'cmcTokenName', type: () => String, nullable: true })
+    cmcTokenName?: string,
   ): Promise<TokenData> {
     const result = await this.tokenStatsService.getStats(
       tokenName.toLowerCase(),
