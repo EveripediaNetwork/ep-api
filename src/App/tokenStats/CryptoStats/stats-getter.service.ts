@@ -14,6 +14,10 @@ class StatsGetterService {
   ) {}
 
   private cmcApiCall(name: string) {
+    // TEMP HACK
+    if (name === 'binancecoin') {
+      name = 'bnb'
+    }
     const url =
       'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
     const key = this.configService.get('COINMARKETCAP_API_KEY')
