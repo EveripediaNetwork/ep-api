@@ -13,7 +13,7 @@ class StatsGetterService {
     private configService: ConfigService,
   ) {}
 
-  private cmcApiCall(name?: string) {
+  private cmcApiCall(name: string) {
     const url =
       'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
     const key = this.configService.get('COINMARKETCAP_API_KEY')
