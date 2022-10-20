@@ -35,8 +35,11 @@ class StatsGetterService {
     return { marketChangeResult, volumeChangeResult }
   }
 
-  async getStats(name: string): Promise<any> {
-    const cmc = await lastValueFrom(this.cmcApiCall(name))
+  async getStats(name: string, cmcName?: string): Promise<any> {
+    const cmc = cmcName
+      ? await lastValueFrom(this.cmcApiCall(cmcName))
+      : await lastValueFrom(this.cmcApiCall(name))
+
     const cg = await this.cgApiCall(name)
     const cgMarketData = cg.marketChangeResult.data[0]
     const cgVolumeData = cg.volumeChangeResult.data
