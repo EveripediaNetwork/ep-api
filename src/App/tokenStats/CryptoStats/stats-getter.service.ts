@@ -14,13 +14,10 @@ class StatsGetterService {
   ) {}
 
   private cmcApiCall(name: string) {
-    // TEMP HACK
-    const cmcName = (name === 'binancecoin') ? 'bnb' : name;
-
     const url =
       'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
     const key = this.configService.get('COINMARKETCAP_API_KEY')
-    const response = this.httpService.get(`${url}?slug=${cmcName}`, {
+    const response = this.httpService.get(`${url}?slug=${name}`, {
       headers: {
         'X-CMC_PRO_API_KEY': key,
       },
@@ -38,8 +35,11 @@ class StatsGetterService {
     return { marketChangeResult, volumeChangeResult }
   }
 
-  async getStats(name: string): Promise<any> {
-    const cmc = await lastValueFrom(this.cmcApiCall(name))
+  async getStats(name: string, cmcName?: string): Promise<any> {
+    const cmc = cmcName
+      ? await lastValueFrom(this.cmcApiCall(cmcName))
+      : await lastValueFrom(this.cmcApiCall(name))
+
     const cg = await this.cgApiCall(name)
     const cgMarketData = cg.marketChangeResult.data[0]
     const cgVolumeData = cg.volumeChangeResult.data
