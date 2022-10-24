@@ -46,8 +46,11 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   ): Promise<Observable<boolean>> {
     const ctx = GqlExecutionContext.create(context)
     const { authorization } = ctx.getContext().req.headers
-    const id = this.tokenValidator.validateToken(authorization, undefined, false)
-    console.log(ctx)
+    const id = this.tokenValidator.validateToken(
+      authorization,
+      undefined,
+      false,
+    )
 
     const adminPayload = new AdminLogPayload()
     adminPayload.address = id

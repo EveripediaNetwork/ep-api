@@ -2,24 +2,31 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
+@ObjectType()
+export class SubscriptionContent {
+  @Field(() => String)
+  id!: string
+
+  @Field(() => String)
+  type!: string
+}
+
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
 class Subscription {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
   })
   userId!: string
 
-  @Field()
-  @Column('varchar', {
-    length: 255,
-  })
-  wikiSubscriptionId!: string
+  @Field(() => [SubscriptionContent], { nullable: true })
+  @Column('jsonb', { default: null })
+  subscription!: SubscriptionContent[]
 }
 
 export default Subscription

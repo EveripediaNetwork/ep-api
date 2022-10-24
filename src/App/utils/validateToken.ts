@@ -6,7 +6,7 @@ class TokenValidator {
     token: string,
     userId?: string,
     returnError?: boolean,
-  ): string | boolean| any {
+  ): string | boolean | any {
     try {
       const { address } = Web3Token.verify(token)
       if (userId && userId.toLowerCase() !== address.toLowerCase()) {

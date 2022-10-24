@@ -4,6 +4,7 @@ import {
   ArgsType,
   Context,
   Field,
+  InputType,
   Mutation,
   Query,
   Resolver,
@@ -13,13 +14,22 @@ import SentryInterceptor from '../sentry/security.interceptor'
 import Subscription from '../Database/Entities/subscription.entity'
 import WikiSubscriptionService from './subscriptions.service'
 
+@InputType()
+class SubscriptionArgs {
+  @Field(() => String)
+  id!: string
+
+  @Field(() => String)
+  type!: string
+}
+
 @ArgsType()
 class WikiSubscriptionArgs {
   @Field(() => String)
   userId!: string
 
-  @Field(() => String)
-  wikiId!: string
+  @Field(()=> [SubscriptionArgs])
+  subscription!: SubscriptionArgs[]
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -48,7 +58,7 @@ class WikiSubscriptionResolver {
     const { authorization } = context.req.headers
     return this.wikiSubscriptionService.addSub(
       args.userId,
-      args.wikiId,
+      args.subscription,
       authorization,
     )
   }
@@ -60,9 +70,9 @@ class WikiSubscriptionResolver {
       .createQueryBuilder()
       .delete()
       .from(Subscription)
-      .where('"userId" = :id AND wikiSubscriptionId = :wikiId', {
-        id: args.wikiId,
-        wikiId: args.wikiId,
+      .where('"userId" = :id AND subscriptionId = :wikiId', {
+        userId: args.userId,
+        subscription: []
       })
       .execute()
     return true

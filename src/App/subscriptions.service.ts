@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common'
 
 import { Connection } from 'typeorm'
-import Subscription from '../Database/Entities/subscription.entity'
+import Subscription, {
+  SubscriptionContent,
+} from '../Database/Entities/subscription.entity'
 import TokenValidator from './utils/validateToken'
 
 @Injectable()
@@ -13,18 +15,28 @@ class WikiSubscriptionService {
 
   async addSub(
     userId: string,
-    wikiId: string,
+    subscription: SubscriptionContent[],
     token: string,
   ): Promise<Subscription | boolean> {
     const repository = this.connection.getRepository(Subscription)
 
     if (this.tokenValidator.validateToken(token, userId, false)) {
-      const newSub = repository.create({
-        userId,
-        wikiSubscriptionId: wikiId,
-      })
+      const oldSub = await repository
+        .createQueryBuilder('subscription')
+        .where(
+          `subscription.subscription -> 0 ->> 'id' = '${subscription[0].id}' AND subscription.subscription -> 0 ->> 'type' = '${subscription[0].type}' AND
+          subscription."userId" = '${userId}' `,
+        )
+        .getOne()
 
-      return repository.save(newSub)
+      if (!oldSub) {
+        const newSub = repository.create({
+          userId,
+          subscription,
+        })
+
+        return repository.save(newSub)
+      }
     }
     return false
   }

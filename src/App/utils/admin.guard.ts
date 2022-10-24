@@ -12,7 +12,11 @@ export default class AuthGuard implements CanActivate {
 
     const ctx = GqlExecutionContext.create(context)
     const { authorization } = ctx.getContext().req.headers
-    const id = new TokenValidator().validateToken(authorization, undefined, false)
+    const id = new TokenValidator().validateToken(
+      authorization,
+      undefined,
+      false,
+    )
 
     return whitelist.some((e: string) => e.toLowerCase() === id.toLowerCase())
   }
