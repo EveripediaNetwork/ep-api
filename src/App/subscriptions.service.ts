@@ -2,21 +2,23 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 
 import { Connection } from 'typeorm'
 import Subscription from '../Database/Entities/subscription.entity'
-import validateToken from './utils/validateToken'
-
-
-
+import TokenValidator from './utils/validateToken'
 
 @Injectable()
 class WikiSubscriptionService {
   constructor(
     private connection: Connection,
+    private tokenValidator: TokenValidator,
   ) {}
 
-  async addSub(userId: string, wikiId: string, token: string): Promise<Subscription> {
+  async addSub(
+    userId: string,
+    wikiId: string,
+    token: string,
+  ): Promise<Subscription> {
     const repository = this.connection.getRepository(Subscription)
 
-    const id = validateToken(token)
+    const id = this.tokenValidator.validateToken(token, false)
 
     if (id === 'Token expired' || id.toLowerCase() !== userId.toLowerCase())
       throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)

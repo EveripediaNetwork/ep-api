@@ -33,7 +33,7 @@ export default class TypeOrmConfig {
         Activity,
         Media,
         UserProfile,
-        Subscription
+        Subscription,
       ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,

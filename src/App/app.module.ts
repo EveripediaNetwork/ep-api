@@ -34,6 +34,7 @@ import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import WikiSubscriptionResolver from './subscriptions.resolver'
 import WikiSubscriptionService from './subscriptions.service'
+import TokenValidator from './utils/validateToken'
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import WikiSubscriptionService from './subscriptions.service'
     FlagWikiResolver,
     WebhookHandler,
     AdminLogsInterceptor,
+    TokenValidator,
     WikiSubscriptionResolver,
     WikiSubscriptionService,
   ],

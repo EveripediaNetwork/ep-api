@@ -51,7 +51,6 @@ class WikiSubscriptionResolver {
       args.wikiId,
       authorization,
     )
-    
   }
 
   @Mutation(() => Boolean)
