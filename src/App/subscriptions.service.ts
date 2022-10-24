@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 
 import { Connection } from 'typeorm'
 import Subscription from '../Database/Entities/subscription.entity'
@@ -15,20 +15,18 @@ class WikiSubscriptionService {
     userId: string,
     wikiId: string,
     token: string,
-  ): Promise<Subscription> {
+  ): Promise<Subscription | boolean> {
     const repository = this.connection.getRepository(Subscription)
 
-    const id = this.tokenValidator.validateToken(token, false)
+    if (this.tokenValidator.validateToken(token, userId, false)) {
+      const newSub = repository.create({
+        userId,
+        wikiSubscriptionId: wikiId,
+      })
 
-    if (id === 'Token expired' || id.toLowerCase() !== userId.toLowerCase())
-      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED)
-
-    const newSub = repository.create({
-      userId,
-      wikiSubscriptionId: wikiId,
-    })
-
-    return repository.save(newSub)
+      return repository.save(newSub)
+    }
+    return false
   }
 }
 export default WikiSubscriptionService
