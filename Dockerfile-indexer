@@ -1,0 +1,12 @@
+FROM node:alpine3.16
+
+WORKDIR /app
+
+ADD . .
+
+RUN yarn
+RUN yarn global add pm2
+# yarn build:production
+RUN yarn build
+
+CMD [ "pm2-runtime", "ecosystem.config.js", "--only", "indexer-service"]
