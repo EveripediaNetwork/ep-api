@@ -153,6 +153,20 @@ class UserResolver {
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
   }
+
+  @ResolveField()
+  async wikisSubscribed(@Parent() user: IUser) {
+    const repository = this.connection.getRepository(Wiki)
+    const { id } = user
+    console.log(id)
+    const subs = await repository.query(`
+        SELECT wiki.* FROM wiki
+        LEFT JOIN "subscription" s on s."wikiSubscriptionId" = wiki.id
+        WHERE LOWER(s."userId") = '${id?.toLowerCase()}'
+    `)
+    console.log(subs)
+    return subs
+  }
 }
 
 export default UserResolver

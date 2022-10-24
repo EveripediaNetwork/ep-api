@@ -32,6 +32,8 @@ import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
+import WikiSubscriptionResolver from './subscriptions.resolver'
+import WikiSubscriptionService from './subscriptions.service'
 
 @Module({
   imports: [
@@ -84,6 +86,8 @@ import AdminLogsInterceptor from './utils/adminLogs.interceptor'
     FlagWikiResolver,
     WebhookHandler,
     AdminLogsInterceptor,
+    WikiSubscriptionResolver,
+    WikiSubscriptionService,
   ],
 })
 class AppModule {
