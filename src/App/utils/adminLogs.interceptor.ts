@@ -12,7 +12,7 @@ import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 import { Cache } from 'cache-manager'
 import WebhookHandler, { ActionTypes } from './discordWebhookHandler'
-import TokenValidator from './validateToken'
+import validateToken from './validateToken'
 
 export class AdminLogPayload {
   address!: string
@@ -37,7 +37,6 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   constructor(
     private webhookHandler: WebhookHandler,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private tokenValidator: TokenValidator,
   ) {}
 
   async intercept(
@@ -46,7 +45,7 @@ export default class AdminLogsInterceptor implements NestInterceptor {
   ): Promise<Observable<boolean>> {
     const ctx = GqlExecutionContext.create(context)
     const { authorization } = ctx.getContext().req.headers
-    const id = this.tokenValidator.validateToken(authorization)
+    const id = validateToken(authorization)
 
     const adminPayload = new AdminLogPayload()
     adminPayload.address = id

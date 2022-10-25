@@ -32,7 +32,6 @@ import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
-import TokenValidator from './utils/validateToken'
 
 @Module({
   imports: [
@@ -85,7 +84,6 @@ import TokenValidator from './utils/validateToken'
     FlagWikiResolver,
     WebhookHandler,
     AdminLogsInterceptor,
-    TokenValidator
   ],
 })
 class AppModule {

@@ -3,7 +3,7 @@
 import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 import { getConnection } from 'typeorm'
-import TokenValidator from './validateToken'
+import validateToken from './validateToken'
 import User from '../../Database/Entities/user.entity'
 
 export default function UserDirectiveTransformer(
@@ -24,7 +24,7 @@ export default function UserDirectiveTransformer(
         fieldConfig.resolve = async (source, args, context, info) => {
           const { authorization } = context.req.headers
 
-          const id = new TokenValidator().validateToken(authorization, true)
+          const id = validateToken(authorization)
 
           const result = await resolve(source, args, context, info)
 
