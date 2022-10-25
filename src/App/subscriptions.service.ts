@@ -13,6 +13,17 @@ class WikiSubscriptionService {
     private tokenValidator: TokenValidator,
   ) {}
 
+  async findSub(userId: string, subscription: SubscriptionContent[]) {
+    const repository = this.connection.getRepository(Subscription)
+    return repository
+      .createQueryBuilder('subscription')
+      .where(
+        `subscription.subscription -> 0 ->> 'id' = '${subscription[0].id}' AND subscription.subscription -> 0 ->> 'type' = '${subscription[0].type}' AND
+          subscription."userId" = '${userId}' `,
+      )
+      .getOne()
+  }
+
   async addSub(
     userId: string,
     subscription: SubscriptionContent[],
@@ -21,15 +32,7 @@ class WikiSubscriptionService {
     const repository = this.connection.getRepository(Subscription)
 
     if (this.tokenValidator.validateToken(token, userId, false)) {
-      const oldSub = await repository
-        .createQueryBuilder('subscription')
-        .where(
-          `subscription.subscription -> 0 ->> 'id' = '${subscription[0].id}' AND subscription.subscription -> 0 ->> 'type' = '${subscription[0].type}' AND
-          subscription."userId" = '${userId}' `,
-        )
-        .getOne()
-
-      if (!oldSub) {
+      if (!(await this.findSub(userId, subscription))) {
         const newSub = repository.create({
           userId,
           subscription,
@@ -40,5 +43,9 @@ class WikiSubscriptionService {
     }
     return false
   }
+
+//   async deleteSub(){
+    
+//   }
 }
 export default WikiSubscriptionService

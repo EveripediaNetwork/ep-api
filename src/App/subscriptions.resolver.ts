@@ -28,7 +28,7 @@ class WikiSubscriptionArgs {
   @Field(() => String)
   userId!: string
 
-  @Field(()=> [SubscriptionArgs])
+  @Field(() => [SubscriptionArgs])
   subscription!: SubscriptionArgs[]
 }
 
@@ -72,7 +72,7 @@ class WikiSubscriptionResolver {
       .from(Subscription)
       .where('"userId" = :id AND subscriptionId = :wikiId', {
         userId: args.userId,
-        subscription: []
+        subscription: [],
       })
       .execute()
     return true
