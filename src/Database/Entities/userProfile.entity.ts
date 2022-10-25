@@ -18,6 +18,7 @@ import {
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
 import Activity from './activity.entity'
+import Wiki from './wiki.entity'
 
 export const skipMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
@@ -118,6 +119,9 @@ class UserProfile {
 
   @Field(() => [Activity])
   wikisEdited!: Activity[]
+
+  @Field(() => [Wiki])
+  wikiSubscribed!: Wiki[]
 }
 
 export default UserProfile

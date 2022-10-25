@@ -1,15 +1,5 @@
-/* eslint-disable import/no-cycle */
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-
-@ObjectType()
-export class SubscriptionContent {
-  @Field(() => String)
-  id!: string
-
-  @Field(() => String)
-  type!: string
-}
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
@@ -24,9 +14,17 @@ class Subscription {
   })
   userId!: string
 
-  @Field(() => [SubscriptionContent], { nullable: true })
-  @Column('jsonb', { default: null })
-  subscription!: SubscriptionContent[]
+  @Field({ nullable: true })
+  @Column('varchar', {
+    length: 255,
+  })
+  notificationType!: string
+
+  @Field({ nullable: true })
+  @Column('varchar', {
+    length: 255,
+  })
+  auxiliaryId!: string
 }
 
 export default Subscription

@@ -42,9 +42,6 @@ class User implements IUser {
 
   @Field(() => [Activity])
   wikisEdited!: Activity[]
-
-  @Field(() => [Wiki])
-  wikisSubscribed!: Wiki[]
 }
 
 export default User

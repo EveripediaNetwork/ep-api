@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
-
 import { Connection } from 'typeorm'
-import Subscription, {
-  SubscriptionContent,
-} from '../Database/Entities/subscription.entity'
+import Subscription from '../Database/Entities/subscription.entity'
+import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 import TokenValidator from './utils/validateToken'
 
 @Injectable()
@@ -13,39 +11,30 @@ class WikiSubscriptionService {
     private tokenValidator: TokenValidator,
   ) {}
 
-  async findSub(userId: string, subscription: SubscriptionContent[]) {
+  async findSub(args: WikiSubscriptionArgs) {
     const repository = this.connection.getRepository(Subscription)
-    return repository
-      .createQueryBuilder('subscription')
-      .where(
-        `subscription.subscription -> 0 ->> 'id' = '${subscription[0].id}' AND subscription.subscription -> 0 ->> 'type' = '${subscription[0].type}' AND
-          subscription."userId" = '${userId}' `,
-      )
-      .getOne()
+    return repository.findOne({
+      where: {
+        userId: args.userId,
+        notificationType: args.notificationType,
+        auxiliaryId: args.auxiliaryId,
+      },
+    })
   }
 
   async addSub(
-    userId: string,
-    subscription: SubscriptionContent[],
+    args: WikiSubscriptionArgs,
     token: string,
   ): Promise<Subscription | boolean> {
     const repository = this.connection.getRepository(Subscription)
 
-    if (this.tokenValidator.validateToken(token, userId, false)) {
-      if (!(await this.findSub(userId, subscription))) {
-        const newSub = repository.create({
-          userId,
-          subscription,
-        })
-
-        return repository.save(newSub)
-      }
+    if (!this.tokenValidator.validateToken(token, args.userId, false)) {
+      return false
     }
-    return false
-  }
+    if (await this.findSub(args)) return true
 
-//   async deleteSub(){
-    
-//   }
+    const newSub = repository.create(args)
+    return repository.save(newSub)
+  }
 }
 export default WikiSubscriptionService
