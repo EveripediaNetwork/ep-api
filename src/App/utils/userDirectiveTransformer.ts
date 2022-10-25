@@ -2,9 +2,7 @@
 /* eslint-disable no-param-reassign */
 import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
-import { getConnection } from 'typeorm'
 import TokenValidator from './validateToken'
-import User from '../../Database/Entities/user.entity'
 
 export default function UserDirectiveTransformer(
   schema: GraphQLSchema,
@@ -23,21 +21,16 @@ export default function UserDirectiveTransformer(
 
         fieldConfig.resolve = async (source, args, context, info) => {
           const { authorization } = context.req.headers
-
-          const id = new TokenValidator().validateToken(authorization, true)
+          const id = new TokenValidator().validateToken(
+            authorization,
+            source.id,
+            true,
+          )
 
           const result = await resolve(source, args, context, info)
 
-          if (info.path.prev?.key === 'getProfile') {
-            if (id === 'Token expired') return null
-            const user = await getConnection()
-              .getRepository(User)
-              .findOne({
-                where: `LOWER(id) = '${id.toLowerCase()}'`,
-              })
-            if (source.id.toLowerCase() !== user?.id.toLowerCase()) {
-              return null
-            }
+          if (info.path.prev?.key === 'getProfile' && !id) {
+            return null
           }
           return result
         }

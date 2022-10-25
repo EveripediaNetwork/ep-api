@@ -44,7 +44,7 @@ class UserService {
     const userRepository = this.connection.getRepository(User)
     const data: UserProfile = JSON.parse(profileInfo)
 
-    const id = this.tokenValidator.validateToken(token, false)
+    const id = this.tokenValidator.validateToken(token, data.id, false)
 
     if (
       (await this.validateEnsAddr(data, id)) &&
