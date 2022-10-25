@@ -11,7 +11,9 @@ class WikiSubscriptionService {
     private tokenValidator: TokenValidator,
   ) {}
 
-  async findSub(args: WikiSubscriptionArgs) {
+  private async findSub(
+    args: WikiSubscriptionArgs,
+  ): Promise<Subscription | undefined> {
     const repository = this.connection.getRepository(Subscription)
     return repository.findOne({
       where: {
@@ -22,9 +24,21 @@ class WikiSubscriptionService {
     })
   }
 
+  async getSubs(token: string, id: string): Promise<Subscription[] | boolean> {
+    const repository = this.connection.getRepository(Subscription)
+    if (!this.tokenValidator.validateToken(token, id, false)) {
+      return false
+    }
+    return repository.find({
+      where: {
+        userId: id,
+      },
+    })
+  }
+
   async addSub(
-    args: WikiSubscriptionArgs,
     token: string,
+    args: WikiSubscriptionArgs,
   ): Promise<Subscription | boolean> {
     const repository = this.connection.getRepository(Subscription)
 
@@ -35,6 +49,29 @@ class WikiSubscriptionService {
 
     const newSub = repository.create(args)
     return repository.save(newSub)
+  }
+
+  async removeSub(
+    token: string,
+    id: string,
+    args: WikiSubscriptionArgs,
+  ): Promise<boolean> {
+    const repository = this.connection.getRepository(Subscription)
+    if (!this.tokenValidator.validateToken(token, id, false)) {
+      return false
+    }
+    await repository
+      .createQueryBuilder()
+      .delete()
+      .from(Subscription)
+      .where(
+        `"userId" = ':userId' AND "notificationType" = ':notificationType' AND "auxiliaryId" = ':auxiliaryId'`,
+        {
+          args,
+        },
+      )
+      .execute()
+    return true
   }
 }
 export default WikiSubscriptionService

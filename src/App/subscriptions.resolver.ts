@@ -1,6 +1,5 @@
 import { UseInterceptors } from '@nestjs/common'
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
 import SentryInterceptor from '../sentry/security.interceptor'
 import Subscription from '../Database/Entities/subscription.entity'
 import WikiSubscriptionService from './subscriptions.service'
@@ -10,44 +9,35 @@ import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 @Resolver(() => Subscription)
 class WikiSubscriptionResolver {
   constructor(
-    private connection: Connection,
     private wikiSubscriptionService: WikiSubscriptionService,
   ) {}
 
   @Query(() => [Subscription])
-  async wikiSubscriptions(@Args('userId') userId: string) {
-    const repository = this.connection.getRepository(Subscription)
-    return repository.find({
-      where: {
-        userId,
-      },
-    })
+  async wikiSubscriptions(
+    @Context() context: any,
+    @Args('userId') userId: string,
+  ) {
+    const { authorization } = context.req.headers
+    return this.wikiSubscriptionService.getSubs(authorization, userId)
   }
 
   @Mutation(() => Subscription)
   async addWikiSubscription(
-    @Args() args: WikiSubscriptionArgs,
     @Context() context: any,
+    @Args() args: WikiSubscriptionArgs,
   ) {
     const { authorization } = context.req.headers
-    return this.wikiSubscriptionService.addSub(args, authorization)
+    return this.wikiSubscriptionService.addSub(authorization, args)
   }
 
   @Mutation(() => Boolean)
-  async removeWikiSubscription(@Args() args: WikiSubscriptionArgs) {
-    const repository = this.connection.getRepository(Subscription)
-    repository
-      .createQueryBuilder()
-      .delete()
-      .from(Subscription)
-      .where(
-        '"userId" = :id AND "notificationType" = :notificationType AND "auxiliaryId" = :auxiliaryId',
-        {
-          args,
-        },
-      )
-      .execute()
-    return true
+  async removeWikiSubscription(
+    @Context() context: any,
+    @Args() args: WikiSubscriptionArgs,
+  ) {
+    const { authorization } = context.req.headers
+    return this.wikiSubscriptionService.removeSub(authorization, args.userId, args)
+    
   }
 }
 
