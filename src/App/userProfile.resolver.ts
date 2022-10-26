@@ -37,17 +37,13 @@ class UserProfileResolver {
     private userService: UserService,
   ) {}
 
-  @Query(() => UserProfile)
+  @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs) {
     const repository = this.connection.getRepository(UserProfile)
     const profile = await repository.findOne({
       where: `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
     })
-
-    if (!profile) {
-      return false
-    }
-    return profile
+    return profile || null
   }
 
   @Query(() => [UserProfile])
@@ -108,7 +104,7 @@ class UserProfileResolver {
         FROM "user_profile"
         LEFT JOIN "user" u on u."id" = "user_profile"."id"
         WHERE "user_profile"."id" = '${id}'`)
-    return a.length === 0 ? null : a[0].active
+    return a[0].active
   }
 
   @ResolveField(() => [Wiki], { nullable: true })

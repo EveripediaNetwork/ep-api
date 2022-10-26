@@ -88,7 +88,7 @@ class UserResolver {
   @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
-    const user = repository.findOne({
+    const user = await repository.findOne({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
     return user || null

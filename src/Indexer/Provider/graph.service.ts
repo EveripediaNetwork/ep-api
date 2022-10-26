@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
@@ -37,7 +38,7 @@ class GraphProviderService {
     try {
       response = await request(reqUrl, query, { unixtime })
     } catch (err: any) {
-      console.log('GRAPH ERROR', err.message)
+      console.error('GRAPH ERROR', err.message)
     }
     return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }

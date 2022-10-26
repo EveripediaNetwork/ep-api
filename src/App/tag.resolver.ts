@@ -35,15 +35,11 @@ class TagResolver {
     })
   }
 
-  @Query(() => Tag)
+  @Query(() => Tag, { nullable: true })
   async tagById(@Args('id', { type: () => String }) id: number) {
     const repository = this.connection.getRepository(Tag)
     const tagId = await repository.findOne(id)
-
-    if (!tagId) {
-      return false
-    }
-    return tagId
+    return tagId || null
   }
 
   @Query(() => [Tag])

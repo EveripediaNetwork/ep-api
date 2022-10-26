@@ -39,7 +39,7 @@ export const skipMiddleware: FieldMiddleware = async (
 @ObjectType()
 @Entity()
 class UserProfile {
-  @Field(() => ID, { nullable: true })
+  @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
@@ -102,15 +102,15 @@ class UserProfile {
   @Column('jsonb', { default: [new AdvancedSettings()] })
   advancedSettings!: AdvancedSettings[]
 
-  @Field(() => GraphQLISODateTime, { nullable: true })
+  @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
   created!: Date
 
-  @Field(() => GraphQLISODateTime, { nullable: true })
+  @Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
   updated!: Date
 
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => Boolean)
   active!: boolean
 
   @Field(() => [Activity])

@@ -47,71 +47,72 @@ class UserService {
     const id = this.tokenValidator.validateToken(token, data.id, false)
 
     if (
-      (await this.validateEnsAddr(data, id)) &&
-      !(id?.toLowerCase() !== data.id.toLowerCase())
+      !(await this.validateEnsAddr(data, id)) &&
+      id &&
+      id.toLowerCase() !== data.id.toLowerCase()
     ) {
-      const existsProfile = await profileRepository.findOne(data.id)
-      const existsUser = await userRepository
-        .createQueryBuilder()
-        .where({ id: data.id })
-        .getRawOne()
+      return false
+    }
+    const existsProfile = await profileRepository.findOne(data.id)
+    const existsUser = await userRepository
+      .createQueryBuilder()
+      .where({ id: data.id })
+      .getRawOne()
 
-      const profile = profileRepository.create({
-        id: data.id,
-        username: data.username,
-        bio: data.bio,
-        email: data.email,
-        avatar: data.avatar,
-        banner: data.banner,
-        links: data.links,
-        notifications: data.notifications,
-        advancedSettings: data.advancedSettings,
-      })
+    const profile = profileRepository.create({
+      id: data.id,
+      username: data.username,
+      bio: data.bio,
+      email: data.email,
+      avatar: data.avatar,
+      banner: data.banner,
+      links: data.links,
+      notifications: data.notifications,
+      advancedSettings: data.advancedSettings,
+    })
 
-      const createUser = async (arg?: UserProfile) => {
-        const user = userRepository.create({ id: data.id, profile: arg })
-        await userRepository.save(user)
-        return true
-      }
-      const createProfile = async () => {
-        const newProfile = await profileRepository.save(profile)
-        return newProfile
-      }
-      const updateProfile = async () =>
-        profileRepository
-          .createQueryBuilder()
-          .update(UserProfile)
-          .set({ ...data })
-          .where('id = :id', { id: data.id })
-          .execute()
-
-      if (existsUser && existsProfile) {
-        await updateProfile()
-
-        return existsProfile
-      }
-
-      if (existsUser && !existsProfile) {
-        const newProfile = await createProfile()
-        userRepository
-          .createQueryBuilder()
-          .update(User)
-          .set({ profile: newProfile })
-          .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
-          .execute()
-        return newProfile
-      }
-      if (!existsUser && existsProfile) {
-        await createUser(profile)
-        await updateProfile()
-        return existsProfile
-      }
-
-      const newProfile = await createProfile()
-      await createUser(newProfile)
+    const createUser = async (arg?: UserProfile) => {
+      const user = userRepository.create({ id: data.id, profile: arg })
+      await userRepository.save(user)
+      return true
+    }
+    const createProfile = async () => {
+      const newProfile = await profileRepository.save(profile)
       return newProfile
     }
-    return true
+    const updateProfile = async () =>
+      profileRepository
+        .createQueryBuilder()
+        .update(UserProfile)
+        .set({ ...data })
+        .where('id = :id', { id: data.id })
+        .execute()
+
+    if (existsUser && existsProfile) {
+      await updateProfile()
+
+      return existsProfile
+    }
+
+    if (existsUser && !existsProfile) {
+      const newProfile = await createProfile()
+      userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ profile: newProfile })
+        .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
+        .execute()
+      return newProfile
+    }
+    if (!existsUser && existsProfile) {
+      await createUser(profile)
+      await updateProfile()
+      return existsProfile
+    }
+
+    const newProfile = await createProfile()
+    await createUser(newProfile)
+    return newProfile
   }
 }
 

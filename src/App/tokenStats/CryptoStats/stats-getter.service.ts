@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -43,7 +44,7 @@ class StatsGetterService {
         ? await lastValueFrom(this.cmcApiCall(cmcName))
         : await lastValueFrom(this.cmcApiCall(name))
     } catch (err: any) {
-      console.log('STATS ERROR', err.message)
+      console.error('STATS ERROR', err.message)
     }
 
     const cg = await this.cgApiCall(name)

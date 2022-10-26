@@ -9,13 +9,13 @@ import Wiki from './wiki.entity'
 @ObjectType({ description: 'Tags for Wikis' })
 @Entity()
 class Tag implements ITag {
-  @Field(() => ID, { nullable: true })
+  @Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
   id!: string
 
-  @Field(() => [Wiki], { nullable: true })
+  @Field(() => [Wiki])
   @ManyToMany('Wiki', 'tags')
   @JoinTable()
   wikis!: IWiki[]
