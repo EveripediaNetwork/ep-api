@@ -33,7 +33,12 @@ class GraphProviderService {
   async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash]> {
     // TODO: catch errors
     const reqUrl = this.configService.get('graphUrl')
-    const response = await request(reqUrl, query, { unixtime })
+    let response
+    try {
+      response = await request(reqUrl, query, { unixtime })
+    } catch (err: any) {
+      console.log(err.message)
+    }
     return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }
 }

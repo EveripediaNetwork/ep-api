@@ -85,7 +85,7 @@ import TokenValidator from './utils/validateToken'
     FlagWikiResolver,
     WebhookHandler,
     AdminLogsInterceptor,
-    TokenValidator
+    TokenValidator,
   ],
 })
 class AppModule {
