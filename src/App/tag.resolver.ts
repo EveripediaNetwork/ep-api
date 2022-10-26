@@ -8,13 +8,12 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import { HttpStatus, UseInterceptors } from '@nestjs/common'
+import { UseInterceptors } from '@nestjs/common'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ITag } from '../Database/Entities/types/ITag'
 import SentryInterceptor from '../sentry/security.interceptor'
-import { GqlError, ErrorTypes } from './errorHandling/errorHandler'
 
 @ArgsType()
 class TagIDArgs extends PaginationArgs {
@@ -42,11 +41,7 @@ class TagResolver {
     const tagId = await repository.findOne(id)
 
     if (!tagId) {
-      throw new GqlError(
-        HttpStatus.NOT_FOUND,
-        `Tag with id '${id}' not found`,
-        ErrorTypes.NOT_FOUND,
-      )
+      return false
     }
     return tagId
   }

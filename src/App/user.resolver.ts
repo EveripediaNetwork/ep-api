@@ -84,13 +84,14 @@ class UserResolver {
       .getMany()
   }
 
-  @Query(() => User)
+  @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
-    return repository.findOneOrFail({
+    const user = repository.findOne({
       where: `LOWER(id) = '${id.toLowerCase()}'`,
     })
+    return user || null
   }
 
   @Query(() => Boolean)

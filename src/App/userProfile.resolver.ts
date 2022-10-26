@@ -1,8 +1,9 @@
-import { HttpStatus, UseGuards, UseInterceptors } from '@nestjs/common'
+import { UseGuards, UseInterceptors } from '@nestjs/common'
 import {
   Args,
   ArgsType,
   Context,
+  Directive,
   Field,
   Mutation,
   Parent,
@@ -12,8 +13,8 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
+import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
-import { GqlError, ErrorTypes } from './errorHandling/errorHandler'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import IsActiveGuard from './utils/isActive.guard'
@@ -44,11 +45,7 @@ class UserProfileResolver {
     })
 
     if (!profile) {
-      throw new GqlError(
-        HttpStatus.NOT_FOUND,
-        'User profile does not exist',
-        ErrorTypes.NOT_FOUND,
-      )
+      return false
     }
     return profile
   }
@@ -111,7 +108,20 @@ class UserProfileResolver {
         FROM "user_profile"
         LEFT JOIN "user" u on u."id" = "user_profile"."id"
         WHERE "user_profile"."id" = '${id}'`)
-    return a[0].active
+    return a.length === 0 ? null : a[0].active
+  }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  @Directive('@isUser')
+  async wikiSubscriptions(@Parent() user: GetProfileArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const { id } = user
+    const subs = await repository.query(`
+        SELECT wiki.* FROM wiki
+        LEFT JOIN "subscription" s on s."auxiliaryId" = wiki.id
+        WHERE LOWER(s."userId") = '${id?.toLowerCase()}' AND s."notificationType" = 'wiki' 
+    `)
+    return subs
   }
 }
 
