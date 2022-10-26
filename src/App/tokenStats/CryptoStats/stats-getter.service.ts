@@ -36,15 +36,21 @@ class StatsGetterService {
   }
 
   async getStats(name: string, cmcName?: string): Promise<any> {
-    const cmc = cmcName
-      ? await lastValueFrom(this.cmcApiCall(cmcName))
-      : await lastValueFrom(this.cmcApiCall(name))
+    let cmc
+
+    try {
+      cmc = cmcName
+        ? await lastValueFrom(this.cmcApiCall(cmcName))
+        : await lastValueFrom(this.cmcApiCall(name))
+    } catch (err: any) {
+      console.log('STATS ERROR', err.message)
+    }
 
     const cg = await this.cgApiCall(name)
     const cgMarketData = cg.marketChangeResult.data[0]
     const cgVolumeData = cg.volumeChangeResult.data
 
-    const data = { ...cmc.data }
+    const data = { ...cmc?.data }
     const res: any = Object.values(data.data)
     const cmcData: any = res[0].quote.USD
     const volumeChange =

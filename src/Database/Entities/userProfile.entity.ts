@@ -113,10 +113,10 @@ class UserProfile {
   @Field(() => Boolean, { nullable: true })
   active!: boolean
 
-  @Field(() => [Activity], { nullable: true })
+  @Field(() => [Activity])
   wikisCreated!: Activity[]
 
-  @Field(() => [Activity], { nullable: true })
+  @Field(() => [Activity])
   wikisEdited!: Activity[]
 }
 
