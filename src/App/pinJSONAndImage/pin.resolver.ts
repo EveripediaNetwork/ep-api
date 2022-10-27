@@ -26,7 +26,7 @@ class PinResolver {
   private errorHandler(val: any) {
     if (val.message) {
       console.error('PIN JSON/IMAGE ERROR', val.message)
-      return true
+      return null
     }
     return val
   }
