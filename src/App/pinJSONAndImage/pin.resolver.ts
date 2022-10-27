@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Args, Mutation, Resolver } from '@nestjs/graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload'
 import { createWriteStream } from 'fs'
@@ -24,11 +25,10 @@ class PinResolver {
 
   private errorHandler(val: any) {
     if (val.message) {
-      Logger.error(val.message)
-      throw new HttpException(val.message, HttpStatus.BAD_REQUEST)
-    } else {
-      return val
+      console.error('PIN JSON/IMAGE ERROR', val.message)
+      return null
     }
+    return val
   }
 
   private async optimizeFile(filePath: string, filename: string) {

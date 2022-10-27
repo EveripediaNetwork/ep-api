@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -36,21 +37,30 @@ class StatsGetterService {
   }
 
   async getStats(name: string, cmcName?: string): Promise<any> {
-    const cmc = cmcName
-      ? await lastValueFrom(this.cmcApiCall(cmcName))
-      : await lastValueFrom(this.cmcApiCall(name))
+    let cmc
+
+    try {
+      cmc = cmcName
+        ? await lastValueFrom(this.cmcApiCall(cmcName))
+        : await lastValueFrom(this.cmcApiCall(name))
+    } catch (err: any) {
+      console.error('STATS ERROR', err.message)
+    }
 
     const cg = await this.cgApiCall(name)
     const cgMarketData = cg.marketChangeResult.data[0]
     const cgVolumeData = cg.volumeChangeResult.data
 
-    const data = { ...cmc.data }
+    const data = { ...cmc?.data }
     const res: any = Object.values(data.data)
     const cmcData: any = res[0].quote.USD
     const volumeChange =
-      ((cgVolumeData.total_volumes[1][1] - cgVolumeData.total_volumes[0][1]) /
-        cgVolumeData.total_volumes[0][1]) *
-      100
+      cgVolumeData.total_volumes.length === 1
+        ? cgVolumeData.total_volumes[0][1] * cgVolumeData.total_volumes * 100
+        : ((cgVolumeData.total_volumes[1][1] -
+            cgVolumeData.total_volumes[0][1]) /
+            cgVolumeData.total_volumes[0][1]) *
+          100
 
     const tokenStats: TokenData = {
       id: res[0].slug,
