@@ -28,7 +28,6 @@ async function bootstrap() {
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 1.0,
     integrations: [
-      new Sentry.Integrations.Http({ tracing: true }),
       new Tracing.Integrations.GraphQL(),
     ],
   })

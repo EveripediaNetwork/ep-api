@@ -64,9 +64,8 @@ import SentryPlugin from '../sentry/sentryPlugin'
       imports: [ConfigModule],
       useFactory: async (cfg: ConfigService) => ({
         dsn: cfg.get('SENTRY_DSN'),
-        debug: true || false,
-        environment: 'dev' || 'production' || 'some_environment',
-        release: 'some_release' || null,
+        debug: true,
+        environment: 'dev' || 'production',
         logLevels: ['debug'],
       }),
       inject: [ConfigService],
