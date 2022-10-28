@@ -33,6 +33,7 @@ import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import TokenValidator from './utils/validateToken'
+import SentryPlugin from '../sentry/sentryPlugin'
 
 @Module({
   imports: [
@@ -46,7 +47,7 @@ import TokenValidator from './utils/validateToken'
       playground: true,
       cors: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({ req }),
+      context: ({ req, connection }) => ({ req, connection }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
       buildSchemaOptions: {
         directives: [
@@ -86,6 +87,7 @@ import TokenValidator from './utils/validateToken'
     WebhookHandler,
     AdminLogsInterceptor,
     TokenValidator,
+    SentryPlugin,
   ],
 })
 class AppModule {
