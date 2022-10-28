@@ -84,10 +84,10 @@ class WikiResolver {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  @Query(() => Wiki)
+  @Query(() => Wiki, { nullable: true })
   async wiki(@Args() args: ByIdArgs) {
     const repository = this.connection.getRepository(Wiki)
-    return repository.findOneOrFail({
+    return repository.findOne({
       where: {
         language: args.lang,
         id: args.id,
