@@ -27,9 +27,7 @@ async function bootstrap() {
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 1.0,
-    integrations: [
-      new Tracing.Integrations.GraphQL(),
-    ],
+    integrations: [new Tracing.Integrations.Apollo()],
   })
   app.use(Sentry.Handlers.tracingHandler())
   await app.listen(port || 5000)
