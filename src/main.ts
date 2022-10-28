@@ -26,11 +26,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
+    tracesSampleRate: 1.0,
     integrations: [
       new Sentry.Integrations.Http({ tracing: true }),
-      new Tracing.Integrations.GraphQL(),
+      new Tracing.Integrations.Apollo(),
     ],
   })
+  app.use(Sentry.Handlers.tracingHandler())
   await app.listen(port || 5000)
 }
 
