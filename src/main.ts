@@ -29,7 +29,7 @@ async function bootstrap() {
     tracesSampleRate: 1.0,
     integrations: [
       new Sentry.Integrations.Http({ tracing: true }),
-      new Tracing.Integrations.Apollo(),
+      new Tracing.Integrations.GraphQL(),
     ],
   })
   app.use(Sentry.Handlers.tracingHandler())
