@@ -36,7 +36,6 @@ import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
-// import plugin from '../sentry/sentryPlugin'
 
 @Module({
   imports: [
