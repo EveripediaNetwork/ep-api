@@ -5,7 +5,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
-import { SentryModule } from '@ntegral/nestjs-sentry';
+import { SentryModule } from '@ntegral/nestjs-sentry'
 // import { ConfigModule , ConfigService } from '@ntegral/nestjs-config';
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
@@ -62,12 +62,12 @@ import SentryPlugin from '../sentry/sentryPlugin'
     }),
     SentryModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (cfg:ConfigService) => ({
+      useFactory: async (cfg: ConfigService) => ({
         dsn: cfg.get('SENTRY_DSN'),
         debug: true || false,
         environment: 'dev' || 'production' || 'some_environment',
-        release: 'some_release' || null, 
-        logLevels: ['debug'] 
+        release: 'some_release' || null,
+        logLevels: ['debug'],
       }),
       inject: [ConfigService],
     }),
