@@ -8,9 +8,10 @@ import {
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry'
 import { GraphQLRequestContext } from 'apollo-server-types'
 import '@sentry/tracing'
+import { Context } from './sentryTransaction'
 
 @Plugin()
-export default class SentryPlugin implements ApolloServerPlugin {
+export default class SentryPlugin implements ApolloServerPlugin<Context> {
   constructor(@InjectSentry() private readonly sentry: SentryService) {}
 
   async requestDidStart({
