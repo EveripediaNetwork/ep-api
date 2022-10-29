@@ -37,7 +37,7 @@ class Activity {
   id!: string
 
   @Field(() => User)
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', 'user', { eager: true })
   user!: User
 
   @Field()
