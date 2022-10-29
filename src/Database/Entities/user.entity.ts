@@ -24,8 +24,8 @@ class User implements IUser {
   })
   id!: string
 
-  @Field(() => UserProfile, { eager: true, nullable: true })
-  @OneToOne(() => UserProfile)
+  @Field(() => UserProfile, { nullable: true })
+  @OneToOne(() => UserProfile, { eager: true })
   @JoinColumn()
   profile!: UserProfile
 
