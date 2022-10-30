@@ -88,11 +88,11 @@ class Wiki {
   summary!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language', { eager: true })
+  @ManyToOne('Language', 'language')
   language!: Language
 
-  @Field(() => User, { nullable: true })
-  @ManyToOne('User', 'user', { eager: true })
+  @Field(() => User)
+  @ManyToOne('User', 'user')
   user!: User
 
   @Field(() => Author, { nullable: true })
@@ -110,13 +110,13 @@ class Wiki {
   @Column('json', { nullable: true, eager: true })
   images!: Image[]
 
-  @Field(() => [Tag], { nullable: true })
-  @ManyToMany(() => Tag, { eager: true })
+  @Field(() => [Tag])
+  @ManyToMany(() => Tag)
   @JoinTable()
   tags!: Tag[]
 
-  @Field(() => [Category], { nullable: true })
-  @ManyToMany(() => Category, { eager: true })
+  @Field(() => [Category])
+  @ManyToMany(() => Category)
   @JoinTable()
   categories!: Category[]
 
