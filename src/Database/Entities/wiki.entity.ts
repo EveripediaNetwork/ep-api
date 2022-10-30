@@ -107,7 +107,7 @@ class Wiki {
   media?: Media[]
 
   @Field(() => [Image])
-  @Column('json', { nullable: true, lazy: true })
+  @Column('json', { nullable: true })
   images!: Image[]
 
   @Field(() => [Tag])

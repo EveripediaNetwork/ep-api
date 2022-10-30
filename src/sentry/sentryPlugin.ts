@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-
 import { Plugin } from '@nestjs/apollo'
 import {
   ApolloServerPlugin,
@@ -17,12 +16,15 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
   async requestDidStart({
     request,
     context,
-  }: GraphQLRequestContext): Promise<GraphQLRequestListener> {
+  }: GraphQLRequestContext | any): Promise<GraphQLRequestListener> {
+    const { query } = request
+    const methodName = query.match(/{\n.+\s((\s?\w+))((\()|(\n)|( ))/)
+
     const transaction = this.sentry.instance().startTransaction({
       op: 'gql',
       name: request.operationName
-        ? `graphql: ${request.operationName}`
-        : 'GraphQLTransaction',
+        ? `graphql: ${methodName[1]}`
+        : 'GraphQLTransaction /IntrospectionQuery',
     })
 
     this.sentry
