@@ -23,8 +23,8 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
     const transaction = this.sentry.instance().startTransaction({
       op: 'gql',
       name: request.operationName
-        ? `graphql: ${methodName[1]}`
-        : 'GraphQLTransaction /IntrospectionQuery',
+        ? `GraphQLTransaction /${request.operationName}`
+        : `graphql: ${methodName[1]}`,
     })
 
     this.sentry
