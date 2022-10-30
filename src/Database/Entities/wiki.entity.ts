@@ -107,11 +107,11 @@ class Wiki {
   media?: Media[]
 
   @Field(() => [Image])
-  @Column('json', { nullable: true })
+  @Column('json', { nullable: true, eager: true })
   images!: Image[]
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, { eager: true })
+  @ManyToMany(() => Tag, { lazy: true })
   @JoinTable()
   tags!: Tag[]
 
