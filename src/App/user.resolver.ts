@@ -76,7 +76,7 @@ class UserResolver {
     const repository = this.connection.getRepository(User)
     return repository
       .createQueryBuilder()
-      .where('LOWER(id) LIKE :id', {
+      .where('LOWER("User".id) LIKE :id', {
         id: `%${args.id.toLowerCase()}%`,
       })
       .limit(args.limit)
@@ -106,7 +106,7 @@ class UserResolver {
 
     const repository = this.connection.getRepository(User)
     const user = await repository.findOneOrFail({
-      where: `LOWER(id) = '${args.id.toLowerCase()}'`,
+      where: `LOWER("User".id) = '${args.id.toLowerCase()}'`,
     })
     await repository
       .createQueryBuilder()
