@@ -89,7 +89,7 @@ class UserResolver {
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
     return repository.findOne({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
     })
   }
 
