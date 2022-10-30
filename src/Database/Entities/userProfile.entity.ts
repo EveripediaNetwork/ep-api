@@ -65,7 +65,6 @@ class UserProfile {
   @Column('varchar', {
     length: 100,
     nullable: true,
-    lazy: true,
   })
   email?: string
 
@@ -92,7 +91,7 @@ class UserProfile {
     nullable: true,
     middleware: [skipMiddleware],
   })
-  @Column('jsonb', { default: [new Notifications()], lazy: true })
+  @Column('jsonb', { default: [new Notifications()] })
   notifications!: Notifications[]
 
   @Directive('@isUser')
@@ -100,7 +99,7 @@ class UserProfile {
     nullable: true,
     middleware: [skipMiddleware],
   })
-  @Column('jsonb', { default: [new AdvancedSettings()], lazy: true })
+  @Column('jsonb', { default: [new AdvancedSettings()] })
   advancedSettings!: AdvancedSettings[]
 
   @Field(() => GraphQLISODateTime)
