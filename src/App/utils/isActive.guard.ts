@@ -15,16 +15,15 @@ export default class IsActiveGuard implements CanActivate {
   constructor(private connection: Connection) {}
 
   private async authorizeUser(id: string) {
-    /*const repository = this.connection.getRepository(User)
+    const repository = this.connection.getRepository(User)
     
     const user = await repository.findOne({
-      where: `LOWER("user".id) = '${id.toLowerCase()}'`,
+      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
     })
 
     if (user?.active || !user) {
       return true
-    } TODO: fix later */
-    return true
+    }
     throw new HttpException('User not allowed!', HttpStatus.FORBIDDEN)
   }
 
