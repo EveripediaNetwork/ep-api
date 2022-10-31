@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -37,8 +38,13 @@ class Activity {
   id!: string
 
   @Field(() => User)
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', 'user', { eager: true })
   user!: User
+
+  @Field(() => Wiki)
+  @ManyToOne('Wiki', 'wiki', { eager: true })
+  @JoinColumn()
+  wiki!: Wiki
 
   @Field()
   @Column('varchar')
