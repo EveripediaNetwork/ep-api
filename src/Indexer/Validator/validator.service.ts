@@ -208,7 +208,7 @@ class IPFSValidatorService {
       checkCategories(wiki) &&
       checkUser(wiki) &&
       checkTags(wiki) &&
-    //   checkSummary(wiki) &&
+      //   checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
