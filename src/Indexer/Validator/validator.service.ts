@@ -80,16 +80,16 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkSummary = (validatingWiki: ValidWiki) => {
-      if (
-        (validatingWiki.summary && validatingWiki.summary.length <= 255) ||
-        validateJSON
-      ) {
-        return true
-      }
-      message = ValidatorCodes.SUMMARY
-      return false
-    }
+    // const checkSummary = (validatingWiki: ValidWiki) => {
+    //   if (
+    //     (validatingWiki.summary && validatingWiki.summary.length <= 255) ||
+    //     validateJSON
+    //   ) {
+    //     return true
+    //   }
+    //   message = ValidatorCodes.SUMMARY
+    //   return false
+    // }
 
     const checkImages = (validatingWiki: ValidWiki) => {
       if (
@@ -208,7 +208,7 @@ class IPFSValidatorService {
       checkCategories(wiki) &&
       checkUser(wiki) &&
       checkTags(wiki) &&
-      checkSummary(wiki) &&
+      //   checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
