@@ -135,7 +135,7 @@ class ActivityResolver {
     const res = await repository.query(`SELECT "userId", u.* 
         FROM activity
         LEFT JOIN "user_profile" u ON u."id" = "userId"
-        WHERE "id" = '${id}' AND "type" = '0'`)
+        WHERE activity."id" = '${id}' AND "type" = '0'`)
     return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }

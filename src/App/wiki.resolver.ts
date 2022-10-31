@@ -197,13 +197,13 @@ class WikiResolver {
     })
   }
 
-  @Mutation(() => Wiki)
+  @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
+    const wiki = await repository.findOne(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -211,19 +211,21 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+    if (wiki) {
+      await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+      this.eventEmitter.emit('admin.action', `${cacheId}`)
+    }
 
-    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
-  @Mutation(() => Wiki)
+  @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
+    const wiki = await repository.findOne(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -231,24 +233,26 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    await this.revalidate.revalidatePage(
-      RevalidateEndpoints.HIDE_WIKI,
-      undefined,
-      wiki.id,
-      wiki.promoted,
-    )
+    if (wiki) {
+      await this.revalidate.revalidatePage(
+        RevalidateEndpoints.HIDE_WIKI,
+        undefined,
+        wiki.id,
+        wiki.promoted,
+      )
+      this.eventEmitter.emit('admin.action', `${cacheId}`)
+    }
 
-    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
-  @Mutation(() => Wiki)
+  @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async unhideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOneOrFail(args.id)
+    const wiki = await repository.findOne(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -256,13 +260,16 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    await this.revalidate.revalidatePage(
-      RevalidateEndpoints.HIDE_WIKI,
-      undefined,
-      wiki.id,
-      wiki.promoted,
-    )
-    this.eventEmitter.emit('admin.action', `${cacheId}`)
+    if (wiki) {
+      await this.revalidate.revalidatePage(
+        RevalidateEndpoints.HIDE_WIKI,
+        undefined,
+        wiki.id,
+        wiki.promoted,
+      )
+      this.eventEmitter.emit('admin.action', `${cacheId}`)
+    }
+
     return wiki
   }
 
