@@ -24,7 +24,7 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
       op: 'gql',
       name: request.operationName
         ? `GraphQLTransaction /${request.operationName}`
-        : `graphql: ${methodName[1]}`,
+        : `graphql: ${methodName[1]||'unknown'}`,
     })
 
     this.sentry
