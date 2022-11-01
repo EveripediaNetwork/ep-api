@@ -85,7 +85,6 @@ class IPFSValidatorService {
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (
         (validatingWiki.summary &&
-          validatingWiki.summary.length > WikiSummarySize.Small &&
           validatingWiki.summary.length <= WikiSummarySize.Default) ||
         validateJSON
       ) {

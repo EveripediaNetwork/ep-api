@@ -179,23 +179,6 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should throw summary error if summary is empty', async () => {
-    const wiki = {
-      ...testWiki,
-      summary: '',
-    }
-    expect(
-      await ipfsValidatorService.validate(
-        wiki,
-        false,
-        '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
-      ),
-    ).toEqual({
-      status: false,
-      message: ValidatorCodes.SUMMARY,
-    })
-  })
-
   it('should return status false if wiki image is null or not a valid hash', async () => {
     const wiki = {
       ...oldWiki,
