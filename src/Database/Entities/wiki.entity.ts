@@ -11,6 +11,7 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
+  Index,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -31,10 +32,12 @@ class Wiki {
   @PrimaryColumn('varchar', {
     length: 255,
   })
+  @Index('idx_wiki_id')
   id!: string
 
   @Field()
   @Column()
+  @Index('idx_wiki_title')
   title!: string
 
   @Field()

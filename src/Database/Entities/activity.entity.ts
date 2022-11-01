@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -68,6 +69,7 @@ class Activity {
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
+  @Index('idx_activity_datetime')
   datetime!: Date
 
   @Field()
