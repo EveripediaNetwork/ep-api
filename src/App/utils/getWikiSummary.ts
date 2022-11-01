@@ -12,7 +12,7 @@ export enum WikiSummarySize {
   Default = 255,
 }
 
-export const getWikiSummary = async(
+export const getWikiSummary = async (
   wiki: ValidWiki,
   size: WikiSummarySize = WikiSummarySize.Big || WikiSummarySize.Default,
 ) => {
