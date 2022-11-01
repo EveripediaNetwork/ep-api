@@ -114,7 +114,7 @@ class UserResolver {
       .set({ active: args.active })
       .where({ id: user?.id })
       .execute()
-      
+
     if (user) this.eventEmitter.emit('admin.action', `${cacheId}`)
 
     return user

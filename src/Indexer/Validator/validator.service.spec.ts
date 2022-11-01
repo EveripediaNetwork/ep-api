@@ -268,6 +268,23 @@ describe('PinResolver', () => {
     })
   })
 
+  it('should return status false if wiki image keys are incorrect, expects ID and TYPE', async () => {
+    const wiki = {
+      ...oldWiki,
+      images: [
+        {
+          name: '',
+          type: 'image/jpeg, image/png',
+        },
+      ],
+    }
+
+    expect(await ipfsValidatorService.validate(wiki as unknown as ValidWiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.IMAGE,
+    })
+  })
+
   it('should return status false if wiki ID is not a valid slug', async () => {
     const wiki = {
       ...testWiki,

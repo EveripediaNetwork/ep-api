@@ -100,7 +100,7 @@ class IPFSValidatorService {
         validatingWiki.images.forEach(image => {
           const keys = Object.keys(image)
           const key = keys.includes('id') && keys.includes('type')
-          result = image.id.length === 46 && image.type.includes('image') && key
+          result = key && image.id.length === 46 && image.type.includes('image')
         })
         if (!result) {
           message = ValidatorCodes.IMAGE
