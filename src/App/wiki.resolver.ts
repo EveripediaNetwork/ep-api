@@ -131,9 +131,16 @@ class WikiResolver {
     const repository = this.connection.getRepository(Wiki)
     return repository
       .createQueryBuilder('wiki')
-      .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-        categoryId: args.category,
-      })
+      .innerJoinAndSelect('wiki.user', 'user')
+      .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect(
+        'wiki.categories',
+        'category',
+        'category.id = :categoryId',
+        {
+          categoryId: args.category,
+        },
+      )
       .where('wiki.language = :lang AND hidden = :status', {
         lang: args.lang,
         status: false,
@@ -147,9 +154,11 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikisByTitle(@Args() args: TitleArgs) {
     const repository = this.connection.getRepository(Wiki)
-
     return repository
       .createQueryBuilder('wiki')
+      .innerJoinAndSelect('wiki.user', 'user')
+      .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect('wiki.categories', 'category')
       .where(
         'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
         {

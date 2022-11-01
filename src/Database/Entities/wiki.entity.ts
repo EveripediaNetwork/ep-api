@@ -111,12 +111,12 @@ class Wiki {
   images!: Image[]
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, { lazy: true })
+  @ManyToMany(() => Tag, { eager: true })
   @JoinTable()
   tags!: Tag[]
 
   @Field(() => [Category])
-  @ManyToMany(() => Category, { lazy: true })
+  @ManyToMany(() => Category, { eager: true })
   @JoinTable()
   categories!: Category[]
 
