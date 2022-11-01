@@ -2,6 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
+import { getWikiSummary } from '../utils/getWikiSummary'
 import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
@@ -48,10 +49,16 @@ class PinService {
     const wiki: ValidWiki = JSON.parse(body)
     const data = await this.metadataChanges.removeEditMetadata(wiki)
 
-    const isDataValid = await this.validator.validate(data, true)
+    const summary = getWikiSummary(data)
+    const completeWiki = {
+      ...data,
+      summary,
+    }
+
+    const isDataValid = await this.validator.validate(completeWiki, true)
 
     if (!isDataValid.status) {
-      this.pinJSONErrorWebhook.postException(isDataValid.message, data)
+      this.pinJSONErrorWebhook.postException(isDataValid.message, completeWiki)
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -62,7 +69,7 @@ class PinService {
     }
 
     const activityResult = await this.activityService.countUserActivity(
-      data.user.id,
+      completeWiki.user.id,
       72,
     )
 
@@ -78,10 +85,10 @@ class PinService {
 
     const payload = {
       pinataMetadata: {
-        name: data.content !== undefined ? data.title : 'image',
+        name: completeWiki.content !== undefined ? completeWiki.title : 'image',
       },
       pinataContent: {
-        ...data,
+        ...completeWiki,
       },
     }
     const pinToPinata = async (option: typeof payload) =>

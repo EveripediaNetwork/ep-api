@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
-import { WikiSummarySize } from "../../App/utils/getWikiSummary";
+import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
@@ -83,9 +84,10 @@ class IPFSValidatorService {
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (
-        validatingWiki.summary &&
-        validatingWiki.summary.length > WikiSummarySize.Small &&
-        validatingWiki.summary.length <= WikiSummarySize.Default || validateJSON
+        (validatingWiki.summary &&
+          validatingWiki.summary.length > WikiSummarySize.Small &&
+          validatingWiki.summary.length <= WikiSummarySize.Default) ||
+        validateJSON
       ) {
         return true
       }

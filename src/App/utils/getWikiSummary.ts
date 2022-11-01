@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import RemoveMarkdown from 'remove-markdown'
-import Wiki from '../../Database/Entities/wiki.entity'
+import { ValidWiki } from '../../Indexer/Store/store.service'
 
 export const shortenText = (text: string, length: number) =>
   text?.length > length ? `${text.substring(0, length)}...` : text
@@ -13,7 +13,7 @@ export enum WikiSummarySize {
 }
 
 export const getWikiSummary = (
-  wiki: Wiki,
+  wiki: ValidWiki,
   size: WikiSummarySize = WikiSummarySize.Big || WikiSummarySize.Default,
 ) => {
   if (wiki.summary) return shortenText(wiki.summary, size)

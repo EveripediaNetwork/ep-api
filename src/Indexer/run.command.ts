@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
