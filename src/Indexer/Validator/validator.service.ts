@@ -1,6 +1,7 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
+import { WikiSummarySize } from "../../App/utils/getWikiSummary";
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
@@ -80,16 +81,17 @@ class IPFSValidatorService {
       return false
     }
 
-    // const checkSummary = (validatingWiki: ValidWiki) => {
-    //   if (
-    //     (validatingWiki.summary && validatingWiki.summary.length <= 255) ||
-    //     validateJSON
-    //   ) {
-    //     return true
-    //   }
-    //   message = ValidatorCodes.SUMMARY
-    //   return false
-    // }
+    const checkSummary = (validatingWiki: ValidWiki) => {
+      if (
+        validatingWiki.summary &&
+        validatingWiki.summary.length > WikiSummarySize.Small &&
+        validatingWiki.summary.length <= WikiSummarySize.Default || validateJSON
+      ) {
+        return true
+      }
+      message = ValidatorCodes.SUMMARY
+      return false
+    }
 
     const checkImages = (validatingWiki: ValidWiki) => {
       if (
@@ -210,7 +212,7 @@ class IPFSValidatorService {
       checkCategories(wiki) &&
       checkUser(wiki) &&
       checkTags(wiki) &&
-      //   checkSummary(wiki) &&
+      checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
