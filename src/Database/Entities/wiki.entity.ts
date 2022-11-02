@@ -32,7 +32,6 @@ class Wiki {
   @PrimaryColumn('varchar', {
     length: 255,
   })
-  @Index('idx_wiki_id')
   id!: string
 
   @Field()

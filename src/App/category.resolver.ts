@@ -49,27 +49,9 @@ class CategoryResolver {
     return repository.findOne(id)
   }
 
-  @ResolveField()
-  async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
-    const { id } = category
-    const repository = this.connection.getRepository(Wiki)
-
-    return repository
-      .createQueryBuilder('wiki')
-      .where('wiki.hidden = false')
-      .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-        categoryId: id,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('wiki.updated', 'DESC')
-      .getMany()
-  }
-
   @Query(() => [Category])
   async categoryByTitle(@Args() args: TitleArgs) {
     const repository = this.connection.getRepository(Category)
-
     return repository
       .createQueryBuilder()
       .where(
@@ -80,6 +62,29 @@ class CategoryResolver {
       )
       .limit(10)
       .orderBy('weight', 'DESC')
+      .getMany()
+  }
+
+  @ResolveField()
+  async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
+    const { id } = category
+    const repository = this.connection.getRepository(Wiki)
+
+    return repository
+      .createQueryBuilder('wiki')
+      .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect(
+        'wiki.categories',
+        'category',
+        'category.id = :categoryId',
+        {
+          categoryId: id,
+        },
+      )
+      .where('wiki.hidden = false')
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('wiki.updated', 'DESC')
       .getMany()
   }
 }
