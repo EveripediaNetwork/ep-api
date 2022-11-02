@@ -90,11 +90,11 @@ class Wiki {
   summary!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language', { lazy: true })
+  @ManyToOne('Language', 'language', { eager: true })
   language!: Language
 
   @Field(() => User)
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', 'user', { eager: true })
   user!: User
 
   @Field(() => Author, { nullable: true })

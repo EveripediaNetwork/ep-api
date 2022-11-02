@@ -73,6 +73,8 @@ class CategoryResolver {
     return repository
       .createQueryBuilder('wiki')
       .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect('wiki.user', 'user')
+      .innerJoinAndSelect('wiki.language', 'language')
       .innerJoinAndSelect(
         'wiki.categories',
         'category',

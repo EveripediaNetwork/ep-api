@@ -63,6 +63,8 @@ class TagResolver {
 
     return repository
       .createQueryBuilder('wiki')
+      .innerJoinAndSelect('wiki.user', 'user')
+      .innerJoinAndSelect('wiki.language', 'language')
       .innerJoinAndSelect('wiki.categories', 'category')
       .innerJoinAndSelect('wiki.tags', 'tag', 'tag.id = :tagId', {
         tagId: id,
