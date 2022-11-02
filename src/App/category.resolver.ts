@@ -43,10 +43,10 @@ class CategoryResolver {
     })
   }
 
-  @Query(() => Category)
+  @Query(() => Category, { nullable: true })
   async categoryById(@Args('id', { type: () => String }) id: number) {
     const repository = this.connection.getRepository(Category)
-    return repository.findOneOrFail(id)
+    return repository.findOne(id)
   }
 
   @ResolveField()

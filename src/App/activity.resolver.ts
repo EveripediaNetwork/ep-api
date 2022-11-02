@@ -45,65 +45,87 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activities(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.language = '${args.lang}' AND w."hidden" = false`)
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
+    return repository.find({
+      relations: ['wiki'],
+      where: {
+        language: args.lang,
+        wiki: {
+          hidden: false,
+        },
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        datetime: 'DESC',
+      },
+    })
   }
 
   @Query(() => [Activity])
   async activitiesByWikId(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
+    return repository.find({
+      relations: ['wiki'],
+      where: {
+        wiki: {
+          id: args.wikiId,
+          hidden: false,
+        },
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        datetime: 'DESC',
+      },
+    })
   }
 
   @Query(() => [Activity])
   async activitiesByUser(@Args() args: ActivityArgsByUser) {
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(` activity.userId = :user AND w."hidden" = false`, {
+    return repository.find({
+      relations: ['wiki'],
+      where: {
         user: args.userId,
-      })
-      .orderBy('activity.datetime', 'DESC')
-      .limit(args.limit)
-      .offset(args.offset)
-      .getMany()
+        wiki: {
+          hidden: false,
+        },
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        datetime: 'DESC',
+      },
+    })
   }
 
   @Query(() => Activity)
   async activityById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.id = '${id}' AND w."hidden" = false`)
-      .getOne()
+    return repository.findOne({
+      relations: ['wiki'],
+      where: {
+        id,
+        wiki: {
+          hidden: false,
+        },
+      },
+    })
   }
 
   @Query(() => Activity)
   async activityByWikiIdAndBlock(@Args() args: ByIdAndBlockArgs) {
     const repository = this.connection.getRepository(Activity)
-    return repository
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
-      .andWhere(
-        `activity.language = '${args.lang}' AND activity.block = '${args.block}'`,
-      )
-      .getOne()
+    return repository.findOne({
+      relations: ['wiki'],
+      where: {
+        language: args.lang,
+        wiki: {
+          id: args.wikiId,
+          hidden: false,
+        },
+      },
+    })
   }
 
   @ResolveField(() => Author)
@@ -113,7 +135,7 @@ class ActivityResolver {
     const res = await repository.query(`SELECT "userId", u.* 
         FROM activity
         LEFT JOIN "user_profile" u ON u."id" = "userId"
-        WHERE "id" = '${id}' AND "type" = '0'`)
+        WHERE activity."id" = '${id}' AND "type" = '0'`)
     return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }

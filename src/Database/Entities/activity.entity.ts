@@ -3,6 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -37,15 +39,20 @@ class Activity {
   id!: string
 
   @Field(() => User)
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', 'user', { eager: true })
   user!: User
+
+  @Field(() => Wiki)
+  @ManyToOne('Wiki', 'wiki', { eager: true })
+  @JoinColumn()
+  wiki!: Wiki
 
   @Field()
   @Column('varchar')
   wikiId!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language', { lazy: true, nullable: true })
+  @ManyToOne('Language', 'language', { eager: true, nullable: true })
   language!: Language
 
   @Field(() => Int)
@@ -62,6 +69,7 @@ class Activity {
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
+  @Index('idx_activity_datetime')
   datetime!: Date
 
   @Field()

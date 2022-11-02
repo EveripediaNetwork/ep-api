@@ -11,6 +11,7 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
+  Index,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -22,7 +23,7 @@ import Metadata from './metadata.entity'
 import Media from './media.entity'
 import Image from './image.entity'
 import { Author } from './types/IUser'
-import { dateMiddleware, summaryMiddleware } from './middlewares/wikiMiddleware'
+import dateMiddleware from './middlewares/wikiMiddleware'
 
 @ObjectType()
 @Entity()
@@ -31,10 +32,12 @@ class Wiki {
   @PrimaryColumn('varchar', {
     length: 255,
   })
+  @Index('idx_wiki_id')
   id!: string
 
   @Field()
   @Column()
+  @Index('idx_wiki_title')
   title!: string
 
   @Field()
@@ -83,8 +86,8 @@ class Wiki {
   @Column('text')
   content!: string
 
-  @Field({ middleware: [summaryMiddleware] })
-  @Column('varchar', { default: '' })
+  @Field()
+  @Column('varchar')
   summary!: string
 
   @Field(() => Language)
@@ -111,12 +114,12 @@ class Wiki {
   images!: Image[]
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, { lazy: true })
+  @ManyToMany(() => Tag, { eager: true })
   @JoinTable()
   tags!: Tag[]
 
   @Field(() => [Category])
-  @ManyToMany(() => Category, { lazy: true })
+  @ManyToMany(() => Category, { eager: true })
   @JoinTable()
   categories!: Category[]
 
