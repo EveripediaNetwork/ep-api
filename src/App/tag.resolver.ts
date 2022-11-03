@@ -47,7 +47,7 @@ class TagResolver {
     const repository = this.connection.getRepository(Tag)
     return repository
       .createQueryBuilder('tag')
-      .where('LOWER(tag.id) LIKE :id', {
+      .where('LOWER(tag.id) LIKE :id AND hidden = false', {
         id: `%${args.id.toLowerCase()}%`,
       })
       .limit(args.limit)
@@ -69,6 +69,7 @@ class TagResolver {
       .innerJoinAndSelect('wiki.tags', 'tag', 'tag.id = :tagId', {
         tagId: id,
       })
+      .where('wiki.hidden = false')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
