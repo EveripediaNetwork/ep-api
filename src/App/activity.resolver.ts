@@ -45,6 +45,15 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activities(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .where(`activity.language = '${args.lang}' AND w."hidden" = false`)
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
+    /*
     return repository.find({
       relations: ['wiki'],
       where: {
@@ -58,7 +67,7 @@ class ActivityResolver {
       order: {
         datetime: 'DESC',
       },
-    })
+    })*/
   }
 
   @Query(() => [Activity])
