@@ -17,15 +17,14 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
     request,
     context,
   }: GraphQLRequestContext | any): Promise<GraphQLRequestListener> {
-    const { query } = request
-    const methodName = query.match(/[{]\s+(\w+)/)
-    const [, name] = methodName
+    // const { query } = request
+    // const methodName = query.match(/{\n.+\s((\s?\w+))((\()|(\n)|( ))/)
 
     const transaction = this.sentry.instance().startTransaction({
       op: 'gql',
       name: request.operationName
         ? `GraphQLTransaction /${request.operationName}`
-        : `Graphql: ${name || 'Unknown Query/Mutation'}`,
+        : `graphql: query`,
     })
 
     this.sentry

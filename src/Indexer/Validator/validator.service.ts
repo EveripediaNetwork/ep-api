@@ -1,8 +1,6 @@
-/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
-import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
@@ -82,17 +80,16 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkSummary = (validatingWiki: ValidWiki) => {
-      if (
-        (validatingWiki.summary &&
-          validatingWiki.summary.length <= WikiSummarySize.Default) ||
-        validateJSON
-      ) {
-        return true
-      }
-      message = ValidatorCodes.SUMMARY
-      return false
-    }
+    // const checkSummary = (validatingWiki: ValidWiki) => {
+    //   if (
+    //     (validatingWiki.summary && validatingWiki.summary.length <= 255) ||
+    //     validateJSON
+    //   ) {
+    //     return true
+    //   }
+    //   message = ValidatorCodes.SUMMARY
+    //   return false
+    // }
 
     const checkImages = (validatingWiki: ValidWiki) => {
       if (
@@ -101,9 +98,7 @@ class IPFSValidatorService {
       ) {
         let result = true
         validatingWiki.images.forEach(image => {
-          const keys = Object.keys(image)
-          const key = keys.includes('id') && keys.includes('type')
-          result = key && image.id.length === 46 && image.type.includes('image')
+          result = image.id.length === 46 && image.type.includes('image')
         })
         if (!result) {
           message = ValidatorCodes.IMAGE
@@ -213,7 +208,7 @@ class IPFSValidatorService {
       checkCategories(wiki) &&
       checkUser(wiki) &&
       checkTags(wiki) &&
-      checkSummary(wiki) &&
+      //   checkSummary(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&

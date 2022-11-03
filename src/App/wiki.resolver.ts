@@ -131,17 +131,9 @@ class WikiResolver {
     const repository = this.connection.getRepository(Wiki)
     return repository
       .createQueryBuilder('wiki')
-      .innerJoinAndSelect('wiki.user', 'user')
-      .innerJoinAndSelect('wiki.tags', 'tag')
-      .innerJoinAndSelect('wiki.language', 'language')
-      .innerJoinAndSelect(
-        'wiki.categories',
-        'category',
-        'category.id = :categoryId',
-        {
-          categoryId: args.category,
-        },
-      )
+      .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+        categoryId: args.category,
+      })
       .where('wiki.language = :lang AND hidden = :status', {
         lang: args.lang,
         status: false,
@@ -155,12 +147,9 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikisByTitle(@Args() args: TitleArgs) {
     const repository = this.connection.getRepository(Wiki)
+
     return repository
       .createQueryBuilder('wiki')
-      .innerJoinAndSelect('wiki.user', 'user')
-      .innerJoinAndSelect('wiki.tags', 'tag')
-      .innerJoinAndSelect('wiki.language', 'language')
-      .innerJoinAndSelect('wiki.categories', 'category')
       .where(
         'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
         {
@@ -208,13 +197,13 @@ class WikiResolver {
     })
   }
 
-  @Mutation(() => Wiki, { nullable: true })
+  @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
   async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOne(args.id)
+    const wiki = await repository.findOneOrFail(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -222,21 +211,19 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    if (wiki) {
-      await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
-      this.eventEmitter.emit('admin.action', `${cacheId}`)
-    }
+    await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
 
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
-  @Mutation(() => Wiki, { nullable: true })
+  @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
   async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOne(args.id)
+    const wiki = await repository.findOneOrFail(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -244,26 +231,24 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    if (wiki) {
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.HIDE_WIKI,
-        undefined,
-        wiki.id,
-        wiki.promoted,
-      )
-      this.eventEmitter.emit('admin.action', `${cacheId}`)
-    }
+    await this.revalidate.revalidatePage(
+      RevalidateEndpoints.HIDE_WIKI,
+      undefined,
+      wiki.id,
+      wiki.promoted,
+    )
 
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 
-  @Mutation(() => Wiki, { nullable: true })
+  @Mutation(() => Wiki)
   @UseGuards(AuthGuard)
   async unhideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOne(args.id)
+    const wiki = await repository.findOneOrFail(args.id)
     await repository
       .createQueryBuilder()
       .update(Wiki)
@@ -271,16 +256,13 @@ class WikiResolver {
       .where('id = :id', { id: args.id })
       .execute()
 
-    if (wiki) {
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.HIDE_WIKI,
-        undefined,
-        wiki.id,
-        wiki.promoted,
-      )
-      this.eventEmitter.emit('admin.action', `${cacheId}`)
-    }
-
+    await this.revalidate.revalidatePage(
+      RevalidateEndpoints.HIDE_WIKI,
+      undefined,
+      wiki.id,
+      wiki.promoted,
+    )
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
     return wiki
   }
 

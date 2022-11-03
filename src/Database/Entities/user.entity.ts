@@ -2,7 +2,6 @@
 import {
   Column,
   Entity,
-  Index,
   JoinColumn,
   OneToMany,
   OneToOne,
@@ -18,7 +17,6 @@ import UserProfile from './userProfile.entity'
 
 @ObjectType()
 @Entity()
-@Index("idx_lower_user_id", { synchronize: false })
 class User implements IUser {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
@@ -27,7 +25,7 @@ class User implements IUser {
   id!: string
 
   @Field(() => UserProfile, { nullable: true })
-  @OneToOne(() => UserProfile)
+  @OneToOne(() => UserProfile, { eager: true })
   @JoinColumn()
   profile!: UserProfile
 

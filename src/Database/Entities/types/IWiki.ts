@@ -4,9 +4,6 @@
 export interface IWiki {
   id: number
   title: string
-  user: {
-    id: string
-  }
 }
 
 export enum ValidatorCodes {

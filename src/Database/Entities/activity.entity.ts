@@ -3,8 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
-  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -23,8 +21,8 @@ import User from './user.entity'
 import Language from './language.entity'
 
 export enum Status {
-  CREATED = '0',
-  UPDATED = '1',
+  CREATED,
+  UPDATED,
 }
 
 registerEnumType(Status, {
@@ -33,7 +31,6 @@ registerEnumType(Status, {
 
 @ObjectType()
 @Entity()
-@Index("idx_lower_activity_id", { synchronize: false })
 class Activity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -43,17 +40,11 @@ class Activity {
   @ManyToOne('User', 'user', { lazy: true })
   user!: User
 
-  @Field(() => Wiki)
-  @ManyToOne('Wiki', 'wiki', { lazy: true })
-  @JoinColumn()
-  wiki!: Wiki
-
   @Field()
   @Column('varchar')
   wikiId!: string
 
   @Field(() => Language)
-  @Index('idx_activity_language')
   @ManyToOne('Language', 'language', { lazy: true, nullable: true })
   language!: Language
 
@@ -71,7 +62,6 @@ class Activity {
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
-  @Index('idx_activity_datetime')
   datetime!: Date
 
   @Field()

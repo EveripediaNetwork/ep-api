@@ -99,23 +99,23 @@ class UserResolver {
     return true
   }
 
-  @Mutation(() => User, { nullable: true })
+  @Mutation(() => User)
   @UseGuards(AuthGuard)
   async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(User)
-    const user = await repository.findOne({
+    const user = await repository.findOneOrFail({
       where: `LOWER("User".id) = '${args.id.toLowerCase()}'`,
     })
     await repository
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
-      .where({ id: user?.id })
+      .where({ id: user.id })
       .execute()
 
-    if (user) this.eventEmitter.emit('admin.action', `${cacheId}`)
+    this.eventEmitter.emit('admin.action', `${cacheId}`)
 
     return user
   }

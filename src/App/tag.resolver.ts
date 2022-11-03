@@ -47,7 +47,7 @@ class TagResolver {
     const repository = this.connection.getRepository(Tag)
     return repository
       .createQueryBuilder('tag')
-      .where('LOWER(tag.id) LIKE :id AND hidden = false', {
+      .where('LOWER(tag.id) LIKE :id', {
         id: `%${args.id.toLowerCase()}%`,
       })
       .limit(args.limit)
@@ -63,13 +63,9 @@ class TagResolver {
 
     return repository
       .createQueryBuilder('wiki')
-      .innerJoinAndSelect('wiki.user', 'user')
-      .innerJoinAndSelect('wiki.language', 'language')
-      .innerJoinAndSelect('wiki.categories', 'category')
-      .innerJoinAndSelect('wiki.tags', 'tag', 'tag.id = :tagId', {
+      .innerJoin('wiki.tags', 'tag', 'tag.id = :tagId', {
         tagId: id,
       })
-      .where('wiki.hidden = false')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')

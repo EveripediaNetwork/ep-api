@@ -113,31 +113,55 @@ describe('PinResolver', () => {
     expect(ipfsValidatorService).toBeDefined()
   })
 
+  //   it('should throw summary error, summary exceeded limit', async () => {
+  //     const wiki = {
+  //       ...testWiki,
+  //       summary:
+  //         'Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\, Polygon...........Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\,',
+  //     }
+  //     expect(
+  //       await ipfsValidatorService.validate(
+  //         wiki,
+  //         false,
+  //         '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
+  //       ),
+  //     ).toEqual({
+  //       status: false,
+  //       message: ValidatorCodes.SUMMARY,
+  //     })
+  //   })
+
+  //   it('should throw summary error, wiki ID has exceeded the limit', async () => {
+  //     const wiki = {
+  //       ...testWiki,
+  //       id: 'Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. ',
+  //     }
+  //     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+  //       status: false,
+  //       message: ValidatorCodes.ID,
+  //     })
+  //   })
+
+  //   it('should throw summary error, wiki ID has exceeded the limit', async () => {
+  //     const wiki = {
+  //       ...testWiki,
+  //       summary: '',
+  //     }
+  //     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  //   })
+
   it('should return status true for a valid wiki', async () => {
     expect(await ipfsValidatorService.validate(testWiki, true)).toEqual(result)
   })
 
-  it('should return status false if wiki ID is not a valid slug', async () => {
-    const wiki = {
-      ...testWiki,
-      id: 'komainu-(company)',
-    }
-
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.ID,
-    })
-  })
-
-  it('should throw ID error, wiki ID has exceeded the limit', async () => {
-    const wiki = {
-      ...testWiki,
-      id: 'Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. ',
-    }
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.ID,
-    })
+  it('should return status false for a wrong user id', async () => {
+    expect(
+      await ipfsValidatorService.validate(
+        testWiki,
+        false,
+        '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
+      ),
+    ).toEqual({ status: false, message: ValidatorCodes.USER })
   })
 
   it('should return status false for a low word count', async () => {
@@ -151,79 +175,6 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should return status false for a wrong user id', async () => {
-    expect(
-      await ipfsValidatorService.validate(
-        testWiki,
-        false,
-        '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-      ),
-    ).toEqual({ status: false, message: ValidatorCodes.USER })
-  })
-
-  it('should throw summary error, summary exceeded limit', async () => {
-    const wiki = {
-      ...testWiki,
-      summary:
-        'Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\, Polygon...........Mihailo Bjelic is a Co\\-Founder at Polygon \\(Matic Network\\)\\. \\[2\\] \\[3\\] Led by Bjelic along with Jaynti Kanani\\, Anurag Arjun\\, and Sandeep Nailwal\\,',
-    }
-    expect(
-      await ipfsValidatorService.validate(
-        wiki,
-        false,
-        '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
-      ),
-    ).toEqual({
-      status: false,
-      message: ValidatorCodes.SUMMARY,
-    })
-  })
-
-  it('should return status false if wiki image is null or not a valid hash', async () => {
-    const wiki = {
-      ...oldWiki,
-      images: [
-        {
-          id: '',
-          type: 'image/jpeg, image/png',
-        },
-      ],
-    }
-
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
-      status: false,
-      message: ValidatorCodes.IMAGE,
-    })
-  })
-
-  it('should return status false if wiki image keys are incorrect, expects ID and TYPE', async () => {
-    const wiki = {
-      ...oldWiki,
-      images: [
-        {
-          name: '',
-          type: 'image/jpeg, image/png',
-        },
-      ],
-    }
-
-    expect(
-      await ipfsValidatorService.validate(wiki as unknown as ValidWiki, true),
-    ).toEqual({
-      status: false,
-      message: ValidatorCodes.IMAGE,
-    })
-  })
-
-  it('should return status true for wiki content having expected URLs', async () => {
-    const wiki: ValidWiki = {
-      ...testWiki,
-      content:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rutrum tortor id fringilla ullamcorper. Mauris [VIDEO](https://www.youtube.com/fjdgjj) vitae enim turpis. Vivamus sed efficitur odio. Nullam consectetur malesuada purus, eget posuere massa. Morbi efficitur, mauris eget pharetra sollicitudin, nisl enim faucibus dolor, a semper risus leo suscipit ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi dignissim suscipit augue vitae tempus. Nunc egestas dapibus elit eu auctor. Aenean ut sapien ante. Cras et lobortis dui.  \nLorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut convallis ante. Proin ex [VIDEO](https://www.vimeo.com/jsdfgjdf) ex, placerat eget aliquet ut, molestie ut nibh. Suspendisse malesuada metus quam, ut feugiat sapien feugiat vitae. Donec ac urna ligula. Integer vitae ipsum convallis metus mollis maximus. Maecenas risus felis, fringilla ut eleifend eu, egestas at leo.  \nCras quis sem sit amet eros posuere dictum sit amet at orci. Vestibulum nec efficitur nisi, vitae facilisis felis. Donec elementum sem ut varius volutpat. Suspendisse potenti. Nunc laoreet maximus facilisis. Suspendisse pellentesque pharetra nisi. Praesent pharetra lectus sit amet sapien facilisis molestie. Nam consequat commodo tellus suscipit maximus. Nullam id lorem augue. Donec eget lobortis diam. Curabitur eleifend elit sed consequat vestibulum. Nulla ante ligula, molestie sed ante ac, mattis sollicitudin nulla. Fusce id lobortis eros, et ultricies metus.  \nMauris odio nibh, maximus at magna sollicitudin, accumsan viverra felis. Nullam et metus pharetra, sagittis justo vitae, [IMAGE](https://ipfs.everipedia.org/ipfs/jdfjf) tempor orci. Donec ut orci at mauris fermentum fringilla ac vitae ipsum. Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. Pellentesque mattis, ligula quis posuere bibendum, augue mauris porta dolor, vitae interdum urna massa non nunc. Maecenas faucibus pulvinar augue, non efficitur elit semper et. Aenean efficitur purus id est malesuada vulputate. Cras facilisis elit semper rutrum aliquam. Vestibulum lorem metus, rutrum eget facilisis in, vestibulum id tortor. Aliquam et imperdiet lectus. Sed ultrices sapien purus, suscipit aliquet diam rhoncus non. Ut quis diam risus. Integer laoreet tellus ligula, quis eleifend lorem placerat at.',
-    }
-    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
-  })
-
   it('should return status false for wiki content having external URLs', async () => {
     const wiki: ValidWiki = {
       ...testWiki,
@@ -234,6 +185,15 @@ describe('PinResolver', () => {
       status: false,
       message: ValidatorCodes.URL,
     })
+  })
+
+  it('should return status true for wiki content having expected URLs', async () => {
+    const wiki: ValidWiki = {
+      ...testWiki,
+      content:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rutrum tortor id fringilla ullamcorper. Mauris [VIDEO](https://www.youtube.com/fjdgjj) vitae enim turpis. Vivamus sed efficitur odio. Nullam consectetur malesuada purus, eget posuere massa. Morbi efficitur, mauris eget pharetra sollicitudin, nisl enim faucibus dolor, a semper risus leo suscipit ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi dignissim suscipit augue vitae tempus. Nunc egestas dapibus elit eu auctor. Aenean ut sapien ante. Cras et lobortis dui.  \nLorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut convallis ante. Proin ex [VIDEO](https://www.vimeo.com/jsdfgjdf) ex, placerat eget aliquet ut, molestie ut nibh. Suspendisse malesuada metus quam, ut feugiat sapien feugiat vitae. Donec ac urna ligula. Integer vitae ipsum convallis metus mollis maximus. Maecenas risus felis, fringilla ut eleifend eu, egestas at leo.  \nCras quis sem sit amet eros posuere dictum sit amet at orci. Vestibulum nec efficitur nisi, vitae facilisis felis. Donec elementum sem ut varius volutpat. Suspendisse potenti. Nunc laoreet maximus facilisis. Suspendisse pellentesque pharetra nisi. Praesent pharetra lectus sit amet sapien facilisis molestie. Nam consequat commodo tellus suscipit maximus. Nullam id lorem augue. Donec eget lobortis diam. Curabitur eleifend elit sed consequat vestibulum. Nulla ante ligula, molestie sed ante ac, mattis sollicitudin nulla. Fusce id lobortis eros, et ultricies metus.  \nMauris odio nibh, maximus at magna sollicitudin, accumsan viverra felis. Nullam et metus pharetra, sagittis justo vitae, [IMAGE](https://ipfs.everipedia.org/ipfs/jdfjf) tempor orci. Donec ut orci at mauris fermentum fringilla ac vitae ipsum. Duis quis turpis vitae sem dignissim porta at elementum tortor. Integer eget accumsan nisl. Morbi bibendum quam a tincidunt sagittis. Pellentesque mattis, ligula quis posuere bibendum, augue mauris porta dolor, vitae interdum urna massa non nunc. Maecenas faucibus pulvinar augue, non efficitur elit semper et. Aenean efficitur purus id est malesuada vulputate. Cras facilisis elit semper rutrum aliquam. Vestibulum lorem metus, rutrum eget facilisis in, vestibulum id tortor. Aliquam et imperdiet lectus. Sed ultrices sapien purus, suscipit aliquet diam rhoncus non. Ut quis diam risus. Integer laoreet tellus ligula, quis eleifend lorem placerat at.',
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
   it('should return status true for wiki content having expected URLs and parantheses in markdown title', async () => {
@@ -289,6 +249,35 @@ describe('PinResolver', () => {
       ...oldWiki,
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
+
+  it('should return status false if wiki image is null or not a valid hash', async () => {
+    const wiki = {
+      ...oldWiki,
+      images: [
+        {
+          id: '',
+          type: 'image/jpeg, image/png',
+        },
+      ],
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.IMAGE,
+    })
+  })
+
+  it('should return status false if wiki ID is not a valid slug', async () => {
+    const wiki = {
+      ...testWiki,
+      id: 'komainu-(company)',
+    }
+
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.ID,
+    })
   })
 
   it('should return status true for valid media', async () => {
