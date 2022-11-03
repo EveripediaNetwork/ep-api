@@ -38,6 +38,7 @@ export const skipMiddleware: FieldMiddleware = async (
 
 @ObjectType()
 @Entity()
+@Index("idx_lower_user_profile_id", { synchronize: false })
 class UserProfile {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
