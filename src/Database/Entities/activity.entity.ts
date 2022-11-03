@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
@@ -46,6 +47,7 @@ class Activity {
 
   @Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true, nullable: true })
+  @Index('idx_activity_languageId')
   language!: Language
 
   @Field(() => Int)
@@ -62,6 +64,7 @@ class Activity {
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
+  @Index('idx_activity_datetime')
   datetime!: Date
 
   @Field()

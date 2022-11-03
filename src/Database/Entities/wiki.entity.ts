@@ -11,6 +11,7 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
+  Index,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -39,6 +40,7 @@ class Wiki {
 
   @Field()
   @Column('boolean', { default: false })
+  @Index('idx_wiki_hidden')
   hidden!: boolean
 
   @Field(() => GraphQLISODateTime, {
