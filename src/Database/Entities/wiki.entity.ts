@@ -90,7 +90,7 @@ class Wiki {
   summary!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language', { eager: true })
+  @ManyToOne('Language', 'language')
   language!: Language
 
   @Field(() => User)
@@ -113,12 +113,12 @@ class Wiki {
   images!: Image[]
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, { eager: true })
+  @ManyToMany(() => Tag)
   @JoinTable()
   tags!: Tag[]
 
   @Field(() => [Category])
-  @ManyToMany(() => Category, { eager: true })
+  @ManyToMany(() => Category)
   @JoinTable()
   categories!: Category[]
 
