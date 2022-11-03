@@ -17,6 +17,7 @@ import UserProfile from './userProfile.entity'
 
 @ObjectType()
 @Entity()
+@Index("idx_lower_user_id", { synchronize: false })
 class User implements IUser {
   @Field(() => ID)
   @PrimaryColumn('varchar', {
