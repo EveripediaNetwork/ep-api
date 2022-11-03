@@ -66,6 +66,7 @@ class TagResolver {
       .innerJoin('wiki.tags', 'tag', 'tag.id = :tagId', {
         tagId: id,
       })
+      .where('wiki.hidden = false')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
