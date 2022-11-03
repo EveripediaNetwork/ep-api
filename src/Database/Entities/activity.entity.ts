@@ -40,7 +40,7 @@ class Activity {
   id!: string
 
   @Field(() => User)
-  @ManyToOne('User', 'user', { eager: true })
+  @ManyToOne('User', 'user', { lazy: true })
   user!: User
 
   @Field(() => Wiki)
@@ -54,7 +54,7 @@ class Activity {
 
   @Field(() => Language)
   @Index('idx_activity_language')
-  @ManyToOne('Language', 'language', { eager: true, nullable: true })
+  @ManyToOne('Language', 'language', { lazy: true, nullable: true })
   language!: Language
 
   @Field(() => Int)
