@@ -8,6 +8,7 @@ import DBStoreService, { ValidWiki } from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import MetadataChangesService from './Store/metadataChanges.service'
+import { getWikiSummary } from '../App/utils/getWikiSummary'
 
 interface CommandOptions {
   unixtime: number
@@ -69,7 +70,14 @@ class RunCommand implements CommandRunner {
     for (const hash of hashes) {
       try {
         const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
-        const completeWiki = await this.metaChanges.appendMetadata(content)
+        const computedMetadata = await this.metaChanges.appendMetadata(content)
+        const addedSummary = await getWikiSummary(computedMetadata)
+
+        const completeWiki = {
+          ...computedMetadata,
+          summary: addedSummary,
+        }
+
         const stat = await this.validator.validate(
           completeWiki,
           false,

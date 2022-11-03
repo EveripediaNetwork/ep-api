@@ -28,8 +28,11 @@ export default function UserDirectiveTransformer(
           )
 
           const result = await resolve(source, args, context, info)
-
-          if (info.path.prev?.key === 'getProfile' && !id) {
+          if (
+            (info.path.prev?.key === 'getProfile' ||
+              info.path.prev?.key === 'profile') &&
+            !id
+          ) {
             return null
           }
           return result
