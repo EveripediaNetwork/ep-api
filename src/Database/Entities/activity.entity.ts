@@ -33,6 +33,7 @@ registerEnumType(Status, {
 
 @ObjectType()
 @Entity()
+@Index("idx_lower_activity_id", { synchronize: false })
 class Activity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
