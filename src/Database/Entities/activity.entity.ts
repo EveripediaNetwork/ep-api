@@ -23,8 +23,8 @@ import User from './user.entity'
 import Language from './language.entity'
 
 export enum Status {
-  CREATED,
-  UPDATED,
+  CREATED = '0',
+  UPDATED = '1',
 }
 
 registerEnumType(Status, {

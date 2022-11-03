@@ -79,7 +79,7 @@ class RunCommand implements CommandRunner {
           ...computedMetadata,
           summary: addedSummary,
         }
-        console.log(completeWiki)
+
         const stat = await this.validator.validate(
           completeWiki,
           false,

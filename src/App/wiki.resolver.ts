@@ -133,6 +133,7 @@ class WikiResolver {
       .createQueryBuilder('wiki')
       .innerJoinAndSelect('wiki.user', 'user')
       .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect('wiki.language', 'language')
       .innerJoinAndSelect(
         'wiki.categories',
         'category',
@@ -158,6 +159,7 @@ class WikiResolver {
       .createQueryBuilder('wiki')
       .innerJoinAndSelect('wiki.user', 'user')
       .innerJoinAndSelect('wiki.tags', 'tag')
+      .innerJoinAndSelect('wiki.language', 'language')
       .innerJoinAndSelect('wiki.categories', 'category')
       .where(
         'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
