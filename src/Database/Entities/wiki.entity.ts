@@ -90,7 +90,7 @@ class Wiki {
   summary!: string
 
   @Field(() => Language)
-  @ManyToOne('Language', 'language')
+  @ManyToOne('Language', 'language', { lazy: true })
   language!: Language
 
   @Field(() => User)
@@ -113,12 +113,12 @@ class Wiki {
   images!: Image[]
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag)
+  @ManyToMany(() => Tag, { lazy: true })
   @JoinTable()
   tags!: Tag[]
 
   @Field(() => [Category])
-  @ManyToMany(() => Category)
+  @ManyToMany(() => Category, { lazy: true })
   @JoinTable()
   categories!: Category[]
 
