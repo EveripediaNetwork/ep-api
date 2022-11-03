@@ -44,7 +44,7 @@ class Activity {
   user!: User
 
   @Field(() => Wiki)
-  @ManyToOne('Wiki', 'wiki', { eager: true })
+  @ManyToOne('Wiki', 'wiki', { lazy: true })
   @JoinColumn()
   wiki!: Wiki
 
