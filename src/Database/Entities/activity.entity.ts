@@ -52,6 +52,7 @@ class Activity {
   wikiId!: string
 
   @Field(() => Language)
+  @Index('idx_activity_language')
   @ManyToOne('Language', 'language', { eager: true, nullable: true })
   language!: Language
 
