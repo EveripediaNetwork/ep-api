@@ -1,5 +1,5 @@
 import { registerEnumType } from '@nestjs/graphql'
-import { getConnection } from 'typeorm'
+import { getConnection, Raw } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 
 export enum OrderBy {
@@ -54,19 +54,23 @@ export const queryWikisCreated = async (
 ): Promise<Activity[] | undefined> => {
   const { id } = user
   const repository = getConnection().getRepository(Activity)
-
-  return repository
-    .createQueryBuilder('activity')
-    .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .where(
-      `LOWER(activity.userId) = '${id?.toLowerCase()}' AND w."hidden" = false`,
-    )
-    .andWhere("activity.type = '0'")
-    .groupBy('activity.wikiId, activity.id')
-    .limit(limit)
-    .offset(offset)
-    .orderBy('datetime', 'DESC')
-    .getMany()
+  return repository.find({
+    relations: ['wiki'],
+    where: {
+      user: Raw(alias => `LOWER(${alias}) = :arg`, {
+        arg: id?.toLowerCase(),
+      }),
+      type: 0,
+      wiki: {
+        hidden: false,
+      },
+    },
+    take: limit,
+    skip: offset,
+    order: {
+      datetime: 'DESC',
+    },
+  })
 }
 
 export const queryWikisEdited = async (
@@ -81,7 +85,7 @@ export const queryWikisEdited = async (
         (
             SELECT "wikiId", Max(datetime) as MaxDate  
             FROM activity
-            WHERE type = '1' AND "activity"."userId" = '${id}'
+            WHERE type = '1' AND LOWER("activity"."userId") = '${id?.toLowerCase()}'
             GROUP BY "activity"."wikiId"
         ) r
         INNER JOIN "activity" d
