@@ -2,7 +2,6 @@ import {
   Args,
   ArgsType,
   Context,
-  Directive,
   Field,
   Mutation,
   Parent,
@@ -145,7 +144,6 @@ class UserResolver {
   }
 
   @ResolveField(() => UserProfile)
-  @Directive('@isUser')
   async profile(@Parent() user: IUser) {
     const { id } = user
     const repository = this.connection.getRepository(UserProfile)
