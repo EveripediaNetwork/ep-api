@@ -26,7 +26,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.5,
     integrations: [new Tracing.Integrations.Apollo()],
   })
   app.use(Sentry.Handlers.tracingHandler())
