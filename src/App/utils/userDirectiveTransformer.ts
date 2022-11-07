@@ -26,7 +26,6 @@ export default function UserDirectiveTransformer(
             source.id,
             true,
           )
-
           const result = await resolve(source, args, context, info)
           if (
             (info.path.prev?.key === 'getProfile' ||
