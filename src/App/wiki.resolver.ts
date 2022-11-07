@@ -155,7 +155,7 @@ class WikiResolver {
         {
           lang: args.lang,
           hidden: args.hidden,
-          title: `%${args.title.replace(/-/g, ' ').toLowerCase()}%`,
+          title: `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`,
         },
       )
       .limit(args.limit)
