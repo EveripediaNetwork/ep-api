@@ -8,9 +8,7 @@ import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Subscription)
 class WikiSubscriptionResolver {
-  constructor(
-    private wikiSubscriptionService: WikiSubscriptionService,
-  ) {}
+  constructor(private wikiSubscriptionService: WikiSubscriptionService) {}
 
   @Query(() => [Subscription])
   async wikiSubscriptions(
@@ -36,8 +34,11 @@ class WikiSubscriptionResolver {
     @Args() args: WikiSubscriptionArgs,
   ) {
     const { authorization } = context.req.headers
-    return this.wikiSubscriptionService.removeSub(authorization, args.userId, args)
-    
+    return this.wikiSubscriptionService.removeSub(
+      authorization,
+      args.userId,
+      args,
+    )
   }
 }
 
