@@ -5,6 +5,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
+import { SentryModule } from '@ntegral/nestjs-sentry'
+// import { ConfigModule , ConfigService } from '@ntegral/nestjs-config';
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -35,6 +37,7 @@ import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import WikiSubscriptionResolver from './subscriptions.resolver'
 import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
+import SentryPlugin from '../sentry/sentryPlugin'
 
 @Module({
   imports: [
@@ -48,7 +51,7 @@ import TokenValidator from './utils/validateToken'
       playground: true,
       cors: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({ req }),
+      context: ({ req, connection }) => ({ req, connection }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
       buildSchemaOptions: {
         directives: [
@@ -58,6 +61,16 @@ import TokenValidator from './utils/validateToken'
           }),
         ],
       },
+    }),
+    SentryModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (cfg: ConfigService) => ({
+        dsn: cfg.get('SENTRY_DSN'),
+        debug: true,
+        environment: 'dev' || 'production',
+        logLevels: ['debug'],
+      }),
+      inject: [ConfigService],
     }),
     httpModule(20000),
     EventEmitterModule.forRoot(),
@@ -90,6 +103,7 @@ import TokenValidator from './utils/validateToken'
     TokenValidator,
     WikiSubscriptionResolver,
     WikiSubscriptionService,
+    SentryPlugin,
   ],
 })
 class AppModule {

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
@@ -33,7 +34,12 @@ class GraphProviderService {
   async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash]> {
     // TODO: catch errors
     const reqUrl = this.configService.get('graphUrl')
-    const response = await request(reqUrl, query, { unixtime })
+    let response
+    try {
+      response = await request(reqUrl, query, { unixtime })
+    } catch (err: any) {
+      console.error('GRAPH ERROR', err.message)
+    }
     return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }
 }

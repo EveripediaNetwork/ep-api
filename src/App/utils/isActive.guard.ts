@@ -17,7 +17,7 @@ export default class IsActiveGuard implements CanActivate {
   private async authorizeUser(id: string) {
     const repository = this.connection.getRepository(User)
     const user = await repository.findOne({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
     })
 
     if (user?.active || !user) {

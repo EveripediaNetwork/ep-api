@@ -11,6 +11,7 @@ import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
 import { Source } from '../../Database/Entities/media.entity'
+import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 
 export type ValidatorResult = {
   status: boolean
@@ -82,7 +83,8 @@ class IPFSValidatorService {
 
     const checkSummary = (validatingWiki: ValidWiki) => {
       if (
-        (validatingWiki.summary && validatingWiki.summary.length <= 255) ||
+        (validatingWiki.summary &&
+          validatingWiki.summary.length <= WikiSummarySize.Default) ||
         validateJSON
       ) {
         return true
@@ -98,7 +100,9 @@ class IPFSValidatorService {
       ) {
         let result = true
         validatingWiki.images.forEach(image => {
-          result = image.id.length === 46 && image.type.includes('image')
+          const keys = Object.keys(image)
+          const key = keys.includes('id') && keys.includes('type')
+          result = key && image.id.length === 46 && image.type.includes('image')
         })
         if (!result) {
           message = ValidatorCodes.IMAGE

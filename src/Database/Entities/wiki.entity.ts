@@ -11,6 +11,7 @@ import {
   AfterLoad,
   AfterInsert,
   AfterUpdate,
+  Index,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -22,7 +23,7 @@ import Metadata from './metadata.entity'
 import Media from './media.entity'
 import Image from './image.entity'
 import { Author } from './types/IUser'
-import { dateMiddleware, summaryMiddleware } from './middlewares/wikiMiddleware'
+import dateMiddleware from './middlewares/wikiMiddleware'
 
 @ObjectType()
 @Entity()
@@ -39,6 +40,7 @@ class Wiki {
 
   @Field()
   @Column('boolean', { default: false })
+  @Index('idx_wiki_hidden')
   hidden!: boolean
 
   @Field(() => GraphQLISODateTime, {
@@ -83,8 +85,8 @@ class Wiki {
   @Column('text')
   content!: string
 
-  @Field({ middleware: [summaryMiddleware] })
-  @Column('varchar', { default: '' })
+  @Field()
+  @Column('varchar')
   summary!: string
 
   @Field(() => Language)

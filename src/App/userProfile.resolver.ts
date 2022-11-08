@@ -1,4 +1,4 @@
-import { HttpStatus, UseGuards, UseInterceptors } from '@nestjs/common'
+import { UseGuards, UseInterceptors } from '@nestjs/common'
 import {
   Args,
   ArgsType,
@@ -15,7 +15,6 @@ import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
-import { GqlError, ErrorTypes } from './errorHandling/errorHandler'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import IsActiveGuard from './utils/isActive.guard'
@@ -38,21 +37,13 @@ class UserProfileResolver {
     private userService: UserService,
   ) {}
 
-  @Query(() => UserProfile)
+  @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs) {
     const repository = this.connection.getRepository(UserProfile)
     const profile = await repository.findOne({
       where: `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
     })
-
-    if (!profile) {
-      throw new GqlError(
-        HttpStatus.NOT_FOUND,
-        'User profile does not exist',
-        ErrorTypes.NOT_FOUND,
-      )
-    }
-    return profile
+    return profile || null
   }
 
   @Query(() => [UserProfile])

@@ -2,7 +2,6 @@ import {
   Args,
   ArgsType,
   Context,
-  Directive,
   Field,
   Mutation,
   Parent,
@@ -76,7 +75,7 @@ class UserResolver {
     const repository = this.connection.getRepository(User)
     return repository
       .createQueryBuilder()
-      .where('LOWER(id) LIKE :id', {
+      .where('LOWER("User".id) LIKE :id', {
         id: `%${args.id.toLowerCase()}%`,
       })
       .limit(args.limit)
@@ -84,12 +83,12 @@ class UserResolver {
       .getMany()
   }
 
-  @Query(() => User)
+  @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
     const repository = this.connection.getRepository(User)
-    return repository.findOneOrFail({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    return repository.findOne({
+      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
     })
   }
 
@@ -99,23 +98,23 @@ class UserResolver {
     return true
   }
 
-  @Mutation(() => User)
+  @Mutation(() => User, { nullable: true })
   @UseGuards(AuthGuard)
   async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const repository = this.connection.getRepository(User)
-    const user = await repository.findOneOrFail({
-      where: `LOWER(id) = '${args.id.toLowerCase()}'`,
+    const user = await repository.findOne({
+      where: `LOWER("User".id) = '${args.id.toLowerCase()}'`,
     })
     await repository
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
-      .where({ id: user.id })
+      .where({ id: user?.id })
       .execute()
 
-    this.eventEmitter.emit('admin.action', `${cacheId}`)
+    if (user) this.eventEmitter.emit('admin.action', `${cacheId}`)
 
     return user
   }
@@ -145,7 +144,6 @@ class UserResolver {
   }
 
   @ResolveField(() => UserProfile)
-  @Directive('@isUser')
   async profile(@Parent() user: IUser) {
     const { id } = user
     const repository = this.connection.getRepository(UserProfile)
