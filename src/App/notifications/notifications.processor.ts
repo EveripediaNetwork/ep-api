@@ -1,30 +1,29 @@
-import {
-  //   OnGlobalQueueWaiting,
-  //   OnQueueProgress,
-  //   OnQueueWaiting,
-  Process,
-  Processor,
-} from '@nestjs/bull'
-import { Job } from 'bull'
+import { InjectQueue, OnQueueActive, Process, Processor } from '@nestjs/bull'
+import { Job, Queue } from 'bull'
+import { Connection } from 'typeorm'
+import Subscription from '../../Database/Entities/subscription.entity'
 
 @Processor('notifications')
 export default class NotificationsProcessor {
+  constructor(
+    @InjectQueue('notifications') private readonly notificationQueue: Queue,
+    private connection: Connection,
+  ) {}
+
   @Process('wikiUpdate')
-  async handleWikiUpdate(job: Job<unknown>) {
-    // let progress = 0
-    // for (let i = 0; i < 10; i += 1) {
-    //   await doSomething(job.data)
-    console.log(job)
-    //   progress += 1
-    //   await job.progress(progress)
-    // }
-    return {}
+  async handleWikiUpdate(job: Job) {
+    const repository = this.connection.getRepository(Subscription)
+    const emails = await repository.find({ auxiliaryId: job.data.id as string })
+    console.log(emails)
+    console.log(job.data)
+    return true
   }
 
-  //   @OnGlobalQueueWaiting()
-  //   onActive(job: Job) {
-  //     console.log(
-  //       `Processing job ${job.id} of type ${job.name} with data ${job.data}...`,
-  //     )
-  //   }
+  @OnQueueActive()
+  async onActive(job: Job) {
+    console.log(
+      `Processing job ${job.id} of type ${job.name} with data ${job.data}...`,
+    )
+    // await this.notificationQueue.empty()
+  }
 }

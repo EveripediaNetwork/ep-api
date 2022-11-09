@@ -152,7 +152,7 @@ class DBStoreService {
         const sendId = await this.httpService
           .post('http://localhost:7000/notifications/wiki-update', {
             id: wiki.id,
-            type: 'wiki'
+            type: 'wiki',
           })
           .toPromise()
         console.log(sendId)

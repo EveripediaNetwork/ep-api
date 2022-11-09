@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { Directive, Field, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
@@ -25,6 +25,14 @@ class Subscription {
     length: 255,
   })
   auxiliaryId!: string
+
+  @Directive('@isUser')
+  @Field({ nullable: true })
+  @Column('varchar', {
+    length: 255,
+    nullable: true,
+  })
+  email!: string
 }
 
 export default Subscription

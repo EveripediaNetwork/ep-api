@@ -46,7 +46,7 @@ class WikiSubscriptionService {
       return false
     }
     if (await this.findSub(args)) return true
-
+    console.log(args)
     const newSub = repository.create(args)
     return repository.save(newSub)
   }

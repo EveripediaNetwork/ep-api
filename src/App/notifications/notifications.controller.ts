@@ -3,8 +3,8 @@ import { Body, Controller, Injectable, Post } from '@nestjs/common'
 import { Queue } from 'bull'
 
 interface UpdateEvent {
-    id: string
-    type: string
+  id: string
+  type: string
 }
 
 @Injectable()
@@ -15,11 +15,12 @@ export default class NotificationsController {
   ) {}
 
   @Post('wiki-update')
-  async wikiUpdate(@Body() update: UpdateEvent ) {
-    console.log(update)
-    await this.notificationQueue.add('wikiUpdate', {
-      foo: 'here',
-    })
+  async wiki(@Body() update: UpdateEvent) {
+    // console.log(update)
+    const job = await this.notificationQueue.add('wikiUpdate', update)
+
+    console.log(job)
+
     return 'wiki id received successfully'
   }
 }

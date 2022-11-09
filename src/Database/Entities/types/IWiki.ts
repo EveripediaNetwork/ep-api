@@ -109,4 +109,7 @@ export class WikiSubscriptionArgs {
 
   @Field(() => String)
   auxiliaryId!: string
+
+  @Field(() => String)
+  email!: string
 }
