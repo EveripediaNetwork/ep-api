@@ -2,11 +2,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
-
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
-// import { ConfigModule , ConfigService } from '@ntegral/nestjs-config';
+import { BullModule } from '@nestjs/bull'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -38,6 +37,7 @@ import WikiSubscriptionResolver from './subscriptions.resolver'
 import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
+import NotificationsModule from './notifications/notifications.module'
 
 @Module({
   imports: [
@@ -72,6 +72,15 @@ import SentryPlugin from '../sentry/sentryPlugin'
       }),
       inject: [ConfigService],
     }),
+    BullModule.forRootAsync({
+      useFactory: () => ({
+        redis: {
+          host: 'localhost',
+          port: 6379,
+        },
+      }),
+    }),
+    NotificationsModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
     PinModule,
