@@ -1,3 +1,4 @@
+import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
@@ -81,6 +82,7 @@ import NotificationsModule from './notifications/notifications.module'
       }),
     }),
     NotificationsModule,
+    MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
     PinModule,

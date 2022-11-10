@@ -36,12 +36,12 @@ class ByIdAndBlockArgs extends ActivityArgs {
   @Field(() => Int)
   block!: number
 }
- 
+
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class ActivityResolver {
   constructor(private connection: Connection) {}
- 
+
   @Query(() => [Activity])
   async activities(@Args() args: ActivityArgs) {
     const repository = this.connection.getRepository(Activity)

@@ -17,9 +17,12 @@ export default class NotificationsController {
   @Post('wiki-update')
   async wiki(@Body() update: UpdateEvent) {
     // console.log(update)
-    const job = await this.notificationQueue.add('wikiUpdate', update)
+    // await this.notificationQueue.obliterate()
+    const job = await this.notificationQueue.add('wikiUpdate', update, {
+      delay: 10000,
+    })
 
-    console.log(job)
+    console.log(job.id)
 
     return 'wiki id received successfully'
   }
