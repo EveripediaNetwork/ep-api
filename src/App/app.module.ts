@@ -1,4 +1,4 @@
-import { MailerModule } from '@nestjs-modules/mailer';
+import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
@@ -39,6 +39,7 @@ import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import NotificationsModule from './notifications/notifications.module'
+import PgNotificationsQueue from './notifications/pgQueue'
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import NotificationsModule from './notifications/notifications.module'
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    PgNotificationsQueue,
   ],
   controllers: [],
   providers: [
