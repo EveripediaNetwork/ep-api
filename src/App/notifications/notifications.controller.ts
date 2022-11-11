@@ -11,9 +11,7 @@ interface UpdateEvent {
 @Injectable()
 @Controller('notifications')
 export default class NotificationsController {
-  constructor(
-    private configService: ConfigService,
-  ) {}
+  constructor(private configService: ConfigService) {}
 
   @Post('wiki-update')
   async wiki(@Body() update: UpdateEvent) {

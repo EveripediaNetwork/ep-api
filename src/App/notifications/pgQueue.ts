@@ -24,10 +24,7 @@ export default class PgNotificationsQueue implements OnModuleInit {
 
     boss.on('error', error => Logger.error(error))
     // await boss.subscribe(PgNotificationsQueue.queueName, 'any')
-    await boss.work(
-      PgNotificationsQueue.queueName,
-      this.handleWikiUpdate,
-    )
+    await boss.work(PgNotificationsQueue.queueName, this.handleWikiUpdate)
   }
 
   async handleWikiUpdate(job: any) {
