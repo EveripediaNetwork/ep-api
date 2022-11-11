@@ -1,6 +1,8 @@
 // TODO: add all types
 // right now only used ones are added
 
+import { ArgsType, Field } from '@nestjs/graphql'
+
 export interface IWiki {
   id: number
   title: string
@@ -96,3 +98,18 @@ export const WikiPossibleSocialsList = [
   CommonMetaIds.BSCSCAN_PROFILE,
   CommonMetaIds.OPTIMISTIC_ETHERSCAN_PROFILE,
 ]
+
+@ArgsType()
+export class WikiSubscriptionArgs {
+  @Field(() => String)
+  userId!: string
+
+  @Field(() => String)
+  notificationType!: string
+
+  @Field(() => String)
+  auxiliaryId!: string
+
+  @Field(() => String)
+  email!: string
+}

@@ -1,12 +1,11 @@
+import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
-
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
-// import { ConfigModule , ConfigService } from '@ntegral/nestjs-config';
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -34,8 +33,11 @@ import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
+import WikiSubscriptionResolver from './subscriptions.resolver'
+import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
+import PgNotificationsQueue from './notifications/pgQueue'
 
 @Module({
   imports: [
@@ -70,12 +72,14 @@ import SentryPlugin from '../sentry/sentryPlugin'
       }),
       inject: [ConfigService],
     }),
+    MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
     PinModule,
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    PgNotificationsQueue,
   ],
   controllers: [],
   providers: [
@@ -99,6 +103,8 @@ import SentryPlugin from '../sentry/sentryPlugin'
     WebhookHandler,
     AdminLogsInterceptor,
     TokenValidator,
+    WikiSubscriptionResolver,
+    WikiSubscriptionService,
     SentryPlugin,
   ],
 })

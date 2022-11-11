@@ -3,6 +3,7 @@ import {
   Args,
   ArgsType,
   Context,
+  Directive,
   Field,
   Mutation,
   Parent,
@@ -12,6 +13,7 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
+import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
@@ -103,6 +105,19 @@ class UserProfileResolver {
         LEFT JOIN "user" u on u."id" = "user_profile"."id"
         WHERE "user_profile"."id" = '${id}'`)
     return a[0].active
+  }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  @Directive('@isUser')
+  async wikiSubscriptions(@Parent() user: GetProfileArgs) {
+    const repository = this.connection.getRepository(Wiki)
+    const { id } = user
+    const subs = await repository.query(`
+        SELECT wiki.* FROM wiki
+        LEFT JOIN "subscription" s on s."auxiliaryId" = wiki.id
+        WHERE LOWER(s."userId") = '${id?.toLowerCase()}' AND s."notificationType" = 'wiki' 
+    `)
+    return subs
   }
 }
 
