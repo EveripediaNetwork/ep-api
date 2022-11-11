@@ -1,6 +1,7 @@
-import { InjectQueue } from '@nestjs/bull'
 import { Body, Controller, Injectable, Post } from '@nestjs/common'
-import { Queue } from 'bull'
+import PgBoss from 'pg-boss'
+import { ConfigService } from '@nestjs/config'
+import PgNotificationsQueue from './pgQueue'
 
 interface UpdateEvent {
   id: string
@@ -11,18 +12,22 @@ interface UpdateEvent {
 @Controller('notifications')
 export default class NotificationsController {
   constructor(
-    @InjectQueue('notifications') private readonly notificationQueue: Queue,
+    private configService: ConfigService,
   ) {}
 
   @Post('wiki-update')
   async wiki(@Body() update: UpdateEvent) {
-    // console.log(update)
-    // await this.notificationQueue.obliterate()
-    const job = await this.notificationQueue.add('wikiUpdate', update, {
-      delay: 10000,
+    const username = this.configService.get<string>('DATABASE_USERNAME')
+    const host = this.configService.get<string>('DATABASE_HOST')
+    const pass = this.configService.get<string>('DATABASE_PASS')
+    const dbName = this.configService.get<string>('DATABASE_NAME')
+    const boss = new PgBoss(`postgres://${username}:${pass}@${host}/${dbName}`)
+    await boss.start()
+    // await boss.clearStorage()
+    const job = await boss.publish(PgNotificationsQueue.queueName, {
+      payload: update,
     })
-
-    console.log(job.id)
+    console.log(job)
 
     return 'wiki id received successfully'
   }

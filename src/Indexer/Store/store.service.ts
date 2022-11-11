@@ -14,7 +14,7 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from '../../App/revalidatePage/revalidatePage.service'
-import Subscription from '../../Database/Entities/subscription.entity'
+// import Subscription from '../../Database/Entities/subscription.entity'
 
 export type ValidWiki = {
   id: string
@@ -68,7 +68,7 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
     const activityRepository = this.connection.getRepository(Activity)
-    const subsciptionRepository = this.connection.getRepository(Subscription)
+    // const subsciptionRepository = this.connection.getRepository(Subscription)
 
     let user = await userRepository.findOne(wiki.user.id)
     if (!user) {
@@ -110,9 +110,12 @@ class DBStoreService {
     }
 
     const existWiki = await wikiRepository.findOne(wiki.id)
-    const existSub = await subsciptionRepository.findOne({
-      auxiliaryId: wiki.id,
-    })
+
+    // TODO: check for subscriptions
+    // const existSub = await subsciptionRepository.findOne({
+    //   auxiliaryId: wiki.id,
+    // })
+
     const createActivity = (typ: Status) => {
       const resp = activityRepository.create({
         wikiId: wiki.id,
@@ -147,19 +150,20 @@ class DBStoreService {
       return resp
     }
 
-    if (existWiki && existWiki.content !== wiki.content && existSub) {
-      try {
-        const sendId = await this.httpService
-          .post('http://localhost:7000/notifications/wiki-update', {
-            id: wiki.id,
-            type: 'wiki',
-          })
-          .toPromise()
-        console.log(sendId)
-      } catch (e) {
-        console.log(e)
-      }
-    }
+    // TODO: POST update of any subscriptions
+    // if (existWiki && existWiki.content !== wiki.content && existSub) {
+    //   try {
+    //     const sendId = await this.httpService
+    //       .post('http://localhost:7000/notifications/wiki-update', {
+    //         id: wiki.id,
+    //         type: 'wiki',
+    //       })
+    //       .toPromise()
+    //     console.log(sendId)
+    //   } catch (e) {
+    //     console.log(e)
+    //   }
+    // }
 
     // TODO: store history and delete?
     if (existWiki) {

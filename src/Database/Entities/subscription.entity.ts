@@ -30,7 +30,6 @@ class Subscription {
   @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
-    nullable: true,
   })
   email!: string
 }
