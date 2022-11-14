@@ -81,6 +81,7 @@ import GqlThrottlerGuard from './utils/gqlThrottler'
       useFactory: (config: ConfigService) => ({
         ttl: config.get('THROTTLE_TTL'),
         limit: config.get('THROTTLE_LIMIT'),
+        ignoreUserAgents: [/googlebot/gi],
       }),
     }),
     MailerModule,
