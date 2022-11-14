@@ -35,7 +35,15 @@ async function bootstrap() {
   })
   app.set('trust proxy', 1)
 
-  app.use(Sentry.Handlers.tracingHandler())
+  app.use(
+    Sentry.Handlers.tracingHandler(),
+    rateLimit({
+      windowMs: configService.get<number>('THROTTLE_TTL'),
+      max: configService.get<number>('THROTTLE_LIMIT'),
+      message: async (request: any, response: any) =>
+        response.json({ message: 'You are being rate limited' }),
+    }),
+  )
 
   await app.listen(port || 5000)
 }

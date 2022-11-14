@@ -6,8 +6,6 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
-import { ThrottlerModule } from '@nestjs/throttler'
-import { APP_GUARD } from '@nestjs/core'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -40,7 +38,6 @@ import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import PgNotificationsQueue from './notifications/pgQueue'
-import GqlThrottlerGuard from './utils/gqlThrottler'
 
 @Module({
   imports: [
@@ -75,15 +72,7 @@ import GqlThrottlerGuard from './utils/gqlThrottler'
       }),
       inject: [ConfigService],
     }),
-    ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        ttl: config.get('THROTTLE_TTL'),
-        limit: config.get('THROTTLE_LIMIT'),
-        ignoreUserAgents: [/googlebot/gi],
-      }),
-    }),
+
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
@@ -95,10 +84,6 @@ import GqlThrottlerGuard from './utils/gqlThrottler'
   ],
   controllers: [],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: GqlThrottlerGuard,
-    },
     ConfigService,
     WikiResolver,
     LanguageResolver,
