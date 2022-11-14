@@ -8,9 +8,7 @@ export default class GqlThrottlerGuard extends ThrottlerGuard {
     console.log(req.ips)
     console.log(req.headers['x-forwarded-for'])
     console.log(req.connection.remoteAddress)
-    let otherIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-
-    return req.ips.length ? req.ips[0] : req.ip // individualize IP extraction to meet your own needs
+    return req.headers['x-forwarded-for'] || req.ip
   }
   getRequestResponse(context: ExecutionContext) {
     const gqlCtx = GqlExecutionContext.create(context)
