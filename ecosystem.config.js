@@ -10,7 +10,7 @@ module.exports = {
       ignore_watch: ["[\/\\]\./", "uploads"],
       restart_delay: 10000,
       watch_delay: 10000,
-      max_memory_restart: '1600M',
+      max_memory_restart: '2600M',
     },
     {
       name: 'indexer-service',
