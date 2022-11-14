@@ -5,8 +5,11 @@ import { ThrottlerGuard } from '@nestjs/throttler'
 @Injectable()
 export default class GqlThrottlerGuard extends ThrottlerGuard {
   protected getTracker(req: Record<string, any>): string {
-    return req.headers['x-forwarded-for'] || req.ip
+    console.log(req.headers['X-Forwarded-For'])
+    console.log(req.ip)
+    return req.headers['X-Forwarded-For'] || req.ip
   }
+
   getRequestResponse(context: ExecutionContext) {
     const gqlCtx = GqlExecutionContext.create(context)
     const ctx = gqlCtx.getContext()
