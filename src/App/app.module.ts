@@ -37,7 +37,6 @@ import WikiSubscriptionResolver from './subscriptions.resolver'
 import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
-import PgNotificationsQueue from './notifications/pgQueue'
 
 @Module({
   imports: [
@@ -80,7 +79,6 @@ import PgNotificationsQueue from './notifications/pgQueue'
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
-    PgNotificationsQueue,
   ],
   controllers: [],
   providers: [
