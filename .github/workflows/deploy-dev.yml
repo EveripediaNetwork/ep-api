@@ -1,0 +1,21 @@
+name: Deploy to Dev
+on: workflow_dispatch
+
+jobs:
+  deploy-to-prod:
+    name: deploy to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to development
+        uses: appleboy/ssh-action@master
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ep-api
+            git pull
+            yarn
+            yarn build
+            /home/ubuntu/.yarn/bin/pm2 update
