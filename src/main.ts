@@ -35,9 +35,7 @@ async function bootstrap() {
   })
   app.set('trust proxy', 1)
 
-  app.use(
-    Sentry.Handlers.tracingHandler(),
-  )
+  app.use(Sentry.Handlers.tracingHandler())
 
   await app.listen(port || 5000)
 }
