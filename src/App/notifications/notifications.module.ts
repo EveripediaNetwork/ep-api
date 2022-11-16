@@ -13,7 +13,7 @@ import NotificationsCommand from './notifications.command'
     }),
     DatabaseModule,
     httpModule(20000),
-    MailModule
+    MailModule,
   ],
   controllers: [],
   providers: [NotificationsCommand, MailService],

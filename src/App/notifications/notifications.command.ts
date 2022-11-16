@@ -39,27 +39,22 @@ class NotificationsCommand implements CommandRunner {
       console.log(
         `🔁 Running EmailSend on Loop, checking for new notifications! 🔁`,
       )
-
       await this.initiateEmailSend(newNotifications, loop)
     }
 
     for (const user of pending) {
       const repository = this.connection.getRepository(Subscription)
       try {
-        console.log(user)
         const stat = await this.mailer.sendIqUpdate(user.email)
-        if (stat || true) {
-          // TODO: Check status of email sent
+        if (stat)
           await repository
             .createQueryBuilder()
             .update(Subscription)
             .set({ pending: false })
             .where(user)
             .execute()
-          console.log('✅ Notification sent! ')
-        } else {
-          console.log(stat)
-        }
+        console.log('✅ Notification sent! ')
+
         await new Promise(r => setTimeout(r, SLEEP_TIME))
       } catch (ex) {
         console.error(ex)
