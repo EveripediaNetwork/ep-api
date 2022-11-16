@@ -32,6 +32,11 @@ class Subscription {
     length: 255,
   })
   email!: string
+
+  @Column('boolean', {
+    default: false,
+  })
+  pending!: boolean
 }
 
 export default Subscription
