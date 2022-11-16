@@ -10,9 +10,7 @@ interface UpdateEvent {
 @Injectable()
 @Controller('notifications')
 export default class NotificationsController {
-  constructor(
-    private connection: Connection,
-  ) {}
+  constructor(private connection: Connection) {}
 
   @Post('wiki-update')
   async wiki(@Body() update: UpdateEvent) {

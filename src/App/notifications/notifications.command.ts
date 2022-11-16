@@ -3,6 +3,7 @@ import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
 import Subscription from '../../Database/Entities/subscription.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
+import MailService from '../mailer/mail.service'
 
 interface CommandOptions {
   loop: boolean
@@ -17,7 +18,7 @@ const SLEEP_TIME_QUERY = 3000
   description: 'Send notifications to subscribed users',
 })
 class NotificationsCommand implements CommandRunner {
-  constructor(private connection: Connection) {}
+  constructor(private connection: Connection, private mailer: MailService) {}
 
   async getPedingNotifications() {
     const repository = this.connection.getRepository(Subscription)
@@ -32,10 +33,12 @@ class NotificationsCommand implements CommandRunner {
     loop?: boolean,
   ): Promise<void> {
     if (pending.length === 0 && loop) {
-        await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newNotifications = await this.getPedingNotifications()
 
-        console.log(`🔁 Running EmailSend on Loop, checking for new notifications! 🔁`)
+      console.log(
+        `🔁 Running EmailSend on Loop, checking for new notifications! 🔁`,
+      )
 
       await this.initiateEmailSend(newNotifications, loop)
     }
@@ -43,9 +46,9 @@ class NotificationsCommand implements CommandRunner {
     for (const user of pending) {
       const repository = this.connection.getRepository(Subscription)
       try {
-        const stat = 'Send Email' || true // TODO: Send email here
         console.log(user)
-        if (stat) {
+        const stat = await this.mailer.sendIqUpdate(user.email)
+        if (stat || true) {
           // TODO: Check status of email sent
           await repository
             .createQueryBuilder()

@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import DatabaseModule from '../../Database/database.module'
 import httpModule from '../../httpModule'
+import MailModule from '../mailer/mail.module'
+import MailService from '../mailer/mail.service'
 import NotificationsCommand from './notifications.command'
 
 @Module({
@@ -11,9 +13,10 @@ import NotificationsCommand from './notifications.command'
     }),
     DatabaseModule,
     httpModule(20000),
+    MailModule
   ],
   controllers: [],
-  providers: [NotificationsCommand],
+  providers: [NotificationsCommand, MailService],
 })
 class NotificationsModule {}
 
