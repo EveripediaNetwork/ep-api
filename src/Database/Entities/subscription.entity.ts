@@ -32,7 +32,6 @@ class Subscription {
     length: 255,
   })
   email!: string
-
 }
 
 export default Subscription

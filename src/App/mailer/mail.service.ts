@@ -9,7 +9,11 @@ export default class MailService {
     private config: ConfigService,
   ) {}
 
-  async sendIqUpdate(userEmail: string): Promise<boolean> {
+  async sendIqUpdate(
+    userEmail: string,
+    id: string,
+    title: string,
+  ): Promise<boolean> {
     // TODO: Email formatting
     await this.mailerService.sendMail({
       to: userEmail,
@@ -17,8 +21,8 @@ export default class MailService {
       subject: 'IQ.wiki update',
       template: './iqMail',
       context: {
-        wiki: 'right-of-way',
-        url: 'http://dev.iq.wiki/wiki/right-of-way',
+        wiki: title,
+        url: `http://dev.iq.wiki/wiki/${id}`,
         iqUrl: 'http://dev.iq.wiki/',
       },
     })

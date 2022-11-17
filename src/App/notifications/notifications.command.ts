@@ -61,9 +61,12 @@ class NotificationsCommand implements CommandRunner {
 
       for await (const user of users) {
         try {
-          const status = await this.mailer.sendIqUpdate(user.email)
-          if (status)
-            console.log('✅ Notification sent! ')
+          const status = await this.mailer.sendIqUpdate(
+            user.email,
+            update.wikiId,
+            update.title,
+          )
+          if (status) console.log('✅ Notification sent! ')
 
           await new Promise(r => setTimeout(r, SLEEP_TIME))
         } catch (ex) {
