@@ -37,7 +37,6 @@ import WikiSubscriptionResolver from './subscriptions.resolver'
 import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
-import NotificationsController from './notifications/notificationsQueue.controller'
 
 @Module({
   imports: [
@@ -81,7 +80,7 @@ import NotificationsController from './notifications/notificationsQueue.controll
     RelayerModule,
     TokenStatsModule,
   ],
-  controllers: [NotificationsController],
+  controllers: [],
   providers: [
     ConfigService,
     WikiResolver,

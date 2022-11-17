@@ -1,7 +1,5 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { Connection } from 'typeorm'
-import { HttpService } from '@nestjs/axios'
-import { ConfigService } from '@nestjs/config'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
@@ -16,6 +14,7 @@ import {
   RevalidateEndpoints,
 } from '../../App/revalidatePage/revalidatePage.service'
 import Subscription from '../../Database/Entities/subscription.entity'
+import Notification from '../../Database/Entities/notification.entity'
 
 export type ValidWiki = {
   id: string
@@ -57,10 +56,8 @@ export type ValidWiki = {
 @Injectable()
 class DBStoreService {
   constructor(
-    private httpService: HttpService,
     private connection: Connection,
     private revalidate: RevalidatePageService,
-    private config: ConfigService,
   ) {}
 
   async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
@@ -71,6 +68,7 @@ class DBStoreService {
     const categoryRepository = this.connection.getRepository(Category)
     const activityRepository = this.connection.getRepository(Activity)
     const subsciptionRepository = this.connection.getRepository(Subscription)
+    const notificationRepository = this.connection.getRepository(Notification)
 
     let user = await userRepository.findOne(wiki.user.id)
     if (!user) {
@@ -152,16 +150,12 @@ class DBStoreService {
     }
 
     if (existWiki && existWiki.content !== wiki.content && existSub) {
-      try {
-        await this.httpService
-          .post(`${this.config.get<string>('NOTIFICATIONS_URL')}`, {
-            id: wiki.id,
-            type: 'wiki',
-          })
-          .toPromise()
-      } catch (e) {
-        console.log(e)
-      }
+      await notificationRepository
+        .createQueryBuilder()
+        .insert()
+        .into(Notification)
+        .values({ wikiId: wiki.id, title: wiki.title, pending: true })
+        .execute()
     }
 
     // TODO: store history and delete?

@@ -2,6 +2,7 @@ import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
 import Subscription from '../../Database/Entities/subscription.entity'
+import Notification from '../../Database/Entities/notification.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import MailService from '../mailer/mail.service'
 
@@ -21,15 +22,21 @@ class NotificationsCommand implements CommandRunner {
   constructor(private connection: Connection, private mailer: MailService) {}
 
   async getPedingNotifications() {
-    const repository = this.connection.getRepository(Subscription)
-    const pendingNotifications = await repository.find({
+    const repository = this.connection.getRepository(Notification)
+    return repository.find({
       pending: true,
     })
-    return pendingNotifications
+  }
+
+  async getUsersSubscribed(wiki: string) {
+    const repository = this.connection.getRepository(Subscription)
+    return repository.find({
+      auxiliaryId: wiki,
+    })
   }
 
   async initiateEmailSend(
-    pending: Subscription[],
+    pending: Notification[],
     loop?: boolean,
   ): Promise<void> {
     if (pending.length === 0 && loop) {
@@ -42,23 +49,33 @@ class NotificationsCommand implements CommandRunner {
       await this.initiateEmailSend(newNotifications, loop)
     }
 
-    for (const user of pending) {
-      const repository = this.connection.getRepository(Subscription)
-      try {
-        const stat = await this.mailer.sendIqUpdate(user.email)
-        if (stat)
-          await repository
-            .createQueryBuilder()
-            .update(Subscription)
-            .set({ pending: false })
-            .where(user)
-            .execute()
-        console.log('✅ Notification sent! ')
+    for await (const update of pending) {
+      const notificationRepository = this.connection.getRepository(Notification)
+      const users = await this.getUsersSubscribed(update.wikiId)
+      await notificationRepository
+        .createQueryBuilder()
+        .update(Notification)
+        .set({ pending: false })
+        .where(update)
+        .execute()
 
-        await new Promise(r => setTimeout(r, SLEEP_TIME))
-      } catch (ex) {
-        console.error(ex)
+      for await (const user of users) {
+        try {
+          const status = await this.mailer.sendIqUpdate(user.email)
+          if (status)
+            console.log('✅ Notification sent! ')
+
+          await new Promise(r => setTimeout(r, SLEEP_TIME))
+        } catch (ex) {
+          console.error(ex)
+        }
       }
+      await notificationRepository
+        .createQueryBuilder()
+        .delete()
+        .from(Notification)
+        .where(update)
+        .execute()
     }
 
     if (loop) {

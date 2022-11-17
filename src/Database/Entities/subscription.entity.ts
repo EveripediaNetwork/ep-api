@@ -33,10 +33,6 @@ class Subscription {
   })
   email!: string
 
-  @Column('boolean', {
-    default: false,
-  })
-  pending!: boolean
 }
 
 export default Subscription
