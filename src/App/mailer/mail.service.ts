@@ -13,8 +13,9 @@ export default class MailService {
     userEmail: string,
     id: string,
     title: string,
+    image: string,
+    summary: string
   ): Promise<boolean> {
-    // TODO: Email formatting
     await this.mailerService.sendMail({
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
@@ -22,8 +23,13 @@ export default class MailService {
       template: './iqMail',
       context: {
         wiki: title,
-        url: `http://dev.iq.wiki/wiki/${id}`,
-        iqUrl: 'http://dev.iq.wiki/',
+        url: `${this.config.get<string>('WEBSITE_URL')}/wiki/${id}`,
+        iqUrl: this.config.get<string>('WEBSITE_URL'),
+        wikiImage: `${this.config.get<string>('ipfsUrl')}${image}`,
+        unsubscribeLink: `${this.config.get<string>(
+          'WEBSITE_URL',
+        )}/account/settings`,
+        summary
       },
     })
     return true

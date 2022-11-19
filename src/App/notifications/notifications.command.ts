@@ -5,6 +5,7 @@ import Subscription from '../../Database/Entities/subscription.entity'
 import Notification from '../../Database/Entities/notification.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import MailService from '../mailer/mail.service'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 interface CommandOptions {
   loop: boolean
@@ -51,7 +52,10 @@ class NotificationsCommand implements CommandRunner {
 
     for await (const update of pending) {
       const notificationRepository = this.connection.getRepository(Notification)
+      const wikiRepository = this.connection.getRepository(Wiki)
+      const wiki = await wikiRepository.findOneOrFail({ id: update.wikiId })
       const users = await this.getUsersSubscribed(update.wikiId)
+
       await notificationRepository
         .createQueryBuilder()
         .update(Notification)
@@ -65,6 +69,8 @@ class NotificationsCommand implements CommandRunner {
             user.email,
             update.wikiId,
             update.title,
+            wiki.images[0].id,
+            wiki.summary
           )
           if (status) console.log('✅ Notification sent! ')
 
@@ -77,7 +83,7 @@ class NotificationsCommand implements CommandRunner {
         .createQueryBuilder()
         .delete()
         .from(Notification)
-        .where(update)
+        .where({...update, pending: false})
         .execute()
     }
 
