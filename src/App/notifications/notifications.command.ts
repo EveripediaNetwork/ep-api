@@ -70,7 +70,7 @@ class NotificationsCommand implements CommandRunner {
             update.wikiId,
             update.title,
             wiki.images[0].id,
-            wiki.summary
+            wiki.summary,
           )
           if (status) console.log('✅ Notification sent! ')
 
@@ -83,7 +83,7 @@ class NotificationsCommand implements CommandRunner {
         .createQueryBuilder()
         .delete()
         .from(Notification)
-        .where({...update, pending: false})
+        .where({ ...update, pending: false })
         .execute()
     }
 
