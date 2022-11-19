@@ -63,12 +63,7 @@ class WikiSubscriptionService {
       .createQueryBuilder()
       .delete()
       .from(Subscription)
-      .where(
-        `"userId" = ':userId' AND "notificationType" = ':notificationType' AND "auxiliaryId" = ':auxiliaryId'`,
-        {
-          args,
-        },
-      )
+      .where(args)
       .execute()
     return true
   }
