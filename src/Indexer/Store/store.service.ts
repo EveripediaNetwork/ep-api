@@ -67,7 +67,7 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
     const activityRepository = this.connection.getRepository(Activity)
-    const subsciptionRepository = this.connection.getRepository(IqSubscription)
+    const iqSubsciptionRepository = this.connection.getRepository(IqSubscription)
     const notificationRepository = this.connection.getRepository(Notification)
 
     let user = await userRepository.findOne(wiki.user.id)
@@ -111,7 +111,7 @@ class DBStoreService {
 
     const existWiki = await wikiRepository.findOne(wiki.id)
 
-    const existSub = await subsciptionRepository.findOne({
+    const existSub = await iqSubsciptionRepository.findOne({
       auxiliaryId: wiki.id,
     })
 
