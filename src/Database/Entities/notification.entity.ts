@@ -6,10 +6,13 @@ class Notification {
   id!: string
 
   @Column('varchar')
-  wikiId!: string
+  auxId!: string
 
   @Column()
   title!: string
+
+  @Column('varchar')
+  notificationType!: string
 
   @Column()
   pending!: boolean

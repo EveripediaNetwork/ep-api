@@ -18,7 +18,7 @@ class WikiSubscriptionService {
     return repository.findOne({
       where: {
         userId: args.userId,
-        notificationType: args.notificationType,
+        subscriptionType: args.subscriptionType,
         auxiliaryId: args.auxiliaryId,
       },
     })

@@ -154,7 +154,7 @@ class DBStoreService {
         .createQueryBuilder()
         .insert()
         .into(Notification)
-        .values({ wikiId: wiki.id, title: wiki.title, pending: true })
+        .values({ auxId: wiki.id, title: wiki.title, pending: true })
         .execute()
     }
 

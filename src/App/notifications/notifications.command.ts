@@ -53,8 +53,8 @@ class NotificationsCommand implements CommandRunner {
     for await (const update of pending) {
       const notificationRepository = this.connection.getRepository(Notification)
       const wikiRepository = this.connection.getRepository(Wiki)
-      const wiki = await wikiRepository.findOneOrFail({ id: update.wikiId })
-      const users = await this.getUsersSubscribed(update.wikiId)
+      const wiki = await wikiRepository.findOneOrFail({ id: update.auxId })
+      const users = await this.getUsersSubscribed(update.auxId)
 
       await notificationRepository
         .createQueryBuilder()
@@ -67,7 +67,7 @@ class NotificationsCommand implements CommandRunner {
         try {
           const status = await this.mailer.sendIqUpdate(
             user.email,
-            update.wikiId,
+            update.auxId,
             update.title,
             wiki.images[0].id,
             wiki.summary,
