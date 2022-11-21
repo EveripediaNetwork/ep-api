@@ -22,6 +22,17 @@ module.exports = {
       watch_delay: 10000,
       exp_backoff_restart_delay: 1000,
       max_memory_restart: '600M',
+    },
+    {
+      name: 'notification-service',
+      script: 'yarn console-mail notifications -l true',
+      args: 'notifications',
+      watch: false,
+      time: true,
+      ignore_watch: ["[\/\\]\./", "uploads"],
+      watch_delay: 10000,
+      exp_backoff_restart_delay: 1000,
+      max_memory_restart: '600M',
     }
   ]
 }

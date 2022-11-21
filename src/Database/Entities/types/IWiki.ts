@@ -105,7 +105,7 @@ export class WikiSubscriptionArgs {
   userId!: string
 
   @Field(() => String)
-  notificationType!: string
+  subscriptionType!: string
 
   @Field(() => String)
   auxiliaryId!: string

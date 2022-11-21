@@ -3,7 +3,7 @@ import { Directive, Field, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
-class Subscription {
+class IqSubscription {
   @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn('uuid')
   id!: string
@@ -18,7 +18,7 @@ class Subscription {
   @Column('varchar', {
     length: 255,
   })
-  notificationType!: string
+  subscriptionType!: string
 
   @Field({ nullable: true })
   @Column('varchar', {
@@ -34,4 +34,4 @@ class Subscription {
   email!: string
 }
 
-export default Subscription
+export default IqSubscription

@@ -15,6 +15,8 @@
     "start:prod": "node dist/src/main.js",
     "console": "node dist/src/console.js",
     "console:dev": "ts-node src/console.ts",
+    "console-mail": "node dist/src/consoleMail.js",
+    "console-mail:dev": "ts-node src/consoleMail.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:migrate": "yarn typeorm migration:generate -- -n",
     "typeorm:run": "yarn typeorm migration:run",

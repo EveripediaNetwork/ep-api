@@ -1,16 +1,29 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
+import { Connection } from 'typeorm'
 import SentryInterceptor from '../sentry/security.interceptor'
-import Subscription from '../Database/Entities/subscription.entity'
 import WikiSubscriptionService from './subscriptions.service'
 import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
+import IqSubscription from '../Database/Entities/IqSubscription'
+import Wiki from '../Database/Entities/wiki.entity'
 
 @UseInterceptors(SentryInterceptor)
-@Resolver(() => Subscription)
+@Resolver(() => IqSubscription)
 class WikiSubscriptionResolver {
-  constructor(private wikiSubscriptionService: WikiSubscriptionService) {}
+  constructor(
+    private connection: Connection,
+    private wikiSubscriptionService: WikiSubscriptionService,
+  ) {}
 
-  @Query(() => [Subscription])
+  @Query(() => [IqSubscription])
   async wikiSubscriptions(
     @Context() context: any,
     @Args('userId') userId: string,
@@ -19,7 +32,7 @@ class WikiSubscriptionResolver {
     return this.wikiSubscriptionService.getSubs(authorization, userId)
   }
 
-  @Mutation(() => Subscription)
+  @Mutation(() => IqSubscription)
   async addWikiSubscription(
     @Context() context: any,
     @Args() args: WikiSubscriptionArgs,
@@ -39,6 +52,13 @@ class WikiSubscriptionResolver {
       args.userId,
       args,
     )
+  }
+
+  @ResolveField(() => Wiki)
+  async wiki(@Parent() wiki: WikiSubscriptionArgs) {
+    const { auxiliaryId } = wiki
+    const repository = this.connection.getRepository(Wiki)
+    return repository.findOne({ id: auxiliaryId })
   }
 }
 
