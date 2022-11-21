@@ -13,7 +13,7 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from '../../App/revalidatePage/revalidatePage.service'
-import Subscription from '../../Database/Entities/subscription.entity'
+import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 
 export type ValidWiki = {
@@ -67,7 +67,7 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
     const activityRepository = this.connection.getRepository(Activity)
-    const subsciptionRepository = this.connection.getRepository(Subscription)
+    const subsciptionRepository = this.connection.getRepository(IqSubscription)
     const notificationRepository = this.connection.getRepository(Notification)
 
     let user = await userRepository.findOne(wiki.user.id)

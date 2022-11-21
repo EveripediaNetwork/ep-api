@@ -1,7 +1,7 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
-import Subscription from '../../Database/Entities/subscription.entity'
+import Subscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import MailService from '../mailer/mail.service'

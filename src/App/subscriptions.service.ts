@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
-import Subscription from '../Database/Entities/subscription.entity'
+import IqSubscription from '../Database/Entities/IqSubscription'
 import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 import TokenValidator from './utils/validateToken'
 
@@ -13,8 +13,8 @@ class WikiSubscriptionService {
 
   private async findSub(
     args: WikiSubscriptionArgs,
-  ): Promise<Subscription | undefined> {
-    const repository = this.connection.getRepository(Subscription)
+  ): Promise<IqSubscription | undefined> {
+    const repository = this.connection.getRepository(IqSubscription)
     return repository.findOne({
       where: {
         userId: args.userId,
@@ -24,8 +24,11 @@ class WikiSubscriptionService {
     })
   }
 
-  async getSubs(token: string, id: string): Promise<Subscription[] | boolean> {
-    const repository = this.connection.getRepository(Subscription)
+  async getSubs(
+    token: string,
+    id: string,
+  ): Promise<IqSubscription[] | boolean> {
+    const repository = this.connection.getRepository(IqSubscription)
     if (!this.tokenValidator.validateToken(token, id, false)) {
       return false
     }
@@ -39,8 +42,8 @@ class WikiSubscriptionService {
   async addSub(
     token: string,
     args: WikiSubscriptionArgs,
-  ): Promise<Subscription | boolean> {
-    const repository = this.connection.getRepository(Subscription)
+  ): Promise<IqSubscription | boolean> {
+    const repository = this.connection.getRepository(IqSubscription)
 
     if (!this.tokenValidator.validateToken(token, args.userId, false)) {
       return false
@@ -55,14 +58,14 @@ class WikiSubscriptionService {
     id: string,
     args: WikiSubscriptionArgs,
   ): Promise<boolean> {
-    const repository = this.connection.getRepository(Subscription)
+    const repository = this.connection.getRepository(IqSubscription)
     if (!this.tokenValidator.validateToken(token, id, false)) {
       return false
     }
     await repository
       .createQueryBuilder()
       .delete()
-      .from(Subscription)
+      .from(IqSubscription)
       .where(args)
       .execute()
     return true
