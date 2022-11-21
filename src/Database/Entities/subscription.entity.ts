@@ -1,4 +1,4 @@
-import { Column, Entity,  PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Directive, Field, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'User subscriptions' })
@@ -7,9 +7,6 @@ class Subscription {
   @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn('uuid')
   id!: string
-
-  @Field()
-  sam!: number
 
   @Field({ nullable: true })
   @Column('varchar', {
