@@ -6,7 +6,7 @@
   "scripts": {
     "prepare": "husky install",
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "nest build && yarn run copy:templates",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" --loglevel warn",
     "start": "nest start",
     "dev": "nest start --watch",
@@ -17,6 +17,7 @@
     "console:dev": "ts-node src/console.ts",
     "console-mail": "node dist/src/consoleMail.js",
     "console-mail:dev": "ts-node src/consoleMail.ts",
+    "copy:templates": "mv ./dist/App/mailer/templates ./dist/src/App/mailer/ && rm -rf ./dist/App",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:migrate": "yarn typeorm migration:generate -- -n",
     "typeorm:run": "yarn typeorm migration:run",
