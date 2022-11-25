@@ -19,7 +19,7 @@ export default class MailService {
     await this.mailerService.sendMail({
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
-      subject: 'IQ.wiki update',
+      subject: `IQ.wiki update - ${title}`,
       template: './iqMail',
       context: {
         wiki: title,
