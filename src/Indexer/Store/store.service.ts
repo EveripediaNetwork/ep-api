@@ -67,7 +67,8 @@ class DBStoreService {
     const tagRepository = this.connection.getRepository(Tag)
     const categoryRepository = this.connection.getRepository(Category)
     const activityRepository = this.connection.getRepository(Activity)
-    const iqSubsciptionRepository = this.connection.getRepository(IqSubscription)
+    const iqSubsciptionRepository =
+      this.connection.getRepository(IqSubscription)
     const notificationRepository = this.connection.getRepository(Notification)
 
     let user = await userRepository.findOne(wiki.user.id)
@@ -154,7 +155,7 @@ class DBStoreService {
         .createQueryBuilder()
         .insert()
         .into(Notification)
-        .values({ auxId: wiki.id, title: wiki.title, pending: true })
+        .values({ auxId: wiki.id, pending: true })
         .execute()
     }
 

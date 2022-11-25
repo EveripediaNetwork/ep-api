@@ -8,9 +8,6 @@ class Notification {
   @Column('varchar')
   auxId!: string
 
-  @Column()
-  title!: string
-
   @Column('varchar', { default: 'UPDATED' })
   notificationType!: string
 

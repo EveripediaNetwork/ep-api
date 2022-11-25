@@ -6,13 +6,14 @@ import Notification from '../../Database/Entities/notification.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import MailService from '../mailer/mail.service'
 import Wiki from '../../Database/Entities/wiki.entity'
+import UserProfile from '../../Database/Entities/userProfile.entity'
 
 interface CommandOptions {
   loop: boolean
 }
 
-const SLEEP_TIME = 4000
-const SLEEP_TIME_QUERY = 3000
+const SLEEP_TIME = 5000
+const SLEEP_TIME_QUERY = 10000
 
 @UseInterceptors(SentryInterceptor)
 @Command({
@@ -50,9 +51,10 @@ class NotificationsCommand implements CommandRunner {
       await this.initiateEmailSend(newNotifications, loop)
     }
 
-    for await (const update of pending) {
+    for (const update of pending) {
       const notificationRepository = this.connection.getRepository(Notification)
       const wikiRepository = this.connection.getRepository(Wiki)
+      const userRepository = this.connection.getRepository(UserProfile)
       const wiki = await wikiRepository.findOneOrFail({ id: update.auxId })
       const users = await this.getUsersSubscribed(update.auxId)
 
@@ -63,12 +65,15 @@ class NotificationsCommand implements CommandRunner {
         .where(update)
         .execute()
 
-      for await (const user of users) {
+      for (const user of users) {
+        const { email } = await userRepository.findOneOrFail({
+          id: user.userId,
+        })
         try {
           const status = await this.mailer.sendIqUpdate(
-            user.email,
-            update.auxId,
-            update.title,
+            email as string,
+            wiki.id,
+            wiki.title,
             wiki.images[0].id,
             wiki.summary,
           )
