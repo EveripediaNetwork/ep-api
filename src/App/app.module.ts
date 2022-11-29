@@ -38,6 +38,7 @@ import WikiSubscriptionService from './subscriptions.service'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap.resolver'
+import MarketCapService from './marketCap.service'
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import MarketCapResolver from './marketCap.resolver'
     WikiSubscriptionResolver,
     WikiSubscriptionService,
     MarketCapResolver,
+    MarketCapService,
     SentryPlugin,
   ],
 })
