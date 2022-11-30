@@ -4,8 +4,61 @@ import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { createUnionType, Field, ObjectType } from '@nestjs/graphql'
 import Wiki from '../Database/Entities/wiki.entity'
 import { MarketCapInputs, RankType } from './marketCap.resolver'
+
+@ObjectType()
+export class NftListData {
+  @Field()
+  floor_price_eth!: number
+
+  @Field()
+  floor_price_usd!: number
+
+  @Field()
+  market_cap_usd!: number
+
+  @Field()
+  floor_price_in_usd_24h_percentage_change!: number
+}
+@ObjectType()
+export class TokenListData {
+  @Field()
+  current_price!: number
+
+  @Field()
+  market_cap!: number
+
+  @Field()
+  market_cap_rank!: number
+
+  @Field()
+  price_change_24h!: number
+
+  @Field()
+  market_cap_change_24h!: number
+}
+
+export const MarketData = createUnionType({
+  name: 'MarketData',
+  types: () => [NftListData, TokenListData] as const,
+  resolveType(value) {
+    if (value.kind === RankType.NFT) {
+      return 'NftListData'
+    }
+    if (value.valid === RankType.TOKEN) {
+      return 'TokenListData'
+    }
+    return null
+  },
+})
+
+@ObjectType()
+export class RankListData extends Wiki {
+  @Field(() => MarketData)
+  marketData!: NftListData | TokenListData
+}
 
 @Injectable()
 class MarketCapService {
@@ -115,7 +168,7 @@ class MarketCapService {
     })
   }
 
-  async ranks(args: MarketCapInputs): Promise<any> {
+  async ranks(args: MarketCapInputs): Promise<[RankListData]> {
     const finalCachedResult: any | undefined = await this.cacheManager.get(
       `finalResult/${args.kind}/${args.limit}/${args.offset}`,
     )
@@ -159,7 +212,7 @@ class MarketCapService {
     }
 
     console.log(result)
-    
+
     const id = `finalResult/${args.kind}/${args.limit}/${args.offset}`
     await this.cacheManager.set(id, result, { ttl: 300000 })
     return result

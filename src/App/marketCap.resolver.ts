@@ -8,9 +8,8 @@ import {
   registerEnumType,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import MarketCapService, { RankListData } from './marketCap.service'
 import SentryInterceptor from '../sentry/security.interceptor'
-import MarketCapService from './marketCap.service'
 import PaginationArgs from './pagination.args'
 
 export enum RankType {
@@ -29,21 +28,15 @@ export class MarketCapInputs extends PaginationArgs {
 }
 
 @UseInterceptors(SentryInterceptor)
-@Resolver(() => [])
+@Resolver(() => RankListData)
 class MarketCapResolver {
   constructor(
-    private connection: Connection,
     private marketCapService: MarketCapService,
   ) {}
 
-  // TODO: Implement return type wiki + mcap
-  @Query(() => Boolean)
+  @Query(() => [RankListData])
   async rankList(@Args() args: MarketCapInputs) {
-    // const repository = this.connection.getRepository(Wiki)
-    const res = await this.marketCapService.ranks(args)
-
-    // console.log(res)
-    return res
+    return this.marketCapService.ranks(args)
   }
 }
 
