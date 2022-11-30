@@ -15,7 +15,7 @@ import PaginationArgs from './pagination.args'
 
 export enum RankType {
   NFT = 'nfts',
-  TOKEN = 'token',
+  TOKEN = 'cryptocurrencies',
 }
 
 registerEnumType(RankType, {

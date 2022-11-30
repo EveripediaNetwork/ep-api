@@ -135,18 +135,18 @@ class MarketCapService {
       data = await this.marketData(args.kind as string, args.limit, args.offset)
     }
 
+    const wikis = await this.wikiData(
+      args.kind as string,
+      args.limit,
+      args.offset,
+    )
+
     if (data && args.kind === RankType.TOKEN) {
-      const wikis = await this.wikiData(
-        'cryptocurrencies',
-        args.limit,
-        args.offset,
-      )
       result = await this.tokenRanks(await this.mapMarketData(wikis, data))
     }
 
     if (data && args.kind === RankType.NFT) {
       let nfts: any
-      const wikis = await this.wikiData(RankType.NFT, args.limit, args.offset)
       const cachedNftMarketdata = await this.cacheManager.get(
         `nftMarketData/${args.limit}/${args.offset}`,
       )
@@ -155,10 +155,11 @@ class MarketCapService {
       } else {
         nfts = await this.nftMarketData(data, args.limit, args.offset)
       }
-
       result = await this.nftRanks(await this.mapMarketData(wikis, nfts))
     }
+
     console.log(result)
+    
     const id = `finalResult/${args.kind}/${args.limit}/${args.offset}`
     await this.cacheManager.set(id, result, { ttl: 300000 })
     return result
