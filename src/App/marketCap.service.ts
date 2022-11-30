@@ -1,3 +1,4 @@
+/* eslint-disable no-sequences */
 /* eslint-disable import/no-cycle */
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
@@ -5,8 +6,6 @@ import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
 import Wiki from '../Database/Entities/wiki.entity'
 import { MarketCapInputs, RankType } from './marketCap.resolver'
-
-const MarketData = {}
 
 @Injectable()
 class MarketCapService {
@@ -72,21 +71,63 @@ class MarketCapService {
       })
       .limit(limit)
       .offset(offset)
-      .orderBy('wiki.updated', 'DESC')
+      .orderBy('wiki.title', 'ASC')
       .getMany()
     return wikis
   }
 
+  private async mapMarketData(wikis: Wiki[], data: any[]) {
+    return wikis.map(w => ({
+      ...w,
+      marketData: {
+        ...data.find((d: any) => d.id === w.id),
+      },
+    }))
+  }
+
+  private async tokenRanks(cachedData: any) {
+    return cachedData.map((e: any) => {
+      if (Object.keys(e.marketData).length > 0) {
+        e.marketData = {
+          current_price: e.marketData.current_price,
+          market_cap: e.marketData.market_cap,
+          market_cap_rank: e.marketData.market_cap_rank,
+          price_change_24h: e.marketData.price_change_24h,
+          market_cap_change_24h: e.marketData.market_cap_change_24h,
+        }
+      }
+      return e
+    })
+  }
+
+  private async nftRanks(cachedData: any) {
+    return cachedData.map((e: any) => {
+      if (Object.keys(e.marketData).length > 0) {
+        e.marketData = {
+          floor_price_eth: e.marketData.floor_price.native_currency,
+          floor_price_usd: e.marketData.floor_price.usd,
+          market_cap_usd: e.marketData.market_cap.usd,
+          floor_price_in_usd_24h_percentage_change:
+            e.marketData.floor_price_in_usd_24h_percentage_change,
+        }
+      }
+      return e
+    })
+  }
+
   async ranks(args: MarketCapInputs): Promise<any> {
+    const finalCachedResult: any | undefined = await this.cacheManager.get(
+      `finalResult/${args.kind}/${args.limit}/${args.offset}`,
+    )
+
+    if (finalCachedResult) return finalCachedResult
+
     const cachedMarketdata = await this.cacheManager.get(
       `${args.kind}/${args.limit}/${args.offset}`,
     )
-    let wikis
+
     let data: any
-    if (args.kind === RankType.TOKEN) {
-      wikis = await this.wikiData('cryptocurrencies', args.limit, args.offset)
-    }
-    wikis = await this.wikiData(RankType.NFT, args.limit, args.offset)
+    let result: any
 
     if (cachedMarketdata) {
       data = cachedMarketdata
@@ -94,20 +135,18 @@ class MarketCapService {
       data = await this.marketData(args.kind as string, args.limit, args.offset)
     }
 
-    if (wikis && data && args.kind === RankType.TOKEN) {
-      const result = wikis.map(w => ({
-        ...w,
-        marketData: {
-          ...MarketData,
-          ...data.find((d: any) => d.id === w.id),
-        },
-      }))
-      console.log(result)
-      return result
+    if (data && args.kind === RankType.TOKEN) {
+      const wikis = await this.wikiData(
+        'cryptocurrencies',
+        args.limit,
+        args.offset,
+      )
+      result = await this.tokenRanks(await this.mapMarketData(wikis, data))
     }
 
-    if (args.kind === RankType.NFT && data) {
+    if (data && args.kind === RankType.NFT) {
       let nfts: any
+      const wikis = await this.wikiData(RankType.NFT, args.limit, args.offset)
       const cachedNftMarketdata = await this.cacheManager.get(
         `nftMarketData/${args.limit}/${args.offset}`,
       )
@@ -116,18 +155,13 @@ class MarketCapService {
       } else {
         nfts = await this.nftMarketData(data, args.limit, args.offset)
       }
-      const result = wikis.map(w => ({
-        ...w,
-        marketData: {
-          ...MarketData,
-          ...nfts.find((d: any) => d.id === w.id),
-        },
-      }))
-      console.log(result)
-      return result
-    }
 
-    return true
+      result = await this.nftRanks(await this.mapMarketData(wikis, nfts))
+    }
+    console.log(result)
+    const id = `finalResult/${args.kind}/${args.limit}/${args.offset}`
+    await this.cacheManager.set(id, result, { ttl: 300000 })
+    return result
   }
 }
 
