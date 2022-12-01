@@ -8,7 +8,7 @@ import {
   registerEnumType,
   Resolver,
 } from '@nestjs/graphql'
-import MarketCapService, { RankListData } from './marketCap.service'
+import MarketCapService, { MarketRankData } from './marketCap.service'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 
@@ -28,13 +28,11 @@ export class MarketCapInputs extends PaginationArgs {
 }
 
 @UseInterceptors(SentryInterceptor)
-@Resolver(() => RankListData)
+@Resolver(() => MarketRankData)
 class MarketCapResolver {
-  constructor(
-    private marketCapService: MarketCapService,
-  ) {}
+  constructor(private marketCapService: MarketCapService) {}
 
-  @Query(() => [RankListData])
+  @Query(() => [MarketRankData])
   async rankList(@Args() args: MarketCapInputs) {
     return this.marketCapService.ranks(args)
   }

@@ -10,55 +10,62 @@ import { MarketCapInputs, RankType } from './marketCap.resolver'
 
 @ObjectType()
 export class NftListData {
-  @Field()
-  floor_price_eth!: number
+  @Field({ nullable: true })
+  floor_price_eth?: number
 
-  @Field()
-  floor_price_usd!: number
+  @Field({ nullable: true })
+  floor_price_usd?: number
 
-  @Field()
-  market_cap_usd!: number
+  @Field({ nullable: true })
+  market_cap_usd?: number
 
-  @Field()
-  floor_price_in_usd_24h_percentage_change!: number
+  @Field({ nullable: true })
+  floor_price_in_usd_24h_percentage_change?: number
 }
+
 @ObjectType()
 export class TokenListData {
-  @Field()
-  current_price!: number
+  @Field({ nullable: true })
+  current_price?: number
 
-  @Field()
-  market_cap!: number
+  @Field({ nullable: true })
+  market_cap?: number
 
-  @Field()
-  market_cap_rank!: number
+  @Field({ nullable: true })
+  market_cap_rank?: number
 
-  @Field()
-  price_change_24h!: number
+  @Field({ nullable: true })
+  price_change_24h?: number
 
-  @Field()
-  market_cap_change_24h!: number
+  @Field({ nullable: true })
+  market_cap_change_24h?: number
 }
-
-export const MarketData = createUnionType({
-  name: 'MarketData',
-  types: () => [NftListData, TokenListData] as const,
-  resolveType(value) {
-    if (value.kind === RankType.NFT) {
-      return 'NftListData'
-    }
-    if (value.valid === RankType.TOKEN) {
-      return 'TokenListData'
-    }
-    return null
-  },
-})
 
 @ObjectType()
-export class RankListData extends Wiki {
-  @Field(() => MarketData)
-  marketData!: NftListData | TokenListData
+export class TokenRankListData extends Wiki {
+  @Field(() => TokenListData, { nullable: true })
+  tokenMarketData?: TokenListData | null
 }
+@ObjectType()
+export class NftRankListData extends Wiki {
+  @Field(() => NftListData, { nullable: true })
+  nftMarketData?: NftListData | null
+}
+
+export const MarketRankData = createUnionType({
+  name: 'MarketRankData',
+  types: () => [NftRankListData, TokenRankListData] as const,
+  resolveType(value) {
+    console.log(value)
+    if (value.nftMarketData) {
+      return 'NftRankListData'
+    }
+    if (value.tokenMarketData) {
+      return 'TokenRankListData'
+    }
+    return ''
+  },
+})
 
 @Injectable()
 class MarketCapService {
@@ -129,46 +136,61 @@ class MarketCapService {
     return wikis
   }
 
-  private async mapMarketData(wikis: Wiki[], data: any[]) {
+  private async mapMarketData(wikis: Wiki[], data: any[], kind: RankType) {
+    if (kind === RankType.TOKEN)
+      return wikis.map(w => ({
+        ...w,
+        tokenMarketData: {
+          ...(data.find((d: any) => d.id === w.id) || null),
+        },
+      }))
     return wikis.map(w => ({
       ...w,
-      marketData: {
-        ...data.find((d: any) => d.id === w.id),
+      nftMarketData: {
+        ...(data.find((d: any) => d.id === w.id) || null),
       },
     }))
   }
 
-  private async tokenRanks(cachedData: any) {
-    return cachedData.map((e: any) => {
-      if (Object.keys(e.marketData).length > 0) {
-        e.marketData = {
+  private async tokenRanks(cachedData: any): Promise<TokenRankListData> {
+    const r = cachedData.map((e: any) => {
+      if (Object.keys(e.tokenMarketData).length > 0) {
+        e.tokenMarketData = {
           current_price: e.marketData.current_price,
           market_cap: e.marketData.market_cap,
           market_cap_rank: e.marketData.market_cap_rank,
           price_change_24h: e.marketData.price_change_24h,
           market_cap_change_24h: e.marketData.market_cap_change_24h,
         }
+      } else {
+        e.tokenMarketData = null
       }
-      return e
+      return { tokenMarketData: e }
     })
+    return r
   }
 
-  private async nftRanks(cachedData: any) {
-    return cachedData.map((e: any) => {
-      if (Object.keys(e.marketData).length > 0) {
-        e.marketData = {
+  private async nftRanks(cachedData: any): Promise<NftRankListData> {
+    const r = cachedData.map((e: any) => {
+      if (Object.keys(e.nftMarketData).length > 0) {
+        e.nftMarketData = {
           floor_price_eth: e.marketData.floor_price.native_currency,
           floor_price_usd: e.marketData.floor_price.usd,
           market_cap_usd: e.marketData.market_cap.usd,
           floor_price_in_usd_24h_percentage_change:
             e.marketData.floor_price_in_usd_24h_percentage_change,
         }
+      } else {
+        e.nftMarketData = null
       }
-      return e
+      return { nftMarketData: e }
     })
+    return r
   }
 
-  async ranks(args: MarketCapInputs): Promise<[RankListData]> {
+  async ranks(
+    args: MarketCapInputs,
+  ): Promise<TokenRankListData | NftRankListData> {
     const finalCachedResult: any | undefined = await this.cacheManager.get(
       `finalResult/${args.kind}/${args.limit}/${args.offset}`,
     )
@@ -195,7 +217,9 @@ class MarketCapService {
     )
 
     if (data && args.kind === RankType.TOKEN) {
-      result = await this.tokenRanks(await this.mapMarketData(wikis, data))
+      result = await this.tokenRanks(
+        await this.mapMarketData(wikis, data, RankType.TOKEN),
+      )
     }
 
     if (data && args.kind === RankType.NFT) {
@@ -208,10 +232,12 @@ class MarketCapService {
       } else {
         nfts = await this.nftMarketData(data, args.limit, args.offset)
       }
-      result = await this.nftRanks(await this.mapMarketData(wikis, nfts))
+      result = await this.nftRanks(
+        await this.mapMarketData(wikis, nfts, RankType.NFT),
+      )
     }
 
-    console.log(result)
+    // console.log(result)
 
     const id = `finalResult/${args.kind}/${args.limit}/${args.offset}`
     await this.cacheManager.set(id, result, { ttl: 300000 })
