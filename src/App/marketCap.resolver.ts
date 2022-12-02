@@ -8,7 +8,7 @@ import {
   registerEnumType,
   Resolver,
 } from '@nestjs/graphql'
-import MarketCapService, { MarketRankData } from './marketCap.service'
+import MarketCapService, { MarketRankData, NftRankListData, TokenRankListData } from './marketCap.service'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 
@@ -32,8 +32,10 @@ export class MarketCapInputs extends PaginationArgs {
 class MarketCapResolver {
   constructor(private marketCapService: MarketCapService) {}
 
-  @Query(() => [MarketRankData])
-  async rankList(@Args() args: MarketCapInputs) {
+  @Query(() => [MarketRankData], { nullable: 'items' })
+  async rankList(
+    @Args() args: MarketCapInputs,
+  ): Promise<NftRankListData | TokenRankListData> {
     return this.marketCapService.ranks(args)
   }
 }

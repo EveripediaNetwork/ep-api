@@ -10,60 +10,60 @@ import { MarketCapInputs, RankType } from './marketCap.resolver'
 
 @ObjectType()
 export class NftListData {
-  @Field({ nullable: true })
-  floor_price_eth?: number
+  @Field()
+  floor_price_eth!: number
 
-  @Field({ nullable: true })
-  floor_price_usd?: number
+  @Field()
+  floor_price_usd!: number
 
-  @Field({ nullable: true })
-  market_cap_usd?: number
+  @Field()
+  market_cap_usd!: number
 
-  @Field({ nullable: true })
-  floor_price_in_usd_24h_percentage_change?: number
+  @Field()
+  floor_price_in_usd_24h_percentage_change!: number
 }
 
 @ObjectType()
 export class TokenListData {
-  @Field({ nullable: true })
-  current_price?: number
+  @Field()
+  current_price!: number
 
-  @Field({ nullable: true })
-  market_cap?: number
+  @Field()
+  market_cap!: number
 
-  @Field({ nullable: true })
-  market_cap_rank?: number
+  @Field()
+  market_cap_rank!: number
 
-  @Field({ nullable: true })
-  price_change_24h?: number
+  @Field()
+  price_change_24h!: number
 
-  @Field({ nullable: true })
-  market_cap_change_24h?: number
+  @Field()
+  market_cap_change_24h!: number
 }
 
 @ObjectType()
 export class TokenRankListData extends Wiki {
   @Field(() => TokenListData, { nullable: true })
-  tokenMarketData?: TokenListData | null
+  tokenMarketData?: TokenListData
 }
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })
-  nftMarketData?: NftListData | null
+  nftMarketData?: NftListData
 }
 
 export const MarketRankData = createUnionType({
   name: 'MarketRankData',
   types: () => [NftRankListData, TokenRankListData] as const,
   resolveType(value) {
-    console.log(value)
+
     if (value.nftMarketData) {
       return 'NftRankListData'
     }
     if (value.tokenMarketData) {
       return 'TokenRankListData'
     }
-    return ''
+    return 'TokenRankListData' || 'NftRankListData' as unknown as null
   },
 })
 
@@ -93,7 +93,7 @@ class MarketCapService {
     } else {
       await this.cacheManager.set(id, data?.data, { ttl: 180000 }) // 3mins
     }
-
+    // console.log(data?.data)
     return data?.data
   }
 
@@ -141,13 +141,13 @@ class MarketCapService {
       return wikis.map(w => ({
         ...w,
         tokenMarketData: {
-          ...(data.find((d: any) => d.id === w.id) || null),
+          ...data.find((d: any) => d.id === w.id),
         },
       }))
     return wikis.map(w => ({
       ...w,
       nftMarketData: {
-        ...(data.find((d: any) => d.id === w.id) || null),
+        ...data.find((d: any) => d.id === w.id),
       },
     }))
   }
@@ -156,34 +156,34 @@ class MarketCapService {
     const r = cachedData.map((e: any) => {
       if (Object.keys(e.tokenMarketData).length > 0) {
         e.tokenMarketData = {
-          current_price: e.marketData.current_price,
-          market_cap: e.marketData.market_cap,
-          market_cap_rank: e.marketData.market_cap_rank,
-          price_change_24h: e.marketData.price_change_24h,
-          market_cap_change_24h: e.marketData.market_cap_change_24h,
+            current_price: e.tokenMarketData.current_price,
+            market_cap: e.tokenMarketData.market_cap,
+            market_cap_rank: e.tokenMarketData.market_cap_rank,
+            price_change_24h: e.tokenMarketData.price_change_24h,
+            market_cap_change_24h: e.tokenMarketData.market_cap_change_24h,
         }
       } else {
         e.tokenMarketData = null
       }
-      return { tokenMarketData: e }
+      return e
     })
-    return r
+    return r 
   }
 
   private async nftRanks(cachedData: any): Promise<NftRankListData> {
     const r = cachedData.map((e: any) => {
       if (Object.keys(e.nftMarketData).length > 0) {
         e.nftMarketData = {
-          floor_price_eth: e.marketData.floor_price.native_currency,
-          floor_price_usd: e.marketData.floor_price.usd,
-          market_cap_usd: e.marketData.market_cap.usd,
+          floor_price_eth: e.nftMarketData.floor_price.native_currency,
+          floor_price_usd: e.nftMarketData.floor_price.usd,
+          market_cap_usd: e.nftMarketData.market_cap.usd,
           floor_price_in_usd_24h_percentage_change:
-            e.marketData.floor_price_in_usd_24h_percentage_change,
+            e.nftMarketData.floor_price_in_usd_24h_percentage_change,
         }
       } else {
         e.nftMarketData = null
       }
-      return { nftMarketData: e }
+      return { nftMarketData: e } || null
     })
     return r
   }
