@@ -1,4 +1,4 @@
-export const nfts = [
+export const nftIds = [
   {
     id: 'bored-ape-yacht-club',
     key: 'bored-ape-yacht-club',
@@ -251,7 +251,7 @@ export const nfts = [
   { id: 'gambling-apes', key: 'gambling-apes', marketCap: 0 },
 ]
 
-export const cryptocurrencies = [
+export const cryptocurrencyIds = [
   { id: 'bitcoin', key: 'bitcoin', marketCap: 332399350455 },
   { id: 'ethereum', key: 'ethereum', marketCap: 156052883955 },
   { id: 'tether', key: 'tether', marketCap: 65587241633 },

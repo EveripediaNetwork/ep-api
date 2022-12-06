@@ -36,7 +36,7 @@ export class MarketCapInputs extends PaginationArgs {
 class MarketCapResolver {
   constructor(private marketCapService: MarketCapService) {}
 
-  @Query(() => [MarketRankData], { nullable: 'items' })
+  @Query(() => [MarketRankData], { nullable: 'itemsAndList' })
   async rankList(
     @Args() args: MarketCapInputs,
   ): Promise<NftRankListData | TokenRankListData> {
