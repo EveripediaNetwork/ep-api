@@ -56,14 +56,21 @@ export const MarketRankData = createUnionType({
   name: 'MarketRankData',
   types: () => [NftRankListData, TokenRankListData] as const,
   resolveType(value) {
-
+    // console.log(context.returnType)
     if (value.nftMarketData) {
+      //   if (!value.nftMarketData) {
+      //     return 'NftRankListData' as unknown as null
+      //   }
       return 'NftRankListData'
     }
     if (value.tokenMarketData) {
+      //   if (!value.tokenMarketData) {
+      //     return 'TokenRankListData' as unknown as null
+      //   }
       return 'TokenRankListData'
     }
-    return 'TokenRankListData' || 'NftRankListData' as unknown as null
+
+    return true
   },
 })
 
@@ -75,7 +82,7 @@ class MarketCapService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  private async marketData(kind: string, amount: number, page: number) {
+  private async marketData(kind: string, amount: number, page: number) { 
     const coinUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${page}&sparkline=false`
     const nftUrl = `https://api.coingecko.com/api/v3/nfts/list?order=market_cap_usd_desc&per_page=${amount}&page=${page}`
     let data
@@ -125,7 +132,13 @@ class MarketCapService {
         'category',
         'category."wikiId" = wiki.id',
       )
-      .select(['wiki.id', 'wiki.title', 'wiki.user', 'wiki.images'])
+      .select([
+        'wiki.id',
+        'wiki.title',
+        'wiki.user',
+        'wiki.images',
+        'wiki.ipfs',
+      ])
       .where('category."categoryId" = :kind', {
         kind,
       })
@@ -137,13 +150,14 @@ class MarketCapService {
   }
 
   private async mapMarketData(wikis: Wiki[], data: any[], kind: RankType) {
-    if (kind === RankType.TOKEN)
+    if (kind === RankType.TOKEN) {
       return wikis.map(w => ({
         ...w,
         tokenMarketData: {
           ...data.find((d: any) => d.id === w.id),
         },
       }))
+    }
     return wikis.map(w => ({
       ...w,
       nftMarketData: {
@@ -156,18 +170,18 @@ class MarketCapService {
     const r = cachedData.map((e: any) => {
       if (Object.keys(e.tokenMarketData).length > 0) {
         e.tokenMarketData = {
-            current_price: e.tokenMarketData.current_price,
-            market_cap: e.tokenMarketData.market_cap,
-            market_cap_rank: e.tokenMarketData.market_cap_rank,
-            price_change_24h: e.tokenMarketData.price_change_24h,
-            market_cap_change_24h: e.tokenMarketData.market_cap_change_24h,
+          current_price: e.tokenMarketData.current_price,
+          market_cap: e.tokenMarketData.market_cap,
+          market_cap_rank: e.tokenMarketData.market_cap_rank,
+          price_change_24h: e.tokenMarketData.price_change_24h,
+          market_cap_change_24h: e.tokenMarketData.market_cap_change_24h,
         }
       } else {
         e.tokenMarketData = null
       }
       return e
     })
-    return r 
+    return r
   }
 
   private async nftRanks(cachedData: any): Promise<NftRankListData> {
@@ -183,7 +197,7 @@ class MarketCapService {
       } else {
         e.nftMarketData = null
       }
-      return { nftMarketData: e } || null
+      return e
     })
     return r
   }
@@ -236,8 +250,6 @@ class MarketCapService {
         await this.mapMarketData(wikis, nfts, RankType.NFT),
       )
     }
-
-    // console.log(result)
 
     const id = `finalResult/${args.kind}/${args.limit}/${args.offset}`
     await this.cacheManager.set(id, result, { ttl: 300000 })

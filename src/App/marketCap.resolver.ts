@@ -8,7 +8,11 @@ import {
   registerEnumType,
   Resolver,
 } from '@nestjs/graphql'
-import MarketCapService, { MarketRankData, NftRankListData, TokenRankListData } from './marketCap.service'
+import MarketCapService, {
+  MarketRankData,
+  NftRankListData,
+  TokenRankListData,
+} from './marketCap.service'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 
