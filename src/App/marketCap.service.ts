@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable no-console */
 /* eslint-disable no-sequences */
 /* eslint-disable import/no-cycle */
@@ -78,61 +79,117 @@ class MarketCapService {
   ) {}
 
   private async marketData(kind: string, amount: number, page: number) {
-    const repository = this.connection.getRepository(Wiki)
-    const paginate = (array: any[], page_size: number, page_number: number) =>
-      array.slice((page_number - 1) * page_size, page_number * page_size)
-
     let result
 
     if (kind === RankType.NFT) {
-      result = paginate(nftIds, amount, page === 0 ? 1 : page).map(async n => {
-        const wiki = await repository.findOne({
-          id: n.key,
-        })
-        const d = await this.httpService
-          .get(`https://api.coingecko.com/api/v3/nfts/${n.id}`)
-          .toPromise()
-        const res = d?.data
-        const wikiAndMarketData = {
-          ...wiki,
-          nftMarketData: {
-            floor_price_eth: res.floor_price.native_currency,
-            floor_price_usd: res.floor_price.usd,
-            market_cap_usd: res.market_cap.usd,
-            floor_price_in_usd_24h_percentage_change:
-              res.floor_price_in_usd_24h_percentage_change,
-          },
-        }
-        return wikiAndMarketData
-      })
+      result = await this.nftMarketData(amount, page)
       return result
     }
 
-    result = paginate(cryptocurrencyIds, amount, page === 0 ? 1 : page).map(
-      async c => {
-        console.log(c)
-        const wiki = await repository.findOne({
-          id: c.key,
-        })
-        const d = await this.httpService
-          .get(
-            `https://api.coingecko.com/api/v3/coins/${c.id}?localization=false&tickers=false&community_data=false&developer_data=false`,
-          )
+    let data
+    try {
+      data = await this.httpService
+        .get(
+          ` https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${
+            page === 0 ? 1 : page
+          }&sparkline=false`,
+        )
+        .toPromise()
+    } catch (err: any) {
+      console.error(err.message)
+    }
+
+    result = data?.data.map(async (element: any) => {
+      const wiki = await this.findWiki(element.id, cryptocurrencyIds)
+
+      if (!wiki) {
+        return null
+      }
+      const wikiAndCryptoMarketData = {
+        ...wiki,
+        tokenMarketData: {
+          current_price: element.current_price,
+          market_cap: element.market_cap,
+          market_cap_rank: element.market_cap_rank,
+          price_change_24h: element.price_change_24h,
+          market_cap_change_24h: element.market_cap_change_24h,
+        },
+      }
+      return wikiAndCryptoMarketData
+    })
+
+    return result
+  }
+
+  async findWiki(id: string, exceptionIds: typeof nftIds) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki =
+      (await repository.findOne({
+        id,
+        hidden: false,
+      })) ||
+      (await repository.findOne({
+        id: exceptionIds.find(async (e: any) => {
+          id === e.coingeckoId
+        })?.wikiId,
+        hidden: false,
+      }))
+
+    return wiki
+  }
+
+  async getNfts(amount: number, page: number) {
+    let data
+    try {
+      data = await this.httpService
+        .get(
+          `
+            https://api.coingecko.com/api/v3/nfts/list?order=market_cap_usd_desc&per_page=${amount}&page=${
+            page === 0 ? 1 : page
+          }`,
+        )
+        .toPromise()
+    } catch (err: any) {
+      console.error(err.message)
+    }
+    return data?.data
+  }
+
+  async nftMarketData(amount: number, page: number) {
+    const nfts = await this.getNfts(amount, page)
+
+    const marketCap = nfts.map(async (d: any) => {
+      let nftMarketCap
+      try {
+        nftMarketCap = await this.httpService
+          .get(`https://api.coingecko.com/api/v3/nfts/${d.id}`)
           .toPromise()
-        const res = d?.data
-        const wikiAndMarketData = {
-          ...wiki,
-          tokenMarketData: {
-            current_price: res.market_data.current_price.usd,
-            market_cap: res.market_data.market_cap.usd,
-            market_cap_rank: res.market_cap_rank,
-            price_change_24h: res.market_data.price_change_24h,
-            market_cap_change_24h: res.market_data.market_cap_change_24h,
-          },
-        }
-        return wikiAndMarketData
-      },
-    )
+      } catch (err: any) {
+        console.error(err.message)
+      }
+      return nftMarketCap?.data
+    })
+
+    const marketData = await Promise.all(marketCap)
+
+    const result = marketData.map(async (element: any) => {
+      const wiki = await this.findWiki(element.id, nftIds)
+
+      if (!wiki) {
+        return null
+      }
+      const wikiAndNftMarketData = {
+        ...wiki,
+        nftMarketData: {
+          floor_price_eth: element.floor_price.native_currency,
+          floor_price_usd: element.floor_price.usd,
+          market_cap_usd: element.market_cap.usd,
+          floor_price_in_usd_24h_percentage_change:
+            element.floor_price_in_usd_24h_percentage_change,
+        },
+      }
+      return wikiAndNftMarketData
+    })
     return result
   }
 
@@ -151,8 +208,7 @@ class MarketCapService {
       args.offset,
     )
 
-    const id = key
-    await this.cacheManager.set(id, result, { ttl: 600000 })
+    await this.cacheManager.set(key, result, { ttl: 600000 })
 
     if (args.kind === RankType.NFT) return result as unknown as NftRankListData
     return result as unknown as TokenRankListData
