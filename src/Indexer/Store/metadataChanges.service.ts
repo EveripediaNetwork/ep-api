@@ -1,16 +1,10 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import diff from 'fast-diff'
+import { calculateWikiScore, Wiki as WikiType } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { ValidWiki } from './store.service'
-import {
-  contentQuality,
-  countQuality,
-  getSocialsCount,
-  getWikiCitationLinks,
-  getWikiInternalLinks,
-} from '../../App/utils/getWikiFields'
 import Metadata from '../../Database/Entities/metadata.entity'
 import { EditSpecificMetaIds } from '../../Database/Entities/types/IWiki'
 
@@ -23,64 +17,6 @@ export type ValidatorResult = {
 @Injectable()
 class MetadataChangesService {
   constructor(private connection: Connection) {}
-
-  private async calculateWikiScore(wiki: ValidWiki): Promise<number> {
-    const CONTENT_SCORE_WEIGHT = 0.8
-    const INTERNAL_LINKS_SCORE_WEIGHT = 0.5
-    const CITATIONS_SCORE_WEIGHT = 0.5
-    const MEDIA_SCORE_WEIGHT = 0.3
-    const TAGS_SCORE_WEIGHT = 0.3
-    const SUMMARY_SCORE_WEIGHT = 0.5
-    const SOCIAL_SCORE_WEIGHT = 0.5
-
-    const IDEAL_INTERNAL_LINKS_COUNT = 10
-    const IDEAL_CITATIONS_COUNT = 10
-    const IDEAL_MEDIA_COUNT = 5
-    const IDEAL_TAGS_COUNT = 3
-    const IDEAL_SUMMARY_LENGTH = 100
-    const IDEAL_SOCIAL_MEDIA_COUNT = 4
-
-    const wordCount = wiki.content.split(' ').length
-    const internalLinksCount = getWikiInternalLinks(wiki.content)
-    const citationCount = getWikiCitationLinks(wiki as unknown as Wiki)
-    const mediaCount = wiki.media?.length || 0
-    const tagsCount = wiki.tags?.length || 0
-    const summaryWordCount = wiki.summary?.length || 0
-    const socialsCount = getSocialsCount(wiki as unknown as Wiki)
-
-    const contentScore = contentQuality(wordCount)
-    const internalLinksScore = countQuality(
-      IDEAL_INTERNAL_LINKS_COUNT,
-      internalLinksCount,
-    )
-    const citationScore = countQuality(IDEAL_CITATIONS_COUNT, citationCount)
-    const mediaScore = countQuality(IDEAL_MEDIA_COUNT, mediaCount)
-    const tagsScore = countQuality(IDEAL_TAGS_COUNT, tagsCount)
-    const summaryScore = countQuality(IDEAL_SUMMARY_LENGTH, summaryWordCount)
-    const socialsScore = countQuality(IDEAL_SOCIAL_MEDIA_COUNT, socialsCount)
-
-    const sumOfWeights =
-      CONTENT_SCORE_WEIGHT +
-      INTERNAL_LINKS_SCORE_WEIGHT +
-      CITATIONS_SCORE_WEIGHT +
-      MEDIA_SCORE_WEIGHT +
-      TAGS_SCORE_WEIGHT +
-      SUMMARY_SCORE_WEIGHT +
-      SOCIAL_SCORE_WEIGHT
-
-    const score =
-      (contentScore * CONTENT_SCORE_WEIGHT +
-        internalLinksScore * INTERNAL_LINKS_SCORE_WEIGHT +
-        citationScore * CITATIONS_SCORE_WEIGHT +
-        mediaScore * MEDIA_SCORE_WEIGHT +
-        tagsScore * TAGS_SCORE_WEIGHT +
-        summaryScore * SUMMARY_SCORE_WEIGHT +
-        socialsScore * SOCIAL_SCORE_WEIGHT) /
-      sumOfWeights
-
-    const percentScore = Math.floor(score * 100)
-    return percentScore
-  }
 
   private async findWiki(id: string): Promise<Wiki | undefined> {
     const wikiRepository = this.connection.getRepository(Wiki)
@@ -216,7 +152,7 @@ class MetadataChangesService {
     })
     changes.push({
       id: EditSpecificMetaIds.WIKI_SCORE,
-      value: `${await this.calculateWikiScore(newWiki)}`,
+      value: `${calculateWikiScore(newWiki as unknown as WikiType)}`,
     })
 
     const noChanges = () => {
@@ -246,7 +182,7 @@ class MetadataChangesService {
         metadata: IPFSWiki.metadata.concat([
           {
             id: EditSpecificMetaIds.WIKI_SCORE,
-            value: `${await this.calculateWikiScore(IPFSWiki)}`,
+            value: `${calculateWikiScore(IPFSWiki as unknown as WikiType)}`,
           },
         ]),
       }

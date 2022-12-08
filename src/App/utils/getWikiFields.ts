@@ -6,76 +6,10 @@ import {
 } from '../../Database/Entities/types/IWiki'
 import Wiki from '../../Database/Entities/wiki.entity'
 
-const MIN_CONTENT_WORD_COUNT = 10
-const GOOD_CONTENT_WORD_COUNT = 500
-const IDEAL_CONTENT_WORD_COUNT = 1500
-
 export const getWikiMetadataById = (
   wiki: Wiki,
   id: CommonMetaIds | EditSpecificMetaIds,
 ) => wiki.metadata.find((m: Metadata) => m.id === id)
-
-export const contentQuality = (wordCount: number): number => {
-  const scoreMin = 0.0
-  const scoreMax = 1.0
-
-  let score = 0
-
-  if (wordCount < MIN_CONTENT_WORD_COUNT) {
-    return scoreMin
-  }
-
-  if (
-    wordCount >= MIN_CONTENT_WORD_COUNT &&
-    wordCount <= GOOD_CONTENT_WORD_COUNT
-  ) {
-    score = wordCount / GOOD_CONTENT_WORD_COUNT
-    score *= 0.8
-  }
-
-  if (
-    wordCount > GOOD_CONTENT_WORD_COUNT &&
-    wordCount < IDEAL_CONTENT_WORD_COUNT
-  ) {
-    const baseScore = 0.8
-    const wordCountAboveGood = wordCount - GOOD_CONTENT_WORD_COUNT
-    const extraScoreFactor =
-      wordCountAboveGood / (IDEAL_CONTENT_WORD_COUNT - GOOD_CONTENT_WORD_COUNT)
-    const extraScore = Math.sqrt(extraScoreFactor) * 0.2
-    score = baseScore + extraScore
-  }
-
-  if (wordCount >= IDEAL_CONTENT_WORD_COUNT) {
-    return scoreMax
-  }
-
-  if (score < scoreMin) {
-    return scoreMin
-  }
-
-  if (score > scoreMax) {
-    return scoreMax
-  }
-
-  return score
-}
-
-export const countQuality = (idealCount: number, realCount: number): number => {
-  const scoreMin = 0.0
-  const scoreMax = 1.0
-
-  const score = realCount / idealCount
-
-  if (score < scoreMin) {
-    return scoreMin
-  }
-
-  if (score > scoreMax) {
-    return scoreMax
-  }
-
-  return score
-}
 
 export const isValidUrl = (urlString: string) => {
   try {
