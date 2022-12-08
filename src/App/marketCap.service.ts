@@ -108,6 +108,7 @@ class MarketCapService {
       const wikiAndCryptoMarketData = {
         ...wiki,
         tokenMarketData: {
+          image: element.image,
           current_price: element.current_price,
           market_cap: element.market_cap,
           market_cap_rank: element.market_cap_rank,
@@ -181,6 +182,7 @@ class MarketCapService {
       const wikiAndNftMarketData = {
         ...wiki,
         nftMarketData: {
+          image: element.image.small,
           floor_price_eth: element.floor_price.native_currency,
           floor_price_usd: element.floor_price.usd,
           market_cap_usd: element.market_cap.usd,
