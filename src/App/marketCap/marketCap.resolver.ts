@@ -1,13 +1,13 @@
 import { UseInterceptors } from '@nestjs/common'
-import {
-  Args,
-  Query,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Query, Resolver } from '@nestjs/graphql'
 import SentryInterceptor from '../../sentry/security.interceptor'
-import { MarketCapInputs, MarketRankData, NftRankListData, TokenRankListData } from './maketCapDto'
+import {
+  MarketCapInputs,
+  MarketRankData,
+  NftRankListData,
+  TokenRankListData,
+} from './maketCapDto'
 import MarketCapService from './marketCap.service'
-
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => MarketRankData)

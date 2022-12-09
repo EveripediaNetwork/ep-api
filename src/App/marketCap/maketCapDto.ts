@@ -1,5 +1,11 @@
 /* eslint-disable max-classes-per-file */
-import { ObjectType, createUnionType, Field, registerEnumType, ArgsType } from '@nestjs/graphql'
+import {
+  ObjectType,
+  createUnionType,
+  Field,
+  registerEnumType,
+  ArgsType,
+} from '@nestjs/graphql'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 
