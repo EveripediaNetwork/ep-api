@@ -1,74 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable no-console */
-/* eslint-disable no-sequences */
-/* eslint-disable import/no-cycle */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { createUnionType, Field, ObjectType } from '@nestjs/graphql'
-import Wiki from '../Database/Entities/wiki.entity'
-import { MarketCapInputs, RankType } from './marketCap.resolver'
+import Wiki from '../../Database/Entities/wiki.entity'
 import { cryptocurrencyIds, nftIds } from './marketCapIds'
-
-@ObjectType()
-export class NftListData {
-  @Field()
-  floor_price_eth!: number
-
-  @Field()
-  floor_price_usd!: number
-
-  @Field()
-  market_cap_usd!: number
-
-  @Field()
-  floor_price_in_usd_24h_percentage_change!: number
-}
-
-@ObjectType()
-export class TokenListData {
-  @Field()
-  current_price!: number
-
-  @Field()
-  market_cap!: number
-
-  @Field()
-  market_cap_rank!: number
-
-  @Field()
-  price_change_24h!: number
-
-  @Field()
-  market_cap_change_24h!: number
-}
-
-@ObjectType()
-export class TokenRankListData extends Wiki {
-  @Field(() => TokenListData, { nullable: true })
-  tokenMarketData?: TokenListData
-}
-@ObjectType()
-export class NftRankListData extends Wiki {
-  @Field(() => NftListData, { nullable: true })
-  nftMarketData?: NftListData
-}
-
-export const MarketRankData = createUnionType({
-  name: 'MarketRankData',
-  types: () => [NftRankListData, TokenRankListData] as const,
-  resolveType(value) {
-    if (value.nftMarketData) {
-      return 'NftRankListData'
-    }
-    if (value.tokenMarketData) {
-      return 'TokenRankListData'
-    }
-
-    return true
-  },
-})
+import {
+  MarketCapInputs,
+  NftRankListData,
+  RankType,
+  TokenRankListData,
+} from './maketCapDto'
 
 @Injectable()
 class MarketCapService {
@@ -109,6 +52,8 @@ class MarketCapService {
         ...wiki,
         tokenMarketData: {
           image: element.image,
+          name: element.name,
+          alias: element.symbol,
           current_price: element.current_price,
           market_cap: element.market_cap,
           market_cap_rank: element.market_cap_rank,
@@ -122,7 +67,7 @@ class MarketCapService {
     return result
   }
 
-  async findWiki(id: string, exceptionIds: typeof nftIds) {
+  private async findWiki(id: string, exceptionIds: typeof nftIds) {
     const repository = this.connection.getRepository(Wiki)
     const wiki =
       (await repository.findOne({
@@ -139,7 +84,11 @@ class MarketCapService {
     return wiki
   }
 
-  async getNfts(amount: number, page: number) {
+  private async getNfts(amount: number, page: number) {
+    const key = `nftIds/${amount}/${page}`
+    const coingeckoNftIds: any | undefined = await this.cacheManager.get(key)
+    if (coingeckoNftIds) return coingeckoNftIds
+
     let data
     try {
       data = await this.httpService
@@ -153,22 +102,27 @@ class MarketCapService {
     } catch (err: any) {
       console.error(err.message)
     }
+    await this.cacheManager.set(key, data?.data, { ttl: 18000000 })
     return data?.data
   }
 
-  async nftMarketData(amount: number, page: number) {
+  private async nftMarketData(amount: number, page: number) {
     const nfts = await this.getNfts(amount, page)
 
     const marketCap = nfts.map(async (d: any) => {
       let nftMarketCap
       try {
-        nftMarketCap = await this.httpService
+        const res = await this.httpService
           .get(`https://api.coingecko.com/api/v3/nfts/${d.id}`)
           .toPromise()
+        nftMarketCap = {
+          ...res?.data,
+          alias: d.symbol,
+        }
       } catch (err: any) {
         console.error(err.message)
       }
-      return nftMarketCap?.data
+      return nftMarketCap
     })
 
     const marketData = await Promise.all(marketCap)
@@ -182,6 +136,8 @@ class MarketCapService {
       const wikiAndNftMarketData = {
         ...wiki,
         nftMarketData: {
+          alias: element.alias,
+          name: element.name,
           image: element.image.small,
           floor_price_eth: element.floor_price.native_currency,
           floor_price_usd: element.floor_price.usd,
