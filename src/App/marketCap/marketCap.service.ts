@@ -75,9 +75,7 @@ class MarketCapService {
         hidden: false,
       })) ||
       (await repository.findOne({
-        id: exceptionIds.find(async (e: any) => {
-          id === e.coingeckoId
-        })?.wikiId,
+        id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
         hidden: false,
       }))
 
@@ -89,21 +87,31 @@ class MarketCapService {
     const coingeckoNftIds: any | undefined = await this.cacheManager.get(key)
     if (coingeckoNftIds) return coingeckoNftIds
 
-    let data
-    try {
-      data = await this.httpService
-        .get(
-          `
+    const callApi = async () => {
+      let data
+      try {
+        data = await this.httpService
+          .get(
+            `
             https://api.coingecko.com/api/v3/nfts/list?order=market_cap_usd_desc&per_page=${amount}&page=${
-            page === 0 ? 1 : page
-          }`,
-        )
-        .toPromise()
-    } catch (err: any) {
-      console.error(err.message)
+              page === 0 ? 1 : page
+            }`,
+          )
+          .toPromise()
+      } catch (err: any) {
+        console.error(err.message)
+      }
+      if (!data?.data) {
+        console.error('ERROR retrieving NFT IDs from coingecko')
+        await new Promise(r => setTimeout(r, 3000))
+        await callApi()
+      }
+      return data?.data
     }
-    await this.cacheManager.set(key, data?.data, { ttl: 18000000 })
-    return data?.data
+    const data = await callApi()
+
+    await this.cacheManager.set(key, data, { ttl: 18000000 })
+    return data
   }
 
   private async nftMarketData(amount: number, page: number) {
