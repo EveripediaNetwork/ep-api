@@ -1,9 +1,10 @@
-import Metadata from '../../Database/Entities/metadata.entity'
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
   WikiPossibleSocialsList,
-} from '../../Database/Entities/types/IWiki'
+} from '@everipedia/iq-utils'
+import Metadata from '../../Database/Entities/metadata.entity'
+
 import Wiki from '../../Database/Entities/wiki.entity'
 
 export const getWikiMetadataById = (

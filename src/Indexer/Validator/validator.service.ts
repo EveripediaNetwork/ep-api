@@ -1,12 +1,12 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
+
 import {
   CommonMetaIds,
   EditSpecificMetaIds,
   ValidatorCodes,
-} from '../../Database/Entities/types/IWiki'
-
+} from '@everipedia/iq-utils'
 import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'

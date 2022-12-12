@@ -1,7 +1,7 @@
+import { ValidatorCodes } from '@everipedia/iq-utils'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Connection } from 'typeorm'
 import { Source } from '../../Database/Entities/media.entity'
-import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
 import { ValidWiki } from '../Store/store.service'
 
 import IPFSValidatorService, { ValidatorResult } from './validator.service'

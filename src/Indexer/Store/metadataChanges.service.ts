@@ -1,12 +1,15 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import diff from 'fast-diff'
-import { calculateWikiScore, Wiki as WikiType } from '@everipedia/iq-utils'
+import {
+  calculateWikiScore,
+  EditSpecificMetaIds,
+  Wiki as WikiType,
+} from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { ValidWiki } from './store.service'
 import Metadata from '../../Database/Entities/metadata.entity'
-import { EditSpecificMetaIds } from '../../Database/Entities/types/IWiki'
 
 export type ValidatorResult = {
   status: boolean
@@ -152,7 +155,7 @@ class MetadataChangesService {
     })
     changes.push({
       id: EditSpecificMetaIds.WIKI_SCORE,
-      value: `${calculateWikiScore(newWiki as unknown as WikiType)}`,
+      value: `${calculateWikiScore(newWiki as WikiType)}`,
     })
 
     const noChanges = () => {
@@ -182,7 +185,7 @@ class MetadataChangesService {
         metadata: IPFSWiki.metadata.concat([
           {
             id: EditSpecificMetaIds.WIKI_SCORE,
-            value: `${calculateWikiScore(IPFSWiki as unknown as WikiType)}`,
+            value: `${calculateWikiScore(IPFSWiki as WikiType)}`,
           },
         ]),
       }
