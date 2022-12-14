@@ -27,11 +27,24 @@ class StatsGetterService {
   }
 
   private async cgApiCall(name: string): Promise<any> {
-    const marketChangeUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
-    const volumeChangeUrl = `https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1&interval=daily`
+    const key = this.configService.get('COINGECKO_API_KEY')
+    const marketChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
+    const volumeChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1&interval=daily`
     const [marketChangeResult, volumeChangeResult] = await Promise.all([
-      this.httpService.get(marketChangeUrl).toPromise(),
-      this.httpService.get(volumeChangeUrl).toPromise(),
+      this.httpService
+        .get(marketChangeUrl, {
+          headers: {
+            'x-cg-pro-api-key': key,
+          },
+        })
+        .toPromise(),
+      this.httpService
+        .get(volumeChangeUrl, {
+          headers: {
+            'x-cg-pro-api-key': key,
+          },
+        })
+        .toPromise(),
     ])
     return { marketChangeResult, volumeChangeResult }
   }
