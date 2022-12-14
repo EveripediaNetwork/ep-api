@@ -14,8 +14,8 @@ class MarketDataGenerals {
   @Field()
   name!: string
 
-  @Field()
-  alias!: string
+  @Field({ nullable: true})
+  alias?: string
 
   @Field()
   image!: string

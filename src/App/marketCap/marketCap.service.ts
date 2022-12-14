@@ -4,6 +4,7 @@ import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { ConfigService } from '@nestjs/config'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { cryptocurrencyIds, nftIds } from './marketCapIds'
 import {
@@ -18,31 +19,49 @@ class MarketCapService {
   constructor(
     private connection: Connection,
     private httpService: HttpService,
+    private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  private async marketData(kind: string, amount: number, page: number) {
-    let result
+  private apiKey() {
+    return this.configService.get('COINGECKO_API_KEY')
+  }
 
-    if (kind === RankType.NFT) {
-      result = await this.nftMarketData(amount, page)
-      return result
-    }
+  private async findWiki(id: string, exceptionIds: typeof nftIds) {
+    const repository = this.connection.getRepository(Wiki)
+    const wiki =
+      (await repository.findOne({
+        id,
+        hidden: false,
+      })) ||
+      (await repository.findOne({
+        id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
+        hidden: false,
+      }))
 
+    return wiki
+  }
+
+  private async cryptoMarketData(amount: number, page: number) {
     let data
     try {
       data = await this.httpService
         .get(
-          ` https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${
+          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${
             page === 0 ? 1 : page
           }&sparkline=false`,
+          {
+            headers: {
+              'x-cg-pro-api-key': this.apiKey(),
+            },
+          },
         )
         .toPromise()
     } catch (err: any) {
       console.error(err.message)
     }
 
-    result = data?.data.map(async (element: any) => {
+    const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, cryptocurrencyIds)
 
       if (!wiki) {
@@ -67,75 +86,26 @@ class MarketCapService {
     return result
   }
 
-  private async findWiki(id: string, exceptionIds: typeof nftIds) {
-    const repository = this.connection.getRepository(Wiki)
-    const wiki =
-      (await repository.findOne({
-        id,
-        hidden: false,
-      })) ||
-      (await repository.findOne({
-        id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
-        hidden: false,
-      }))
-
-    return wiki
-  }
-
-  private async getNfts(amount: number, page: number) {
-    const key = `nftIds/${amount}/${page}`
-    const coingeckoNftIds: any | undefined = await this.cacheManager.get(key)
-    if (coingeckoNftIds) return coingeckoNftIds
-
-    const callApi = async () => {
-      let data
-      try {
-        data = await this.httpService
-          .get(
-            `
-            https://api.coingecko.com/api/v3/nfts/list?order=market_cap_usd_desc&per_page=${amount}&page=${
-              page === 0 ? 1 : page
-            }`,
-          )
-          .toPromise()
-      } catch (err: any) {
-        console.error(err.message)
-      }
-      if (!data?.data) {
-        console.error('ERROR retrieving NFT IDs from coingecko')
-        await new Promise(r => setTimeout(r, 3000))
-        await callApi()
-      }
-      return data?.data
-    }
-    const data = await callApi()
-
-    await this.cacheManager.set(key, data, { ttl: 18000000 })
-    return data
-  }
-
   private async nftMarketData(amount: number, page: number) {
-    const nfts = await this.getNfts(amount, page)
+    let data
+    try {
+      data = await this.httpService
+        .get(
+          ` https://pro-api.coingecko.com/api/v3/nfts/markets?asset_platform_id=ethereum&order=market_cap_usd_desc&per_page=${amount}&page=${
+            page === 0 ? 1 : page
+          }`,
+          {
+            headers: {
+              'x-cg-pro-api-key': this.apiKey(),
+            },
+          },
+        )
+        .toPromise()
+    } catch (err: any) {
+      console.error(err.message)
+    }
 
-    const marketCap = nfts.map(async (d: any) => {
-      let nftMarketCap
-      try {
-        const res = await this.httpService
-          .get(`https://api.coingecko.com/api/v3/nfts/${d.id}`)
-          .toPromise()
-        nftMarketCap = {
-          ...res?.data,
-          alias: d.symbol,
-        }
-      } catch (err: any) {
-        console.error(err.message)
-      }
-      return nftMarketCap
-    })
-
-    const marketData = await Promise.all(marketCap)
-
-    const result = marketData.map(async (element: any) => {
+    const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds)
 
       if (!wiki) {
@@ -144,7 +114,7 @@ class MarketCapService {
       const wikiAndNftMarketData = {
         ...wiki,
         nftMarketData: {
-          alias: element.alias,
+          alias: null,
           name: element.name,
           image: element.image.small,
           floor_price_eth: element.floor_price.native_currency,
@@ -156,6 +126,7 @@ class MarketCapService {
       }
       return wikiAndNftMarketData
     })
+
     return result
   }
 
@@ -168,16 +139,22 @@ class MarketCapService {
 
     if (finalCachedResult) return finalCachedResult
 
-    const result = await this.marketData(
-      args.kind as string,
-      args.limit,
-      args.offset,
-    )
+    let result
+
+    if (args.kind === RankType.NFT) {
+      result = (await this.nftMarketData(
+        args.limit,
+        args.offset,
+      )) as unknown as NftRankListData
+    } else {
+      result = (await this.cryptoMarketData(
+        args.limit,
+        args.offset,
+      )) as unknown as TokenRankListData
+    }
 
     await this.cacheManager.set(key, result, { ttl: 600000 })
-
-    if (args.kind === RankType.NFT) return result as unknown as NftRankListData
-    return result as unknown as TokenRankListData
+    return result
   }
 }
 
