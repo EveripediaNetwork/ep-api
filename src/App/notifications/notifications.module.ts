@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import DatabaseModule from '../../Database/database.module'
 import httpModule from '../../httpModule'
@@ -12,6 +12,7 @@ import NotificationsCommand from './notifications.command'
       isGlobal: true,
     }),
     DatabaseModule,
+    CacheModule.register(),
     httpModule(20000),
     MailModule,
   ],
