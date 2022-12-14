@@ -14,7 +14,7 @@ export default class MailService {
     id: string,
     title: string,
     image: string,
-    summary: string,
+    suggestions: any[]
   ): Promise<boolean> {
     await this.mailerService.sendMail({
       to: userEmail,
@@ -29,7 +29,7 @@ export default class MailService {
         unsubscribeLink: `${this.config.get<string>(
           'WEBSITE_URL',
         )}/account/settings`,
-        summary,
+        suggestions
       },
     })
     return true
