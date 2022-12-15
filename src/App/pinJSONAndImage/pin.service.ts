@@ -2,7 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
-import { ValidatorCodes } from '../../Database/Entities/types/IWiki'
+import { ValidatorCodes } from '@everipedia/iq-utils'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'

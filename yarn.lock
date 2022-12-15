@@ -872,6 +872,11 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.1"
 
+"@everipedia/iq-utils@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@everipedia/iq-utils/-/iq-utils-0.0.2.tgz#c75ff275b6927ed817ef68b5a8ec42f836be6d3e"
+  integrity sha512-iYRZEqlS9/1LjlYplfZKKYob70pgpMlQGyI1YwLLVlPAHYm2+7Tl+gu9kolkzrK9VDN90XomX21Q4C4sm3BxeA==
+
 "@fastify/accepts@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@fastify/accepts/-/accepts-3.0.0.tgz"
