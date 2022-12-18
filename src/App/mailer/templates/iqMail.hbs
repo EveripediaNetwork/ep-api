@@ -10,122 +10,296 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;600;700&display=swap"
         rel="stylesheet">
     <title>IQ Wiki Update</title>
-    <style>
-        /*! tailwindcss v3.2.4 | MIT License | https://tailwindcss.com*/*,:after,:before{border:0 solid #e5e7eb;box-sizing:border-box}:after,:before{--tw-content:""}html{-webkit-text-size-adjust:100%;font-feature-settings:normal;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4}body{line-height:inherit;margin:0}hr{border-top-width:1px;color:inherit;height:0}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-collapse:collapse;border-color:inherit;text-indent:0}button,input,optgroup,select,textarea{color:inherit;font-family:inherit;font-size:100%;font-weight:inherit;line-height:inherit;margin:0;padding:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{color:#9ca3af;opacity:1}input::placeholder,textarea::placeholder{color:#9ca3af;opacity:1}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{height:auto;max-width:100%}[hidden]{display:none}*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }.absolute{position:absolute}.relative{position:relative}.bottom-\[30\%\]{bottom:30%}.left-\[30\%\]{left:30%}.mx-\[5\%\]{margin-left:5%;margin-right:5%}.mt-\[86px\]{margin-top:86px}.mb-4{margin-bottom:1rem}.mt-7{margin-top:1.75rem}.mt-16{margin-top:4rem}.mb-8{margin-bottom:2rem}.mt-11{margin-top:2.75rem}.mt-6{margin-top:1.5rem}.mt-14{margin-top:3.5rem}.mb-20{margin-bottom:5rem}.mt-5{margin-top:1.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-1{margin-bottom:.25rem}.flex{display:flex}.h-\[130px\]{height:130px}.h-\[37px\]{height:37px}.h-full{height:100%}.h-\[332px\]{height:332px}.h-12{height:3rem}.w-full{width:100%}.w-\[800px\]{width:800px}.w-\[44px\]{width:44px}.w-auto{width:auto}.w-\[650px\]{width:650px}.w-\[430px\]{width:430px}.w-12{width:3rem}.flex-col{flex-direction:column}.content-start{align-content:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-y-1\.5{row-gap:.375rem}.gap-y-1{row-gap:.25rem}.gap-x-2{-moz-column-gap:.5rem;column-gap:.5rem}.gap-y-6{row-gap:1.5rem}.gap-x-1{-moz-column-gap:.25rem;column-gap:.25rem}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-\[\#F4F6F8\]{--tw-border-opacity:1;border-color:rgb(244 246 248/var(--tw-border-opacity))}.border-brandColor{--tw-border-opacity:1;border-color:rgb(255 92 170/var(--tw-border-opacity))}.border-\[\#E2E8F0\]{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity))}.bg-\[\#F4F6F8\]{--tw-bg-opacity:1;background-color:rgb(244 246 248/var(--tw-bg-opacity))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity))}.bg-brandColor{--tw-bg-opacity:1;background-color:rgb(255 92 170/var(--tw-bg-opacity))}.bg-\[\#F7FAFC\]{--tw-bg-opacity:1;background-color:rgb(247 250 252/var(--tw-bg-opacity))}.bg-fixed{background-attachment:fixed}.py-3\.5{padding-bottom:.875rem;padding-top:.875rem}.px-12{padding-left:3rem;padding-right:3rem}.py-3{padding-bottom:.75rem;padding-top:.75rem}.py-6{padding-bottom:1.5rem;padding-top:1.5rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}.pt-6{padding-top:1.5rem}.pb-12{padding-bottom:3rem}.pb-8{padding-bottom:2rem}.text-center{text-align:center}.font-body{font-family:Montserrat}.text-\[18px\]{font-size:18px}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-normal{font-weight:400}.capitalize{text-transform:capitalize}.text-brandText{--tw-text-opacity:1;color:rgb(26 32 44/var(--tw-text-opacity))}.text-brandColor{--tw-text-opacity:1;color:rgb(255 92 170/var(--tw-text-opacity))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity))}.underline{text-decoration-line:underline}
-    </style>
 </head>
 
 <body class="bg-[#F4F6F8] flex w-full justify-center font-body text-brandText">
-    <table class="w-[800px] bg-white mt-[86px] rounded-md">
-        <thead
-            class="pt-6 h-[130px] flex flex-col content-start items-center border-b border-[#F4F6F8] gap-y-1.5 bg-fixed"
-            style="background-image: url(/dist/assets/images/brain-bg.svg)">
-            <td>
-                <a href="{{iqUrl}}"  class="flex items-center gap-x-2">
-                    <div>
-                        <img src="/dist/assets/images/braindao-logo.png" alt="IQ-logo" class="w-[44px] h-[37px]">
-                    </div>
-                    <div>
-                        <h3 class="font-bold">IQ.Wiki</h3>
-                    </div>
-                </a>
+    <table cellpadding="0" cellspacing="0" height="100%" width="100%"
+        style="border: none; background-color: #F4F6F8; font-family: Verdana, Arial; color: #1A202C;">
+        <tr>
+            <td align="center" valign="top">
+                <table cellpadding="40" cellspacing="0" width="800" id="emailContainer"
+                    style="background-color: #F4F6F8; border: none;">
+                    <tr>
+                        <td align="center" valign="top" style="border: none;">
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <tr>
-                <th>
+        </tr>
+        <tr>
+            <td class="esd-block-image esd-frame esdev-disable-select esd-draggable esd-block esd-hover"
+                style="font-size: 0px;" esd-handler-name="imgBlockHandler" align="center">
+                <table style=" background-color: white;" width="800">
+                    <tr>
+                        <td>
+                            <a href="{{iqUrl}}">
+                                <div
+                                    style="background-image: url(https://gateway.pinata.cloud/ipfs/QmcWsk4TASWeFvAtkkyVubCjKXz5h893srxPXYU9hFwcUZ); background-size: cover; height: 146px; width: 100%;">
+                                </div>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
+                    style="background-color: white; border: none;" height="36">
+                    <tr>
+                        <td align="center" valign="top" style="border: none;">
+                            <span style="font-size: 30px; font-weight: 600; line-height: 36px;">
+                                Wiki Update: {{wiki}}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
+                    style="background-color: white; border: none;" height="174">
+                    <tr>
+                        <td align="center" valign="top" style="padding-bottom: 40px; border: none;">
+                            <img src="{{wikiImage}}" alt="{{wiki}} image" style="height: 332px; width: 443px">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" valign="top" style=" border: none; font-size: 18px;">
+                            Hey There! <br> I have got some good news for you.
+                            <span style="font-weight: 600; text-transform: capitalize;">{{wiki}}</span>
+                            has been updated. You don’t want to miss. it. Click below to check out the lastest
+                            information.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" valign="top" style=" border: none;">
+                            <span
+                                style="border-radius: 6px; border-width: 0px; background: #FF5CAA; padding: 14px 41px;">
+                                <a href="{{url}}" target="_blank"
+                                    style="font-size: 14px; color: white; text-decoration: none;">Read wiki update</a>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table cellpadding="0" cellspacing="0" width="800" id="emailContainer"
+                    style="border: none; background-color: white; padding: 25px 50px;">
+                    <tr>
+                        <td style="border-bottom: 1px solid #FF5CAA; background: unset; height:1px; ">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table style="padding-bottom: 18px; background-color: white; text-align: center;" width="800">
+                    <tr>
+                        <td style="font-size: 30px; font-weight: 600;">Get more from IQ.wiki</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table style="padding-bottom: 18px; background-color: white; text-align: center; font-size: 18px;"
+                    width="800">
+                    <tr>
+                        <td>Don’t miss out! Check out some other amazing wiki updates from IQ.wiki.</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top" >
+                <table style="background-color: white;" width="800">
+                    <tr>
+                        <td align="center">
+                            <div style="background-color: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 20px; padding: 30px 10px; 0px; width: 650px;">
+                            <table style="background-color: #F7FAFC !important; border: 1px solid #E2E8F0 !importan; border-radius: 20px !important; padding: 30px 10px; 0px !important;"
+                                width="650">
+                                <tr>
+                                    <td align="left" width="431" style="padding-bottom: 20px;">
+                                       <span style="font-weight:700; padding-bottom: 6px; font-size: 18px; display: block;">
+                                        {{suggestions.[0].title}}
+                                       </span> 
+                                       <span>
+                                           {{suggestions.[0].summary}}
+                                       </span>
 
-                    <h4 class="text-[18px] font-bold">The World’s Largest <span class="text-brandColor">Blockchain &
-                            Crypto</span> Encyclopedia</h4>
-                </th>
-            </tr>
-        </thead>
-        <article class="w-full text-center">
-            <div class="h-full mx-[5%] border-b border-brandColor pb-12">
-                <h1 class="mb-4 mt-7 font-semibold text-3xl">IQ Wiki Update: {{wiki}}</h1>
-                <div class="flex justify-center">
-                    <img class="w-auto h-[332px] rounded-md" src="{{}}" alt="wiki image">
-                </div>
-                <div class="mx-[5%] mt-16 mb-8">
-                    <p class="font-normal">Hey There! <br> I have got some good news for you.
-                        The <span class="capitalize font-semibold"> {{wiki}}</span> has been updated. You
-                        don’t want to miss it. Click below to check out the lastest information.</p>
-                </div>
-                <a href="{{url}}" target="_blank" class="rounded-md text-white bg-brandColor py-3.5 px-12">Read wiki
-                    update</a>
-            </div>
-        </article>
-        <section class="w-full">
-            <div class="h-full mx-[5%] border-b border-brandColor pb-8 flex flex-col items-center">
-                <div class="text-center">
-                    <h2 class="mb-4 mt-11 font-semibold text-3xl">Get more from IQ.wiki</h2>
-                    <p class="font-normal">Don’t miss out! Check out some other amazing wiki updates from IQ.wiki.</p>
-                </div>
-                <div class="mt-6 w-[650px] bg-[#F7FAFC] flex flex-col border border-[#E2E8F0] rounded-lg py-6 px-3.5 gap-y-6">
-                    {{!-- {{#each suggestions}}
-                    <div class="flex justify-between items-center gap-x-1">
-                        <div>
-                            <h4 class="capitalize font-bold text-lg">
-                                {{this.title}}
-                            </h4>
-                            <p class="text-sm font-normal w-[430px]">{{this.summary}}
-                            </p>
-                        </div>
-                        <div>
+                                    </td>
+                                    <td align="right" width="152" style="padding-bottom: 25px;">
+                                        <span
+                                            style="border-radius: 6px; border-width: 0px; background: #FF5CAA; padding: 14px 41px;">
+                                            <a href="{{iqUrl}}/wiki/{{suggestions.[0].id}}" target="_blank"
+                                                style="font-size: 14px; color: white; text-decoration: none;">Read
+                                                wiki</a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="left" width="431" style="padding-bottom: 20px;">
+                                       <span style="font-weight:700; padding-bottom: 6px; font-size: 18px; display: block;">
+                                        {{suggestions.[1].title}}
+                                       </span> 
+                                       <span>
+                                        {{suggestions.[1].summary}}
+                                       </span>
 
-                            <a href="{{iqUrl}}/wiki/{{this.id}}" target="_blank"
-                                class="rounded-md text-white bg-brandColor py-3.5 px-10 text-sm">Read
-                                wiki</a>
-                        </div>
-                    </div>
-                    {{each}} --}}
-                </div>
-            </div>
-        </section>
-        <footer class="text-center">
-            <div class="mt-14 mb-20">
-                <h4 class="font-bold text-xl text-brandColor">Join our community Hub</h4>
-                <div class="mt-5">
-                    <div class="flex gap-x-3 justify-center">
-                        <a href="https://twitter.com/IQWIKI" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Twitter.svg" alt="">
-                        </a>
-                        <a href="https://github.com/EveripediaNetwork" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Github.svg" alt="">
-                        </a>
-                        <a href="https://instagram.com/everipedia" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Instagram.svg" alt="">
-                        </a>
-                        <a href="https://web.facebook.com/everipedia?_rdc=1&_rdr" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Facebook.svg" alt="">
-                        </a>
-                        <a href="https://discord.gg/x9EWvTcPXt" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Discord.svg" alt="">
-                        </a>
-                        <a href="https://t.me/everipedia" target="_blank"
-                            class="rounded-md text-white bg-brandColor w-12 h-12 relative">
-                            <img class="bg-red-green absolute bottom-[30%] left-[30%]"
-                                src="/dist/assets/images/Telegram.svg" alt="">
-                        </a>
+                                    </td>
+                                    <td align="right" width="152" style="padding-bottom: 25px;">
+                                        <span
+                                            style="border-radius: 6px; border-width: 0px; background: #FF5CAA; padding: 14px 41px;">
+                                            <a href="{{iqUrl}}/wiki/{{suggestions.[1].id}}" target="_blank"
+                                                style="font-size: 14px; color: white; text-decoration: none;">Read
+                                                wiki</a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="left" width="431" style="padding-bottom: 20px;">
+                                       <span style="font-weight:700; padding-bottom: 6px; font-size: 18px; display: block;">
+                                        {{suggestions.[2].title}}
+                                       </span> 
+                                       <span>
+                                        {{suggestions.[2].summary}}
+                                       </span>
 
-                    </div>
-                </div>
-                <p class="text-sm font-normal mt-7 mb-1.5">You are getting this email as a registered user of <a
-                        href={{iqUrl}} class="underline text-brandColor">IQ.Wiki</a>
-                </p>
-                <p class="text-sm font-normal">Manage your email preferences <a href="{{ unsubscribeLink }}"
-                        class="underline text-brandColor">here</a> or <a href="{{ unsubscribeLink }}"
-                        class="underline text-brandColor">unsuscribe</a></p>
-            </div>
-        </footer>
+                                    </td>
+                                    <td align="right" width="152" style="padding-bottom: 25px;">
+                                        <span
+                                            style="border-radius: 6px; border-width: 0px; background: #FF5CAA; padding: 14px 41px;">
+                                            <a href="{{iqUrl}}/wiki/{{suggestions.[2].id}}" target="_blank"
+                                                style="font-size: 14px; color: white; text-decoration: none;">Read
+                                                wiki</a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="left" width="431" style="padding-bottom: 10px;">
+                                       <span style="font-weight:700; padding-bottom: 6px; font-size: 18px; display: block;">
+                                        {{suggestions.[3].title}}
+                                       </span> 
+                                       <span>
+                                        {{suggestions.[3].summary}}
+                                       </span>
+
+                                    </td>
+                                    <td align="right" width="152" style="padding-bottom: 10px;">
+                                        <span
+                                            style="border-radius: 6px; border-width: 0px; background: #FF5CAA; padding: 14px 41px;">
+                                            <a href="{{iqUrl}}/wiki/{{suggestions.[3].id}}" target="_blank"
+                                                style="font-size: 14px; color: white; text-decoration: none;">Read
+                                                wiki</a>
+                                        </span>
+                                    </td>
+                                </tr>
+
+                            </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table cellpadding="0" cellspacing="0" width="800" id="emailContainer"
+                    style="border: none; background-color: white; padding-left:50px; padding-right: 50px; padding-bottom: 60px; padding-top: 25px;">
+                    <tr>
+                        <td style="border-bottom: 1px solid #FF5CAA; background: unset; height:1px; ">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table style="padding-bottom: 20px; background-color: white;" width="800">
+                    <tr>
+                        <td style="color:#FF5CAA; font-size: 20px; font-weight: 700; text-align: center;">Join our
+                            community Hub</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table
+                    style="padding-bottom: 20px; background-color: white; padding-left: 215.5px; padding-right: 215.5px;"
+                    width="800">
+                    <tr>
+                        <td style="padding-right: 12px;">
+                            <a href="https://twitter.com/IQWIKI"><img src="https://gateway.pinata.cloud/ipfs/Qme4het45xAEQQXttnGHYPVfGaRcHS9xmmk7WRGQjoWdXc" style="width: 48px; height: 48px;"
+                                    alt="Twitter"></a>
+                        </td>
+                        <td style="padding-right: 12px;">
+                            <a href="https://github.com/EveripediaNetwork"><img src="https://gateway.pinata.cloud/ipfs/QmWvRPpao1YbBAPKmUVGZqnUGMggTiFeP7SZgoGo7P77qm" style="width: 48px; height: 48px;"
+                                    alt="Github"></a>
+                        </td>
+                        <td style="padding-right: 12px;">
+                            <a href="https://instagram.com/everipedia"><img src="https://gateway.pinata.cloud/ipfs/QmedghA8u4PDj3m4BSDc5wYQDzLDbcLi8BoyYUFKex6DkT" style="width: 48px; height: 48px;"
+                                    alt="Instagram"></a>
+                        </td>
+                        <td style="padding-right: 12px;">
+                            <a href="https://web.facebook.com/everipedia?_rdc=1&_rdr"><img src="https://gateway.pinata.cloud/ipfs/QmRBsofFqDNamAxgHQGLyU8D9QCrMefcwkwRhfJ8pubFGj" style="width: 48px; height: 48px;"
+                                    alt="Facebook"></a>
+                        </td>
+                        <td style="padding-right: 12px;">
+                            <a href="https://discord.gg/x9EWvTcPXt"><img src="https://gateway.pinata.cloud/ipfs/QmQsUkJ8WpbTkKEmyUvDXaTTxfevpD752fm4y1rntJ8PEz" style="width: 48px; height: 48px;"
+                                    alt="Discord"></a>
+                        </td>
+                        <td>
+                            <a href="https://t.me/everipedia"><img src="https://gateway.pinata.cloud/ipfs/QmTBdn2urSaMWbT13yiK4g3keVLnWfv6C1GGWTYkndrgKH" style="width: 48px; height: 48px;"
+                                    alt="Telegram"></a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table style="background-color: white; height: 40px;" cellpadding="0" cellspacing="0" width="800"
+                    height="36">
+                    <tr>
+                        <td style="color:#4A5568; font-size: 14px; font-weight: 500; text-align: center;">You are
+                            getting this email as a
+                            registered user of <a href="https://iq.wiki" style="color:#FF5CAA;">IQ.Wiki</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table style="background-color: white; padding-bottom: 80px;" cellpadding="0" cellspacing="0"
+                    width="800" height="36">
+                    <tr>
+                        <td style="color:#4A5568; font-size: 14px; font-weight: 500; text-align: center;">Manage your
+                            email preferences <a href="{{unsubscribeLink}}" style="color:#FF5CAA;">here</a> or <a
+                                href="{{iqUrl}}" style="color:#FF5CAA;">unsubscribe</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" valign="top">
+                <table cellpadding="40" cellspacing="0" width="800" id="emailContainer"
+                    style="background-color: #F4F6F8; border: none;">
+                    <tr>
+                        <td align="center" valign="top" style="border: none;">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
     </table>
 </body>
 

@@ -12,7 +12,7 @@ class TokenValidator {
       if (userId && userId.toLowerCase() !== address.toLowerCase()) {
         throw new Error('Not user')
       }
-      if (!userId && !returnError) {
+      if (!userId || !returnError) {
         return address
       }
       return true

@@ -29,7 +29,7 @@ export default class MailService {
         unsubscribeLink: `${this.config.get<string>(
           'WEBSITE_URL',
         )}/account/settings`,
-        suggestions
+        suggestions,
       },
     })
     return true
