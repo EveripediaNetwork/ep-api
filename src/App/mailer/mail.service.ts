@@ -14,7 +14,7 @@ export default class MailService {
     id: string,
     title: string,
     image: string,
-    suggestions: any[]
+    suggestions: any[],
   ): Promise<boolean> {
     await this.mailerService.sendMail({
       to: userEmail,
