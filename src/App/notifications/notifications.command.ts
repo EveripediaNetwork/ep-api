@@ -126,7 +126,7 @@ class NotificationsCommand implements CommandRunner {
             wiki.id,
             wiki.title,
             wiki.images[0].id,
-            random
+            random,
           )
           if (status) console.log('✅ Notification sent! ')
 
