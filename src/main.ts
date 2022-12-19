@@ -30,7 +30,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
-    tracesSampleRate: 0.5,
+    tracesSampleRate: 0.3,
     integrations: [new Tracing.Integrations.Apollo()],
   })
   app.set('trust proxy', 1)
