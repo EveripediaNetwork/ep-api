@@ -2,12 +2,11 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
-import { ValidatorCodes } from '@everipedia/iq-utils'
+import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
-import { ValidWiki } from '../../Indexer/Store/store.service'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 
@@ -45,7 +44,7 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const wiki: ValidWiki = JSON.parse(body)
+    const wiki: WikiType = JSON.parse(body)
     const data = await this.metadataChanges.removeEditMetadata(wiki)
 
     const isDataValid = await this.validator.validate(data, true)

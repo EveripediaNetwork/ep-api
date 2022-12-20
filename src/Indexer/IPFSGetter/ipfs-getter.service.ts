@@ -1,8 +1,7 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
-
-import { ValidWiki } from '../Store/store.service'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import SentryInterceptor from '../../sentry/security.interceptor'
 
 @UseInterceptors(SentryInterceptor)
@@ -13,7 +12,7 @@ class IPFSGetterService {
     private configService: ConfigService,
   ) {}
 
-  async getIPFSDataFromHash(hash: string): Promise<ValidWiki> {
+  async getIPFSDataFromHash(hash: string): Promise<WikiType> {
     const response = await this.httpService
       .get(this.configService.get('ipfsUrl') + hash)
       .toPromise()
