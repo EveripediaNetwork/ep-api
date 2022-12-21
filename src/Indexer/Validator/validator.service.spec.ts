@@ -5,6 +5,7 @@ import {
   CommonMetaIds,
   EditSpecificMetaIds,
   Wiki as WikiType,
+  MediaType,
 } from '@everipedia/iq-utils'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Connection } from 'typeorm'
@@ -53,11 +54,8 @@ describe('PinResolver', () => {
       },
     ],
     hidden: false,
-    // author: {
-    //   id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-    // },
-    // promoted: 0,
   } as unknown as WikiType
+
   const mockQuery = () => ({
     findOne: jest.fn().mockReturnValue(oldWiki),
   })
@@ -97,10 +95,6 @@ describe('PinResolver', () => {
       },
     ],
     hidden: false,
-    // author: {
-    //   id: '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
-    // },
-    // promoted: 0,
   } as unknown as WikiType
   const result: ValidatorResult = {
     status: true,
@@ -348,6 +342,57 @@ describe('PinResolver', () => {
     }
 
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
+
+  it('should return false if wrong media type is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
+          size: '0.022',
+          type: 'NOTAPROPERTYPE' as MediaType,
+          source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          size: '0.107',
+          source: MediaSource.IPFS_IMG,
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.MEDIA,
+    })
+  })
+
+  it('should return false if more than one media type icon is set', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
+          size: '0.022',
+          type: MediaType.ICON,
+          source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          type: MediaType.ICON,
+          size: '0.107',
+          source: MediaSource.IPFS_IMG,
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.MEDIA,
+    })
   })
 
   it('should return status false for incorrect youtube link or invalid ipfs hash', async () => {

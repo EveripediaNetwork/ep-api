@@ -1,7 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { MediaSource, MediaType } from '@everipedia/iq-utils'
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
-import { Column } from 'typeorm'
 
 registerEnumType(MediaSource, { name: 'MediaSource' })
 registerEnumType(MediaType, { name: 'MediaType' })
@@ -24,11 +23,9 @@ class Media {
   thumbnail?: string
 
   @Field(() => MediaType)
-  @Column('enum', { enum: MediaType })
   type?: MediaType
 
   @Field(() => MediaSource)
-  @Column('enum', { enum: MediaSource })
   source!: MediaSource
 }
 

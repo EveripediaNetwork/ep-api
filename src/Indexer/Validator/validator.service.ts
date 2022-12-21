@@ -8,6 +8,7 @@ import {
   ValidatorCodes,
   MediaSource,
   Wiki as WikiType,
+  MediaType,
 } from '@everipedia/iq-utils'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
@@ -185,31 +186,38 @@ class IPFSValidatorService {
       const size = validatingWiki.media.length
 
       const contentCheck = validatingWiki.media.every(m => {
+        let isContentValid = false
+
         if (
           m.source === MediaSource.IPFS_IMG ||
           m.source === MediaSource.IPFS_VID
         ) {
-          return m.id.length === 46
+          isContentValid = m.id.length === 46
         }
         if (m.source === MediaSource.YOUTUBE) {
           const validYTLinkReg =
             /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
-          return (
+          isContentValid =
             m.id === `https://www.youtube.com/watch?v=${m.name}` &&
             validYTLinkReg.test(m.id)
-          )
         }
         if (m.source === MediaSource.VIMEO) {
-          return m.id === `https://vimeo.com/${m.name}`
+          isContentValid = m.id === `https://vimeo.com/${m.name}`
         }
-        return true
+        if (m.type && !(m.type in MediaType)) {
+          isContentValid = false
+        }
+        return isContentValid
       })
 
-      if (size <= 25 && contentCheck) {
-        return true
-      }
-      message = ValidatorCodes.MEDIA
-      return false
+      const wikiMediasWithIcon = validatingWiki.media.filter(
+        m => m.type === MediaType.ICON,
+      )
+
+      const isValidMedia =
+        size <= 25 && contentCheck && wikiMediasWithIcon.length <= 1
+      if (!isValidMedia) message = ValidatorCodes.MEDIA
+      return isValidMedia
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
