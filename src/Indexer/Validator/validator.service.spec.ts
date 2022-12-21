@@ -22,7 +22,7 @@ describe('PinResolver', () => {
   let ipfsValidatorService: IPFSValidatorService
   let moduleRef: TestingModule
 
-  const oldWiki: WikiType = {
+  const oldWiki = {
     id: 'test-wiki-test',
     version: 1,
     language: LanguagesISOEnum.EN,
@@ -53,11 +53,11 @@ describe('PinResolver', () => {
       },
     ],
     hidden: false,
-    author: {
-      id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-    },
-    promoted: 0,
-  }
+    // author: {
+    //   id: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
+    // },
+    // promoted: 0,
+  } as unknown as WikiType
   const mockQuery = () => ({
     findOne: jest.fn().mockReturnValue(oldWiki),
   })
@@ -66,7 +66,7 @@ describe('PinResolver', () => {
     getRepository: jest.fn().mockImplementation(mockQuery),
   })
 
-  const testWiki: WikiType = {
+  const testWiki = {
     id: 'komainu-company',
     version: 1,
     language: LanguagesISOEnum.EN,
@@ -97,11 +97,11 @@ describe('PinResolver', () => {
       },
     ],
     hidden: false,
-    author: {
-      id: '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
-    },
-    promoted: 0,
-  }
+    // author: {
+    //   id: '0xaCa39B187352D9805DECEd6E73A3d72ABf86E7A0',
+    // },
+    // promoted: 0,
+  } as unknown as WikiType
   const result: ValidatorResult = {
     status: true,
     message: ValidatorCodes.VALID_WIKI,

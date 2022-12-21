@@ -1,17 +1,10 @@
 /* eslint-disable import/no-cycle */
+import { MediaSource, MediaType } from '@everipedia/iq-utils'
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { Column } from 'typeorm'
 
-export enum Source {
-  IPFS_IMG = 'IPFS_IMG',
-  IPFS_VID = 'IPFS_VID',
-  VIMEO = 'VIMEO',
-  YOUTUBE = 'YOUTUBE',
-}
-
-registerEnumType(Source, {
-  name: 'Source',
-})
+registerEnumType(MediaSource, { name: 'MediaSource' })
+registerEnumType(MediaType, { name: 'MediaType' })
 
 @ObjectType()
 class Media {
@@ -30,9 +23,13 @@ class Media {
   @Field({ nullable: true })
   thumbnail?: string
 
-  @Field(() => Source)
-  @Column('enum', { enum: Source })
-  source!: Source
+  @Field(() => MediaType)
+  @Column('enum', { enum: MediaType })
+  type?: MediaType
+
+  @Field(() => MediaSource)
+  @Column('enum', { enum: MediaSource })
+  source!: MediaSource
 }
 
 export default Media
