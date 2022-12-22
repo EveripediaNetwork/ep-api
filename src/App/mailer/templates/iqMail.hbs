@@ -5,19 +5,46 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;600;700&display=swap"
         rel="stylesheet">
     <title>IQ Wiki Update</title>
 </head>
+<style>
+    :root {
 
-<body class="bg-[#F4F6F8] flex w-full justify-center font-body text-brandText">
+    Color-scheme: light dark;
+
+    supported-color-schemes:light dark;
+
+    }
+    @media (prefers-color-scheme: dark ) {
+         .tb-dark {
+            background-color: #1A202C !important;
+        }
+
+        .tb-body {
+            background-color: #2D3748;
+        }
+    }
+
+    [data-ogsc] .tb-header {
+            background-color: #1A202C !important;
+        }
+    [data-ogsc] .tb-body {
+            background-color: #2D3748;
+        }
+</style>
+<body>
     <table cellpadding="0" cellspacing="0" height="100%" width="100%"
+    class="tb-body"
         style="border: none; background-color: #F4F6F8; font-family: Verdana, Arial; color: #1A202C;">
         <tr>
             <td align="center" valign="top">
-                <table cellpadding="40" cellspacing="0" width="800" id="emailContainer"
+                <table cellpadding="40" cellspacing="0" width="800" class="tb-body"
                     style="background-color: #F4F6F8; border: none;">
                     <tr>
                         <td align="center" valign="top" style="border: none;">
@@ -27,25 +54,50 @@
             </td>
         </tr>
         <tr>
-            <td class="esd-block-image esd-frame esdev-disable-select esd-draggable esd-block esd-hover"
-                style="font-size: 0px;" esd-handler-name="imgBlockHandler" align="center">
-                <table style=" background-color: white;" width="800">
+            <td align="center">
+                <table class="tb-dark" style=" background-color: white;" width="800">
                     <tr>
-                        <td>
-                            <a href="{{iqUrl}}">
-                                <div
-                                    style="background-image: url(https://gateway.pinata.cloud/ipfs/QmcWsk4TASWeFvAtkkyVubCjKXz5h893srxPXYU9hFwcUZ); background-size: cover; height: 146px; width: 100%;">
-                                </div>
-                            </a>
+                        <td align="center"
+                            class="tb-boarder"
+                            style="background-image: url(https://gateway.pinata.cloud/ipfs/QmXC4u8LpLbZetMUhffJm9kPELSLaBnptaVHKzG9Cn97tS); background-size: cover; height: 146px; width: 100%; border-bottom: 1px solid #EDF2F7;">
+                            <table>
+                                <tr style="display: flex; justify-content: center !important;">
+                                    <div></div>
+                                    <td align="center"
+                                        style="display: flex; justify-content: center !important; height: 37px; padding-bottom: 10px; margin: 0 auto;">
+                                        <a href="{{iqUrl}}" style="text-decoration: none; color: black;">
+                                            <img src="cid:logo" alt="braindao-logo"
+                                                width="44" height="37">
+                                        </a>
+                                        <a href="{{iqUrl}}" style="text-decoration: none; color: black;">
+
+                                            <div
+                                                style="font-weight:700; font-size: 18px; height: 100%; display: flex; flex-direction:column; justify-content: center; padding-left: 10px; font-size: 18px;">
+                                                <span>IQ.Wiki</span>
+                                            </div>
+                                        </a>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:700;font-size: 18px;">
+                                        <a href="{{iqUrl}}" style="text-decoration: none; color: black;">
+                                            The World’s Largest
+                                            <span style="font-weight:700;font-size: 18px; color: #FF5CAA;">Blockchain
+                                                & Crypto</span> Encyclopedia
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
                         </td>
                     </tr>
                 </table>
-                </div>
             </td>
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
+                <table class="tb-dark" border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
                     style="background-color: white; border: none;" height="36">
                     <tr>
                         <td align="center" valign="top" style="border: none;">
@@ -59,7 +111,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
+                <table class="tb-dark" border="1px" cellpadding="20" cellspacing="0" width="800" id="emailContainer"
                     style="background-color: white; border: none;" height="174">
                     <tr>
                         <td align="center" valign="top" style="padding-bottom: 40px; border: none;">
@@ -88,7 +140,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table cellpadding="0" cellspacing="0" width="800" id="emailContainer"
+                <table class="tb-dark" cellpadding="0" cellspacing="0" width="800" id="emailContainer"
                     style="border: none; background-color: white; padding: 25px 50px;">
                     <tr>
                         <td style="border-bottom: 1px solid #FF5CAA; background: unset; height:1px; ">
@@ -99,7 +151,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table style="padding-bottom: 18px; background-color: white; text-align: center;" width="800">
+                <table class="tb-dark" style="padding-bottom: 18px; background-color: white; text-align: center;" width="800">
                     <tr>
                         <td style="font-size: 30px; font-weight: 600;">Get more from IQ.wiki</td>
                     </tr>
@@ -108,7 +160,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table style="padding-bottom: 18px; background-color: white; text-align: center; font-size: 18px;"
+                <table class="tb-dark" style="padding-bottom: 18px; background-color: white; text-align: center; font-size: 18px;"
                     width="800">
                     <tr>
                         <td>Don’t miss out! Check out some other amazing wiki updates from IQ.wiki.</td>
@@ -118,11 +170,11 @@
         </tr>
         <tr>
             <td align="center" valign="top" >
-                <table style="background-color: white;" width="800">
+                <table class="tb-dark" style="background-color: white;" width="800">
                     <tr>
                         <td align="center">
                             <div style="background-color: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 20px; padding: 30px 10px; 0px; width: 650px;">
-                            <table style="background-color: #F7FAFC !important; border: 1px solid #E2E8F0 !importan; border-radius: 20px !important; padding: 30px 10px; 0px !important;"
+                            <table style="background-color: #F7FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 20px !important; padding: 30px 10px !important;"
                                 width="650">
                                 <tr>
                                     <td align="left" width="431" style="padding-bottom: 20px;">
@@ -210,7 +262,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table cellpadding="0" cellspacing="0" width="800" id="emailContainer"
+                <table cellpadding="0" cellspacing="0" width="800" class="tb-dark"
                     style="border: none; background-color: white; padding-left:50px; padding-right: 50px; padding-bottom: 60px; padding-top: 25px;">
                     <tr>
                         <td style="border-bottom: 1px solid #FF5CAA; background: unset; height:1px; ">
@@ -221,7 +273,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table style="padding-bottom: 20px; background-color: white;" width="800">
+                <table style="padding-bottom: 20px; background-color: white;" width="800" class="tb-dark">
                     <tr>
                         <td style="color:#FF5CAA; font-size: 20px; font-weight: 700; text-align: center;">Join our
                             community Hub</td>
@@ -232,6 +284,7 @@
         <tr>
             <td align="center" valign="top">
                 <table
+                    class="tb-dark"
                     style="padding-bottom: 20px; background-color: white; padding-left: 215.5px; padding-right: 215.5px;"
                     width="800">
                     <tr>
@@ -265,7 +318,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table style="background-color: white; height: 40px;" cellpadding="0" cellspacing="0" width="800"
+                <table class="tb-dark" style="background-color: white; height: 40px;" cellpadding="0" cellspacing="0" width="800"
                     height="36">
                     <tr>
                         <td style="color:#4A5568; font-size: 14px; font-weight: 500; text-align: center;">You are
@@ -278,7 +331,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table style="background-color: white; padding-bottom: 80px;" cellpadding="0" cellspacing="0"
+                <table class="tb-dark" style="background-color: white; padding-bottom: 80px;" cellpadding="0" cellspacing="0"
                     width="800" height="36">
                     <tr>
                         <td style="color:#4A5568; font-size: 14px; font-weight: 500; text-align: center;">Manage your
@@ -291,7 +344,7 @@
         </tr>
         <tr>
             <td align="center" valign="top">
-                <table cellpadding="40" cellspacing="0" width="800" id="emailContainer"
+                <table class="tb-dark" cellpadding="40" cellspacing="0" width="800" class="tb-body"
                     style="background-color: #F4F6F8; border: none;">
                     <tr>
                         <td align="center" valign="top" style="border: none;">

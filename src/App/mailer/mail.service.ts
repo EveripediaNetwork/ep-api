@@ -63,6 +63,11 @@ export default class MailService {
           path: `${root}/public/Telegram.png`,
           cid: 'Telegram',
         },
+        {
+          filename: 'braindao-logo.png',
+          path: `${root}/public/braindao-logo.png`,
+          cid: 'logo',
+        },
       ],
     })
     return true
