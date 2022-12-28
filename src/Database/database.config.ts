@@ -14,6 +14,7 @@ import Media from './Entities/media.entity'
 import UserProfile from './Entities/userProfile.entity'
 import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
+import LinkedWikis from './Entities/linkedWikis.entity'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
@@ -36,6 +37,7 @@ export default class TypeOrmConfig {
         UserProfile,
         IqSubscription,
         Notification,
+        LinkedWikis,
       ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,
