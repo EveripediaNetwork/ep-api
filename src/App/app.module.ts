@@ -73,7 +73,6 @@ import MarketCapService from './marketCap/marketCap.service'
       }),
       inject: [ConfigService],
     }),
-
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
