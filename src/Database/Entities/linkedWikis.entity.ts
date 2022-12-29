@@ -2,6 +2,7 @@
 import { Field, ObjectType } from '@nestjs/graphql'
 
 type LinkedWikisType = string[]
+
 @ObjectType()
 class LinkedWikis {
   @Field(() => [String], { nullable: true })

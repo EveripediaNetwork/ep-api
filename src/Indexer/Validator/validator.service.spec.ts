@@ -344,7 +344,7 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
-  it('should return false if wrong media type is sent', async () => {
+  it('should throw media error if wrong media type is sent', async () => {
     const wiki = {
       ...testWiki,
       media: [
@@ -369,7 +369,7 @@ describe('PinResolver', () => {
     })
   })
 
-  it('should return false if more than one media type icon is set', async () => {
+  it('should throw media error if more than one media type icon is set', async () => {
     const wiki = {
       ...testWiki,
       media: [
@@ -392,6 +392,67 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
       message: ValidatorCodes.MEDIA,
+    })
+  })
+
+  it('should return status true if correct linkedWikis items are passed', async () => {
+    const wiki = {
+      ...testWiki,
+      linkedWikis: {
+        founder: ['changpeng-zhao', 'yi-he'],
+        blockchain: ['binance-smart-chain'],
+      },
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
+
+  it('should throw linked wikis error if invalid slug is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      linkedWikis: { founder: ['hello world'] },
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.LINKED_WIKIS,
+    })
+  })
+
+  it('should throw linked wikis error if more than 20 slugs is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      linkedWikis: {
+        founder: [
+          'wiki1',
+          'wiki2',
+          'wiki3',
+          'wiki4',
+          'wiki5',
+          'wiki6',
+          'wiki7',
+          'wiki8',
+          'wiki9',
+          'wiki10',
+          'wiki11',
+          'wiki12',
+          'wiki13',
+          'wiki14',
+          'wiki15',
+          'wiki16',
+          'wiki17',
+          'wiki18',
+          'wiki19',
+          'wiki20',
+          'wiki21',
+          'wiki22',
+          'wiki23',
+          'wiki24',
+          'wiki25',
+        ],
+      },
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.LINKED_WIKIS,
     })
   })
 

@@ -872,10 +872,10 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.1"
 
-"@everipedia/iq-utils@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@everipedia/iq-utils/-/iq-utils-0.0.4.tgz#4aea3a431a16c00c59cff7177bb375c1d19edc79"
-  integrity sha512-YmJvA0kAcXF7a3BBUlpE5LACY1PrXNr0F8G2v/CETskiDNi41DYJEznGOyRyAi9yjle5lWYXSYFW2oxMmbyZaQ==
+"@everipedia/iq-utils@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@everipedia/iq-utils/-/iq-utils-0.0.9.tgz#100148040728e0f3c5d6d08dd90ae03cfd1263a8"
+  integrity sha512-iCdBSWtUQzvC2OskVBkdkWAsGDU8yeYhbtOzLUs6rBsD09eKQLGdaaAjOTwsRu72MNeKyaGomElVh3lrTt7zCg==
 
 "@fastify/accepts@^3.0.0":
   version "3.0.0"

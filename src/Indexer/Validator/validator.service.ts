@@ -33,16 +33,16 @@ class IPFSValidatorService {
 
     const languages = ['en', 'es', 'ko', 'zh']
 
-    const checkId = (validatingWiki: WikiType) => {
-      const validId = slugify(validatingWiki.id.toLowerCase(), {
+    const checkId = (slug: string, justCheck = false) => {
+      const validId = slugify(slug.toLowerCase(), {
         strict: true,
         lower: true,
         remove: /[*+~.()'"!:@]/g,
       })
-      if (validId === validatingWiki.id && validatingWiki.id.length <= 60) {
+      if (validId === slug && slug.length <= 60) {
         return true
       }
-      message = ValidatorCodes.ID
+      if (!justCheck) message = ValidatorCodes.ID
       return false
     }
 
@@ -222,13 +222,30 @@ class IPFSValidatorService {
 
     const checkLinkedWikis = (validatingWiki: WikiType) => {
       if (!validatingWiki.linkedWikis) return true
-      return false
+      let isValid = true
+
+      for (const slugs of Object.values(validatingWiki.linkedWikis)) {
+        if (slugs.length > 20) {
+          isValid = false
+          break
+        }
+
+        for (const slug of slugs) {
+          isValid = checkId(slug, true)
+          if (!isValid) break
+        }
+        if (!isValid) break
+      }
+
+      if (!isValid) message = ValidatorCodes.LINKED_WIKIS
+
+      return isValid
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
     const status =
-      checkId(wiki) &&
+      checkId(wiki.id) &&
       checkLanguage(wiki) &&
       checkWords(wiki) &&
       checkCategories(wiki) &&

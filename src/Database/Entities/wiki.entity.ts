@@ -109,9 +109,9 @@ class Wiki {
   @Column('json', { nullable: true })
   media?: Media[]
 
-  @Field(() => [LinkedWikis], { nullable: true })
+  @Field(() => LinkedWikis, { nullable: true })
   @Column('json', { nullable: true })
-  linkedWikis?: LinkedWikis[]
+  linkedWikis?: LinkedWikis
 
   @Field(() => [Image])
   @Column('json', { nullable: true })
