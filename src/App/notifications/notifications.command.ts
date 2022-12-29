@@ -128,7 +128,9 @@ class NotificationsCommand implements CommandRunner {
             wiki.images[0].id,
             random,
           )
-          if (status) console.log('✅ Notification sent! ')
+          if (status) {
+            console.log('✅ Notification sent! ')
+          }
 
           await new Promise(r => setTimeout(r, SLEEP_TIME))
         } catch (ex) {

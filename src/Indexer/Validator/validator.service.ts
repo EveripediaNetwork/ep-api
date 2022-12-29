@@ -220,6 +220,11 @@ class IPFSValidatorService {
       return isValidMedia
     }
 
+    const checkLinkedWikis = (validatingWiki: WikiType) => {
+      if (!validatingWiki.linkedWikis) return true
+      return false
+    }
+
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
     const status =
@@ -233,7 +238,8 @@ class IPFSValidatorService {
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
-      checkMedia(wiki)
+      checkMedia(wiki) &&
+      checkLinkedWikis(wiki)
 
     return { status, message }
   }
