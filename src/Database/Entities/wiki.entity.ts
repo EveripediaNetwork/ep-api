@@ -24,6 +24,7 @@ import Media from './media.entity'
 import Image from './image.entity'
 import { Author } from './types/IUser'
 import dateMiddleware from './middlewares/wikiMiddleware'
+import LinkedWikis from './linkedWikis.entity'
 
 @ObjectType()
 @Entity()
@@ -107,6 +108,10 @@ class Wiki {
   @Field(() => [Media], { nullable: true })
   @Column('json', { nullable: true })
   media?: Media[]
+
+  @Field(() => [LinkedWikis], { nullable: true })
+  @Column('json', { nullable: true })
+  linkedWikis?: LinkedWikis[]
 
   @Field(() => [Image])
   @Column('json', { nullable: true })
