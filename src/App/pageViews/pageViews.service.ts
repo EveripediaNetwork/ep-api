@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { Connection } from 'typeorm'
-import Wiki from '../Database/Entities/wiki.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 interface WikiViewed {
   ip: string
