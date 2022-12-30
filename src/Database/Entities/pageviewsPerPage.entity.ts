@@ -8,15 +8,15 @@ class PageviewsPerDay {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Field(() => GraphQLISODateTime)
-  @Column(() => Date)
-  updated!: Date
-
   @Field()
   @Column('varchar', {
     length: 255,
   })
   wikiId!: string
+
+  @Field(() => GraphQLISODateTime)
+  @Column(() => Date)
+  day!: Date
 
   @Field()
   @Column('integer')
