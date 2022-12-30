@@ -6,9 +6,7 @@ import PageViewsService from './pageViews.service'
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Number)
 class PageViewsResolver {
-  constructor(
-    private pageViewsService: PageViewsService,
-  ) {}
+  constructor(private pageViewsService: PageViewsService) {}
 
   @Mutation(() => Number)
   async wikiViewCount(
