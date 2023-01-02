@@ -18,4 +18,4 @@ const staticPagesData = [
   '/',
 ]
 
-export default  staticPagesData
+export default staticPagesData
