@@ -174,6 +174,13 @@ class StatsResolver {
     return response
   }
 
+  // TODO: Update query
+
+  @Query(() => [])
+  async wikisPerVisits(){
+    return true
+  }
+
   @Query(() => [Tag])
   async tagsPopular(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Tag)
