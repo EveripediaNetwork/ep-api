@@ -49,6 +49,7 @@ export const nftIds = [
 
 export const cryptocurrencyIds = [
   { coingeckoId: 'binancecoin', wikiId: 'binance-coin' },
+  { coingeckoId: 'binance-usd', wikiId: 'busd' },
   { coingeckoId: 'usd-coin', wikiId: 'usdc' },
   { coingeckoId: 'cardano', wikiId: 'cardano-ada' },
   { coingeckoId: 'matic-network', wikiId: 'matic' },
@@ -140,4 +141,5 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'catcoin-cash', wikiId: 'catcoin' },
   { coingeckoId: 'frax-price-index', wikiId: 'frax-price-index-fpi' },
   { coingeckoId: 'ftx-token', wikiId: 'ftt' },
+  { coingeckoId: 'ripple', wikiId: 'xrp' },
 ]
