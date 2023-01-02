@@ -39,6 +39,7 @@ import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
+import SitemapModule from '../Sitemap/sitemap.module'
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import MarketCapService from './marketCap/marketCap.service'
         ],
       },
     }),
+    SitemapModule,
     SentryModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (cfg: ConfigService) => ({
