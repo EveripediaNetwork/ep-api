@@ -14,6 +14,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import Tag from '../Database/Entities/tag.entity'
 import Wiki from '../Database/Entities/wiki.entity'
+import PageviewsPerDay from '../Database/Entities/pageviewsPerPage.entity'
 
 @ObjectType()
 export class Count {
@@ -43,6 +44,17 @@ class DateArgs {
 
   @Field(() => Int)
   endDate = Math.round(Date.now() / 1000)
+}
+@ArgsType()
+class PageViewArgs {
+  @Field(() => Int)
+  amount!: number
+
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  startDay!: string
+
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  endDay!: string
 }
 
 @ArgsType()
@@ -174,11 +186,21 @@ class StatsResolver {
     return response
   }
 
-  // TODO: Update query
-
-  @Query(() => [])
-  async wikisPerVisits() {
-    return true
+  @Query(() => [Wiki])
+  async wikisPerVisits(@Args() args: PageViewArgs) {
+    const repository = this.connection.getRepository(PageviewsPerDay)
+    const response = await repository
+      .createQueryBuilder('pageviews_per_day')
+      .select('"wikiId"')
+      .addSelect('SUM(visits)', 'v')
+      .addSelect('w.*')
+      .leftJoin('wiki', 'w', 'w."id" = "wikiId"')
+      .where(`day >= '${args.startDay}' AND day <= '${args.endDay}'`)
+      .groupBy('"wikiId", w."id"')
+      .orderBy('v', 'DESC')
+      .limit(args.amount)
+      .getRawMany()
+    return response
   }
 
   @Query(() => [Tag])

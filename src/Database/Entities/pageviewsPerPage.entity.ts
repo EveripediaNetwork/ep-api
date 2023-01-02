@@ -15,7 +15,7 @@ class PageviewsPerDay {
   wikiId!: string
 
   @Field(() => GraphQLISODateTime)
-  @Column(() => Date)
+  @Column('date')
   day!: Date
 
   @Field()

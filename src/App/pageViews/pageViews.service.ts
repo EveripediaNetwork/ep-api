@@ -20,7 +20,7 @@ class PageViewsService {
     const repository = this.connection.getRepository(PageviewsPerDay)
     const date = new Date().toLocaleDateString()
     const perDayWikiPageView = repository.findOne({
-      where: { wikiId: '', day: date },
+      where: { wikiId: id, day: date },
     })
     if (!perDayWikiPageView) {
       const newPageView = repository.create({
