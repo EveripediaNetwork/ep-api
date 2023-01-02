@@ -5,9 +5,7 @@ import staticPagesData from '../data/staticPagesData'
 @Controller()
 export default class SitemapController {
   sitemapXmlCache: any
-
   sitemapTimeoutMs = 1000 * 60 * 60
-
   @Get('sitemap')
   async sitemap(@Response() res: any) {
     res.set('Content-Type', 'text/xml')
