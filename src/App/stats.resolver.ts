@@ -177,7 +177,7 @@ class StatsResolver {
   // TODO: Update query
 
   @Query(() => [])
-  async wikisPerVisits(){
+  async wikisPerVisits() {
     return true
   }
 
