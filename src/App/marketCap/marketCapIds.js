@@ -1,5 +1,6 @@
 export const nftIds = [
   { coingeckoId: 'clonex', wikiId: 'clone-x' },
+  { coingeckoId: 'otherdeed-for-otherside', wikiId: 'otherside' },
   { coingeckoId: 'doodles-official', wikiId: 'doodles' },
   { coingeckoId: 'cyberbrokers-v3', wikiId: 'cyberbrokers' },
   { coingeckoId: 'quirkies-originals', wikiId: 'quirkies' },
@@ -142,4 +143,6 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'frax-price-index', wikiId: 'frax-price-index-fpi' },
   { coingeckoId: 'ftx-token', wikiId: 'ftt' },
   { coingeckoId: 'ripple', wikiId: 'xrp' },
+  { coingeckoId: 'tron', wikiId: 'trontrade-1' },
+  { coingeckoId: 'staked-ether', wikiId: 'lido-staked-ethereum-steth' },
 ]
