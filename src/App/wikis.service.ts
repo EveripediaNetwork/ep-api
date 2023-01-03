@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ConfigService } from '@nestjs/config'
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
-import TokenValidator from './utils/validateToken'
 import Wiki from '../Database/Entities/wiki.entity'
 
 @Injectable()
