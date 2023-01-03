@@ -7,8 +7,11 @@ import staticPagesData from '../data/staticPagesData'
 @Controller()
 export default class SitemapController {
   sitemapXmlCache: any
+
   sitemapTimeoutMs = 1000 * 60 * 60
+
   lastmod = new Date()
+
   constructor(
     private wikiService: WikiService,
     private configService: ConfigService,
