@@ -38,9 +38,7 @@ export default class SitemapController {
         lastmod: this.lastmod,
       }),
     )
-    const wikisIds: { id: string }[] = await this.wikiService.wikisIds()
-    const categoriesId: { id: string }[] =
-      await this.categoryService.categoriesIds()
+    const [wikisIds, categoriesId] = await Promise.all([this.wikiService.wikisIds(), this.categoryService.categoriesIds()])
     wikisIds.map(wiki =>
       smStream.write({
         url: `/wiki/${wiki.id}`,
