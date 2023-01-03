@@ -40,6 +40,7 @@ import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
+import WikiService from './wikis.service'
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import SitemapModule from '../Sitemap/sitemap.module'
   providers: [
     ConfigService,
     WikiResolver,
+    WikiService,
     LanguageResolver,
     CategoryResolver,
     TagResolver,

@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common'
-
 import SitemapController from './controllers/sitemap.controller'
 import httpModule from '../httpModule'
-import ActivityService from '../App/activity.service'
+import WikiService from '../App/wikis.service'
 
 @Module({
   imports: [httpModule(10000)],
   controllers: [SitemapController],
-  providers: [ActivityService],
+  providers: [WikiService],
 })
 class SitemapModule {}
 
