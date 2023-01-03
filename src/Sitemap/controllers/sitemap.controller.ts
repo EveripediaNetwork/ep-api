@@ -8,7 +8,9 @@ import staticPagesData from '../data/staticPagesData'
 @Controller()
 export default class SitemapController {
   sitemapXmlCache!: Buffer | null
+
   sitemapTimeoutMs = 1000 * 60 * 60
+
   lastmod = new Date()
 
   constructor(
