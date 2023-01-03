@@ -7,10 +7,8 @@ import staticPagesData from '../data/staticPagesData'
 
 @Controller()
 export default class SitemapController {
-  sitemapXmlCache: any
-
+  sitemapXmlCache!: Buffer | null
   sitemapTimeoutMs = 1000 * 60 * 60
-
   lastmod = new Date()
 
   constructor(
@@ -59,7 +57,7 @@ export default class SitemapController {
       }),
     )
     smStream.end()
-    streamToPromise(smStream).then((xml: any) => {
+    streamToPromise(smStream).then((xml: Buffer) => {
       this.sitemapXmlCache = xml
       setTimeout(() => {
         this.sitemapXmlCache = null
