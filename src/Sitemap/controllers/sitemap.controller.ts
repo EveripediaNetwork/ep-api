@@ -16,7 +16,7 @@ export default class SitemapController {
   constructor(
     private wikiService: WikiService,
     private configService: ConfigService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
   ) {}
 
   @Get('sitemap')
@@ -39,7 +39,8 @@ export default class SitemapController {
       }),
     )
     const wikisIds: { id: string }[] = await this.wikiService.wikisIds()
-    const categoriesId: {id: string}[] = await this.categoryService.categoriesIds()
+    const categoriesId: { id: string }[] =
+      await this.categoryService.categoriesIds()
     wikisIds.map(wiki =>
       smStream.write({
         url: `/wiki/${wiki.id}`,
