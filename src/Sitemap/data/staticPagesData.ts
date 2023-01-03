@@ -1,12 +1,9 @@
 const staticPagesData = [
-  '/account/settings',
-  '/account/signTokenMessages',
   '/activity',
   '/blog',
   '/categories',
   '/create-wiki',
   '/glossary',
-  '/login',
   '/about',
   '/branding',
   '/careers',
@@ -14,7 +11,6 @@ const staticPagesData = [
   '/guidelines',
   '/privacy',
   '/terms',
-  '/404',
   '/',
 ]
 
