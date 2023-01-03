@@ -14,7 +14,6 @@ import Media from './Entities/media.entity'
 import UserProfile from './Entities/userProfile.entity'
 import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
-import PageviewsPerDay from './Entities/pageviewsPerPage.entity'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
@@ -37,7 +36,6 @@ export default class TypeOrmConfig {
         UserProfile,
         IqSubscription,
         Notification,
-        PageviewsPerDay,
       ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,

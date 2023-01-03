@@ -1,12 +1,16 @@
 import { UseInterceptors } from '@nestjs/common'
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
-import SentryInterceptor from '../../sentry/security.interceptor'
+import { Connection } from 'typeorm'
+import SentryInterceptor from '../sentry/security.interceptor'
 import PageViewsService from './pageViews.service'
 
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Number)
 class PageViewsResolver {
-  constructor(private pageViewsService: PageViewsService) {}
+  constructor(
+    private connection: Connection,
+    private pageViewsService: PageViewsService,
+  ) {}
 
   @Mutation(() => Number)
   async wikiViewCount(
