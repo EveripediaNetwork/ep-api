@@ -1,6 +1,7 @@
 import { Controller, Get, Response } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SitemapStream, streamToPromise } from 'sitemap'
+import CategoryService from '../../App/category.service'
 import WikiService from '../../App/wikis.service'
 import staticPagesData from '../data/staticPagesData'
 
@@ -15,6 +16,7 @@ export default class SitemapController {
   constructor(
     private wikiService: WikiService,
     private configService: ConfigService,
+    private categoryService: CategoryService
   ) {}
 
   @Get('sitemap')
@@ -36,11 +38,20 @@ export default class SitemapController {
         lastmod: this.lastmod,
       }),
     )
-    const ids: { id: string }[] = await this.wikiService.wikisIds()
-    ids.map(id =>
+    const wikisIds: { id: string }[] = await this.wikiService.wikisIds()
+    const categoriesId: {id: string}[] = await this.categoryService.categoriesIds()
+    wikisIds.map(wiki =>
       smStream.write({
-        url: `/wiki/${id.id}`,
+        url: `/wiki/${wiki.id}`,
         changefreq: 'daily',
+        priority: 1,
+        lastmod: this.lastmod,
+      }),
+    )
+    categoriesId.map(category =>
+      smStream.write({
+        url: `/categories/${category.id}`,
+        changefreq: 'weekly',
         priority: 1,
         lastmod: this.lastmod,
       }),

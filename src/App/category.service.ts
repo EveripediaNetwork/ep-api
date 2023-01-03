@@ -11,9 +11,6 @@ class CategoryService {
     const repository = this.connection.getRepository(Category)
     return repository.find({
       select: ['id'],
-      where: {
-        hidden: false,
-      },
     })
   }
 }
