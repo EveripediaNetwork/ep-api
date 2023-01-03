@@ -41,6 +41,7 @@ import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wikis.service'
+import CategoryService from './category.service'
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import WikiService from './wikis.service'
     WikiService,
     LanguageResolver,
     CategoryResolver,
+    CategoryService,
     TagResolver,
     UserResolver,
     UserService,
