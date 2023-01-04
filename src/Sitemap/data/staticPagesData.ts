@@ -2,7 +2,6 @@ const staticPagesData = [
   { url: '/activity', priority: 1, changeFreq: 'hourly' },
   { url: '/blog', priority: 0.8, changeFreq: 'daily' },
   { url: '/categories', priority: 0.7, changeFreq: 'weekly' },
-  { url: '/create-wiki', priority: 0.7, changeFreq: 'weekly' },
   { url: '/glossary', priority: 0.7, changeFreq: 'weekly' },
   { url: '/about', priority: 0.7, changeFreq: 'weekly' },
   { url: '/branding', priority: 0.7, changeFreq: 'weekly' },
