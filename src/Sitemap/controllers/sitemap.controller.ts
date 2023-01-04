@@ -54,7 +54,7 @@ export default class SitemapController {
       smStream.write({
         url: `/categories/${category.id}`,
         changefreq: 'weekly',
-        priority: 1,
+        priority: 0.6,
         lastmod: this.lastmod,
       }),
     )
