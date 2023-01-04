@@ -10,7 +10,7 @@ class WikiService {
   async wikisIds() {
     const repository = this.connection.getRepository(Wiki)
     return repository.find({
-      select: ['id'],
+      select: ['id', 'updated'],
       where: {
         hidden: false,
       },

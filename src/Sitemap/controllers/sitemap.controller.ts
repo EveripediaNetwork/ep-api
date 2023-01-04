@@ -47,7 +47,7 @@ export default class SitemapController {
         url: `/wiki/${wiki.id}`,
         changefreq: 'daily',
         priority: 1,
-        lastmod: this.lastmod,
+        lastmod: wiki.updated,
       }),
     )
     categoriesId.map(category =>
