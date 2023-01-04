@@ -10,11 +10,9 @@ import Category from './Entities/category.entity'
 import User from './Entities/user.entity'
 import Language from './Entities/language.entity'
 import Activity from './Entities/activity.entity'
-import Media from './Entities/types/IMedia'
 import UserProfile from './Entities/userProfile.entity'
 import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
-import LinkedWikis from './Entities/types/ILinkedWikis'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
@@ -33,11 +31,9 @@ export default class TypeOrmConfig {
         User,
         Language,
         Activity,
-        Media,
         UserProfile,
         IqSubscription,
         Notification,
-        LinkedWikis,
       ],
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,
