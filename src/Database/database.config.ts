@@ -10,11 +10,11 @@ import Category from './Entities/category.entity'
 import User from './Entities/user.entity'
 import Language from './Entities/language.entity'
 import Activity from './Entities/activity.entity'
-import Media from './Entities/media.entity'
+import Media from './Entities/types/IMedia'
 import UserProfile from './Entities/userProfile.entity'
 import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
-import LinkedWikis from './Entities/linkedWikis.entity'
+import LinkedWikis from './Entities/types/ILinkedWikis'
 
 export default class TypeOrmConfig {
   static getOrmConfig(configService: ConfigService): TypeOrmModuleOptions {
