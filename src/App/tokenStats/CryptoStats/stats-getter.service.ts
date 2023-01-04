@@ -106,7 +106,7 @@ class StatsGetterService {
     const res: any = Object.values(d.data)
     const cmcData: any = res[0].quote.USD
     const volumeChange =
-      cgVolumeData.total_volumes?.length === 1
+      cgVolumeData.total_volumes.length === 1
         ? cgVolumeData.total_volumes[0][1] * cgVolumeData.total_volumes * 100
         : ((cgVolumeData.total_volumes[1][1] -
             cgVolumeData.total_volumes[0][1]) /
@@ -117,7 +117,7 @@ class StatsGetterService {
       id: res[0].slug,
       symbol: res[0].symbol,
       name: res[0].name,
-      token_image_url: cgMarketData.image || '',
+      token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
       market_cap: cmcData.market_cap_change_percentage_24h,
       market_cap_percentage_change:
@@ -126,7 +126,7 @@ class StatsGetterService {
       diluted_market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
       volume: cmcData.volume_24h,
-      volume_percentage_change: volumeChange ,
+      volume_percentage_change: volumeChange,
     }
     return tokenStats
   }
