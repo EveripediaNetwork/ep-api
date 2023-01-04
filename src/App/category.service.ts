@@ -11,9 +11,9 @@ class CategoryService {
     const repository = this.connection.getRepository(Category)
     return repository.find({
       select: ['id'],
-      where:{
-        weight: MoreThan(0)
-      }
+      where: {
+        weight: MoreThan(0),
+      },
     })
   }
 }
