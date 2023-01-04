@@ -19,7 +19,7 @@ export default class SitemapController {
     private categoryService: CategoryService,
   ) {}
 
-  @Get('sitemap')
+  @Get('sitemap.xml')
   async sitemap(@Response() res: any) {
     res.set('Content-Type', 'text/xml')
     if (this.sitemapXmlCache) {
