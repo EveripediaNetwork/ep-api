@@ -30,11 +30,11 @@ export default class SitemapController {
       hostname: this.configService.get('WEBSITE_URL'),
       lastmodDateOnly: true,
     })
-    staticPagesData.map(url =>
+    staticPagesData.map(data =>
       smStream.write({
-        url,
-        changefreq: 'monthly',
-        priority: 0.7,
+        url: data.url,
+        changefreq: data.changeFreq,
+        priority: data.priority,
         lastmod: this.lastmod,
       }),
     )
