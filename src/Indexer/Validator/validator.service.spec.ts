@@ -399,8 +399,8 @@ describe('PinResolver', () => {
     const wiki = {
       ...testWiki,
       linkedWikis: {
-        founder: ['changpeng-zhao', 'yi-he'],
-        blockchain: ['binance-smart-chain'],
+        founders: ['changpeng-zhao', 'yi-he'],
+        blockchains: ['binance-smart-chain'],
       },
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
@@ -409,7 +409,7 @@ describe('PinResolver', () => {
   it('should throw linked wikis error if invalid slug is sent', async () => {
     const wiki = {
       ...testWiki,
-      linkedWikis: { founder: ['hello world'] },
+      linkedWikis: { founders: ['hello world'] },
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
@@ -421,7 +421,7 @@ describe('PinResolver', () => {
     const wiki = {
       ...testWiki,
       linkedWikis: {
-        founder: [
+        founders: [
           'wiki1',
           'wiki2',
           'wiki3',
