@@ -22,7 +22,7 @@ class Media {
   @Field({ nullable: true })
   thumbnail?: string
 
-  @Field(() => MediaType)
+  @Field(() => MediaType, { nullable: true })
   type?: MediaType
 
   @Field(() => MediaSource)
