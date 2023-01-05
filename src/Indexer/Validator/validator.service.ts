@@ -226,7 +226,7 @@ class IPFSValidatorService {
       if (!validatingWiki.linkedWikis) return true
       let isValid = true
 
-      for (const slugs of Object.values(validatingWiki.linkedWikis)) {
+      for (const slugs of Object.values(validatingWiki.linkedWikis[0])) {
         if (slugs.length > 20) {
           isValid = false
           break
