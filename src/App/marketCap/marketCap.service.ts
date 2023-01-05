@@ -105,7 +105,11 @@ class MarketCapService {
       console.error(err.message)
     }
 
-    const result = data?.data.map(async (element: any) => {
+    const traded = data?.data.filter(
+      (e: any) => e.volume_24h.native_currency !== 0 && e.volume_24h.usd !== 0,
+    )
+
+    const result = traded.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds)
 
       if (!wiki) {

@@ -20,10 +20,11 @@ import Tag from './tag.entity'
 import User from './user.entity'
 import Language from './language.entity'
 import Metadata from './metadata.entity'
-import Media from './media.entity'
+import Media from './types/IMedia'
 import Image from './image.entity'
 import { Author } from './types/IUser'
 import dateMiddleware from './middlewares/wikiMiddleware'
+import LinkedWikis from './types/ILinkedWikis'
 
 @ObjectType()
 @Entity()
@@ -107,6 +108,10 @@ class Wiki {
   @Field(() => [Media], { nullable: true })
   @Column('json', { nullable: true })
   media?: Media[]
+
+  @Field(() => LinkedWikis, { nullable: true })
+  @Column('json', { nullable: true })
+  linkedWikis?: LinkedWikis
 
   @Field(() => [Image])
   @Column('json', { nullable: true })

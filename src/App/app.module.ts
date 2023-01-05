@@ -24,8 +24,8 @@ import UserService from './user.service'
 import StatsResolver from './stats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
-import PageViewsResolver from './pageViews.resolver'
-import PageViewsService from './pageViews.service'
+import PageViewsResolver from './pageViews/pageViews.resolver'
+import PageViewsService from './pageViews/pageViews.service'
 import { RevalidatePageService } from './revalidatePage/revalidatePage.service'
 import httpModule from '../httpModule'
 import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
@@ -39,6 +39,9 @@ import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
+import SitemapModule from '../Sitemap/sitemap.module'
+import WikiService from './wikis.service'
+import CategoryService from './category.service'
 
 @Module({
   imports: [
@@ -63,6 +66,7 @@ import MarketCapService from './marketCap/marketCap.service'
         ],
       },
     }),
+    SitemapModule,
     SentryModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (cfg: ConfigService) => ({
@@ -73,7 +77,6 @@ import MarketCapService from './marketCap/marketCap.service'
       }),
       inject: [ConfigService],
     }),
-
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot(),
@@ -86,8 +89,10 @@ import MarketCapService from './marketCap/marketCap.service'
   providers: [
     ConfigService,
     WikiResolver,
+    WikiService,
     LanguageResolver,
     CategoryResolver,
+    CategoryService,
     TagResolver,
     UserResolver,
     UserService,

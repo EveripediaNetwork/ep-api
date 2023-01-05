@@ -16,6 +16,7 @@ export default class MailService {
     image: string,
     suggestions: any[],
   ): Promise<boolean> {
+    const root = process.cwd()
     await this.mailerService.sendMail({
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
@@ -31,6 +32,43 @@ export default class MailService {
         )}/account/settings`,
         suggestions,
       },
+      attachments: [
+        {
+          filename: 'Twiiter.png',
+          path: `${root}/public/Twitter.png`,
+          cid: 'Twitter',
+        },
+        {
+          filename: 'Github.png',
+          path: `${root}/public/Github.png`,
+          cid: 'Github',
+        },
+        {
+          filename: 'Instagram.png',
+          path: `${root}/public/Instagram.png`,
+          cid: 'Instagram',
+        },
+        {
+          filename: 'Facebook.png',
+          path: `${root}/public/Facebook.png`,
+          cid: 'Facebook',
+        },
+        {
+          filename: 'discord.png',
+          path: `${root}/public/discord.png`,
+          cid: 'Discord',
+        },
+        {
+          filename: 'Telegram.png',
+          path: `${root}/public/Telegram.png`,
+          cid: 'Telegram',
+        },
+        {
+          filename: 'braindao-logo.png',
+          path: `${root}/public/braindao-logo.png`,
+          cid: 'logo',
+        },
+      ],
     })
     return true
   }

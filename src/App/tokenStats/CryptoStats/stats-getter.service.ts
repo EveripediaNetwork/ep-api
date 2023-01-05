@@ -59,14 +59,51 @@ class StatsGetterService {
         : await lastValueFrom(this.cmcApiCall(name))
       cg = await this.cgApiCall(name)
     } catch (err: any) {
-      console.error('STATS ERROR', err.message)
+      console.error('STATS ERROR URL', err.response?.config?.url)
+      console.error(
+        'STATS ERROR MESSAGE',
+        err.response.data.status.error_message
+          ? err.response.data.status.error_message
+          : err,
+      )
     }
 
-    const cgMarketData = cg.marketChangeResult.data[0]
-    const cgVolumeData = cg.volumeChangeResult.data
+    const cgMarketData = cg?.marketChangeResult?.data[0] || {
+      image: '',
+      current_price: 0,
+      market_cap_change_percentage_24h: 0,
+    }
+    const cgVolumeData = cg?.volumeChangeResult?.data || {
+      total_volumes: [
+        [0, 0],
+        [0, 0],
+      ],
+    }
 
-    const data = { ...cmc?.data }
-    const res: any = Object.values(data.data)
+    const noData = {
+      data: {
+        data: {
+          '0': {
+            id: 0,
+            name: 'not_found',
+            symbol: 'NOT_FOUND',
+            slug: 'not_found',
+            max_supply: 0,
+            circulating_supply: 0,
+            total_supply: 0,
+            quote: {
+              USD: 0,
+              volume_24h: 0,
+              market_cap_change_percentage_24h: 0,
+              fully_diluted_market_cap: 0,
+            },
+          },
+        },
+      },
+    }
+    const dat = cmc || noData
+    const d = dat.data
+    const res: any = Object.values(d.data)
     const cmcData: any = res[0].quote.USD
     const volumeChange =
       cgVolumeData.total_volumes.length === 1
@@ -82,7 +119,7 @@ class StatsGetterService {
       name: res[0].name,
       token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
-      market_cap: cmcData.market_cap,
+      market_cap: cmcData.market_cap_change_percentage_24h,
       market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
       diluted_market_cap: cmcData.fully_diluted_market_cap,

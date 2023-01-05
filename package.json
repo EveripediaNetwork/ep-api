@@ -29,7 +29,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@everipedia/iq-utils": "^0.0.4",
+    "@everipedia/iq-utils": "^0.0.10",
     "@graphql-tools/utils": "^8.7.0",
     "@jest-mock/express": "^1.4.5",
     "@nestjs-modules/mailer": "^1.8.1",
@@ -78,6 +78,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.5.2",
     "sharp": "^0.30.4",
+    "sitemap": "^7.1.1",
     "slugify": "^1.6.5",
     "typeorm": "^0.2.44",
     "web3-token": "^0.2.9"
