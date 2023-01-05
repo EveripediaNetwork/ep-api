@@ -9,7 +9,7 @@ class LinkedWikis {
   founders?: LinkedWikisType
 
   @Field(() => [String], { nullable: true })
-  blockchain?: LinkedWikisType
+  blockchains?: LinkedWikisType
 }
 
 export default LinkedWikis
