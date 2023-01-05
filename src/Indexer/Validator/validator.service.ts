@@ -9,6 +9,8 @@ import {
   MediaSource,
   Wiki as WikiType,
   MediaType,
+  whiteListedLinkNames,
+  whiteListedDomains,
 } from '@everipedia/iq-utils'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
@@ -118,11 +120,6 @@ class IPFSValidatorService {
     }
 
     const checkExternalUrls = (validatingWiki: WikiType) => {
-      const whitelistedDomains = this.configService
-        .get<string>('UI_URL')
-        ?.split(' ')
-      const WidgetNames =
-        this.configService.get<string>('WIDGET_NAMES')?.split(' ') || []
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
       markdownLinks?.every(link => {
@@ -130,14 +127,19 @@ class IPFSValidatorService {
         const text = linkMatch?.[1]
         const url = linkMatch?.[2]
 
-        if (text && url && WidgetNames.includes(text) && !isValidUrl(url)) {
+        if (
+          text &&
+          url &&
+          whiteListedLinkNames.includes(text) &&
+          !isValidUrl(url)
+        ) {
           isValid = true
           return true
         }
 
         if (url && url.charAt(0) !== '#') {
           const validURLRecognizer = new RegExp(
-            `^https?://(www\\.)?(${whitelistedDomains?.join('|')})`,
+            `^https?://(www\\.)?(${whiteListedDomains?.join('|')})`,
           )
           isValid = validURLRecognizer.test(url)
         }
