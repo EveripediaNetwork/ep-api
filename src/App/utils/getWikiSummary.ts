@@ -1,5 +1,5 @@
 import RemoveMarkdown from 'remove-markdown'
-import { ValidWiki } from '../../Indexer/Store/store.service'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 
 export const shortenText = (text: string, length: number) =>
   text?.length > length ? `${text.substring(0, length)}...` : text
@@ -12,7 +12,7 @@ export enum WikiSummarySize {
 }
 
 export const getWikiSummary = async (
-  wiki: ValidWiki,
+  wiki: WikiType,
   size: WikiSummarySize = WikiSummarySize.Big || WikiSummarySize.Default,
 ) => {
   if (wiki.summary) return shortenText(wiki.summary, size)

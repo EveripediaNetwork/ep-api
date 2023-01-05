@@ -1,10 +1,11 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import GraphProviderService, { Hash } from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
-import DBStoreService, { ValidWiki } from './Store/store.service'
+import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import MetadataChangesService from './Store/metadataChanges.service'
@@ -85,7 +86,7 @@ class RunCommand implements CommandRunner {
         )
         if (stat.status) {
           console.log('✅ Validated Wiki content! IPFS going through...')
-          await this.dbStoreService.storeWiki(completeWiki as ValidWiki, hash)
+          await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
           console.log(`🚀 Storing IPFS: ${hash.id}`)
         } else {
           console.log(stat)

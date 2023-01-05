@@ -6,11 +6,12 @@ import {
   CommonMetaIds,
   EditSpecificMetaIds,
   ValidatorCodes,
+  MediaSource,
+  Wiki as WikiType,
+  MediaType,
 } from '@everipedia/iq-utils'
-import { ValidWiki } from '../Store/store.service'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
-import { Source } from '../../Database/Entities/media.entity'
 import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 
 export type ValidatorResult = {
@@ -24,7 +25,7 @@ class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()
 
   async validate(
-    wiki: ValidWiki,
+    wiki: WikiType,
     validateJSON?: boolean,
     hashUserId?: string,
   ): Promise<ValidatorResult> {
@@ -32,20 +33,20 @@ class IPFSValidatorService {
 
     const languages = ['en', 'es', 'ko', 'zh']
 
-    const checkId = (validatingWiki: ValidWiki) => {
-      const validId = slugify(validatingWiki.id.toLowerCase(), {
+    const checkId = (slug: string, justCheck = false) => {
+      const validId = slugify(slug.toLowerCase(), {
         strict: true,
         lower: true,
         remove: /[*+~.()'"!:@]/g,
       })
-      if (validId === validatingWiki.id && validatingWiki.id.length <= 60) {
+      if (validId === slug && slug.length <= 60) {
         return true
       }
-      message = ValidatorCodes.ID
+      if (!justCheck) message = ValidatorCodes.ID
       return false
     }
 
-    const checkLanguage = (validatingWiki: ValidWiki) => {
+    const checkLanguage = (validatingWiki: WikiType) => {
       const resp = !!languages.includes(validatingWiki.language)
       if (resp) {
         return resp
@@ -54,7 +55,7 @@ class IPFSValidatorService {
       return resp
     }
 
-    const checkWords = (validatingWiki: ValidWiki) => {
+    const checkWords = (validatingWiki: WikiType) => {
       if (validatingWiki.content.split(' ').length >= 100) {
         return true
       }
@@ -62,7 +63,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkCategories = (validatingWiki: ValidWiki) => {
+    const checkCategories = (validatingWiki: WikiType) => {
       if (validatingWiki.categories.length === 1) {
         return true
       }
@@ -70,7 +71,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkUser = (validatingWiki: ValidWiki) => {
+    const checkUser = (validatingWiki: WikiType) => {
       const validUser =
         validatingWiki.user.id.toLowerCase() === hashUserId?.toLowerCase()
 
@@ -81,7 +82,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkSummary = (validatingWiki: ValidWiki) => {
+    const checkSummary = (validatingWiki: WikiType) => {
       if (
         (validatingWiki.summary &&
           validatingWiki.summary.length <= WikiSummarySize.Default) ||
@@ -93,7 +94,8 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkImages = (validatingWiki: ValidWiki) => {
+    const checkImages = (validatingWiki: WikiType) => {
+      if (!validatingWiki.images) return false
       if (
         validatingWiki.images.length >= 1 &&
         validatingWiki.images.length <= 5
@@ -102,7 +104,10 @@ class IPFSValidatorService {
         validatingWiki.images.forEach(image => {
           const keys = Object.keys(image)
           const key = keys.includes('id') && keys.includes('type')
-          result = key && image.id.length === 46 && image.type.includes('image')
+          result =
+            key &&
+            image.id.length === 46 &&
+            (image.type as string).includes('image')
         })
         if (!result) {
           message = ValidatorCodes.IMAGE
@@ -112,7 +117,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkExternalUrls = (validatingWiki: ValidWiki) => {
+    const checkExternalUrls = (validatingWiki: WikiType) => {
       const whitelistedDomains = this.configService
         .get<string>('UI_URL')
         ?.split(' ')
@@ -145,7 +150,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkMetadata = (validatingWiki: ValidWiki) => {
+    const checkMetadata = (validatingWiki: WikiType) => {
       const ids = [
         ...Object.values(CommonMetaIds),
         ...Object.values(EditSpecificMetaIds),
@@ -167,7 +172,7 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkTags = (validatingWiki: ValidWiki) => {
+    const checkTags = (validatingWiki: WikiType) => {
       if (validatingWiki.tags.length <= 5) {
         return true
       }
@@ -175,38 +180,72 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkMedia = (validatingWiki: ValidWiki) => {
+    const checkMedia = (validatingWiki: WikiType) => {
+      if (!validatingWiki.media) return true
+
       const size = validatingWiki.media.length
 
       const contentCheck = validatingWiki.media.every(m => {
-        if (m.source === Source.IPFS_IMG || m.source === Source.IPFS_VID) {
-          return m.id.length === 46
+        let isContentValid = false
+
+        if (
+          m.source === MediaSource.IPFS_IMG ||
+          m.source === MediaSource.IPFS_VID
+        ) {
+          isContentValid = m.id.length === 46
         }
-        if (m.source === Source.YOUTUBE) {
+        if (m.source === MediaSource.YOUTUBE) {
           const validYTLinkReg =
             /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
-          return (
+          isContentValid =
             m.id === `https://www.youtube.com/watch?v=${m.name}` &&
             validYTLinkReg.test(m.id)
-          )
         }
-        if (m.source === Source.VIMEO) {
-          return m.id === `https://vimeo.com/${m.name}`
+        if (m.source === MediaSource.VIMEO) {
+          isContentValid = m.id === `https://vimeo.com/${m.name}`
         }
-        return true
+        if (m.type && !(m.type in MediaType)) {
+          isContentValid = false
+        }
+        return isContentValid
       })
 
-      if (size <= 25 && contentCheck) {
-        return true
+      const wikiMediasWithIcon = validatingWiki.media.filter(
+        m => m.type === MediaType.ICON,
+      )
+
+      const isValidMedia =
+        size <= 25 && contentCheck && wikiMediasWithIcon.length <= 1
+      if (!isValidMedia) message = ValidatorCodes.MEDIA
+      return isValidMedia
+    }
+
+    const checkLinkedWikis = (validatingWiki: WikiType) => {
+      if (!validatingWiki.linkedWikis) return true
+      let isValid = true
+
+      for (const slugs of Object.values(validatingWiki.linkedWikis)) {
+        if (slugs.length > 20) {
+          isValid = false
+          break
+        }
+
+        for (const slug of slugs) {
+          isValid = checkId(slug, true)
+          if (!isValid) break
+        }
+        if (!isValid) break
       }
-      message = ValidatorCodes.MEDIA
-      return false
+
+      if (!isValid) message = ValidatorCodes.LINKED_WIKIS
+
+      return isValid
     }
 
     console.log('🕦 Validating Wiki content from IPFS 🕦')
 
     const status =
-      checkId(wiki) &&
+      checkId(wiki.id) &&
       checkLanguage(wiki) &&
       checkWords(wiki) &&
       checkCategories(wiki) &&
@@ -216,7 +255,8 @@ class IPFSValidatorService {
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
-      checkMedia(wiki)
+      checkMedia(wiki) &&
+      checkLinkedWikis(wiki)
 
     return { status, message }
   }

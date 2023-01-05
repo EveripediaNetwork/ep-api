@@ -8,7 +8,6 @@ import {
 } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
-import { ValidWiki } from './store.service'
 import Metadata from '../../Database/Entities/metadata.entity'
 
 export type ValidatorResult = {
@@ -27,7 +26,7 @@ class MetadataChangesService {
     return c
   }
 
-  async removeEditMetadata(data: ValidWiki): Promise<ValidWiki> {
+  async removeEditMetadata(data: WikiType): Promise<WikiType> {
     const oldWiki = await this.findWiki(data.id)
 
     const meta = [
@@ -59,7 +58,7 @@ class MetadataChangesService {
     return wiki
   }
 
-  async calculateChanges(newWiki: ValidWiki, oldWiki: Wiki): Promise<Wiki> {
+  async calculateChanges(newWiki: WikiType, oldWiki: Wiki): Promise<Wiki> {
     const changes: Metadata[] = []
     const blocksChanged = []
 
@@ -170,13 +169,13 @@ class MetadataChangesService {
 
     const changedWiki = {
       ...newWiki,
-      metadata: newWiki.metadata.concat(noChanges() ? [] : finalChanges),
+      metadata: [...newWiki.metadata, ...(noChanges() ? [] : finalChanges)],
     }
 
     return changedWiki as unknown as Wiki
   }
 
-  async appendMetadata(IPFSWiki: ValidWiki): Promise<ValidWiki> {
+  async appendMetadata(IPFSWiki: WikiType): Promise<WikiType> {
     const oldWiki = await this.findWiki(IPFSWiki.id)
     let wiki
     if (!oldWiki) {
@@ -194,7 +193,7 @@ class MetadataChangesService {
 
     wiki = await this.calculateChanges(IPFSWiki, oldWiki)
 
-    return wiki as unknown as ValidWiki
+    return wiki as unknown as WikiType
   }
 }
 

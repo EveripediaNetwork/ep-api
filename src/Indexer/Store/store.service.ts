@@ -1,5 +1,6 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { Connection } from 'typeorm'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
@@ -7,7 +8,6 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import { Source } from '../../Database/Entities/media.entity'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import {
   RevalidatePageService,
@@ -15,42 +15,6 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-
-export type ValidWiki = {
-  id: string
-  version: number
-  language: string
-  title: string
-  content: string
-  summary?: string
-  created?: Date
-  updated?: Date
-  tags: {
-    id: string
-  }[]
-  metadata: {
-    id: string
-    value: string
-  }[]
-  categories: {
-    id: string
-    title: string
-  }[]
-  media: {
-    id: string
-    name: string
-    size: string
-    source: Source
-  }[]
-  images: {
-    id: string
-    type: string
-  }[]
-  user: {
-    id: string
-  }
-  hidden: boolean
-}
 
 @UseInterceptors(SentryInterceptor)
 @Injectable()
@@ -60,7 +24,7 @@ class DBStoreService {
     private revalidate: RevalidatePageService,
   ) {}
 
-  async storeWiki(wiki: ValidWiki, hash: Hash): Promise<boolean> {
+  async storeWiki(wiki: WikiType, hash: Hash): Promise<boolean> {
     const wikiRepository = this.connection.getRepository(Wiki)
     const languageRepository = this.connection.getRepository(Language)
     const userRepository = this.connection.getRepository(User)
@@ -169,7 +133,7 @@ class DBStoreService {
       existWiki.user = user
       existWiki.tags = tags
       existWiki.categories = categories
-      existWiki.images = wiki.images
+      existWiki.images = wiki.images!
       existWiki.media = wiki.media || []
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block

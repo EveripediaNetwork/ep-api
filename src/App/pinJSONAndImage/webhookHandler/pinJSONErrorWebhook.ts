@@ -1,18 +1,18 @@
 /* eslint-disable import/no-cycle */
 import { Injectable } from '@nestjs/common'
-import { ValidWiki } from '../../../Indexer/Store/store.service'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import WebhookHandler, { ActionTypes } from '../../utils/discordWebhookHandler'
 
 export interface WikiWebhookError {
   errorMessage: string
-  data: ValidWiki
+  data: WikiType
 }
 
 @Injectable()
 export default class PinJSONErrorWebhook {
   constructor(private webhookHandler: WebhookHandler) {}
 
-  async postException(errorMessage: string, data: ValidWiki) {
+  async postException(errorMessage: string, data: WikiType) {
     return this.webhookHandler.postWebhook(
       ActionTypes.PINJSON_ERROR,
       undefined,
