@@ -135,6 +135,7 @@ class DBStoreService {
       existWiki.categories = categories
       existWiki.images = wiki.images!
       existWiki.media = wiki.media || []
+      existWiki.linkedWikis = wiki.linkedWikis
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
@@ -161,6 +162,7 @@ class DBStoreService {
       user,
       tags,
       media: wiki.media || [],
+      linkedWikis: wiki.linkedWikis,
       categories,
       images: wiki.images,
       metadata: wiki.metadata,
