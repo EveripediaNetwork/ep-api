@@ -18,7 +18,7 @@ class PageViewsService {
 
   private async updatePageViewPerDay(id: string) {
     const repository = this.connection.getRepository(PageviewsPerDay)
-    const date = new Date().toLocaleDateString().split('/').reverse().join('-')
+    const date = new Date()
     const perDayWikiPageView = await repository.findOne({
       where: { wikiId: id, day: date },
     })
