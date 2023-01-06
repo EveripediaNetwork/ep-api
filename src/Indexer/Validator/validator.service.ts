@@ -206,7 +206,7 @@ class IPFSValidatorService {
         if (m.source === MediaSource.VIMEO) {
           isContentValid = m.id === `https://vimeo.com/${m.name}`
         }
-        if (m.type && !(m.type in MediaType)) {
+        if (m.type && !Object.values(MediaType).includes(m.type)) {
           isContentValid = false
         }
         return isContentValid
