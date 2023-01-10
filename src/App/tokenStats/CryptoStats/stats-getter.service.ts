@@ -62,9 +62,9 @@ class StatsGetterService {
       console.error('STATS ERROR URL', err.response?.config?.url)
       console.error(
         'STATS ERROR MESSAGE',
-        err.response.data.status.error_message
-          ? err.response.data.status.error_message
-          : err,
+        err.response.data.error
+          ? err.response.data.error
+          : err.response.data.status.error_message,
       )
     }
 
