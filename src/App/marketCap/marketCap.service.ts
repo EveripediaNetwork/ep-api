@@ -91,7 +91,7 @@ class MarketCapService {
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/nfts/markets?asset_platform_id=ethereum&order=market_cap_usd_desc&per_page=${amount}&page=${
+          ` https://pro-api.coingecko.com/api/v3/nfts/markets?asset_platform_id=ethereum&order=h24_volume_usd_desc&per_page=${amount}&page=${
             page === 0 ? 1 : page
           }`,
           {
@@ -105,11 +105,7 @@ class MarketCapService {
       console.error(err.message)
     }
 
-    const traded = data?.data.filter(
-      (e: any) => e.volume_24h.native_currency !== 0 && e.volume_24h.usd !== 0,
-    )
-
-    const result = traded.map(async (element: any) => {
+    const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds)
 
       if (!wiki) {
