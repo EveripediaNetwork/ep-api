@@ -28,20 +28,24 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
         : `Graphql: ${name || 'Unknown Query/Mutation'}`,
     })
 
-    this.sentry
-      .instance()
-      .getCurrentHub()
-      .configureScope(scope => {
-        const { headers, body: data, method, baseUrl: url } = context.req
-        scope.addEventProcessor(event => {
-          event.request = { method, url, headers, data }
-          return event
+    try {
+      this.sentry
+        .instance()
+        .getCurrentHub()
+        .configureScope(scope => {
+          const { headers, body: data, method, baseUrl: url } = context.req
+          scope.addEventProcessor(event => {
+            event.request = { method, url, headers, data }
+            return event
+          })
         })
-      })
 
-    this.sentry.instance().configureScope(scope => {
-      scope.setSpan(transaction)
-    })
+      this.sentry.instance().configureScope(scope => {
+        scope.setSpan(transaction)
+      })
+    } catch (e) {
+      console.error(e)
+    }
 
     return {
       async willSendResponse() {
