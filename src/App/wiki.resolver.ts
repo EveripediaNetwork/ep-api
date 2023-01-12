@@ -1,10 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {
   Args,
-  ArgsType,
   Context,
-  Field,
-  Int,
   Mutation,
   Parent,
   Query,
@@ -12,11 +9,9 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
-import { MinLength } from 'class-validator'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../Database/Entities/wiki.entity'
-import PaginationArgs from './pagination.args'
 import { IWiki } from '../Database/Entities/types/IWiki'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
@@ -27,51 +22,15 @@ import {
   RevalidatePageService,
   RevalidateEndpoints,
 } from './revalidatePage/revalidatePage.service'
-import { OrderBy, Direction, orderWikis } from './utils/queryHelpers'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
-
-@ArgsType()
-class LangArgs extends PaginationArgs {
-  @Field(() => String)
-  lang = 'en'
-
-  @Field(() => Direction)
-  direction = Direction.DESC
-
-  @Field(() => OrderBy)
-  order = OrderBy.UPDATED
-}
-
-@ArgsType()
-class TitleArgs extends LangArgs {
-  @Field(() => String)
-  @MinLength(3)
-  title!: string
-
-  @Field(() => Boolean)
-  hidden = false
-}
-
-@ArgsType()
-class CategoryArgs extends LangArgs {
-  @Field(() => String)
-  category!: string
-}
-
-@ArgsType()
-class ByIdArgs {
-  @Field(() => String)
-  id!: string
-
-  @Field(() => String)
-  lang = 'en'
-}
-
-@ArgsType()
-class PromoteWikiArgs extends ByIdArgs {
-  @Field(() => Int)
-  level = 0
-}
+import {
+  ByIdArgs,
+  CategoryArgs,
+  LangArgs,
+  PromoteWikiArgs,
+  TitleArgs,
+} from './wiki.dto'
+import WikiService from './wiki.service'
 
 @UseInterceptors(SentryInterceptor)
 @UseInterceptors(AdminLogsInterceptor)
@@ -82,31 +41,17 @@ class WikiResolver {
     private validSlug: ValidSlug,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
+    private wikiService: WikiService,
   ) {}
 
   @Query(() => Wiki, { nullable: true })
   async wiki(@Args() args: ByIdArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.findOne({
-      where: {
-        language: args.lang,
-        id: args.id,
-      },
-    })
+    return this.wikiService.findWiki(args)
   }
 
   @Query(() => [Wiki])
   async wikis(@Args() args: LangArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        hidden: false,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: orderWikis(args.order as OrderBy, args.direction as Direction),
-    })
+    return this.wikiService.getWikis(args)
   }
 
   @Query(() => [Wiki])
