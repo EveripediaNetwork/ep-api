@@ -75,8 +75,8 @@ class StatsGetterService {
     }
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
-        [0, 0],
-        [0, 0],
+        [1, 1],
+        [1, 1],
       ],
     }
 
@@ -88,14 +88,13 @@ class StatsGetterService {
             name: 'not_found',
             symbol: 'NOT_FOUND',
             slug: 'not_found',
-            max_supply: 0,
-            circulating_supply: 0,
-            total_supply: 0,
             quote: {
-              USD: 0,
-              volume_24h: 0,
-              market_cap_change_percentage_24h: 0,
-              fully_diluted_market_cap: 0,
+              USD: {
+                volume_24h: 0,
+                market_cap: 0,
+                market_cap_change_percentage_24h: 0,
+                fully_diluted_market_cap: 0,
+              },
             },
           },
         },
@@ -105,6 +104,7 @@ class StatsGetterService {
     const d = dat.data
     const res: any = Object.values(d.data)
     const cmcData: any = res[0].quote.USD
+
     const volumeChange =
       cgVolumeData.total_volumes.length === 1
         ? cgVolumeData.total_volumes[0][1] * cgVolumeData.total_volumes * 100
@@ -119,7 +119,7 @@ class StatsGetterService {
       name: res[0].name,
       token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
-      market_cap: cmcData.market_cap_change_percentage_24h,
+      market_cap: cmcData.market_cap,
       market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
       diluted_market_cap: cmcData.fully_diluted_market_cap,
