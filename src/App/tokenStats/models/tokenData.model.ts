@@ -15,7 +15,7 @@ export default class TokenData {
   token_image_url!: string
 
   @Field()
-  token_price_in_usd!: string
+  token_price_in_usd!: number
 
   @Field()
   market_cap!: number
