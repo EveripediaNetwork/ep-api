@@ -12,13 +12,33 @@ export const mockCacheStore = {
   set: jest.fn(),
 }
 
-export const providerArray = [
-  ValidSlug,
-  WikiResolver,
-  WikiService,
-  RevalidatePageService,
-  EventEmitter2,
-  ConfigService,
-  TokenValidator,
-  WebhookHandler,
-]
+export const providerArray = {
+  validSlug: ValidSlug,
+  wikiResolver: WikiResolver,
+  wikiService: WikiService,
+  eventEmitter2: EventEmitter2,
+  configService: ConfigService,
+  tokenValidator: TokenValidator,
+  webhookHandler: WebhookHandler,
+  revalidatePageService: RevalidatePageService,
+}
+
+
+export enum ProviderEnum {
+  validSlug = 'validSlug',
+  wikiResolver = 'wikiResolver',
+  wikiService = 'wikiService',
+  eventEmitter2 = 'eventEmitter2',
+  configService = 'configService',
+  tokenValidator = 'tokenValidator',
+  webhookHandler = 'webhookHandler',
+  revalidatePageService = 'revalidatePageService',
+}
+
+export const getProviders = (providers: ProviderEnum[]) => {
+  const filteredValues = Object.entries(providerArray)
+    .filter(([key]) => Object.values(providers).includes(key as ProviderEnum))
+    .map(([, value]) => value)
+  return filteredValues
+}
+

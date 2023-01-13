@@ -6,7 +6,11 @@ import { CacheModule } from '@nestjs/common'
 import WikiService from './wiki.service'
 import WikiResolver from './wiki.resolver'
 import { ByIdArgs } from './wiki.dto'
-import { mockCacheStore, providerArray } from './utils/testHelpers'
+import {
+  getProviders,
+  mockCacheStore,
+  ProviderEnum,
+} from './utils/testHelpers'
 import Language from '../Database/Entities/language.entity'
 import User from '../Database/Entities/user.entity'
 
@@ -77,7 +81,16 @@ describe('WikiResolver', () => {
         }),
       ],
       providers: [
-        ...providerArray,
+        ...getProviders([
+          ProviderEnum.validSlug,
+          ProviderEnum.wikiResolver,
+          ProviderEnum.wikiService,
+          ProviderEnum.eventEmitter2,
+          ProviderEnum.configService,
+          ProviderEnum.tokenValidator,
+          ProviderEnum.webhookHandler,
+          ProviderEnum.revalidatePageService,
+        ]),
         {
           provide: Connection,
           useFactory: () => ({
