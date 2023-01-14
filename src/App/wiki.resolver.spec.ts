@@ -6,15 +6,16 @@ import { CacheModule } from '@nestjs/common'
 import WikiService from './wiki.service'
 import WikiResolver from './wiki.resolver'
 import { ByIdArgs } from './wiki.dto'
-import {
-  getProviders,
-  mockCacheStore,
-  ProviderEnum,
-} from './utils/testHelpers'
+import { getProviders, ProviderEnum } from './utils/testHelpers'
 import Language from '../Database/Entities/language.entity'
 import User from '../Database/Entities/user.entity'
 
 jest.mock('fs')
+
+ const mockCacheStore = {
+  get: jest.fn(),
+  set: jest.fn(),
+}
 
 describe('WikiResolver', () => {
   let resolver: WikiResolver

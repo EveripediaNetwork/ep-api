@@ -6,42 +6,16 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
-import WikiResolver from './wiki.resolver'
-import LanguageResolver from './language.resolver'
-import CategoryResolver from './category.resolver'
-import TagResolver from './tag.resolver'
-import UserResolver from './user.resolver'
-import ActivityResolver from './activity.resolver'
-
 import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
-
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
-import UserProfileResolver from './userProfile.resolver'
-import UserService from './user.service'
-import StatsResolver from './stats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
-import { ValidSlug } from './utils/validSlug'
-import PageViewsResolver from './pageViews/pageViews.resolver'
-import PageViewsService from './pageViews/pageViews.service'
-import { RevalidatePageService } from './revalidatePage/revalidatePage.service'
 import httpModule from '../httpModule'
-import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
-import FlagWikiService from './flaggingSystem/flagWiki.service'
-import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
-import WebhookHandler from './utils/discordWebhookHandler'
-import AdminLogsInterceptor from './utils/adminLogs.interceptor'
-import WikiSubscriptionResolver from './subscriptions.resolver'
-import WikiSubscriptionService from './subscriptions.service'
-import TokenValidator from './utils/validateToken'
-import SentryPlugin from '../sentry/sentryPlugin'
-import MarketCapResolver from './marketCap/marketCap.resolver'
-import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
-import WikiService from './wiki.service'
-import CategoryService from './category.service'
+
+import { getProviders, ProviderEnum } from './utils/testHelpers'
 
 @Module({
   imports: [
@@ -87,33 +61,35 @@ import CategoryService from './category.service'
   ],
   controllers: [],
   providers: [
-    ConfigService,
-    WikiResolver,
-    WikiService,
-    LanguageResolver,
-    CategoryResolver,
-    CategoryService,
-    TagResolver,
-    UserResolver,
-    UserService,
-    ActivityResolver,
-    UserProfileResolver,
-    StatsResolver,
-    ValidSlug,
-    PageViewsResolver,
-    PageViewsService,
-    RevalidatePageService,
-    RevalidatePageResolver,
-    FlagWikiService,
-    FlagWikiResolver,
-    WebhookHandler,
-    AdminLogsInterceptor,
-    TokenValidator,
-    WikiSubscriptionResolver,
-    WikiSubscriptionService,
-    MarketCapResolver,
-    MarketCapService,
-    SentryPlugin,
+    ...getProviders([
+      ProviderEnum.adminLogsInterceptor,
+      ProviderEnum.configService,
+      ProviderEnum.wikiResolver,
+      ProviderEnum.wikiService,
+      ProviderEnum.languageResolver,
+      ProviderEnum.categoryResolver,
+      ProviderEnum.categoryService,
+      ProviderEnum.tagResolver,
+      ProviderEnum.userResolver,
+      ProviderEnum.userService,
+      ProviderEnum.activityResolver,
+      ProviderEnum.userProfileResolver,
+      ProviderEnum.statsResolver,
+      ProviderEnum.validSlug,
+      ProviderEnum.pageViewsResolver,
+      ProviderEnum.pageViewsService,
+      ProviderEnum.revalidatePageService,
+      ProviderEnum.revalidatePageResolver,
+      ProviderEnum.flagWikiService,
+      ProviderEnum.flagWikiResolver,
+      ProviderEnum.webhookHandler,
+      ProviderEnum.tokenValidator,
+      ProviderEnum.wikiSubscriptionResolver,
+      ProviderEnum.wikiSubscriptionService,
+      ProviderEnum.marketCapResolver,
+      ProviderEnum.marketCapService,
+      ProviderEnum.sentryPlugin,
+    ]),
   ],
 })
 class AppModule {
