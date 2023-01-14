@@ -82,16 +82,19 @@ describe('WikiResolver', () => {
         }),
       ],
       providers: [
-        ...getProviders([
-          ProviderEnum.wikiResolver,
-          ProviderEnum.wikiService,
-          ProviderEnum.validSlug,
-          ProviderEnum.eventEmitter2,
-          ProviderEnum.configService,
-          ProviderEnum.tokenValidator,
-          ProviderEnum.webhookHandler,
-          ProviderEnum.revalidatePageService,
-        ], 'Test'),
+        ...getProviders(
+          [
+            ProviderEnum.wikiResolver,
+            ProviderEnum.wikiService,
+            ProviderEnum.validSlug,
+            ProviderEnum.eventEmitter2,
+            ProviderEnum.configService,
+            ProviderEnum.tokenValidator,
+            ProviderEnum.webhookHandler,
+            ProviderEnum.revalidatePageService,
+          ],
+          'Test',
+        ),
         {
           provide: Connection,
           useFactory: () => ({
