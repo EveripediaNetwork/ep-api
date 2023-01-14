@@ -89,7 +89,7 @@ import { getProviders, ProviderEnum } from './utils/testHelpers'
       ProviderEnum.marketCapResolver,
       ProviderEnum.marketCapService,
       ProviderEnum.sentryPlugin,
-    ]),
+    ], 'App'),
   ],
 })
 class AppModule {

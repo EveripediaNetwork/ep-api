@@ -12,7 +12,7 @@ import User from '../Database/Entities/user.entity'
 
 jest.mock('fs')
 
- const mockCacheStore = {
+const mockCacheStore = {
   get: jest.fn(),
   set: jest.fn(),
 }
@@ -83,15 +83,15 @@ describe('WikiResolver', () => {
       ],
       providers: [
         ...getProviders([
-          ProviderEnum.validSlug,
           ProviderEnum.wikiResolver,
           ProviderEnum.wikiService,
+          ProviderEnum.validSlug,
           ProviderEnum.eventEmitter2,
           ProviderEnum.configService,
           ProviderEnum.tokenValidator,
           ProviderEnum.webhookHandler,
           ProviderEnum.revalidatePageService,
-        ]),
+        ], 'Test'),
         {
           provide: Connection,
           useFactory: () => ({

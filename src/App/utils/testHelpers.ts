@@ -27,7 +27,6 @@ import WebhookHandler from './discordWebhookHandler'
 import TokenValidator from './validateToken'
 import { ValidSlug } from './validSlug'
 
-
 export const providerObjects = {
   validSlug: ValidSlug,
   tagResolver: TagResolver,
@@ -90,9 +89,13 @@ export enum ProviderEnum {
   wikiSubscriptionResolver = 'wikiSubscriptionResolver',
 }
 
-export const getProviders = (providers: ProviderEnum[]) => {
+export const getProviders = (providers: ProviderEnum[], level: 'App' | 'Test') => {
   const filteredValues = Object.entries(providerObjects)
-    .filter(([key]) => Object.keys(providers).includes(key as ProviderEnum))
+    .filter(([key]) =>
+      level === 'App'
+        ? Object.keys(providers).includes(key as ProviderEnum)
+        : Object.values(providers).includes(key as ProviderEnum),
+    )
     .map(([, value]) => value)
   return filteredValues
 }
