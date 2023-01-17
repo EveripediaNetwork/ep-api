@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { Connection, Repository } from 'typeorm'
+import { Connection, MoreThan, Repository } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from './utils/queryHelpers'
-import { ByIdArgs, LangArgs } from './wiki.dto'
+import { ByIdArgs, CategoryArgs, LangArgs } from './wiki.dto'
 
 @Injectable()
 class WikiService {
@@ -40,6 +40,37 @@ class WikiService {
       skip: args.offset,
       order: orderWikis(args.order as OrderBy, args.direction as Direction),
     })
+  }
+
+  async getPromotedWikis(args: LangArgs): Promise<Wiki[] | []> {
+    return (await this.repository()).find({
+      where: {
+        language: args.lang,
+        promoted: MoreThan(0),
+        hidden: false,
+      },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        promoted: 'DESC',
+      },
+    })
+  }
+
+  async getWikisByCategory(args: CategoryArgs): Promise<Wiki[] | []> {
+    return (await this.repository())
+      .createQueryBuilder('wiki')
+      .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+        categoryId: args.category,
+      })
+      .where('wiki.language = :lang AND hidden = :status', {
+        lang: args.lang,
+        status: false,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('wiki.updated', 'DESC')
+      .getMany()
   }
 }
 

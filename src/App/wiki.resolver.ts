@@ -8,7 +8,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection, MoreThan } from 'typeorm'
+import { Connection } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -56,37 +56,12 @@ class WikiResolver {
 
   @Query(() => [Wiki])
   async promotedWikis(@Args() args: LangArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        promoted: MoreThan(0),
-        hidden: false,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        promoted: 'DESC',
-      },
-    })
+    return this.wikiService.getPromotedWikis(args)
   }
 
   @Query(() => [Wiki])
   async wikisByCategory(@Args() args: CategoryArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository
-      .createQueryBuilder('wiki')
-      .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-        categoryId: args.category,
-      })
-      .where('wiki.language = :lang AND hidden = :status', {
-        lang: args.lang,
-        status: false,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('wiki.updated', 'DESC')
-      .getMany()
+    return this.wikiService.getWikisByCategory(args)
   }
 
   @Query(() => [Wiki])

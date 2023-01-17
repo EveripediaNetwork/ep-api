@@ -89,16 +89,9 @@ export enum ProviderEnum {
   wikiSubscriptionResolver = 'wikiSubscriptionResolver',
 }
 
-export const getProviders = (
-  providers: ProviderEnum[],
-  level: 'App' | 'Test',
-) => {
+export const getProviders = (providers: ProviderEnum[]) => {
   const filteredValues = Object.entries(providerObjects)
-    .filter(([key]) =>
-      level === 'App'
-        ? Object.keys(providers).includes(key as ProviderEnum)
-        : Object.values(providers).includes(key as ProviderEnum),
-    )
+    .filter(([key]) => Object.values(providers).includes(key as ProviderEnum))
     .map(([, value]) => value)
   return filteredValues
 }
