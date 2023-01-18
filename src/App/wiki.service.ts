@@ -2,8 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { Connection, MoreThan, Repository } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from './utils/queryHelpers'
-import { ValidSlug,  Valid, Slug } from './utils/validSlug'
-import { ByIdArgs, CategoryArgs, LangArgs, PromoteWikiArgs, TitleArgs } from './wiki.dto'
+import { ValidSlug, Valid, Slug } from './utils/validSlug'
+import {
+  ByIdArgs,
+  CategoryArgs,
+  LangArgs,
+  PromoteWikiArgs,
+  TitleArgs,
+} from './wiki.dto'
 
 @Injectable()
 class WikiService {

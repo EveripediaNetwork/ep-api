@@ -352,8 +352,8 @@ describe('WikiResolver', () => {
 
   const wikisHidden: any = getMockRes({
     data: {
-        wikisHidden: hiddenResult
-    }
+      wikisHidden: hiddenResult,
+    },
   })
 
   const wikisByTitle: any = getMockRes({
@@ -438,11 +438,13 @@ describe('WikiResolver', () => {
 
   it('should return an array of wikis with promoted field greater than or equal to 1', async () => {
     jest.spyOn(service, 'getPromotedWikis').mockResolvedValue(wikis)
-    expect(
-      await resolver.promotedWikis({ lang: 'en' } as LangArgs),
-    ).toEqual(wikis)
-    const isAllGreaterThanZero = wikis.res.data.wikis.every((val: Wiki) => val.promoted >= 1)
-   expect(isAllGreaterThanZero).toBe(true)
+    expect(await resolver.promotedWikis({ lang: 'en' } as LangArgs)).toEqual(
+      wikis,
+    )
+    const isAllGreaterThanZero = wikis.res.data.wikis.every(
+      (val: Wiki) => val.promoted >= 1,
+    )
+    expect(isAllGreaterThanZero).toBe(true)
   })
 
   it('should return an array of wikis with the same category id', async () => {
@@ -471,30 +473,34 @@ describe('WikiResolver', () => {
     expect(
       await resolver.wikisByTitle({ title: 'right' } as TitleArgs),
     ).toEqual(wikisByTitle)
-    const byTitle = wikisByTitle.res.data.wikis.every(
-      (val: Wiki) => val.title.toLowerCase().includes('right'),
+    const byTitle = wikisByTitle.res.data.wikis.every((val: Wiki) =>
+      val.title.toLowerCase().includes('right'),
     )
     expect(byTitle).toBe(true)
   })
 
-  it('should search for hidden wikis and create a new id by appending consecutive series of numbers', async ()=> {
+  it('should search for hidden wikis and create a new id by appending consecutive series of numbers', async () => {
     jest.spyOn(service, 'getValidWikiSlug').mockResolvedValue(validSlug)
-    expect(await resolver.validWikiSlug({ id: 'flywheel' } as ByIdArgs)).toBe(validSlug)
+    expect(await resolver.validWikiSlug({ id: 'flywheel' } as ByIdArgs)).toBe(
+      validSlug,
+    )
     const verifySlug = validSlug.res.data.validWikiSlug.id.split('-')
     expect(Number(verifySlug[verifySlug.length - 1])).toBeGreaterThanOrEqual(1)
   })
 
   it('should return an array of wikis if found with with hidden field set to true', async () => {
     jest.spyOn(service, 'getWikisHidden').mockResolvedValue(wikisHidden)
-    expect(await resolver.wikisHidden({ lang: 'en' } as LangArgs)).toBe(wikisHidden)
-    const hidden =  wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
+    expect(await resolver.wikisHidden({ lang: 'en' } as LangArgs)).toBe(
+      wikisHidden,
+    )
+    const hidden = wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
     expect(hidden).toBe(true)
   })
 
   // TODO: test revalidatePage servvice
-//   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
-//     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
-//     expect(await resolver.promoteWiki({ id: 'right-of-way', level: 4 } as PromoteWikiArgs, ctx)).toBe(wiki)
-    // expect(wiki.res.data.wiki.promoted).toBe(4)
-//   })
+  //   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
+  //     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
+  //     expect(await resolver.promoteWiki({ id: 'right-of-way', level: 4 } as PromoteWikiArgs, ctx)).toBe(wiki)
+  // expect(wiki.res.data.wiki.promoted).toBe(4)
+  //   })
 })

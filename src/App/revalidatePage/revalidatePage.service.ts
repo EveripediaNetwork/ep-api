@@ -93,7 +93,7 @@ export class RevalidatePageService {
         ])
       }
     } catch (e: any) {
-        console.log(e.response)
+      console.log(e.response)
       console.error(e.response.data, e.request.path.split('path=')[1])
     }
   }
