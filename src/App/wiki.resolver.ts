@@ -17,7 +17,7 @@ import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
-import { SlugResult, ValidSlug } from './utils/validSlug'
+import { SlugResult } from './utils/validSlug'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
@@ -38,7 +38,6 @@ import WikiService from './wiki.service'
 class WikiResolver {
   constructor(
     private connection: Connection,
-    private validSlug: ValidSlug,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
@@ -66,71 +65,25 @@ class WikiResolver {
 
   @Query(() => [Wiki])
   async wikisByTitle(@Args() args: TitleArgs) {
-    const repository = this.connection.getRepository(Wiki)
-
-    return repository
-      .createQueryBuilder('wiki')
-      .where(
-        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
-        {
-          lang: args.lang,
-          hidden: args.hidden,
-          title: `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`,
-        },
-      )
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('wiki.updated', 'DESC')
-      .getMany()
+    return this.wikiService.getWikisByTitle(args)
   }
 
   @Query(() => SlugResult)
   async validWikiSlug(@Args() args: ByIdArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    const slugs = await repository
-      .createQueryBuilder('wiki')
-      .where('LOWER(wiki.id) LIKE :id AND hidden =  :status', {
-        lang: args.lang,
-        status: true,
-        id: `%${args.id.toLowerCase()}%`,
-      })
-      .orderBy('wiki.created', 'DESC')
-      .getMany()
-
-    return this.validSlug.validateSlug(slugs[0]?.id)
+    return this.wikiService.getValidWikiSlug(args)
   }
 
   @Query(() => [Wiki])
   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
-    const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: {
-        language: args.lang,
-        hidden: true,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
-    })
+    return this.wikiService.getWikisHidden(args)
   }
 
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
-
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOne(args.id)
-    await repository
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ promoted: args.level })
-      .where('id = :id', { id: args.id })
-      .execute()
-
+    const wiki = await this.wikiService.promoteWiki(args)
     if (wiki) {
       await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
       this.eventEmitter.emit('admin.action', `${cacheId}`)

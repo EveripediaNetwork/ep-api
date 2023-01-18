@@ -3,11 +3,12 @@ import SitemapController from './controllers/sitemap.controller'
 import httpModule from '../httpModule'
 import WikiService from '../App/wiki.service'
 import CategoryService from '../App/category.service'
+import { ValidSlug } from '../App/utils/validSlug'
 
 @Module({
   imports: [httpModule(10000)],
   controllers: [SitemapController],
-  providers: [WikiService, CategoryService],
+  providers: [WikiService, ValidSlug, CategoryService],
 })
 class SitemapModule {}
 

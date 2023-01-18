@@ -5,7 +5,7 @@ import { HttpModule } from '@nestjs/axios'
 import { CacheModule } from '@nestjs/common'
 import WikiService from './wiki.service'
 import WikiResolver from './wiki.resolver'
-import { ByIdArgs, CategoryArgs, LangArgs } from './wiki.dto'
+import { ByIdArgs, CategoryArgs, LangArgs, TitleArgs } from './wiki.dto'
 import { getProviders, ProviderEnum } from './utils/testHelpers'
 import Language from '../Database/Entities/language.entity'
 import User from '../Database/Entities/user.entity'
@@ -18,6 +18,12 @@ const mockCacheStore = {
   set: jest.fn(),
 }
 
+// const ctx = {
+//   req: {
+//     ip: 'localhost',
+//   },
+// }
+
 describe('WikiResolver', () => {
   let resolver: WikiResolver
   let service: WikiService
@@ -26,7 +32,7 @@ describe('WikiResolver', () => {
   const result = [
     {
       version: 1,
-      promoted: 0,
+      promoted: 4,
       id: 'right-of-way',
       title: 'Right of way',
       hidden: false,
@@ -70,20 +76,12 @@ describe('WikiResolver', () => {
       categories: [
         {
           id: 'dapps',
-          //   weight: 7,
-          //   description:
-          //     'The Decentralized Application (dapps) category covers everything from time-weighted average market maker (TWAMM) like Fraxswap to DeFi lending protocols like Aave.',
-          //   title: 'Dapps',
-          //   cardImage: 'https://iq.wiki/images/categories/dapps-card.png',
-          //   heroImage:
-          //     'https://lh3.googleusercontent.com/53VvMqm3sJn1rFjmo3irSeahA9mGuuwkHwWJhtE9f5xX3RvTC6bpIhxOkamv8SDZH96t9UqjeYbheqcQ3jkAGydPlzbwSTNonojCGg=h600',
-          //   icon: 'BsCurrencyBitcoin',
         },
       ],
     },
     {
       version: 1,
-      promoted: 4,
+      promoted: 5,
       id: 'iqwiki',
       title: 'IQ.wiki',
       hidden: false,
@@ -236,11 +234,134 @@ describe('WikiResolver', () => {
     },
   ] as unknown as Wiki[]
 
+  const hiddenResult = [
+    {
+      version: 1,
+      promoted: 0,
+      id: 'flywheel',
+      title: 'Flywheel',
+      hidden: true,
+      created: new Date(),
+      updated: new Date(),
+      block: 33734932,
+      transactionHash:
+        '0xf165a2e8e0288f944d37d0aa5db03c311b80ff3e62aed8eb8934a21de7945520',
+      ipfs: 'QmYMk3iShNzixwBwk6GmVzaetNLsyaEH3yBC7aajrSVRGF',
+      views: 0,
+      content:
+        'Flywheel is a podcast and content destination which covers the [Frax ecosystem](https://iq.wiki/wiki/frax-finance). [\\[6\\]](#cite-id-efmj7wikcqf)   \n' +
+        '  \n' +
+        '## Overview  \n' +
+        '  \n' +
+        'Flywheel was founded by DeFi Dave in April of 2022 with the mission of producing content covering the Frax ecosystem. The podcast quickly gained a following in the Frax community and broader DeFi space including endorsements by 0xWenMoon, Defi Advisor, Tarez, and Westwood. [\\[1\\]](#cite-id-r2u7e7qlvy)  \n' +
+        '  \n' +
+        'After 3 months of growth, Flywheel received a grant of $60,000 of FXS and FRAX to further its mission of covering the Frax ecosystem as well as to start hosting IRL events for the Frax community under the “Fraximalist” Brand. DeFi Dave has since hosted Fraximalist Meetups at both Madison Square Park in New York and at ETHCC in Paris. [\\[2\\]](#cite-id-p706zxeg7tr) [\\[3\\]](#cite-id-2hjzrxu0prd)  \n' +
+        '  \n' +
+        "Flywheel's flagship podcast is hosted by DeFi Dave and kapital\\_k and available on Spotify, Apple Podcasts, and several other outlets. In addition to the podcast which focuses on long-form content, Flywheel also shares video content through their YouTube channel [\\[4\\]](#cite-id-b4m6eemxzen) and articles through their Substack [\\[5\\]](#cite-id-6cj3klwlc7x).  \n" +
+        '  \n' +
+        'Stableclaire also produces short videos on [stablecoins](https://iq.wiki/wiki/stablecoin) for Flywheel.  \n' +
+        '  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n' +
+        '<br>  \n',
+      summary:
+        'Flywheel is a podcast and content destination which covers the FRAX ecosystem.',
+      metadata: [
+        {
+          id: 'references',
+          value:
+            '[{"id":"r2u7e7qlvy","url":"https://gov.frax.finance/t/fip-99-flywheel-sponsorship-proposal/1746","description":"FIP 99 - Flywheel Sponsorship Proposal","timestamp":1664498409413},{"id":"p706zxeg7tr","url":"https://twitter.com/DeFiDave22/status/1539682974727274498","description":"Madison Square Park meetup","timestamp":1664498993907},{"id":"2hjzrxu0prd","url":"https://twitter.com/DeFiDave22/status/1550181650511925248","description":"Paris meetup","timestamp":1664499029874},{"id":"b4m6eemxzen","url":"https://www.youtube.com/channel/UChktQbmIzLZKSwEZh8yE1Kw/featured","description":"Flywheel Podcast","timestamp":1664499063268},{"id":"6cj3klwlc7x","url":"https://flywheeloutput.com/","description":"Substack","timestamp":1664499101028},{"id":"efmj7wikcqf","url":"https://linktr.ee/flywheeloutput","description":"Flywheel linktree","timestamp":1664499180514}]',
+        },
+        { id: 'website', value: 'https://linktr.ee/flywheeloutput' },
+        { id: 'twitter_profile', value: 'https://twitter.com/flywheelpod' },
+        {
+          id: 'youtube_profile',
+          value: 'https://www.youtube.com/channel/UChktQbmIzLZKSwEZh8yE1Kw',
+        },
+        {
+          id: 'previous_cid',
+          value: 'QmVoF92MssXrZtpo4gFvuvNWibceR3qXuJCZderMQW9E9R',
+        },
+        { id: 'words-changed', value: '119' },
+        { id: 'percent-changed', value: '84.02' },
+        { id: 'blocks-changed', value: 'content, tags' },
+        { id: 'wiki-score', value: '48' },
+      ],
+      media: [
+        {
+          name: '5roDtzjX9ys',
+          size: 0,
+          id: 'https://www.youtube.com/watch?v=5roDtzjX9ys',
+          source: 'YOUTUBE',
+        },
+        {
+          name: 'D9a-Ll8EBFs',
+          size: 0,
+          id: 'https://www.youtube.com/watch?v=D9a-Ll8EBFs',
+          source: 'YOUTUBE',
+        },
+        {
+          name: 'VCRohb1D8S0',
+          size: 0,
+          id: 'https://www.youtube.com/watch?v=VCRohb1D8S0',
+          source: 'YOUTUBE',
+        },
+        {
+          name: 'VCRohb1D8S0',
+          size: 0,
+          id: 'https://www.youtube.com/watch?v=VCRohb1D8S0',
+          source: 'YOUTUBE',
+        },
+        {
+          name: 'VCRohb1D8S0',
+          size: 0,
+          id: 'https://www.youtube.com/watch?v=VCRohb1D8S0',
+          source: 'YOUTUBE',
+        },
+      ],
+      linkedWikis: null,
+      images: [
+        {
+          id: 'QmfZJHArTUdiJKbBzLWTAfR6EB4pupWc3u1PUu9N2xUVd5',
+          type: 'image/jpeg, image/png',
+        },
+      ],
+    },
+  ] as unknown as Wiki[]
+
   const wiki: any = getMockRes({
     data: {
       wiki: result[0],
     },
   })
+
+  const validSlug: any = getMockRes({
+    data: {
+      validWikiSlug: {
+        id: 'flywheel-1',
+      },
+    },
+  })
+
+  const wikisHidden: any = getMockRes({
+    data: {
+        wikisHidden: hiddenResult
+    }
+  })
+
+  const wikisByTitle: any = getMockRes({
+    data: {
+      wikis: [result[0]],
+    },
+  })
+
   const wikis: any = getMockRes({
     data: {
       wikis: result,
@@ -315,6 +436,15 @@ describe('WikiResolver', () => {
     expect(await resolver.wikis({ lang: 'za' } as LangArgs)).toBe(noWikis)
   })
 
+  it('should return an array of wikis with promoted field greater than or equal to 1', async () => {
+    jest.spyOn(service, 'getPromotedWikis').mockResolvedValue(wikis)
+    expect(
+      await resolver.promotedWikis({ lang: 'en' } as LangArgs),
+    ).toEqual(wikis)
+    const isAllGreaterThanZero = wikis.res.data.wikis.every((val: Wiki) => val.promoted >= 1)
+   expect(isAllGreaterThanZero).toBe(true)
+  })
+
   it('should return an array of wikis with the same category id', async () => {
     jest.spyOn(service, 'getWikisByCategory').mockResolvedValue(wikis)
     expect(
@@ -328,11 +458,43 @@ describe('WikiResolver', () => {
       ]),
     )
     expect(wikis.res.data.wikis).not.toEqual(
-      expect.not.arrayContaining([
-        expect.not.objectContaining({
+      expect.arrayContaining([
+        expect.objectContaining({
           categories: [{ id: 'nfts' }],
         }),
       ]),
     )
   })
+
+  it('should return wiki/wikis with title matching the exact argument or contains a part of it', async () => {
+    jest.spyOn(service, 'getWikisByTitle').mockResolvedValue(wikisByTitle)
+    expect(
+      await resolver.wikisByTitle({ title: 'right' } as TitleArgs),
+    ).toEqual(wikisByTitle)
+    const byTitle = wikisByTitle.res.data.wikis.every(
+      (val: Wiki) => val.title.toLowerCase().includes('right'),
+    )
+    expect(byTitle).toBe(true)
+  })
+
+  it('should search for hidden wikis and create a new id by appending consecutive series of numbers', async ()=> {
+    jest.spyOn(service, 'getValidWikiSlug').mockResolvedValue(validSlug)
+    expect(await resolver.validWikiSlug({ id: 'flywheel' } as ByIdArgs)).toBe(validSlug)
+    const verifySlug = validSlug.res.data.validWikiSlug.id.split('-')
+    expect(Number(verifySlug[verifySlug.length - 1])).toBeGreaterThanOrEqual(1)
+  })
+
+  it('should return an array of wikis if found with with hidden field set to true', async () => {
+    jest.spyOn(service, 'getWikisHidden').mockResolvedValue(wikisHidden)
+    expect(await resolver.wikisHidden({ lang: 'en' } as LangArgs)).toBe(wikisHidden)
+    const hidden =  wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
+    expect(hidden).toBe(true)
+  })
+
+  // TODO: test revalidatePage servvice
+//   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
+//     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
+//     expect(await resolver.promoteWiki({ id: 'right-of-way', level: 4 } as PromoteWikiArgs, ctx)).toBe(wiki)
+    // expect(wiki.res.data.wiki.promoted).toBe(4)
+//   })
 })
