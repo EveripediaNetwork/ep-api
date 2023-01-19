@@ -12,7 +12,7 @@ import {
   NftRankListData,
   RankType,
   TokenRankListData,
-} from './maketCapDto'
+} from './marketcap.dto'
 
 @Injectable()
 class MarketCapService {
