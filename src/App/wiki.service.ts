@@ -148,7 +148,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | undefined> {
     const wiki = (await this.repository()).findOne(args.id)
-    await(await this.repository())
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
