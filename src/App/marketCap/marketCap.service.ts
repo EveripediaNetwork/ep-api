@@ -76,7 +76,7 @@ class MarketCapService {
           current_price: element.current_price,
           market_cap: element.market_cap,
           market_cap_rank: element.market_cap_rank,
-          price_change_24h: element.price_change_24h,
+          price_change_24h: element.price_change_percentage_24h,
           market_cap_change_24h: element.market_cap_change_24h,
         },
       }
