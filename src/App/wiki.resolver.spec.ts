@@ -515,13 +515,12 @@ describe('WikiResolver', () => {
   })
 
   it('should hide a wiki by setting hidden true and promoted to 0 ', async () => {
-    jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
+    jest.spyOn(service, 'hideWiki').mockResolvedValue(wiki)
     expect(
-      await resolver.promoteWiki(
-        { id: 'right-of-way', level: 4 } as PromoteWikiArgs,
+      await resolver.hideWiki(
+        { id: 'right-of-way' } as ByIdArgs,
         ctx,
       ),
     ).toBe(wiki)
-    expect(wiki.res.data.wiki.promoted).toBe(4)
   })
 })
