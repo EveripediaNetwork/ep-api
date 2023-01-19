@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
@@ -25,18 +26,27 @@ class PinService {
   private pinata() {
     const key = this.configService.get<string>('IPFS_PINATA_KEY')
     const secret = this.configService.get<string>('IPFS_PINATA_SECRET')
-
-    return pinataSDK(key, secret)
+    const sdk = new pinataSDK(key, secret)
+    return sdk
   }
 
   async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
 
-    const pinImageToPinata = async (option: typeof readableStreamForFile) =>
-      this.pinata().pinFileToIPFS(option)
+    const options = {
+        pinataMetadata: {
+            name: 'wiki-image',
+        },
+        pinataOptions: {
+            cidVersion: 0
+        }
+    };
+
+    const pinImageToPinata = async (data: typeof readableStreamForFile, option: typeof options) =>
+      this.pinata().pinFileToIPFS(data ,option)
 
     try {
-      const res = await pinImageToPinata(readableStreamForFile)
+      const res = await pinImageToPinata(readableStreamForFile, options)
       return res
     } catch (e) {
       return e
