@@ -34,16 +34,18 @@ class PinService {
     const readableStreamForFile = fs.createReadStream(file)
 
     const options = {
-        pinataMetadata: {
-            name: 'wiki-image',
-        },
-        pinataOptions: {
-            cidVersion: 0
-        }
-    };
+      pinataMetadata: {
+        name: 'wiki-image',
+      },
+      pinataOptions: {
+        cidVersion: 0,
+      },
+    }
 
-    const pinImageToPinata = async (data: typeof readableStreamForFile, option: typeof options) =>
-      this.pinata().pinFileToIPFS(data ,option)
+    const pinImageToPinata = async (
+      data: typeof readableStreamForFile,
+      option: typeof options,
+    ) => this.pinata().pinFileToIPFS(data, option)
 
     try {
       const res = await pinImageToPinata(readableStreamForFile, options)
@@ -58,6 +60,15 @@ class PinService {
     const data = await this.metadataChanges.removeEditMetadata(wiki)
 
     const isDataValid = await this.validator.validate(data, true)
+
+    const options = {
+      pinataMetadata: {
+        name: 'wiki-content',
+      },
+      pinataOptions: {
+        cidVersion: 0,
+      },
+    }
 
     if (!isDataValid.status) {
       this.pinJSONErrorWebhook.postException(isDataValid.message, data)
@@ -85,6 +96,7 @@ class PinService {
       )
     }
 
+
     const payload = {
       pinataMetadata: {
         name: data.content !== undefined ? data.title : 'image',
@@ -93,11 +105,11 @@ class PinService {
         ...data,
       },
     }
-    const pinToPinata = async (option: typeof payload) =>
-      this.pinata().pinJSONToIPFS(option)
+    const pinToPinata = async (wikiContent: typeof payload, option: typeof options) =>
+      this.pinata().pinJSONToIPFS(wikiContent, option)
 
     try {
-      const res = await pinToPinata(payload)
+      const res = await pinToPinata(payload, options)
 
       return res
     } catch (e) {
