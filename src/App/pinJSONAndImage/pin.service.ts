@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
+import pinataSDK, { PinataMetadata } from '@pinata/sdk'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import ActivityService from '../activity.service'
@@ -11,7 +12,6 @@ import USER_ACTIVITY_LIMIT from '../../globalVars'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 
-const pinataSDK = require('@pinata/sdk')
 
 @Injectable()
 class PinService {
@@ -45,7 +45,7 @@ class PinService {
     const pinImageToPinata = async (
       data: typeof readableStreamForFile,
       option: typeof options,
-    ) => this.pinata().pinFileToIPFS(data, option)
+    ) => this.pinata().pinFileToIPFS(data, option as unknown as PinataMetadata)
 
     try {
       const res = await pinImageToPinata(readableStreamForFile, options)
@@ -60,15 +60,6 @@ class PinService {
     const data = await this.metadataChanges.removeEditMetadata(wiki)
 
     const isDataValid = await this.validator.validate(data, true)
-
-    const options = {
-      pinataMetadata: {
-        name: 'wiki-content',
-      },
-      pinataOptions: {
-        cidVersion: 0,
-      },
-    }
 
     if (!isDataValid.status) {
       this.pinJSONErrorWebhook.postException(isDataValid.message, data)
@@ -96,7 +87,6 @@ class PinService {
       )
     }
 
-
     const payload = {
       pinataMetadata: {
         name: data.content !== undefined ? data.title : 'image',
@@ -105,11 +95,12 @@ class PinService {
         ...data,
       },
     }
-    const pinToPinata = async (wikiContent: typeof payload, option: typeof options) =>
-      this.pinata().pinJSONToIPFS(wikiContent, option)
+    const pinToPinata = async (
+      wikiContent: typeof payload,
+    ) => this.pinata().pinJSONToIPFS(wikiContent)
 
     try {
-      const res = await pinToPinata(payload, options)
+      const res = await pinToPinata(payload)
 
       return res
     } catch (e) {
