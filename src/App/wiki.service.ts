@@ -98,7 +98,9 @@ class WikiService {
   }
 
   async getValidWikiSlug(args: ByIdArgs): Promise<Slug | Valid> {
-    const slugs = (await this.repository())
+    const slugs = (await (
+      await this.repository()
+    )
       .createQueryBuilder('wiki')
       .where('LOWER(wiki.id) LIKE :id AND hidden =  :status', {
         lang: args.lang,
@@ -106,7 +108,7 @@ class WikiService {
         id: `%${args.id.toLowerCase()}%`,
       })
       .orderBy('wiki.created', 'DESC')
-      .getMany() as unknown as Wiki[]
+      .getMany()) as unknown as Wiki[]
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
