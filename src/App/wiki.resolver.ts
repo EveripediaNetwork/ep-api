@@ -96,7 +96,6 @@ class WikiResolver {
   async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-
     const wiki = await this.wikiService.hideWiki(args)
 
     if (wiki) {

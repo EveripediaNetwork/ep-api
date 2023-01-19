@@ -502,7 +502,7 @@ describe('WikiResolver', () => {
     const hidden = wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
     expect(hidden).toBe(true)
   })
- 
+
   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
     expect(
@@ -513,7 +513,7 @@ describe('WikiResolver', () => {
     ).toBe(wiki)
     expect(wiki.res.data.wiki.promoted).toBe(4)
   })
- 
+
   it('should hide a wiki by setting hidden true and promoted to 0 ', async () => {
     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
     expect(
