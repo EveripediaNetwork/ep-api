@@ -6,7 +6,7 @@ import {
   MarketRankData,
   NftRankListData,
   TokenRankListData,
-} from './maketCap.dto'
+} from './maketcap.dto'
 import MarketCapService from './marketCap.service'
 
 @UseInterceptors(SentryInterceptor)

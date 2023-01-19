@@ -96,14 +96,8 @@ class WikiResolver {
   async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-    const repository = this.connection.getRepository(Wiki)
-    const wiki = await repository.findOne(args.id)
-    await repository
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ hidden: true, promoted: 0 })
-      .where('id = :id', { id: args.id })
-      .execute()
+
+    const wiki = await this.wikiService.hideWiki(args)
 
     if (wiki) {
       await this.revalidate.revalidatePage(

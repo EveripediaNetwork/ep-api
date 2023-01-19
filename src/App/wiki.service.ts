@@ -134,6 +134,17 @@ class WikiService {
       .execute()
     return wiki
   }
+
+  async hideWiki(args: ByIdArgs): Promise<Wiki | undefined> {
+    const wiki = (await this.repository()).findOne(args.id)
+    await(await this.repository())
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ hidden: true, promoted: 0 })
+      .where('id = :id', { id: args.id })
+      .execute()
+    return wiki
+  }
 }
 
 export default WikiService

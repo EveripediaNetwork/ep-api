@@ -5,7 +5,13 @@ import { HttpModule } from '@nestjs/axios'
 import { CacheModule } from '@nestjs/common'
 import WikiService from './wiki.service'
 import WikiResolver from './wiki.resolver'
-import { ByIdArgs, CategoryArgs, LangArgs, TitleArgs } from './wiki.dto'
+import {
+  ByIdArgs,
+  CategoryArgs,
+  LangArgs,
+  PromoteWikiArgs,
+  TitleArgs,
+} from './wiki.dto'
 import { getProviders, ProviderEnum } from './utils/testHelpers'
 import Language from '../Database/Entities/language.entity'
 import User from '../Database/Entities/user.entity'
@@ -18,11 +24,11 @@ const mockCacheStore = {
   set: jest.fn(),
 }
 
-// const ctx = {
-//   req: {
-//     ip: 'localhost',
-//   },
-// }
+const ctx = {
+  req: {
+    ip: 'localhost',
+  },
+}
 
 describe('WikiResolver', () => {
   let resolver: WikiResolver
@@ -496,11 +502,26 @@ describe('WikiResolver', () => {
     const hidden = wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
     expect(hidden).toBe(true)
   })
-
-  // TODO: test revalidatePage servvice
-  //   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
-  //     jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
-  //     expect(await resolver.promoteWiki({ id: 'right-of-way', level: 4 } as PromoteWikiArgs, ctx)).toBe(wiki)
-  // expect(wiki.res.data.wiki.promoted).toBe(4)
-  //   })
+ 
+  it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {
+    jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
+    expect(
+      await resolver.promoteWiki(
+        { id: 'right-of-way', level: 4 } as PromoteWikiArgs,
+        ctx,
+      ),
+    ).toBe(wiki)
+    expect(wiki.res.data.wiki.promoted).toBe(4)
+  })
+ 
+  it('should hide a wiki by setting hidden true and promoted to 0 ', async () => {
+    jest.spyOn(service, 'promoteWiki').mockResolvedValue(wiki)
+    expect(
+      await resolver.promoteWiki(
+        { id: 'right-of-way', level: 4 } as PromoteWikiArgs,
+        ctx,
+      ),
+    ).toBe(wiki)
+    expect(wiki.res.data.wiki.promoted).toBe(4)
+  })
 })

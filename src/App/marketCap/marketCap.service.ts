@@ -6,13 +6,13 @@ import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { cryptocurrencyIds, nftIds } from './marketCapIds'
+import { cryptocurrencyIds, nftIds } from './marketcapIds'
 import {
   MarketCapInputs,
   NftRankListData,
   RankType,
   TokenRankListData,
-} from './maketCap.dto'
+} from './maketcap.dto'
 
 @Injectable()
 class MarketCapService {
