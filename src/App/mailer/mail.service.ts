@@ -55,7 +55,7 @@ export default class MailService {
         },
         {
           filename: 'discord.png',
-          path: `${root}/public/discord.png`,
+          path: `${root}/public/Discord.png`,
           cid: 'Discord',
         },
         {
