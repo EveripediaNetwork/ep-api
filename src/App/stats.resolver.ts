@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { UseInterceptors } from '@nestjs/common'
+import { CACHE_MANAGER, Inject, UseInterceptors } from '@nestjs/common'
 import {
   Args,
   ArgsType,
@@ -10,11 +10,15 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { Cache } from 'cache-manager'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import Tag from '../Database/Entities/tag.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import PageviewsPerDay from '../Database/Entities/pageviewsPerPage.entity'
+import { CategoryArgs } from './wiki.dto'
+
+
 
 @ObjectType()
 export class Count {
@@ -78,7 +82,10 @@ class EditorArgs extends DateArgs {
 @UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class StatsResolver {
-  constructor(private connection: Connection) {}
+  constructor(
+    private connection: Connection,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Query(() => [WikiStats])
   async wikisCreated(@Args() args: IntervalArgs) {
@@ -217,6 +224,26 @@ class StatsResolver {
         LIMIT 15       
         `,
     )
+  }
+
+  @Query(() => Count)
+  async categoryTotal(@Args() args: CategoryArgs) {
+    const count: any | undefined = await this.cacheManager.get(args.category)
+    if (count) return count
+    const repository = this.connection.getRepository(Wiki)
+    const response = await repository
+      .createQueryBuilder('wiki')
+      .select(`Count(wiki.id)`, 'amount')
+      .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
+      .innerJoin(
+        'category',
+        'c',
+        `c.id = wc."categoryId" AND c.id = '${args.category}' `,
+      )
+      .where('wiki.hidden = false')
+      .getRawOne()
+    await this.cacheManager.set(args.category, response, { ttl: 3600000 })
+    return response
   }
 }
 
