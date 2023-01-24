@@ -12,7 +12,6 @@ import USER_ACTIVITY_LIMIT from '../../globalVars'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 
-
 @Injectable()
 class PinService {
   constructor(
@@ -95,9 +94,8 @@ class PinService {
         ...data,
       },
     }
-    const pinToPinata = async (
-      wikiContent: typeof payload,
-    ) => this.pinata().pinJSONToIPFS(wikiContent)
+    const pinToPinata = async (wikiContent: typeof payload) =>
+      this.pinata().pinJSONToIPFS(wikiContent)
 
     try {
       const res = await pinToPinata(payload)

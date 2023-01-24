@@ -18,8 +18,6 @@ import Wiki from '../Database/Entities/wiki.entity'
 import PageviewsPerDay from '../Database/Entities/pageviewsPerPage.entity'
 import { CategoryArgs } from './wiki.dto'
 
-
-
 @ObjectType()
 export class Count {
   @Field(() => Int)
@@ -71,12 +69,6 @@ class IntervalArgs extends DateArgs {
 class UserArgs extends DateArgs {
   @Field(() => String)
   userId!: string
-}
-
-@ArgsType()
-class EditorArgs extends DateArgs {
-  @Field(() => Int)
-  status = 1
 }
 
 @UseInterceptors(SentryInterceptor)
@@ -166,13 +158,13 @@ class StatsResolver {
   }
 
   @Query(() => Count)
-  async editorCount(@Args() args: EditorArgs) {
+  async editorCount(@Args() args: DateArgs) {
     const repository = this.connection.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select(`Count(distinct activity."userId")`, 'amount')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`w."hidden" = false AND type = '${args.status}'`)
+      .where(`w."hidden" = false`)
       .andWhere(
         `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
       )
