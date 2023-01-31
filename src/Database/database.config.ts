@@ -40,7 +40,6 @@ export default class TypeOrmConfig {
       synchronize: true, // TODO: false in prod
       keepConnectionAlive: true,
       cache: true,
-    //   logging: true
     }
   }
 }

@@ -52,9 +52,8 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
         transaction.finish()
       },
       async executionDidStart() {
-          return {
-              willResolveField({ info }) {
-            //   console.log(`${info.parentType.name}.${info.fieldName}`)
+        return {
+          willResolveField({ info }) {
             const span = transaction.startChild({
               op: 'resolver',
               description: `${info.parentType.name}.${info.fieldName}`,
