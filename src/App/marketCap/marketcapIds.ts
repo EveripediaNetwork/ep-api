@@ -145,4 +145,5 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'ripple', wikiId: 'xrp' },
   { coingeckoId: 'tron', wikiId: 'trontrade-1' },
   { coingeckoId: 'staked-ether', wikiId: 'lido-staked-ethereum-steth' },
+  { coingeckoId: 'uniswap', wikiId: 'uni' },
 ]

@@ -27,13 +27,16 @@ class MarketCapService {
     return this.configService.get('COINGECKO_API_KEY')
   }
 
-  private async findWiki(id: string, exceptionIds: typeof nftIds) {
+  private async findWiki(id: string, exceptionIds: typeof nftIds, category: string) {
     const repository = this.connection.getRepository(Wiki)
     const wiki =
-      (await repository.findOne({
-        id,
-        hidden: false,
-      })) ||
+      (await repository
+        .createQueryBuilder('wiki')
+        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+          categoryId: category,
+        })
+        .where(`wiki.id = '${id}' AND wiki.hidden = false`)
+        .getOne()) ||
       (await repository.findOne({
         id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
         hidden: false,
@@ -62,7 +65,7 @@ class MarketCapService {
     }
 
     const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, cryptocurrencyIds)
+      const wiki = await this.findWiki(element.id, cryptocurrencyIds, 'cryptocurrencies')
 
       if (!wiki) {
         return null
@@ -106,7 +109,7 @@ class MarketCapService {
     }
 
     const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, nftIds)
+      const wiki = await this.findWiki(element.id, nftIds, 'nfts')
 
       if (!wiki) {
         return null
