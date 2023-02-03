@@ -44,7 +44,7 @@ class WikiService {
         hidden: false,
       },
       cache: {
-        id: `wikis_cache_limit${args.limit}-offset${args.offset}`,
+        id: `wikis_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}-direction${args.direction}-order${args.order}`,
         milliseconds: 10000,
       },
       take: args.limit,
