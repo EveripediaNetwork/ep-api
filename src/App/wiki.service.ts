@@ -43,7 +43,6 @@ class WikiService {
         language: args.lang,
         hidden: false,
       },
-      cache: { id: 'wikis_cache', milliseconds: 10000 },
       take: args.limit,
       skip: args.offset,
       order: orderWikis(args.order as OrderBy, args.direction as Direction),
