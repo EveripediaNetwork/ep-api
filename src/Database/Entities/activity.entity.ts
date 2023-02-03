@@ -39,6 +39,7 @@ class Activity {
 
   @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
+  @Index('idx_activity_userId')
   user!: User
 
   @Field()
