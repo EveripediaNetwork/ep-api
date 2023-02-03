@@ -27,7 +27,11 @@ class MarketCapService {
     return this.configService.get('COINGECKO_API_KEY')
   }
 
-  private async findWiki(id: string, exceptionIds: typeof nftIds, category: string) {
+  private async findWiki(
+    id: string,
+    exceptionIds: typeof nftIds,
+    category: string,
+  ) {
     const repository = this.connection.getRepository(Wiki)
     const wiki =
       (await repository
@@ -65,7 +69,11 @@ class MarketCapService {
     }
 
     const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, cryptocurrencyIds, 'cryptocurrencies')
+      const wiki = await this.findWiki(
+        element.id,
+        cryptocurrencyIds,
+        'cryptocurrencies',
+      )
 
       if (!wiki) {
         return null

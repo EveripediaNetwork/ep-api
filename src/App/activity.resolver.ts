@@ -49,7 +49,7 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.language = '${args.lang}' AND w."hidden" = false`)
-      .cache(`activities_cache_limit${args.limit}-offset${args.offset}`, 60000)
+      .cache(`activities_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}`, 60000)
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
