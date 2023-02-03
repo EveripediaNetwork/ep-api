@@ -1,6 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { CacheModule, CallHandler, MiddlewareConsumer, Module } from '@nestjs/common'
+import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
@@ -8,7 +9,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
 import winston from 'winston'
 import ecsFormat from '@elastic/ecs-winston-format'
-// import { NextFunction } from 'express'
+import { NextFunction } from 'express'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -58,13 +59,13 @@ const logger = winston.createLogger({
   ],
 })
 
-export function logge(req: any, res: any, next: CallHandler) {
+export function logge(req: any, res: any, next: NextFunction) {
   if (req?.body?.operationName !== 'IntrospectionQuery') {
     logger.info('handled request', { req })
     console.log(`Request...`)
     console.log(Object.keys(req?.body))
   }
-  next.handle().pipe()
+  next()
 }
 
 @Module({
