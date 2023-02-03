@@ -1,11 +1,14 @@
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
+import { CacheModule, CallHandler, MiddlewareConsumer, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
+import winston from 'winston'
+import ecsFormat from '@elastic/ecs-winston-format'
+// import { NextFunction } from 'express'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -42,6 +45,27 @@ import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wiki.service'
 import CategoryService from './category.service'
+import LogsController from './logs/logs.controller'
+
+const logger = winston.createLogger({
+  level: 'debug',
+  format: ecsFormat({ convertReqRes: true }),
+  transports: [
+    new winston.transports.File({
+      filename: 'logs/log.json',
+      level: 'debug',
+    }),
+  ],
+})
+
+export function logge(req: any, res: any, next: CallHandler) {
+  if (req?.body?.operationName !== 'IntrospectionQuery') {
+    logger.info('handled request', { req })
+    console.log(`Request...`)
+    console.log(Object.keys(req?.body))
+  }
+  next.handle().pipe()
+}
 
 @Module({
   imports: [
@@ -85,7 +109,7 @@ import CategoryService from './category.service'
     RelayerModule,
     TokenStatsModule,
   ],
-  controllers: [],
+  controllers: [LogsController],
   providers: [
     ConfigService,
     WikiResolver,
@@ -118,7 +142,7 @@ import CategoryService from './category.service'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PinMiddleware).forRoutes('graphql')
+    consumer.apply(PinMiddleware, logge).forRoutes('graphql')
   }
 }
 

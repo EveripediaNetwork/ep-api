@@ -1,0 +1,41 @@
+{
+  "@timestamp": "2023-02-03T22:19:37.630Z",
+  "log.level": "info",
+  "message": "handled request",
+  "ecs": { "version": "1.6.0" },
+  "http": {
+    "version": "1.1",
+    "request": {
+      "method": "POST",
+      "headers": {
+        "host": "localhost:7000",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/109.0",
+        "accept": "*/*",
+        "accept-language": "en-US,en;q=0.5",
+        "accept-encoding": "gzip, deflate, br",
+        "referer": "http://localhost:7000/graphql",
+        "content-type": "application/json",
+        "content-length": "178",
+        "origin": "http://localhost:7000",
+        "connection": "keep-alive",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin"
+      },
+      "body": { "bytes": 178 }
+    }
+  },
+  "url": {
+    "path": "/",
+    "domain": "localhost",
+    "full": "http://localhost:7000/"
+  },
+  "client": {
+    "address": "::ffff:127.0.0.1",
+    "ip": "::ffff:127.0.0.1",
+    "port": 49967
+  },
+  "user_agent": {
+    "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/109.0"
+  }
+}
