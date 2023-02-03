@@ -2,6 +2,7 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   OneToMany,
   OneToOne,
@@ -27,6 +28,7 @@ class User implements IUser {
   @Field(() => UserProfile, { nullable: true })
   @OneToOne(() => UserProfile, { eager: true })
   @JoinColumn()
+  @Index('idx_user_profileId')
   profile!: UserProfile
 
   @Field(() => Boolean)
