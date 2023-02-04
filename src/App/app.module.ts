@@ -7,9 +7,6 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
-import winston from 'winston'
-import ecsFormat from '@elastic/ecs-winston-format'
-import { NextFunction } from 'express'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -47,26 +44,7 @@ import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wiki.service'
 import CategoryService from './category.service'
 import LogsController from './logs/logs.controller'
-
-const logger = winston.createLogger({
-  level: 'debug',
-  format: ecsFormat({ convertReqRes: true }),
-  transports: [
-    new winston.transports.File({
-      filename: 'logs/log.json',
-      level: 'debug',
-    }),
-  ],
-})
-
-export function logge(req: any, res: any, next: NextFunction) {
-  if (req?.body?.operationName !== 'IntrospectionQuery') {
-    logger.info('handled request', { req })
-    console.log(`Request...`)
-    console.log(Object.keys(req?.body))
-  }
-  next()
-}
+import logger from './utils/logger'
 
 @Module({
   imports: [
@@ -143,7 +121,7 @@ export function logge(req: any, res: any, next: NextFunction) {
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PinMiddleware, logge).forRoutes('graphql')
+    consumer.apply(PinMiddleware, logger).forRoutes('graphql')
   }
 }
 
