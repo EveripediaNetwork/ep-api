@@ -14,7 +14,7 @@ const winstonLog = winston.createLogger({
   ],
 })
 
- const logger = (req: any, res: any, next: NextFunction) => {
+const logger = (req: any, res: any, next: NextFunction) => {
   if (req?.body?.operationName !== 'IntrospectionQuery') {
     const { body } = req
     winstonLog.info('handled request', { req, res, body })
