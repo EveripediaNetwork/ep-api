@@ -43,7 +43,6 @@ import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wiki.service'
 import CategoryService from './category.service'
-import LogsController from './logs/logs.controller'
 import logger from './utils/logger'
 
 @Module({
@@ -88,7 +87,7 @@ import logger from './utils/logger'
     RelayerModule,
     TokenStatsModule,
   ],
-  controllers: [LogsController],
+  controllers: [],
   providers: [
     ConfigService,
     WikiResolver,
