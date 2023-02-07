@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
@@ -42,6 +43,7 @@ import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wiki.service'
 import CategoryService from './category.service'
+import logger from './utils/logger'
 
 @Module({
   imports: [
@@ -118,7 +120,7 @@ import CategoryService from './category.service'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PinMiddleware).forRoutes('graphql')
+    consumer.apply(PinMiddleware, logger).forRoutes('graphql')
   }
 }
 

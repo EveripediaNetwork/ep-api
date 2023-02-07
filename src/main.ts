@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import rateLimit from 'express-rate-limit'
 import { NestExpressApplication } from '@nestjs/platform-express'
+
 import AppModule from './App/app.module'
 
 async function bootstrap() {
