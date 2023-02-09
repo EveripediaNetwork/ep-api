@@ -22,11 +22,14 @@ winstonLog()
 const logger = (req: any, res: any, next: NextFunction) => {
   const logFile = `${process.cwd()}/logs/log.json`
 
-  if (!fs.existsSync(logFile)) winstonLog()
+  if (process.env.LOG_STATE === 'true') {
+    if (!fs.existsSync(logFile)) winstonLog()
 
-  if (req?.body?.operationName !== 'IntrospectionQuery') {
-    const { body } = req
-    winstonLog().info(`${process.env.NODE_ENV} requests`, { req, res, body })
+    if (req?.body?.operationName !== 'IntrospectionQuery') {
+      const { body } = req
+      winstonLog().info(`${process.env.NODE_ENV} requests`, { req, res, body })
+    }
+    next()
   }
   next()
 }

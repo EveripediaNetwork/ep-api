@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import SentryPlugin from '../../sentry/sentryPlugin'
-import ActivityResolver from '../activity.resolver'
+import ActivityResolver from '../Activities/activity.resolver'
 import CategoryResolver from '../category.resolver'
 import CategoryService from '../category.service'
 import FlagWikiResolver from '../flaggingSystem/flagWiki.resolver'

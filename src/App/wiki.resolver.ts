@@ -27,6 +27,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
+  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
@@ -66,6 +67,11 @@ class WikiResolver {
   @Query(() => [Wiki])
   async wikisByTitle(@Args() args: TitleArgs) {
     return this.wikiService.getWikisByTitle(args)
+  }
+
+  @Query(() => [Wiki])
+  async wikisPerVisits(@Args() args: PageViewArgs) {
+    return this.wikiService.getWikisPerVisits(args)
   }
 
   @Query(() => SlugResult)

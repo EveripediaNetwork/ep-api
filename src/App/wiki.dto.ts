@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int } from '@nestjs/graphql'
 import { MinLength } from 'class-validator'
 import PaginationArgs from './pagination.args'
@@ -44,4 +45,19 @@ export class ByIdArgs {
 export class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
   level = 0
+}
+
+@ArgsType()
+export class PageViewArgs {
+  @Field(() => Int)
+  amount!: number
+
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  startDay!: string
+
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  endDay!: string
+
+  @Field(() => String, { nullable: true })
+  category?: string
 }
