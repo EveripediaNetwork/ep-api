@@ -7,10 +7,10 @@ import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
 import pinataSDK, { PinataMetadata } from '@pinata/sdk'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
-import ActivityService from '../activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
+import ActivityService from '../Activities/activity.service'
 
 @Injectable()
 class PinService {

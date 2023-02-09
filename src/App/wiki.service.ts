@@ -7,6 +7,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
+  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
@@ -99,6 +100,46 @@ class WikiService {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+  }
+
+  async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
+    let response
+    if (!args.category) {
+      response = await (
+        await this.repository()
+      )
+        .createQueryBuilder('wiki')
+        .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
+        .where('wiki.language = :lang AND hidden = :status', {
+          lang: 'en',
+          status: false,
+        })
+        .andWhere(`p.day >= '${args.startDay}' AND p.day <= '${args.endDay}'`)
+        .limit(args.amount)
+        .groupBy('wiki.id')
+        .orderBy('Sum(p.visits)', 'DESC')
+        .getMany()
+    } else {
+      response = await (
+        await this.repository()
+      )
+        .createQueryBuilder('wiki')
+        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+          categoryId: args.category,
+        })
+        .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
+        .where('wiki.language = :lang AND hidden = :status', {
+          lang: 'en',
+          status: false,
+        })
+        .andWhere(`p.day >= '${args.startDay}' AND p.day <= '${args.endDay}'`)
+        .limit(args.amount)
+        .groupBy('wiki.id')
+        .orderBy('Sum(p.visits)', 'DESC')
+        .getMany()
+    }
+
+    return response
   }
 
   async getValidWikiSlug(args: ByIdArgs): Promise<Slug | Valid> {

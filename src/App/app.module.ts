@@ -12,7 +12,6 @@ import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
 import TagResolver from './tag.resolver'
 import UserResolver from './user.resolver'
-import ActivityResolver from './activity.resolver'
 
 import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
@@ -44,6 +43,8 @@ import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './wiki.service'
 import CategoryService from './category.service'
 import logger from './utils/logger'
+import ActivityResolver from './Activities/activity.resolver'
+import ActivityService from './Activities/activity.service'
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import logger from './utils/logger'
     UserResolver,
     UserService,
     ActivityResolver,
+    ActivityService,
     UserProfileResolver,
     StatsResolver,
     ValidSlug,

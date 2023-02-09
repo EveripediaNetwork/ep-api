@@ -6,8 +6,8 @@ import {
 import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
-import ActivityService from '../../App/activity.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
+import ActivityService from '../../App/Activities/activity.service'
 
 @Injectable()
 class RelayerService {
