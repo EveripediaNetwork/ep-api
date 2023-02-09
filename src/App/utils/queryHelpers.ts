@@ -10,6 +10,11 @@ export enum OrderBy {
   UPDATED = 'updated',
 }
 
+export enum ActivityType {
+    CREATED,
+    UPDATED 
+}
+
 export enum Direction {
   ASC = 'ASC',
   DESC = 'DESC',
@@ -17,6 +22,7 @@ export enum Direction {
 
 registerEnumType(OrderBy, { name: 'OrderBy' })
 registerEnumType(Direction, { name: 'Direction' })
+registerEnumType(ActivityType, { name: 'ActivityType' })
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}

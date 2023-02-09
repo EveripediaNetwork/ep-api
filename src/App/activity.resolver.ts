@@ -10,6 +10,7 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
+import { ActivityType } from './utils/queryHelpers';
 import Activity from '../Database/Entities/activity.entity'
 import { Author } from '../Database/Entities/types/IUser'
 import { IWiki } from '../Database/Entities/types/IWiki'
@@ -23,12 +24,21 @@ class ActivityArgs extends PaginationArgs {
 
   @Field(() => String)
   lang = 'en'
+
 }
 
 @ArgsType()
 class ActivityArgsByUser extends PaginationArgs {
   @Field(() => String)
   userId!: string
+}
+@ArgsType()
+class ActivityByCategoryArgs extends PaginationArgs {
+  @Field(() => ActivityType)
+  type = ActivityType.CREATED
+
+  @Field(() => String)
+  category!: string
 }
 
 @ArgsType()
@@ -67,6 +77,27 @@ class ActivityResolver {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
+  }
+
+  @Query(() => [Activity])
+  async activitiesByCategory(@Args() args: ActivityByCategoryArgs) {
+    const repository = this.connection.getRepository(Activity)
+    return repository
+      .createQueryBuilder('activity')
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .leftJoin(
+        'wiki_categories_category',
+        'c',
+        'c."categoryId" = :categoryId',
+        {
+          categoryId: args.category,
+        },
+      )
+      .where(`c."wikiId" = activity.wikiId AND  w."hidden" = false AND type = '${args.type}'`)
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
