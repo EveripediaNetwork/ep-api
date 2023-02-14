@@ -1,18 +1,22 @@
-/* eslint-disable no-underscore-dangle */
 /* eslint-disable import/no-extraneous-dependencies */
 import ecsFormat from '@elastic/ecs-winston-format'
 import { NextFunction } from 'express'
 import fs from 'fs'
 import winston from 'winston'
 
-const winstonLog = () =>
+export const winstonLog = () =>
   winston.createLogger({
-    level: 'info',
-    format: ecsFormat({ convertReqRes: true }),
+    format: ecsFormat({ convertReqRes: true, convertErr: true }),
     transports: [
       new winston.transports.File({
         filename: 'logs/log.json',
         level: 'info',
+      }),
+    ],
+    exceptionHandlers: [
+      new winston.transports.File({
+        filename: 'logs/log.json',
+        level: 'error',
       }),
     ],
   })
@@ -22,14 +26,15 @@ winstonLog()
 const logger = (req: any, res: any, next: NextFunction) => {
   const logFile = `${process.cwd()}/logs/log.json`
 
-  if (process.env.LOG_STATE === 'true') {
-    if (!fs.existsSync(logFile)) winstonLog()
+  if (!fs.existsSync(logFile)) winstonLog()
 
-    if (req?.body?.operationName !== 'IntrospectionQuery') {
-      const { body } = req
-      winstonLog().info(`${process.env.NODE_ENV} requests`, { req, res, body })
-    }
-    next()
+  if (req?.body?.operationName !== 'IntrospectionQuery') {
+    const { body } = req
+    winstonLog().info(`${process.env.NODE_ENV} requests`, {
+      req,
+      res,
+      body,
+    })
   }
   next()
 }
