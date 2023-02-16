@@ -86,8 +86,10 @@ class WikiResolver {
     return this.wikiService.getWikisHidden(args)
   }
 
-  @Query(() => WikiUrl)
-  async addressToWiki(@Args('address', { type: () => String }) address: string) {
+  @Query(() => [WikiUrl])
+  async addressToWiki(
+    @Args('address', { type: () => String }) address: string,
+  ) {
     return this.wikiService.getAddressTowiki(address)
   }
 

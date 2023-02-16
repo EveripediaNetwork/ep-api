@@ -11,6 +11,7 @@ import {
   PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
+  WikiUrl,
 } from './wiki.dto'
 
 @Injectable()
@@ -181,8 +182,19 @@ class WikiService {
   }
 
   async getAddressTowiki(address: string) {
-    console.log(address)
-    return { wiki: `${this.getWebpageUrl()}/${'id'}` }
+    const ids = await (
+      await this.repository()
+    ).query(`
+        SELECT id FROM 
+            (
+                SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
+            ) "addy"
+        WHERE "addy"."value" ILIKE '%${address}%'
+    `)
+    const links: [WikiUrl] = ids.map((e: { id: string }) => ({
+      wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
+    }))
+    return links
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | undefined> {

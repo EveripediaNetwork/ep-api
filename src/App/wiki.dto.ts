@@ -64,6 +64,6 @@ export class PageViewArgs {
 
 @ObjectType()
 export class WikiUrl {
-    @Field(() => String)
-    wiki!: string
+  @Field(() => String)
+  wiki!: string
 }
