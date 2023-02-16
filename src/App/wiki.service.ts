@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { Connection, MoreThan, Repository } from 'typeorm'
 import Wiki from '../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from './utils/queryHelpers'
@@ -14,10 +15,18 @@ import {
 
 @Injectable()
 class WikiService {
-  constructor(private connection: Connection, private validSlug: ValidSlug) {}
+  constructor(
+    private connection: Connection,
+    private configService: ConfigService,
+    private validSlug: ValidSlug,
+  ) {}
 
   async repository(): Promise<Repository<Wiki>> {
     return this.connection.getRepository(Wiki)
+  }
+
+  private getWebpageUrl() {
+    return this.configService.get<string>('WEBSITE_URL') || ''
   }
 
   async wikisIds() {
@@ -169,6 +178,11 @@ class WikiService {
         updated: 'DESC',
       },
     })
+  }
+
+  async getAddressTowiki(address: string) {
+    console.log(address)
+    return { wiki: `${this.getWebpageUrl()}/${'id'}` }
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | undefined> {

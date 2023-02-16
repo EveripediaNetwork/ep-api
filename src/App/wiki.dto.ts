@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { ArgsType, Field, Int } from '@nestjs/graphql'
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { MinLength } from 'class-validator'
 import PaginationArgs from './pagination.args'
 import { Direction, OrderBy } from './utils/queryHelpers'
@@ -60,4 +60,10 @@ export class PageViewArgs {
 
   @Field(() => String, { nullable: true })
   category?: string
+}
+
+@ObjectType()
+export class WikiUrl {
+    @Field(() => String)
+    wiki!: string
 }
