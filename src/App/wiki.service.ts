@@ -186,6 +186,7 @@ class WikiService {
         SELECT id FROM 
             (
                 SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
+                WHERE hidden = false
             ) "addy"
         WHERE "addy"."value" = LOWER('https://etherscan.io/token/${address}') or "addy"."value" = LOWER('https://etherscan.io/address/${address}')
     `)
