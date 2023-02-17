@@ -190,7 +190,8 @@ class WikiService {
                 SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
                 WHERE hidden = false
             ) "addy"
-        WHERE "addy"."value" = LOWER('https://etherscan.io/token/${address}') or "addy"."value" = LOWER('https://etherscan.io/address/${address}')
+        WHERE LOWER("addy"."value") = LOWER('https://etherscan.io/token/${address}') or "addy"."value" = LOWER('https://etherscan.io/address/${address}')
+        GROUP BY id
     `)
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
