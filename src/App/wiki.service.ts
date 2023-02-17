@@ -182,7 +182,9 @@ class WikiService {
   }
 
   async getAddressTowiki(address: string): Promise<WikiUrl[]> {
-    const ids = await(await this.repository()).query(`
+    const ids = await (
+      await this.repository()
+    ).query(`
         SELECT id FROM 
             (
                 SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
