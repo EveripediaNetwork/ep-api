@@ -30,6 +30,7 @@ import {
   PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
+  WikiUrl,
 } from './wiki.dto'
 import WikiService from './wiki.service'
 
@@ -83,6 +84,13 @@ class WikiResolver {
   @UseGuards(AuthGuard)
   async wikisHidden(@Args() args: LangArgs) {
     return this.wikiService.getWikisHidden(args)
+  }
+
+  @Query(() => [WikiUrl])
+  async addressToWiki(
+    @Args('address', { type: () => String }) address: string,
+  ) {
+    return this.wikiService.getAddressTowiki(address)
   }
 
   @Mutation(() => Wiki, { nullable: true })
