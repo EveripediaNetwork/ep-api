@@ -9,11 +9,14 @@ import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
+import { ContentFeedbackWebhook } from '../content-feedback/contentFeedback.service'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
   ADMIN_ACTION = 'adminAction',
+  CONTENT_FEEDBACK = 'contentFeedback',
 }
 
 @Injectable()
@@ -51,6 +54,7 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
+    contentFeedback?: ContentFeedbackWebhook,
   ) {
     if (actionType === ActionTypes.ADMIN_ACTION) {
       const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
@@ -225,6 +229,54 @@ export default class WebhookHandler {
           },
         })
     }
+    if (actionType === ActionTypes.CONTENT_FEEDBACK) {
+      const wikirepository = this.connection.getRepository(Wiki)
+      const userRepository = this.connection.getRepository(UserProfile)
+      const wiki = await wikirepository.find({
+        select: ['title'],
+        where: {
+          id: contentFeedback?.wikiId,
+          hidden: false,
+        },
+      })
+      const user = await userRepository.findOne(contentFeedback?.userId)
+      const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
+      const boundary = this.makeId(10)
+      const jsonContent = JSON.stringify({
+        username: 'EP Report',
+        embeds: [
+          {
+            color: contentFeedback?.choice ? 0x6beb34 : 0xeb6234,
+            title: `${contentFeedback?.choice ? '👍' : '👎'}  ${wiki[0].title}`,
+            url: `${this.getWebpageUrl()}/wiki/${contentFeedback?.wikiId}`,
+            description: `${user?.username || 'user'} ${
+              contentFeedback?.choice ? 'finds' : 'does not find'
+            } this wiki interesting`,
+            footer: {
+              text: `IQ.wiki feedback`,
+            },
+          },
+        ],
+      })
+
+        const content =
+          `--${boundary}\n` +
+          `Content-Disposition: form-data; name="payload_json"\n\n` +
+          `${jsonContent}\n` +
+          `--${boundary}\n` +
+          `Content-Disposition: form-data; name="tts" \n\n` +
+          `true\n` +
+          `--${boundary}--`
+
+        this.httpService
+          .post(webhook, content, {
+            headers: {
+              'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            },
+          })
+          .toPromise()
+    }
+
     return true
   }
 
@@ -233,6 +285,7 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
+    contentFeedback?: ContentFeedbackWebhook,
   ) {
     if (flagWiki) {
       return this.embedWebhook(actionType, flagWiki)
@@ -242,6 +295,15 @@ export default class WebhookHandler {
     }
     if (adminLog) {
       return this.embedWebhook(actionType, undefined, undefined, adminLog)
+    }
+    if (contentFeedback) {
+      return this.embedWebhook(
+        actionType,
+        undefined,
+        undefined,
+        undefined,
+        contentFeedback,
+      )
     }
     return true
   }

@@ -45,6 +45,8 @@ import CategoryService from './category.service'
 import logger from './utils/logger'
 import ActivityResolver from './Activities/activity.resolver'
 import ActivityService from './Activities/activity.service'
+import ContentFeedbackService from './content-feedback/contentFeedback.service'
+import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
 
 @Module({
   imports: [
@@ -110,6 +112,8 @@ import ActivityService from './Activities/activity.service'
     RevalidatePageResolver,
     FlagWikiService,
     FlagWikiResolver,
+    ContentFeedbackService,
+    ContentFeedbackResolver,
     WebhookHandler,
     AdminLogsInterceptor,
     TokenValidator,
