@@ -1,5 +1,6 @@
 export const nftIds = [
   { coingeckoId: 'clonex', wikiId: 'clone-x' },
+  { coingeckoId: 'sandbox', wikiId: 'the-sandbox' },
   { coingeckoId: 'otherdeed-for-otherside', wikiId: 'otherside' },
   { coingeckoId: 'doodles-official', wikiId: 'doodles' },
   { coingeckoId: 'cyberbrokers-v3', wikiId: 'cyberbrokers' },
