@@ -56,10 +56,14 @@ export default class WebhookHandler {
     adminLog?: AdminLogPayload,
     contentFeedback?: ContentFeedbackWebhook,
   ) {
+    const wikirepository = this.connection.getRepository(Wiki)
+    const userRepository = this.connection.getRepository(UserProfile)
+    const boundary = this.makeId(10)
+    const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
+    const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
+
     if (actionType === ActionTypes.ADMIN_ACTION) {
-      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
-      const repository = this.connection.getRepository(UserProfile)
-      const user = await repository.findOne({
+      const user = await userRepository.findOne({
         where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
       })
 
@@ -111,7 +115,6 @@ export default class WebhookHandler {
           message = ''
       }
 
-      const boundary = this.makeId(10)
       const jsonContent = JSON.stringify({
         username: 'EP Admin 🔐',
         embeds: [
@@ -122,29 +125,11 @@ export default class WebhookHandler {
           },
         ],
       })
-      const content =
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="payload_json"\n\n` +
-        `${jsonContent}\n` +
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="tts" \n\n` +
-        `true\n` +
-        `--${boundary}--`
-
-      this.httpService
-        .post(webhook, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .toPromise()
+      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
-      const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
-      const repository = this.connection.getRepository(UserProfile)
-      const user = await repository.findOne(flagWiki?.userId)
+      const user = await userRepository.findOne(flagWiki?.userId)
 
-      const boundary = this.makeId(10)
       const jsonContent = JSON.stringify({
         username: 'EP Report',
         embeds: [
@@ -159,26 +144,9 @@ export default class WebhookHandler {
           },
         ],
       })
-      const content =
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="payload_json"\n\n` +
-        `${jsonContent}\n` +
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="tts" \n\n` +
-        `true\n` +
-        `--${boundary}--`
-
-      this.httpService
-        .post(webhook, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .toPromise()
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
     if (actionType === ActionTypes.PINJSON_ERROR) {
-      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
-      const boundary = this.makeId(10)
 
       await fss.writeFile(
         `./uploads/message.json`,
@@ -214,7 +182,7 @@ export default class WebhookHandler {
         `--${boundary}--`
 
       this.httpService
-        .post(webhook, content, {
+        .post(braindaoAlarms, content, {
           headers: {
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
           },
@@ -230,8 +198,6 @@ export default class WebhookHandler {
         })
     }
     if (actionType === ActionTypes.CONTENT_FEEDBACK) {
-      const wikirepository = this.connection.getRepository(Wiki)
-      const userRepository = this.connection.getRepository(UserProfile)
       const wiki = await wikirepository.find({
         select: ['title'],
         where: {
@@ -240,10 +206,9 @@ export default class WebhookHandler {
         },
       })
       const user = await userRepository.findOne(contentFeedback?.userId)
-      const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
-      const boundary = this.makeId(10)
+
       const jsonContent = JSON.stringify({
-        username: 'EP Report',
+        username: 'EP feedback',
         embeds: [
           {
             color: contentFeedback?.choice ? 0x6beb34 : 0xeb6234,
@@ -259,25 +224,29 @@ export default class WebhookHandler {
         ],
       })
 
-        const content =
-          `--${boundary}\n` +
-          `Content-Disposition: form-data; name="payload_json"\n\n` +
-          `${jsonContent}\n` +
-          `--${boundary}\n` +
-          `Content-Disposition: form-data; name="tts" \n\n` +
-          `true\n` +
-          `--${boundary}--`
-
-        this.httpService
-          .post(webhook, content, {
-            headers: {
-              'Content-Type': `multipart/form-data; boundary=${boundary}`,
-            },
-          })
-          .toPromise()
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
 
     return true
+  }
+
+  private async sendToChannel(boundary: string, content: string, wehhookChannel: string): Promise<void> {
+    const payload =
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="payload_json"\n\n` +
+      `${content}\n` +
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="tts" \n\n` +
+      `true\n` +
+      `--${boundary}--`
+
+    this.httpService
+      .post(wehhookChannel, payload, {
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        },
+      })
+      .toPromise()
   }
 
   async postWebhook(
