@@ -147,7 +147,6 @@ export default class WebhookHandler {
       await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
     if (actionType === ActionTypes.PINJSON_ERROR) {
-
       await fss.writeFile(
         `./uploads/message.json`,
         `${JSON.stringify(wikiException?.data, null, 2)}`,
@@ -230,7 +229,11 @@ export default class WebhookHandler {
     return true
   }
 
-  private async sendToChannel(boundary: string, content: string, wehhookChannel: string): Promise<void> {
+  private async sendToChannel(
+    boundary: string,
+    content: string,
+    wehhookChannel: string,
+  ): Promise<void> {
     const payload =
       `--${boundary}\n` +
       `Content-Disposition: form-data; name="payload_json"\n\n` +
