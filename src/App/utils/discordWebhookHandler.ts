@@ -9,11 +9,14 @@ import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
+import { ContentFeedbackWebhook } from '../content-feedback/contentFeedback.service'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
   ADMIN_ACTION = 'adminAction',
+  CONTENT_FEEDBACK = 'contentFeedback',
 }
 
 @Injectable()
@@ -51,11 +54,16 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
+    contentFeedback?: ContentFeedbackWebhook,
   ) {
+    const wikirepository = this.connection.getRepository(Wiki)
+    const userRepository = this.connection.getRepository(UserProfile)
+    const boundary = this.makeId(10)
+    const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
+    const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
+
     if (actionType === ActionTypes.ADMIN_ACTION) {
-      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
-      const repository = this.connection.getRepository(UserProfile)
-      const user = await repository.findOne({
+      const user = await userRepository.findOne({
         where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
       })
 
@@ -107,7 +115,6 @@ export default class WebhookHandler {
           message = ''
       }
 
-      const boundary = this.makeId(10)
       const jsonContent = JSON.stringify({
         username: 'EP Admin 🔐',
         embeds: [
@@ -118,29 +125,11 @@ export default class WebhookHandler {
           },
         ],
       })
-      const content =
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="payload_json"\n\n` +
-        `${jsonContent}\n` +
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="tts" \n\n` +
-        `true\n` +
-        `--${boundary}--`
-
-      this.httpService
-        .post(webhook, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .toPromise()
+      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
-      const webhook = this.getWebhookUrls().INTERNAL_ACTIVITY
-      const repository = this.connection.getRepository(UserProfile)
-      const user = await repository.findOne(flagWiki?.userId)
+      const user = await userRepository.findOne(flagWiki?.userId)
 
-      const boundary = this.makeId(10)
       const jsonContent = JSON.stringify({
         username: 'EP Report',
         embeds: [
@@ -155,27 +144,9 @@ export default class WebhookHandler {
           },
         ],
       })
-      const content =
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="payload_json"\n\n` +
-        `${jsonContent}\n` +
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="tts" \n\n` +
-        `true\n` +
-        `--${boundary}--`
-
-      this.httpService
-        .post(webhook, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .toPromise()
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
     if (actionType === ActionTypes.PINJSON_ERROR) {
-      const webhook = this.getWebhookUrls().BRAINDAO_ALARMS
-      const boundary = this.makeId(10)
-
       await fss.writeFile(
         `./uploads/message.json`,
         `${JSON.stringify(wikiException?.data, null, 2)}`,
@@ -210,7 +181,7 @@ export default class WebhookHandler {
         `--${boundary}--`
 
       this.httpService
-        .post(webhook, content, {
+        .post(braindaoAlarms, content, {
           headers: {
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
           },
@@ -225,7 +196,60 @@ export default class WebhookHandler {
           },
         })
     }
+    if (actionType === ActionTypes.CONTENT_FEEDBACK) {
+      const wiki = await wikirepository.find({
+        select: ['title'],
+        where: {
+          id: contentFeedback?.wikiId,
+          hidden: false,
+        },
+      })
+      const user = await userRepository.findOne(contentFeedback?.userId)
+
+      const jsonContent = JSON.stringify({
+        username: 'EP feedback',
+        embeds: [
+          {
+            color: contentFeedback?.choice ? 0x6beb34 : 0xeb6234,
+            title: `${contentFeedback?.choice ? '👍' : '👎'}  ${wiki[0].title}`,
+            url: `${this.getWebpageUrl()}/wiki/${contentFeedback?.wikiId}`,
+            description: `${user?.username || 'user'} ${
+              contentFeedback?.choice ? 'finds' : 'does not find'
+            } this wiki interesting`,
+            footer: {
+              text: `IQ.wiki feedback`,
+            },
+          },
+        ],
+      })
+
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
+    }
+
     return true
+  }
+
+  private async sendToChannel(
+    boundary: string,
+    content: string,
+    wehhookChannel: string,
+  ): Promise<void> {
+    const payload =
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="payload_json"\n\n` +
+      `${content}\n` +
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="tts" \n\n` +
+      `true\n` +
+      `--${boundary}--`
+
+    this.httpService
+      .post(wehhookChannel, payload, {
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        },
+      })
+      .toPromise()
   }
 
   async postWebhook(
@@ -233,6 +257,7 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
+    contentFeedback?: ContentFeedbackWebhook,
   ) {
     if (flagWiki) {
       return this.embedWebhook(actionType, flagWiki)
@@ -242,6 +267,15 @@ export default class WebhookHandler {
     }
     if (adminLog) {
       return this.embedWebhook(actionType, undefined, undefined, adminLog)
+    }
+    if (contentFeedback) {
+      return this.embedWebhook(
+        actionType,
+        undefined,
+        undefined,
+        undefined,
+        contentFeedback,
+      )
     }
     return true
   }

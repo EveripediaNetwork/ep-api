@@ -13,7 +13,7 @@
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main.js",
+    "start:prod": "node dist/src/main.js --trace-warnings",
     "console": "node dist/src/console.js",
     "console:dev": "ts-node src/console.ts",
     "console-mail": "node dist/src/consoleMail.js",
