@@ -22,6 +22,12 @@ const ctx = {
   },
 }
 
+const thumbsUp = {
+  wikId: 'right-of-way',
+  userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
+  choice: true,
+} as unknown as ContentFeedbackArgs
+
 describe('ContentFeedbackResolver', () => {
   let resolver: ContentFeedbackResolver
   let service: ContentFeedbackService
@@ -67,43 +73,18 @@ describe('ContentFeedbackResolver', () => {
 
   it('should return true if content feedback is created', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
-    expect(
-      await resolver.contentFeedback(
-        {
-          wikId: 'right-of-way',
-          userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-          choice: true,
-        } as unknown as ContentFeedbackArgs,
-        ctx,
-      ),
-    ).toBe(true)
+    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(true)
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
-    expect(
-      await resolver.contentFeedback(
-        {
-          wikId: 'right-of-way',
-          userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-          choice: true,
-        } as unknown as ContentFeedbackArgs,
-        ctx,
-      ),
-    ).toBe(false)
+    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(false)
   })
 
   it('should return true if content feedback is updated', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
     expect(
-      await resolver.contentFeedback(
-        {
-          wikId: 'right-of-way',
-          userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-          choice: false,
-        } as unknown as ContentFeedbackArgs,
-        ctx,
-      ),
+      await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
     ).toBe(true)
   })
 })
