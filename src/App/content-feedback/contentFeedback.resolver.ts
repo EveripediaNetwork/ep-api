@@ -12,12 +12,12 @@ import SentryInterceptor from '../../sentry/security.interceptor'
 import ContentFeebackService from './contentFeedback.service'
 
 @ArgsType()
-class ContentFeedbackArgs {
+export class ContentFeedbackArgs {
   @Field(() => String)
   wikiId!: string
 
-  @Field(() => String)
-  userId!: string
+  @Field(() => String, { nullable: true })
+  userId?: string
 
   @Field(() => Boolean)
   choice!: boolean

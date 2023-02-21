@@ -11,6 +11,7 @@ class ContentFeedback {
   @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
+    nullable: true,
   })
   userId?: string
 

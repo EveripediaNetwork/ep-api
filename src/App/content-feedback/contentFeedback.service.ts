@@ -7,7 +7,7 @@ import WebhookHandler, { ActionTypes } from '../utils/discordWebhookHandler'
 
 export interface ContentFeedbackWebhook {
   wikiId: string
-  userId: string
+  userId?: string
   choice: boolean
 }
 
@@ -24,7 +24,7 @@ class ContentFeedbackService {
       ip,
       data.wikiId,
       data.choice,
-      data.userId,
+      data.userId as string,
     )
 
     if (checkFeedback) {
@@ -36,7 +36,7 @@ class ContentFeedbackService {
         data,
       )
     }
-    return true
+    return checkFeedback
   }
 
   async storeFeedback(

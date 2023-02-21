@@ -4,6 +4,8 @@ import SentryPlugin from '../../sentry/sentryPlugin'
 import ActivityResolver from '../Activities/activity.resolver'
 import CategoryResolver from '../category.resolver'
 import CategoryService from '../category.service'
+import ContentFeedbackResolver from '../content-feedback/contentFeedback.resolver'
+import ContentFeedbackService from '../content-feedback/contentFeedback.service'
 import FlagWikiResolver from '../flaggingSystem/flagWiki.resolver'
 import FlagWikiService from '../flaggingSystem/flagWiki.service'
 import LanguageResolver from '../language.resolver'
@@ -54,6 +56,8 @@ export const providerObjects = {
   adminLogsInterceptor: AdminLogsInterceptor,
   revalidatePageService: RevalidatePageService,
   revalidatePageResolver: RevalidatePageResolver,
+  contentFeedbackService: ContentFeedbackService,
+  contentFeedbackResolver: ContentFeedbackResolver,
   wikiSubscriptionService: WikiSubscriptionService,
   wikiSubscriptionResolver: WikiSubscriptionResolver,
 }
@@ -85,6 +89,8 @@ export enum ProviderEnum {
   adminLogsInterceptor = 'adminLogsInterceptor',
   revalidatePageService = 'revalidatePageService',
   revalidatePageResolver = 'evalidatePageResolver',
+  contentFeedbackService = 'contentFeedbackService',
+  contentFeedbackResolver = 'contentFeedbackResolver',
   wikiSubscriptionService = 'wikiSubscriptionService',
   wikiSubscriptionResolver = 'wikiSubscriptionResolver',
 }
