@@ -1,5 +1,12 @@
 import { UseInterceptors } from '@nestjs/common'
-import { Args, ArgsType, Context, Field, Mutation, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  ArgsType,
+  Context,
+  Field,
+  Mutation,
+  Resolver,
+} from '@nestjs/graphql'
 
 import SentryInterceptor from '../../sentry/security.interceptor'
 import ContentFeebackService from './contentFeedback.service'
@@ -26,8 +33,7 @@ class ContentFeedbackResolver {
     @Args() args: ContentFeedbackArgs,
     @Context() ctx: any,
   ) {
-    await this.contentFeebackService.postFeedback(args, ctx.req.ip)
-    return true
+    return this.contentFeebackService.postFeedback(args, ctx.req.ip)
   }
 }
 

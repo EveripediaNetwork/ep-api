@@ -27,39 +27,22 @@ class ContentFeedbackService {
   ) {}
 
   async postFeedback(data: ContentFeedbackWebhook, ip: string) {
-    const repository = this.connection.getRepository(ContentFeedback)
-
-    const feedback = await repository.findOne({
-      where: { wikiId: data.wikiId, choice: data.choice, ip },
-    })
-
-    if (
-      feedback?.choice !== data.choice &&
-      feedback?.ip === ip &&
-      feedback?.wikiId === data.wikiId
-    ) {
-      // update choice where wikiId and ip
-    }
-
-    if (
-      feedback?.choice === data.choice &&
-      feedback?.ip === ip &&
-      feedback?.wikiId === data.wikiId
-    ) {
-      //   return true
-    }
-
-    if (!feedback) {
-      //   create entry
-    }
-
-    await this.webhookHandler.postWebhook(
-      ActionTypes.CONTENT_FEEDBACK,
-      undefined,
-      undefined,
-      undefined,
-      data,
+    const checkFeedback = await this.storeFeedback(
+      ip,
+      data.wikiId,
+      data.choice,
+      data.userId,
     )
+
+    if (checkFeedback) {
+      await this.webhookHandler.postWebhook(
+        ActionTypes.CONTENT_FEEDBACK,
+        undefined,
+        undefined,
+        undefined,
+        data,
+      )
+    }
     return true
   }
 
@@ -67,14 +50,50 @@ class ContentFeedbackService {
     ip: string,
     wikiId: string,
     choice: boolean,
+    userId: string,
   ): Promise<boolean> {
-    // TODO: to be implemented
+    const repository = this.connection.getRepository(ContentFeedback)
     const id = `${ip}-${wikiId}-${choice}`
     const cached: ContentFeedbackCaptured | undefined =
       await this.cacheManager.get(id)
+
     if (cached) {
       return false
     }
+
+    const feedback = await repository.findOne({
+      where: { wikiId, choice, ip },
+    })
+
+    if (
+      feedback?.choice !== choice &&
+      feedback?.ip === ip &&
+      feedback?.wikiId === wikiId
+    ) {
+      await repository.query(
+        `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
+        [choice, wikiId, ip],
+      )
+    }
+
+    if (
+      feedback?.choice === choice &&
+      feedback?.ip === ip &&
+      feedback?.wikiId === wikiId
+    ) {
+      return true
+    }
+
+    if (!feedback) {
+      const newFeedback = repository.create({
+        wikiId,
+        ip,
+        choice,
+        userId,
+      })
+      await repository.save(newFeedback)
+    }
+
     return true
   }
 }

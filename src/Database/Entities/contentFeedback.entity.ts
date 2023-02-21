@@ -8,7 +8,7 @@ class ContentFeedback {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
   })
