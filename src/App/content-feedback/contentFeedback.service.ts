@@ -11,13 +11,6 @@ export interface ContentFeedbackWebhook {
   choice: boolean
 }
 
-interface ContentFeedbackCaptured {
-  ip: string
-  userId: string
-  wikiId: string
-  choice: boolean
-}
-
 @Injectable()
 class ContentFeedbackService {
   constructor(
@@ -53,16 +46,16 @@ class ContentFeedbackService {
     userId: string,
   ): Promise<boolean> {
     const repository = this.connection.getRepository(ContentFeedback)
-    const id = `${ip}-${wikiId}-${choice}`
-    const cached: ContentFeedbackCaptured | undefined =
-      await this.cacheManager.get(id)
+    const id = `${ip}-${wikiId}`
+    const cached: string | undefined = await this.cacheManager.get(id)
+    let state
 
     if (cached) {
-      return false
+      state = false
     }
 
     const feedback = await repository.findOne({
-      where: { wikiId, choice, ip },
+      where: { wikiId, ip },
     })
 
     if (
@@ -74,6 +67,8 @@ class ContentFeedbackService {
         `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
         [choice, wikiId, ip],
       )
+      await this.cacheManager.set(id, ip)
+      state = true
     }
 
     if (
@@ -81,7 +76,7 @@ class ContentFeedbackService {
       feedback?.ip === ip &&
       feedback?.wikiId === wikiId
     ) {
-      return true
+      state = false
     }
 
     if (!feedback) {
@@ -92,9 +87,11 @@ class ContentFeedbackService {
         userId,
       })
       await repository.save(newFeedback)
+      await this.cacheManager.set(id, ip)
+      state = true
     }
 
-    return true
+    return state as boolean
   }
 }
 

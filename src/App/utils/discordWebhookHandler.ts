@@ -211,7 +211,9 @@ export default class WebhookHandler {
         embeds: [
           {
             color: contentFeedback?.choice ? 0x6beb34 : 0xeb6234,
-            title: `${contentFeedback?.choice ? '👍' : '👎'}  ${wiki[0].title}`,
+            title: `${contentFeedback?.choice ? '👍' : '👎'}  ${
+              wiki.length !== 0 ? wiki[0].title : 'invalid title'
+            }`,
             url: `${this.getWebpageUrl()}/wiki/${contentFeedback?.wikiId}`,
             description: `${user?.username || 'user'} ${
               contentFeedback?.choice ? 'finds' : 'does not find'
