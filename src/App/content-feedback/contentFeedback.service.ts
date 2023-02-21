@@ -50,13 +50,19 @@ class ContentFeedbackService {
     const cached: string | undefined = await this.cacheManager.get(id)
     let state
 
-    if (cached) {
-      state = false
-    }
-
     const feedback = await repository.findOne({
       where: { wikiId, ip },
     })
+
+    if (
+      cached ||
+      (feedback?.choice === choice &&
+        feedback?.ip === ip &&
+        feedback?.wikiId === wikiId)
+    ) {
+      state = false
+      return state
+    }
 
     if (
       feedback?.choice !== choice &&
@@ -69,14 +75,6 @@ class ContentFeedbackService {
       )
       await this.cacheManager.set(id, ip)
       state = true
-    }
-
-    if (
-      feedback?.choice === choice &&
-      feedback?.ip === ip &&
-      feedback?.wikiId === wikiId
-    ) {
-      state = false
     }
 
     if (!feedback) {

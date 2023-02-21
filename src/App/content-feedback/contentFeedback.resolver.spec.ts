@@ -79,7 +79,7 @@ describe('ContentFeedbackResolver', () => {
     ).toBe(true)
   })
 
-  it('should return false if content feedback is duplicated', async () => {
+  it('should return false if content feedback is duplicated or cached', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
     expect(
       await resolver.contentFeedback(
