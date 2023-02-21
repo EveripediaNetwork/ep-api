@@ -71,20 +71,17 @@ describe('ContentFeedbackResolver', () => {
     expect(resolver).toBeDefined()
   })
 
-  it('should return true if content feedback is created', async () => {
+  it('should return true if content feedback is created or updated', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
     expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(true)
+    expect(
+      await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
+    ).toBe(true)
+    
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
     expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(false)
-  })
-
-  it('should return true if content feedback is updated', async () => {
-    jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
-    expect(
-      await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
-    ).toBe(true)
   })
 })
