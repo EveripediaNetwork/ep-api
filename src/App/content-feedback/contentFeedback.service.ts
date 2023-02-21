@@ -48,33 +48,20 @@ class ContentFeedbackService {
     const repository = this.connection.getRepository(ContentFeedback)
     const id = `${ip}-${wikiId}`
     const cached: string | undefined = await this.cacheManager.get(id)
-    let state
 
     const feedback = await repository.findOne({
       where: { wikiId, ip },
     })
 
-    if (
-      cached ||
-      (feedback?.choice === choice &&
-        feedback?.ip === ip &&
-        feedback?.wikiId === wikiId)
-    ) {
-      state = false
-      return state
+    if (cached || feedback?.choice === choice) {
+      return false
     }
 
-    if (
-      feedback?.choice !== choice &&
-      feedback?.ip === ip &&
-      feedback?.wikiId === wikiId
-    ) {
+    if (feedback?.choice !== choice) {
       await repository.query(
         `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
         [choice, wikiId, ip],
       )
-      await this.cacheManager.set(id, ip)
-      state = true
     }
 
     if (!feedback) {
@@ -85,11 +72,10 @@ class ContentFeedbackService {
         userId,
       })
       await repository.save(newFeedback)
-      await this.cacheManager.set(id, ip)
-      state = true
     }
 
-    return state as boolean
+    await this.cacheManager.set(id, ip)
+    return true
   }
 }
 

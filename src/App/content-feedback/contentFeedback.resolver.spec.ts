@@ -77,7 +77,6 @@ describe('ContentFeedbackResolver', () => {
     expect(
       await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
     ).toBe(true)
-    
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
