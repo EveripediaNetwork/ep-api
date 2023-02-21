@@ -11,6 +11,10 @@ export interface ContentFeedbackWebhook {
   choice: boolean
 }
 
+interface ContentStoreObject extends ContentFeedbackWebhook {
+  ip: string
+}
+
 @Injectable()
 class ContentFeedbackService {
   constructor(
@@ -20,12 +24,12 @@ class ContentFeedbackService {
   ) {}
 
   async postFeedback(data: ContentFeedbackWebhook, ip: string) {
-    const checkFeedback = await this.storeFeedback(
+    const checkFeedback = await this.storeFeedback({
       ip,
-      data.wikiId,
-      data.choice,
-      data.userId as string,
-    )
+      wikiId: data.wikiId,
+      choice: data.choice,
+      userId: data.userId as string,
+    })
 
     if (checkFeedback) {
       await this.webhookHandler.postWebhook(
@@ -39,42 +43,34 @@ class ContentFeedbackService {
     return checkFeedback
   }
 
-  async storeFeedback(
-    ip: string,
-    wikiId: string,
-    choice: boolean,
-    userId: string,
-  ): Promise<boolean> {
+  async storeFeedback(args: ContentStoreObject): Promise<boolean> {
     const repository = this.connection.getRepository(ContentFeedback)
-    const id = `${ip}-${wikiId}`
+    const id = `${args.ip}-${args.wikiId}`
     const cached: string | undefined = await this.cacheManager.get(id)
 
     const feedback = await repository.findOne({
-      where: { wikiId, ip },
+      where: { wikiId: args.wikiId, ip: args.ip },
     })
 
-    if (cached || feedback?.choice === choice) {
+    if (cached || feedback?.choice === args.choice) {
       return false
     }
 
-    if (feedback?.choice !== choice) {
+    if (feedback?.choice !== args.choice) {
       await repository.query(
         `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
-        [choice, wikiId, ip],
+        [args.choice, args, args.wikiId, args.ip],
       )
     }
 
     if (!feedback) {
       const newFeedback = repository.create({
-        wikiId,
-        ip,
-        choice,
-        userId,
+        ...args,
       })
       await repository.save(newFeedback)
     }
 
-    await this.cacheManager.set(id, ip)
+    await this.cacheManager.set(id, args.ip)
     return true
   }
 }
