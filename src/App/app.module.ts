@@ -84,7 +84,7 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
     }),
     MailerModule,
     httpModule(20000),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
     PinModule,
     DatabaseModule,
     RelayerModule,
