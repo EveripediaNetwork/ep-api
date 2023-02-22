@@ -52,7 +52,7 @@ class ContentFeedbackService {
       where: { wikiId: args.wikiId, ip: args.ip },
     })
 
-    if (cached || feedback?.choice === args.choice) {
+    if (cached || (feedback && feedback.choice === args.choice)) {
       return false
     }
 
