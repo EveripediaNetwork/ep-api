@@ -56,10 +56,10 @@ class ContentFeedbackService {
       return false
     }
 
-    if (feedback?.choice !== args.choice) {
+    if (feedback && feedback.choice !== args.choice) {
       await repository.query(
         `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
-        [args.choice, args, args.wikiId, args.ip],
+        [args.choice, args.wikiId, args.ip],
       )
     }
 
