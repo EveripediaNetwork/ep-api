@@ -5,13 +5,13 @@ import { Connection } from 'typeorm'
 import ContentFeedback from '../../Database/Entities/contentFeedback.entity'
 import WebhookHandler, { ActionTypes } from '../utils/discordWebhookHandler'
 
-export interface ContentFeedbackWebhook {
+interface ContentFeedbackWebhook {
   wikiId: string
   userId?: string
   choice: boolean
 }
 
-interface ContentStoreObject extends ContentFeedbackWebhook {
+export interface ContentStoreObject extends ContentFeedbackWebhook {
   ip: string
 }
 
@@ -37,7 +37,12 @@ class ContentFeedbackService {
         undefined,
         undefined,
         undefined,
-        data,
+        {
+          ip,
+          wikiId: data.wikiId,
+          choice: data.choice,
+          userId: data.userId as string,
+        } as ContentStoreObject,
       )
     }
     return checkFeedback

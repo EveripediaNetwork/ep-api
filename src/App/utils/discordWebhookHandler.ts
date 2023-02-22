@@ -5,11 +5,11 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { Connection } from 'typeorm'
+import { ContentStoreObject } from "../content-feedback/contentFeedback.service"
 import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
 import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
-import { ContentFeedbackWebhook } from '../content-feedback/contentFeedback.service'
 import Wiki from '../../Database/Entities/wiki.entity'
 
 export enum ActionTypes {
@@ -54,7 +54,7 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
-    contentFeedback?: ContentFeedbackWebhook,
+    contentStoreObject?: ContentStoreObject,
   ) {
     const wikirepository = this.connection.getRepository(Wiki)
     const userRepository = this.connection.getRepository(UserProfile)
@@ -200,23 +200,33 @@ export default class WebhookHandler {
       const wiki = await wikirepository.find({
         select: ['title'],
         where: {
-          id: contentFeedback?.wikiId,
+          id: contentStoreObject?.wikiId,
           hidden: false,
         },
       })
-      const user = await userRepository.findOne(contentFeedback?.userId)
+      let user
+
+      if (contentStoreObject && !contentStoreObject.userId) {
+        const a = contentStoreObject.ip.split('.')
+        user = `${a[0]}.${a[1]}.${a[2]}.*`
+      } else {
+        const userProfile = await userRepository.findOne(
+          contentStoreObject?.userId,
+        )
+        user = userProfile?.username || 'anonymous'
+      }
 
       const jsonContent = JSON.stringify({
         username: 'EP feedback',
         embeds: [
           {
-            color: contentFeedback?.choice ? 0x6beb34 : 0xeb6234,
-            title: `${contentFeedback?.choice ? '👍' : '👎'}  ${
+            color: contentStoreObject?.choice ? 0x6beb34 : 0xeb6234,
+            title: `${contentStoreObject?.choice ? '👍' : '👎'}  ${
               wiki.length !== 0 ? wiki[0].title : 'invalid title'
             }`,
-            url: `${this.getWebpageUrl()}/wiki/${contentFeedback?.wikiId}`,
-            description: `${user?.username || 'user'} ${
-              contentFeedback?.choice ? 'finds' : 'does not find'
+            url: `${this.getWebpageUrl()}/wiki/${contentStoreObject?.wikiId}`,
+            description: `${user} ${
+              contentStoreObject?.choice ? 'finds' : 'does not find'
             } this wiki interesting`,
             footer: {
               text: `IQ.wiki feedback`,
@@ -259,7 +269,7 @@ export default class WebhookHandler {
     flagWiki?: FlagWikiWebhook,
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
-    contentFeedback?: ContentFeedbackWebhook,
+    contentStoreObject?: ContentStoreObject,
   ) {
     if (flagWiki) {
       return this.embedWebhook(actionType, flagWiki)
@@ -270,13 +280,13 @@ export default class WebhookHandler {
     if (adminLog) {
       return this.embedWebhook(actionType, undefined, undefined, adminLog)
     }
-    if (contentFeedback) {
+    if (contentStoreObject) {
       return this.embedWebhook(
         actionType,
         undefined,
         undefined,
         undefined,
-        contentFeedback,
+        contentStoreObject,
       )
     }
     return true
