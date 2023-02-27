@@ -52,7 +52,7 @@ export const nftIds = [
 ]
 
 export const cryptocurrencyIds = [
-  { coingeckoId: 'cronos', wikiId: 'cronos-cro' },
+  { coingeckoId: 'crypto-com-chain', wikiId: 'cronos-cro' },
   { coingeckoId: 'leo-token', wikiId: 'leo-token-leo' },
   { coingeckoId: 'lido-staked-ether', wikiId: 'lido-staked-ethereum-steth' },
   { coingeckoId: 'wrapped-bitcoin', wikiId: 'wrapped-bitcoin-wbtc' },
@@ -151,6 +151,5 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'ftx-token', wikiId: 'ftt' },
   { coingeckoId: 'ripple', wikiId: 'xrp' },
   { coingeckoId: 'tron', wikiId: 'trontrade-1' },
-  { coingeckoId: 'staked-ether', wikiId: 'lido-staked-ethereum-steth' },
   { coingeckoId: 'uniswap', wikiId: 'uni' },
 ]
