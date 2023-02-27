@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 import { Connection } from 'typeorm'
-import { ContentStoreObject } from "../content-feedback/contentFeedback.service"
+import { ContentStoreObject } from '../content-feedback/contentFeedback.service'
 import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
