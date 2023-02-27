@@ -239,16 +239,6 @@ class IPFSValidatorService {
         const isTitleValid = event.title ? event.title.length < 80 : true
         const isTypeValid = Object.values(EventType).includes(event.type)
 
-        console.log(event.link)
-
-        console.log({
-          isDateValid,
-          isLinkValid,
-          isDescriptionValid,
-          isTitleValid,
-          isTypeValid,
-        })
-
         if (
           !isDateValid ||
           !isLinkValid ||
