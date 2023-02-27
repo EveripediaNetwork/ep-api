@@ -54,7 +54,7 @@ export const nftIds = [
 export const cryptocurrencyIds = [
   { coingeckoId: 'crypto-com-chain', wikiId: 'cronos-cro' },
   { coingeckoId: 'leo-token', wikiId: 'leo-token-leo' },
-  { coingeckoId: 'lido-staked-ether', wikiId: 'lido-staked-ethereum-steth' },
+  { coingeckoId: 'staked-ether', wikiId: 'lido-staked-ethereum-steth' },
   { coingeckoId: 'wrapped-bitcoin', wikiId: 'wrapped-bitcoin-wbtc' },
   { coingeckoId: 'binancecoin', wikiId: 'binance-coin' },
   { coingeckoId: 'binance-usd', wikiId: 'busd' },
