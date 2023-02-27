@@ -6,6 +6,7 @@ import {
   EditSpecificMetaIds,
   Wiki as WikiType,
   MediaType,
+  EventType,
 } from '@everipedia/iq-utils'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Connection } from 'typeorm'
@@ -393,6 +394,69 @@ describe('PinResolver', () => {
       status: false,
       message: ValidatorCodes.MEDIA,
     })
+  })
+
+  it('should throw event error if invalid date is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      events: [
+        {
+          date: 'ANY_INVALID_DATE',
+          type: EventType.CREATED,
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.EVENTS,
+    })
+  })
+
+  it('should throw event error if invalid type is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      events: [
+        {
+          date: '2020-01-01',
+          type: 'ANY_INVALID_TYPE' as EventType,
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.EVENTS,
+    })
+  })
+
+  it('should throw event error if invalid link is sent', async () => {
+    const wiki = {
+      ...testWiki,
+      events: [
+        {
+          date: '2020-01-01',
+          type: EventType.CREATED,
+          link: 'ANY_INVALID_LINK',
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
+      status: false,
+      message: ValidatorCodes.EVENTS,
+    })
+  })
+
+  it('should return status true if correct event items are passed', async () => {
+    const wiki = {
+      ...testWiki,
+      events: [
+        {
+          date: '2020-01-01',
+          type: EventType.CREATED,
+          link: 'https://www.coingecko.com/',
+        },
+      ],
+    }
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
   it('should return status true if correct linkedWikis items are passed', async () => {
