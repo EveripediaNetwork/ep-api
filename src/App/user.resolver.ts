@@ -58,11 +58,13 @@ class UserResolver {
   @Query(() => [User])
   async users(@Args() args: UsersByEditArgs) {
     const repository = this.connection.getRepository(User)
-    if (args.edits === true) {
+    if (args.edits) {
       return repository
         .createQueryBuilder('user')
         .innerJoin('activity', 'a', 'a."userId" = user.id')
         .groupBy('user.id')
+        .limit(args.limit)
+        .offset(args.offset)
         .getMany()
     }
     return repository.find({
