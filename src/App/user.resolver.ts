@@ -62,7 +62,7 @@ class UserResolver {
       return repository
         .createQueryBuilder('user')
         .innerJoin('activity', 'a', 'a."userId" = "user"."id"')
-        .innerJoin('wiki', 'w', 'w."id" = a."id"')
+        .innerJoin('wiki', 'w', 'w."id" = a."wikiId"')
         .where('w."hidden" = false')
         .groupBy('"user"."id"')
         .limit(args.limit)
