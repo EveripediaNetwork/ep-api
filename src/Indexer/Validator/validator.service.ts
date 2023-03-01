@@ -11,6 +11,7 @@ import {
   MediaType,
   whiteListedLinkNames,
   whiteListedDomains,
+  EventType,
 } from '@everipedia/iq-utils'
 import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
@@ -222,6 +223,38 @@ class IPFSValidatorService {
       return isValidMedia
     }
 
+    const checkEvents = (validatingWiki: WikiType) => {
+      if (!validatingWiki.events) return true
+      let isValid = true
+
+      for (const event of validatingWiki.events) {
+        const date = new Date(event.date)
+        const isDateValid = date.toString() !== 'Invalid Date'
+        const isLinkValid = event.link
+          ? isValidUrl(event.link) && event.link.length < 500
+          : true
+        const isDescriptionValid = event.description
+          ? event.description.length <= 255
+          : true
+        const isTitleValid = event.title ? event.title.length < 80 : true
+        const isTypeValid = Object.values(EventType).includes(event.type)
+
+        if (
+          !isDateValid ||
+          !isLinkValid ||
+          !isDescriptionValid ||
+          !isTitleValid ||
+          !isTypeValid
+        ) {
+          isValid = false
+          break
+        }
+      }
+
+      if (!isValid) message = ValidatorCodes.EVENTS
+      return isValid
+    }
+
     const checkLinkedWikis = (validatingWiki: WikiType) => {
       if (!validatingWiki.linkedWikis) return true
       let isValid = true
@@ -258,7 +291,8 @@ class IPFSValidatorService {
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
       checkMedia(wiki) &&
-      checkLinkedWikis(wiki)
+      checkLinkedWikis(wiki) &&
+      checkEvents(wiki)
 
     return { status, message }
   }
