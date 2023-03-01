@@ -40,6 +40,12 @@ class UsersByIdArgs extends PaginationArgs {
   id!: string
 }
 
+@ArgsType()
+class UsersByEditArgs extends PaginationArgs {
+  @Field(() => Boolean, { nullable: true })
+  edits!: boolean
+}
+
 @UseInterceptors(SentryInterceptor)
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -50,8 +56,15 @@ class UserResolver {
   ) {}
 
   @Query(() => [User])
-  async users(@Args() args: PaginationArgs) {
+  async users(@Args() args: UsersByEditArgs) {
     const repository = this.connection.getRepository(User)
+    if (args.edits === true) {
+      return repository
+        .createQueryBuilder('user')
+        .innerJoin('activity', 'a', 'a."userId" = user.id')
+        .groupBy('user.id')
+        .getMany()
+    }
     return repository.find({
       take: args.limit,
       skip: args.offset,
