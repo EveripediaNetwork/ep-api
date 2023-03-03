@@ -9,7 +9,6 @@ import MailService from '../mailer/mail.service'
 import Wiki from '../../Database/Entities/wiki.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Activity from '../../Database/Entities/activity.entity'
-import { winstonLog } from '../utils/logger'
 
 interface CommandOptions {
   loop: boolean
@@ -134,7 +133,6 @@ class NotificationsCommand implements CommandRunner {
 
           await new Promise(r => setTimeout(r, SLEEP_TIME))
         } catch (ex) {
-          winstonLog().error(ex)
           console.error(ex)
         }
       }

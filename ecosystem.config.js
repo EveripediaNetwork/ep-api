@@ -1,15 +1,19 @@
 module.exports = {
-  apps:  [
+  apps: [
     {
       name: 'ep-api',
       script: 'dist/src/main.js',
       watch: false,
       time: true,
-      instances : "max",
-      exec_mode : "cluster",
-      ignore_watch: ["[\/\\]\./", "uploads"],
+      instances: 'max',
+      exec_mode: 'cluster',
+      ignore_watch: ['[/\\]./', 'uploads'],
       restart_delay: 10000,
       watch_delay: 10000,
+      cwd: process.cwd(),
+      log_type: 'json',
+      error_file: './logs/api-error.json',
+      log_date_format: 'YYYY-MM-DD HH:mm Z',
       max_memory_restart: '2600M',
     },
     {
@@ -18,8 +22,12 @@ module.exports = {
       args: 'indexer',
       watch: false,
       time: true,
-      ignore_watch: ["[\/\\]\./", "uploads"],
+      ignore_watch: ['[/\\]./', 'uploads'],
       watch_delay: 10000,
+      cwd: process.cwd(),
+      log_type: 'json',
+      error_file: `./logs/indexer-error.json`,
+      log_date_format: 'YYYY-MM-DD HH:mm Z',
       exp_backoff_restart_delay: 1000,
       max_memory_restart: '600M',
     },
@@ -29,10 +37,14 @@ module.exports = {
       args: 'notifications',
       watch: false,
       time: true,
-      ignore_watch: ["[\/\\]\./", "uploads"],
+      ignore_watch: ['[/\\]./', 'uploads'],
       watch_delay: 10000,
+      cwd: process.cwd(),
+      log_type: 'json',
+      error_file: `./logs/notification-error.json`,
+      log_date_format: 'YYYY-MM-DD HH:mm Z',
       exp_backoff_restart_delay: 1000,
       max_memory_restart: '600M',
-    }
-  ]
+    },
+  ],
 }

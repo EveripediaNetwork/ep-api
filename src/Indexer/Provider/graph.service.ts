@@ -2,7 +2,6 @@
 import { Injectable, UseInterceptors } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
-import { winstonLog } from '../../App/utils/logger'
 import SentryInterceptor from '../../sentry/security.interceptor'
 
 export type Hash = {
@@ -40,7 +39,6 @@ class GraphProviderService {
       response = await request(reqUrl, query, { unixtime })
     } catch (err: any) {
       console.error('GRAPH ERROR', err.message)
-      winstonLog().error(err)
     }
     return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
   }
