@@ -1537,7 +1537,7 @@
     semver "~7.2.0"
     ws "~7.4.0"
 
-"@pm2/io@^5.0.0", "@pm2/io@~5.0.0":
+"@pm2/io@~5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@pm2/io/-/io-5.0.0.tgz#623cbcaf6fe39375f20ac2e75497477a1b1ec5c5"
   integrity sha512-3rToDVJaRoob5Lq8+7Q2TZFruoEkdORxwzFpZaqF4bmH6Bkd7kAbdPrI/z8X6k1Meq5rTtScM7MmDgppH6aLlw==
