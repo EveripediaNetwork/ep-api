@@ -205,7 +205,7 @@ class StatsResolver {
       )
       .where('wiki.hidden = false')
       .getRawOne()
-    await this.cacheManager.set(args.category, response, { ttl: 3600000 })
+    await this.cacheManager.set(args.category, response, { ttl: 3600 })
     return response
   }
 }
