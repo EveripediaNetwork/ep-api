@@ -85,6 +85,7 @@ export class RevalidatePageService {
           this.revalidate(Routes.ACTIVITY),
           this.revalidate(Routes.WIKI_PAGE, undefined, slug),
           this.revalidate(`/wiki/${slug}/history`),
+          this.revalidate(`/wiki/${slug}/events`),
         ])
       }
       if (page === RevalidateEndpoints.PROMOTE_WIKI) {

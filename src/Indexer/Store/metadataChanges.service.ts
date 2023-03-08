@@ -104,6 +104,9 @@ class MetadataChangesService {
     if (oldWiki?.summary !== newWiki.summary) {
       blocksChanged.push('summary')
     }
+    if (oldWiki?.events !== newWiki.events) {
+      blocksChanged.push('events')
+    }
     const oldImgId = oldWiki.images && oldWiki.images[0].id
     const newImgId = newWiki.images && newWiki.images[0].id
 
