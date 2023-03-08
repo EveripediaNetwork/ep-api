@@ -75,7 +75,7 @@ export class RevalidatePageService {
   ) {
     try {
       if (page === RevalidateEndpoints.STORE_WIKI) {
-        if (level && level > 0 || await this.checkCategory(slug)) {
+        if ((level && level > 0) || (await this.checkCategory(slug))) {
           await this.revalidate(Routes.HOMEPAGE)
         }
         await Promise.all([
@@ -105,8 +105,8 @@ export class RevalidatePageService {
 
   async checkCategory(id: string | undefined): Promise<boolean | undefined> {
     const wikiRepository = this.connection.getRepository(Wiki)
-    if(!id) {
-        return false
+    if (!id) {
+      return false
     }
     const i = await wikiRepository.findOne({
       where: {
@@ -117,10 +117,10 @@ export class RevalidatePageService {
     })
     const category = await Promise.resolve(i?.categories)
     let state
-    if(category){
-        state =
-          category[0] === ('cryptocurrencies' as unknown as Category) ||
-          category[0] === ('nfts' as unknown as Category)
+    if (category) {
+      state =
+        category[0] === ('cryptocurrencies' as unknown as Category) ||
+        category[0] === ('nfts' as unknown as Category)
     }
     return state
   }
