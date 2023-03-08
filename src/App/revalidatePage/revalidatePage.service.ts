@@ -1,6 +1,11 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable } from '@nestjs/common'
+import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Connection } from 'typeorm'
+import { Cache } from 'cache-manager'
+import { RankType } from '../marketCap/marketcap.dto'
+import Category from '../../Database/Entities/category.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 export enum RevalidateEndpoints {
   HIDE_WIKI = 'hideWiki',
@@ -25,7 +30,9 @@ export interface RevalidateStatus {
 export class RevalidatePageService {
   constructor(
     private httpService: HttpService,
+    private connection: Connection,
     private configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private getSecrets() {
@@ -71,7 +78,7 @@ export class RevalidatePageService {
   ) {
     try {
       if (page === RevalidateEndpoints.STORE_WIKI) {
-        if (level && level > 0) {
+        if ((level && level > 0) || (await this.checkCategory(slug))) {
           await this.revalidate(Routes.HOMEPAGE)
         }
         await Promise.all([
@@ -97,5 +104,34 @@ export class RevalidatePageService {
         e.response ? e.response.data + e.request.path.split('path=')[1] : e,
       )
     }
+  }
+
+  async checkCategory(id: string | undefined): Promise<boolean | undefined> {
+    const wikiRepository = this.connection.getRepository(Wiki)
+    if (!id) {
+      return false
+    }
+
+    const i = await wikiRepository.findOne({
+      where: {
+        id,
+        hidden: false,
+      },
+      loadRelationIds: true,
+    })
+    const category = await Promise.resolve(i?.categories)
+    let state
+    if (category) {
+      state =
+        category[0] === ('cryptocurrencies' as unknown as Category) ||
+        category[0] === ('nfts' as unknown as Category)
+    }
+
+    if (state) {
+      await this.cacheManager.del(`finalResult/${RankType.NFT}/10/1`)
+      await this.cacheManager.del(`finalResult/${RankType.TOKEN}/10/1`)
+    }
+
+    return state
   }
 }

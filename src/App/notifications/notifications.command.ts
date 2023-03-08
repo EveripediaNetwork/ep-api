@@ -81,7 +81,7 @@ class NotificationsCommand implements CommandRunner {
         ORDER BY d."datetime" DESC
         LIMIT 10
     `)
-    await this.cacheManager.set(id, result, { ttl: 900000 })
+    await this.cacheManager.set(id, result, { ttl: 900 })
     return result
   }
 
