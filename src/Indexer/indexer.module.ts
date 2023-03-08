@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
@@ -18,6 +18,7 @@ import { RevalidatePageService } from '../App/revalidatePage/revalidatePage.serv
     }),
     DatabaseModule,
     httpModule(20000),
+    CacheModule.register({ ttl: 3600 }),
   ],
   controllers: [],
   providers: [
