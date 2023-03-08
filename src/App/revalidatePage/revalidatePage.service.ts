@@ -3,7 +3,7 @@ import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { RankType } from "../marketCap/marketcap.dto"
+import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 
