@@ -24,6 +24,12 @@ class ContentFeedbackService {
   ) {}
 
   async postFeedback(data: ContentFeedbackWebhook, ip: string) {
+    const waitIP = await this.checkIP(ip)
+
+    if (!waitIP) {
+      return waitIP
+    }
+
     const checkFeedback = await this.storeFeedback({
       ip,
       wikiId: data.wikiId,
@@ -74,9 +80,17 @@ class ContentFeedbackService {
       })
       await repository.save(newFeedback)
     }
-
     await this.cacheManager.set(id, args.ip)
     return true
+  }
+
+  async checkIP(ip: string): Promise<boolean> {
+    const cached: string | undefined = await this.cacheManager.get(ip)
+    if (!cached) {
+      await this.cacheManager.set(ip, ip, { ttl: 180 })
+      return true
+    }
+    return false
   }
 }
 
