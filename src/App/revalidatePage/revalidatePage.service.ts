@@ -3,7 +3,7 @@ import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { RankType } from './../marketCap/marketcap.dto'
+import { RankType } from "../marketCap/marketcap.dto"
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 
@@ -127,9 +127,9 @@ export class RevalidatePageService {
         category[0] === ('nfts' as unknown as Category)
     }
 
-    if(state){
-        await this.cacheManager.del(`finalResult/${RankType.NFT}/10/1`)
-        await this.cacheManager.del(`finalResult/${RankType.TOKEN}/10/1`)
+    if (state) {
+      await this.cacheManager.del(`finalResult/${RankType.NFT}/10/1`)
+      await this.cacheManager.del(`finalResult/${RankType.TOKEN}/10/1`)
     }
 
     return state
