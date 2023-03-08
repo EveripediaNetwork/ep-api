@@ -164,7 +164,7 @@ class MarketCapService {
       )) as unknown as TokenRankListData
     }
 
-    await this.cacheManager.set(key, result, { ttl: 600 })
+    await this.cacheManager.set(key, result, { ttl: 180 })
     return result
   }
 }
