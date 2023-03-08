@@ -144,6 +144,7 @@ class MarketCapService {
   async ranks(
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
+    console.log(args.kind)
     const key = `finalResult/${args.kind}/${args.limit}/${args.offset}`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
