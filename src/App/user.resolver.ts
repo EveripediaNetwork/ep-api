@@ -11,7 +11,7 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
-import { MinLength } from 'class-validator'
+import { MinLength, Validate } from 'class-validator'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
@@ -23,10 +23,12 @@ import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
+import ValidStringParams from './utils/customValidator'
 
 @ArgsType()
 class UserStateArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   id!: string
 
   @Field(() => Boolean)
@@ -37,6 +39,7 @@ class UserStateArgs {
 class UsersByIdArgs extends PaginationArgs {
   @Field(() => String)
   @MinLength(3)
+  @Validate(ValidStringParams)
   id!: string
 }
 

@@ -11,11 +11,13 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { Validate } from 'class-validator'
 import Activity from '../Database/Entities/activity.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import Tag from '../Database/Entities/tag.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import { CategoryArgs } from './wiki.dto'
+import ValidStringParams from './utils/customValidator'
 
 @ObjectType()
 export class Count {
@@ -35,6 +37,7 @@ export class WikiStats extends Count {
 @ObjectType()
 export class WikiUserStats extends Count {
   @Field()
+  @Validate(ValidStringParams)
   address!: string
 }
 

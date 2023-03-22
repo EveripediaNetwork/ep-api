@@ -11,21 +11,25 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
+import ValidStringParams from './utils/customValidator'
 import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
 
 @ArgsType()
 class GetProfileArgs {
   @Field({ nullable: true })
+  @Validate(ValidStringParams)
   id?: string
 
   @Field({ nullable: true })
+  @Validate(ValidStringParams)
   username?: string
 }
 

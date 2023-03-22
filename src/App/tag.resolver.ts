@@ -9,15 +9,18 @@ import {
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
 import { UseInterceptors } from '@nestjs/common'
+import { Validate } from 'class-validator'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ITag } from '../Database/Entities/types/ITag'
 import SentryInterceptor from '../sentry/security.interceptor'
+import ValidStringParams from './utils/customValidator'
 
 @ArgsType()
 class TagIDArgs extends PaginationArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   id!: string
 }
 

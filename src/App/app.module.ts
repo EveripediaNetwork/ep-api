@@ -7,6 +7,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { SentryModule } from '@ntegral/nestjs-sentry'
+import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -59,6 +60,7 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
       debug: true,
       playground: true,
       cors: true,
+      cache: new InMemoryLRUCache(),
       autoSchemaFile: true,
       context: ({ req, connection }) => ({ req, connection }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
