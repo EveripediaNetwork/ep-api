@@ -1,12 +1,14 @@
 /* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
-import { MinLength } from 'class-validator'
+import { MinLength, Validate } from 'class-validator'
 import PaginationArgs from './pagination.args'
+import ValidStringParams from './utils/customValidator'
 import { Direction, OrderBy } from './utils/queryHelpers'
 
 @ArgsType()
 export class LangArgs extends PaginationArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   lang = 'en'
 
   @Field(() => Direction)
@@ -19,6 +21,7 @@ export class LangArgs extends PaginationArgs {
 @ArgsType()
 export class TitleArgs extends LangArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   @MinLength(3)
   title!: string
 
@@ -29,12 +32,14 @@ export class TitleArgs extends LangArgs {
 @ArgsType()
 export class CategoryArgs extends LangArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   category!: string
 }
 
 @ArgsType()
 export class ByIdArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   id!: string
 
   @Field(() => String)
@@ -53,17 +58,21 @@ export class PageViewArgs {
   amount!: number
 
   @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  @Validate(ValidStringParams)
   startDay!: string
 
   @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  @Validate(ValidStringParams)
   endDay!: string
 
   @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
   category?: string
 }
 
 @ObjectType()
 export class WikiUrl {
   @Field(() => String)
+  @Validate(ValidStringParams)
   wiki!: string
 }

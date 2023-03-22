@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { createUnionType, Field, ObjectType } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
+import ValidStringParams from './customValidator'
 
 @ObjectType()
 export class Slug {
   @Field()
+  @Validate(ValidStringParams)
   id!: string
 }
 

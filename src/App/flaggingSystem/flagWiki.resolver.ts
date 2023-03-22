@@ -1,18 +1,22 @@
 import { UseInterceptors } from '@nestjs/common'
 import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
 
 import SentryInterceptor from '../../sentry/security.interceptor'
+import ValidStringParams from '../utils/customValidator'
 import FlagWikiService from './flagWiki.service'
 
 @ArgsType()
 class FlagWikiArgs {
   @Field(() => String)
+  @Validate(ValidStringParams)
   report!: string
 
   @Field(() => String)
+  @Validate(ValidStringParams)
   wikiId!: string
 
-  @Field(() => String)
+  @Validate(ValidStringParams)
   userId!: string
 }
 
