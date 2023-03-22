@@ -13,7 +13,7 @@
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main.js --trace-warnings",
+    "start:prod": "node --trace-warnings dist/src/main.js ",
     "console": "node dist/src/console.js",
     "console:dev": "ts-node src/console.ts",
     "console-mail": "node dist/src/consoleMail.js",
@@ -30,6 +30,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@apollo/utils.keyvaluecache": "^2.1.0",
     "@elastic/ecs-winston-format": "^1.3.1",
     "@everipedia/iq-utils": "^0.1.4",
     "@graphql-tools/utils": "^8.7.0",

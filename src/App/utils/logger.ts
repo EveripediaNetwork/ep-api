@@ -13,12 +13,6 @@ export const winstonLog = () =>
         level: 'info',
       }),
     ],
-    exceptionHandlers: [
-      new winston.transports.File({
-        filename: 'logs/log.json',
-        level: 'error',
-      }),
-    ],
   })
 
 winstonLog()
