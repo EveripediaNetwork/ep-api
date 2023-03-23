@@ -9,7 +9,7 @@ import {
 @ValidatorConstraint({ name: 'valid String', async: true })
 export default class ValidStringParams implements ValidatorConstraintInterface {
   async validate(text: string, args: ValidationArguments) {
-    return /^[a-zA-Z0-9\/-]*$/.test(text)
+    return /^[a-zA-Z0-9 \/-]*$/.test(text)
   }
 
   defaultMessage(args: ValidationArguments) {
