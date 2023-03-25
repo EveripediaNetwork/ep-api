@@ -1,12 +1,31 @@
 /* eslint-disable no-console */
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { lastValueFrom } from 'rxjs'
-import SentryInterceptor from '~/../src/sentry/security.interceptor'
-import TokenData from '../models/tokenData.model'
+import TokenData from './models/tokenData.model'
 
-@UseInterceptors(SentryInterceptor)
+const noData = {
+  data: {
+    data: {
+      '0': {
+        id: 0,
+        name: 'not_found',
+        symbol: 'NOT_FOUND',
+        slug: 'not_found',
+        quote: {
+          USD: {
+            volume_24h: 0,
+            market_cap: 0,
+            market_cap_change_percentage_24h: 0,
+            fully_diluted_market_cap: 0,
+          },
+        },
+      },
+    },
+  },
+}
+
 @Injectable()
 class StatsGetterService {
   constructor(
@@ -80,26 +99,6 @@ class StatsGetterService {
       ],
     }
 
-    const noData = {
-      data: {
-        data: {
-          '0': {
-            id: 0,
-            name: 'not_found',
-            symbol: 'NOT_FOUND',
-            slug: 'not_found',
-            quote: {
-              USD: {
-                volume_24h: 0,
-                market_cap: 0,
-                market_cap_change_percentage_24h: 0,
-                fully_diluted_market_cap: 0,
-              },
-            },
-          },
-        },
-      },
-    }
     const dat = cmc || noData
     const d = dat.data
     const res: any = Object.values(d.data)

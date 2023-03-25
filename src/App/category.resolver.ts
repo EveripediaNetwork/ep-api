@@ -9,12 +9,10 @@ import {
 } from '@nestjs/graphql'
 import { Connection, MoreThan } from 'typeorm'
 import { MinLength, Validate } from 'class-validator'
-import { UseInterceptors } from '@nestjs/common'
 import Category from '../Database/Entities/category.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ICategory } from '../Database/Entities/types/ICategory'
-import SentryInterceptor from '../sentry/security.interceptor'
 import ValidStringParams from './utils/customValidator'
 
 @ArgsType()
@@ -25,7 +23,6 @@ class TitleArgs {
   title!: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => Category)
 class CategoryResolver {
   constructor(private connection: Connection) {}

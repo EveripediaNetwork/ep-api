@@ -1,8 +1,5 @@
-import { UseInterceptors } from '@nestjs/common'
 import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
-
-import SentryInterceptor from '../../sentry/security.interceptor'
 import ValidStringParams from '../utils/customValidator'
 import FlagWikiService from './flagWiki.service'
 
@@ -20,7 +17,6 @@ class FlagWikiArgs {
   userId!: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => Boolean)
 class FlagWikiResolver {
   constructor(private flagWikiService: FlagWikiService) {}

@@ -1,13 +1,11 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
-import { UseInterceptors } from '@nestjs/common'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import GraphProviderService, { Hash } from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
 import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
-import SentryInterceptor from '../sentry/security.interceptor'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { getWikiSummary } from '../App/utils/getWikiSummary'
 
@@ -19,7 +17,6 @@ interface CommandOptions {
 const SLEEP_TIME = 4000
 const SLEEP_TIME_QUERY = 3000
 
-@UseInterceptors(SentryInterceptor)
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
   constructor(

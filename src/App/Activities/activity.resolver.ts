@@ -1,9 +1,7 @@
-import { UseInterceptors } from '@nestjs/common'
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import Activity from '../../Database/Entities/activity.entity'
 import { Author } from '../../Database/Entities/types/IUser'
 import { IWiki } from '../../Database/Entities/types/IWiki'
-import SentryInterceptor from '../../sentry/security.interceptor'
 import ActivityService from './activity.service'
 import {
   ActivityArgs,
@@ -12,7 +10,6 @@ import {
   ByIdAndBlockArgs,
 } from './dto/activity.dto'
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class ActivityResolver {
   constructor(private activityService: ActivityService) {}

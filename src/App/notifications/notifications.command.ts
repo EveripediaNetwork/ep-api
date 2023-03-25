@@ -1,10 +1,9 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { CACHE_MANAGER, Inject, UseInterceptors } from '@nestjs/common'
+import { CACHE_MANAGER, Inject } from '@nestjs/common'
 import Subscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import SentryInterceptor from '../../sentry/security.interceptor'
 import MailService from '../mailer/mail.service'
 import Wiki from '../../Database/Entities/wiki.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
@@ -17,7 +16,6 @@ interface CommandOptions {
 const SLEEP_TIME = 5000
 const SLEEP_TIME_QUERY = 10000
 
-@UseInterceptors(SentryInterceptor)
 @Command({
   name: 'notifications',
   description: 'Send notifications to subscribed users',

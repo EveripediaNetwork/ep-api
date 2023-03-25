@@ -1,4 +1,4 @@
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -8,7 +8,6 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import SentryInterceptor from '../../sentry/security.interceptor'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
@@ -16,7 +15,6 @@ import {
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 
-@UseInterceptors(SentryInterceptor)
 @Injectable()
 class DBStoreService {
   constructor(

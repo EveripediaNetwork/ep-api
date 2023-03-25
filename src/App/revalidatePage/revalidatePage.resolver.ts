@@ -10,7 +10,6 @@ import {
   Context,
 } from '@nestjs/graphql'
 
-import SentryInterceptor from '../../sentry/security.interceptor'
 import AuthGuard from '../utils/admin.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
@@ -27,7 +26,6 @@ class RouteArgs {
   slug?: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Boolean)
 class RevalidatePageResolver {

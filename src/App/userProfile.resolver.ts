@@ -1,4 +1,4 @@
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import { UseGuards } from '@nestjs/common'
 import {
   Args,
   ArgsType,
@@ -15,7 +15,6 @@ import { Validate } from 'class-validator'
 import { Connection } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import Wiki from '../Database/Entities/wiki.entity'
-import SentryInterceptor from '../sentry/security.interceptor'
 import PaginationArgs from './pagination.args'
 import UserService from './user.service'
 import ValidStringParams from './utils/customValidator'
@@ -33,7 +32,6 @@ class GetProfileArgs {
   username?: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => UserProfile)
 class UserProfileResolver {
   constructor(

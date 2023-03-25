@@ -1,10 +1,8 @@
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
-import SentryInterceptor from '../../sentry/security.interceptor'
 
-@UseInterceptors(SentryInterceptor)
 @Injectable()
 class IPFSGetterService {
   constructor(
