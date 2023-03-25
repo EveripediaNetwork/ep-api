@@ -5,6 +5,27 @@ import { ConfigService } from '@nestjs/config'
 import { lastValueFrom } from 'rxjs'
 import TokenData from './models/tokenData.model'
 
+const noData = {
+  data: {
+    data: {
+      '0': {
+        id: 0,
+        name: 'not_found',
+        symbol: 'NOT_FOUND',
+        slug: 'not_found',
+        quote: {
+          USD: {
+            volume_24h: 0,
+            market_cap: 0,
+            market_cap_change_percentage_24h: 0,
+            fully_diluted_market_cap: 0,
+          },
+        },
+      },
+    },
+  },
+}
+
 @Injectable()
 class StatsGetterService {
   constructor(
@@ -78,26 +99,6 @@ class StatsGetterService {
       ],
     }
 
-    const noData = {
-      data: {
-        data: {
-          '0': {
-            id: 0,
-            name: 'not_found',
-            symbol: 'NOT_FOUND',
-            slug: 'not_found',
-            quote: {
-              USD: {
-                volume_24h: 0,
-                market_cap: 0,
-                market_cap_change_percentage_24h: 0,
-                fully_diluted_market_cap: 0,
-              },
-            },
-          },
-        },
-      },
-    }
     const dat = cmc || noData
     const d = dat.data
     const res: any = Object.values(d.data)
