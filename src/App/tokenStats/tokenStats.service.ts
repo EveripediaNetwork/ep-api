@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import TokenData from './models/tokenData.model'
-import StatsGetterService from './CryptoStats/stats-getter.service'
+import StatsGetterService from './stats-getter.service'
 
 @Injectable()
 class TokenStatsService {

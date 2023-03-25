@@ -14,7 +14,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../Database/Entities/wiki.entity'
 import { IWiki } from '../Database/Entities/types/IWiki'
 import Activity from '../Database/Entities/activity.entity'
-import SentryInterceptor from '../sentry/security.interceptor'
 import { Author } from '../Database/Entities/types/IUser'
 import AuthGuard from './utils/admin.guard'
 import { SlugResult } from './utils/validSlug'
@@ -34,7 +33,6 @@ import {
 } from './wiki.dto'
 import WikiService from './wiki.service'
 
-@UseInterceptors(SentryInterceptor)
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {

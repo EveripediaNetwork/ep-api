@@ -1,4 +1,4 @@
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
 
@@ -13,7 +13,6 @@ import {
   whiteListedDomains,
   EventType,
 } from '@everipedia/iq-utils'
-import SentryInterceptor from '../../sentry/security.interceptor'
 import { isValidUrl } from '../../App/utils/getWikiFields'
 import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 
@@ -22,7 +21,6 @@ export type ValidatorResult = {
   message: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Injectable()
 class IPFSValidatorService {
   private configService: ConfigService = new ConfigService()

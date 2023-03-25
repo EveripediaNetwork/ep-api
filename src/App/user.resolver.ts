@@ -17,7 +17,6 @@ import User from '../Database/Entities/user.entity'
 import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { IUser } from '../Database/Entities/types/IUser'
-import SentryInterceptor from '../sentry/security.interceptor'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import AuthGuard from './utils/admin.guard'
 import IsActiveGuard from './utils/isActive.guard'
@@ -49,7 +48,6 @@ class UsersByEditArgs extends PaginationArgs {
   edits!: boolean
 }
 
-@UseInterceptors(SentryInterceptor)
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
 class UserResolver {

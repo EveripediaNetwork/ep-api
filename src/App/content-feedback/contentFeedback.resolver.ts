@@ -1,4 +1,3 @@
-import { UseInterceptors } from '@nestjs/common'
 import {
   Args,
   ArgsType,
@@ -8,7 +7,6 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 
-import SentryInterceptor from '../../sentry/security.interceptor'
 import ContentFeebackService from './contentFeedback.service'
 
 @ArgsType()
@@ -23,7 +21,6 @@ export class ContentFeedbackArgs {
   choice!: boolean
 }
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {
   constructor(private contentFeebackService: ContentFeebackService) {}

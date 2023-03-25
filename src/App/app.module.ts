@@ -6,8 +6,9 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
 import { EventEmitterModule } from '@nestjs/event-emitter'
-import { SentryModule } from '@ntegral/nestjs-sentry'
+import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
+import { APP_INTERCEPTOR } from '@nestjs/core'
 import WikiResolver from './wiki.resolver'
 import LanguageResolver from './language.resolver'
 import CategoryResolver from './category.resolver'
@@ -48,6 +49,7 @@ import ActivityResolver from './Activities/activity.resolver'
 import ActivityService from './Activities/activity.service'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
+import SentryMod from '../sentry/sentry.module'
 
 @Module({
   imports: [
@@ -74,16 +76,7 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
       },
     }),
     SitemapModule,
-    SentryModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (cfg: ConfigService) => ({
-        dsn: cfg.get('SENTRY_DSN'),
-        debug: true,
-        environment: 'dev' || 'production',
-        logLevels: ['debug'],
-      }),
-      inject: [ConfigService],
-    }),
+    SentryMod,
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
@@ -124,6 +117,10 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    {
+      provide: APP_INTERCEPTOR,
+      useFactory: () => new GraphqlInterceptor(),
+    },
   ],
 })
 class AppModule {

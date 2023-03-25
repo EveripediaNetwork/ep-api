@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { CACHE_MANAGER, Inject, UseInterceptors } from '@nestjs/common'
+import { CACHE_MANAGER, Inject } from '@nestjs/common'
 import {
   Args,
   ArgsType,
@@ -13,7 +13,6 @@ import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { Validate } from 'class-validator'
 import Activity from '../Database/Entities/activity.entity'
-import SentryInterceptor from '../sentry/security.interceptor'
 import Tag from '../Database/Entities/tag.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import { CategoryArgs } from './wiki.dto'
@@ -62,7 +61,6 @@ class UserArgs extends DateArgs {
   userId!: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => Activity)
 class StatsResolver {
   constructor(

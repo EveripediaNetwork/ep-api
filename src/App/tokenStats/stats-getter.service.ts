@@ -1,12 +1,10 @@
 /* eslint-disable no-console */
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { lastValueFrom } from 'rxjs'
-import SentryInterceptor from '~/../src/sentry/security.interceptor'
-import TokenData from '../models/tokenData.model'
+import TokenData from './models/tokenData.model'
 
-@UseInterceptors(SentryInterceptor)
 @Injectable()
 class StatsGetterService {
   constructor(

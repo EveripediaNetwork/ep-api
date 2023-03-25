@@ -8,17 +8,14 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common'
 
 import sharp from 'sharp'
-import SentryInterceptor from '../../sentry/security.interceptor'
 
 import IpfsHash from './model/ipfsHash'
 import PinService from './pin.service'
 import IsActiveGuard from '../utils/isActive.guard'
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => IpfsHash)
 class PinResolver {
   constructor(private readonly pinService: PinService) {}

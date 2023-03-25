@@ -1,4 +1,3 @@
-import { UseInterceptors } from '@nestjs/common'
 import {
   Args,
   Context,
@@ -9,13 +8,11 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Connection } from 'typeorm'
-import SentryInterceptor from '../sentry/security.interceptor'
 import WikiSubscriptionService from './subscriptions.service'
 import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 import IqSubscription from '../Database/Entities/IqSubscription'
 import Wiki from '../Database/Entities/wiki.entity'
 
-@UseInterceptors(SentryInterceptor)
 @Resolver(() => IqSubscription)
 class WikiSubscriptionResolver {
   constructor(

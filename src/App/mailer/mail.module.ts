@@ -2,7 +2,10 @@ import { MailerModule } from '@nestjs-modules/mailer'
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
 import { Global, Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { APP_INTERCEPTOR } from '@nestjs/core'
+import { SentryInterceptor } from '@ntegral/nestjs-sentry'
 import { join } from 'path'
+import SentryMod from '../../sentry/sentry.module'
 import MailService from './mail.service'
 
 @Global()
@@ -31,8 +34,15 @@ import MailService from './mail.service'
       }),
       inject: [ConfigService],
     }),
+    SentryMod,
   ],
-  providers: [MailService],
+  providers: [
+    MailService,
+    {
+      provide: APP_INTERCEPTOR,
+      useFactory: () => new SentryInterceptor(),
+    },
+  ],
   exports: [MailService],
 })
 export default class MailModule {}

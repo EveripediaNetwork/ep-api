@@ -1,4 +1,4 @@
-import { Injectable, UseInterceptors } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Connection } from 'typeorm'
 import diff from 'fast-diff'
 import {
@@ -7,7 +7,6 @@ import {
   Wiki as WikiType,
 } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
-import SentryInterceptor from '../../sentry/security.interceptor'
 import Metadata from '../../Database/Entities/metadata.entity'
 
 export type ValidatorResult = {
@@ -15,7 +14,6 @@ export type ValidatorResult = {
   message: string
 }
 
-@UseInterceptors(SentryInterceptor)
 @Injectable()
 class MetadataChangesService {
   constructor(private connection: Connection) {}
