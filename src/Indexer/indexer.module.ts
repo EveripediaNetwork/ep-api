@@ -22,7 +22,7 @@ import SentryMod from '../sentry/sentry.module'
     DatabaseModule,
     httpModule(20000),
     CacheModule.register({ ttl: 3600 }),
-    SentryMod
+    SentryMod,
   ],
   controllers: [],
   providers: [

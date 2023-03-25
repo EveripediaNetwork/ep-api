@@ -3,7 +3,6 @@ import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 
-
 @Injectable()
 class IPFSGetterService {
   constructor(
