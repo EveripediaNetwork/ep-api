@@ -1,5 +1,5 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import GraphProviderService, { Hash } from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
@@ -24,12 +24,12 @@ class RunCommand implements CommandRunner {
     private ipfsGetter: IPFSGetterService,
     private validator: IPFSValidatorService,
     private dbStoreService: DBStoreService,
-    private connection: Connection,
+    private dataSource: DataSource,
     private metaChanges: MetadataChangesService,
   ) {}
 
   async getUnixtime() {
-    const repo = this.connection.getRepository(Wiki)
+    const repo = this.dataSource.getRepository(Wiki)
     const lastWikiEdited = await repo.find({
       order: {
         updated: 'DESC',
