@@ -9,7 +9,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { MinLength, Validate } from 'class-validator'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -23,6 +23,8 @@ import IsActiveGuard from './utils/isActive.guard'
 import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import ValidStringParams from './utils/customValidator'
+import Activity from '../Database/Entities/activity.entity'
+import UserService from './user.service'
 
 @ArgsType()
 class UserStateArgs {
@@ -52,15 +54,15 @@ class UsersByEditArgs extends PaginationArgs {
 @Resolver(() => User)
 class UserResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
+    private userService: UserService,
     private eventEmitter: EventEmitter2,
   ) {}
 
   @Query(() => [User])
   async users(@Args() args: UsersByEditArgs) {
-    const repository = this.connection.getRepository(User)
     if (args.edits) {
-      return repository
+      return (await this.userService.userRepository())
         .createQueryBuilder('user')
         .innerJoin('activity', 'a', 'a."userId" = "user"."id"')
         .innerJoin('wiki', 'w', 'w."id" = a."wikiId"')
@@ -70,7 +72,7 @@ class UserResolver {
         .offset(args.offset)
         .getMany()
     }
-    return repository.find({
+    return (await this.userService.userRepository()).find({
       take: args.limit,
       skip: args.offset,
     })
@@ -78,8 +80,7 @@ class UserResolver {
 
   @Query(() => [User])
   async usersHidden(@Args() args: PaginationArgs) {
-    const repository = this.connection.getRepository(User)
-    return repository.find({
+    return (await this.userService.userRepository()).find({
       where: {
         active: false,
       },
@@ -90,8 +91,7 @@ class UserResolver {
 
   @Query(() => [User])
   async usersById(@Args() args: UsersByIdArgs) {
-    const repository = this.connection.getRepository(User)
-    return repository
+    return (await this.userService.userRepository())
       .createQueryBuilder()
       .where('LOWER("User".id) LIKE :id', {
         id: `%${args.id.toLowerCase()}%`,
@@ -104,9 +104,8 @@ class UserResolver {
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
   async userById(@Args('id', { type: () => String }) id: string) {
-    const repository = this.connection.getRepository(User)
-    return repository.findOne({
-      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
+    return (await this.userService.userRepository()).findOne({
+      where: { id: `LOWER("User".id) = '${id.toLowerCase()}'` },
     })
   }
 
@@ -121,11 +120,12 @@ class UserResolver {
   async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-    const repository = this.connection.getRepository(User)
-    const user = await repository.findOne({
-      where: `LOWER("User".id) = '${args.id.toLowerCase()}'`,
+    const user = await (
+      await this.userService.userRepository()
+    ).findOne({
+      where: { id: `LOWER("User".id) = '${args.id.toLowerCase()}'` },
     })
-    await repository
+    await (await this.userService.userRepository())
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
@@ -139,10 +139,9 @@ class UserResolver {
 
   @ResolveField()
   async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    const { id } = user
-    const repository = this.connection.getRepository(Wiki)
-    return repository.find({
-      where: { user: id, hidden: false },
+    const wikiRepo = this.dataSource.getRepository(Wiki)
+    return wikiRepo.find({
+      where: { user, hidden: false },
       take: args.limit,
       skip: args.offset,
       order: {
@@ -153,22 +152,24 @@ class UserResolver {
 
   @ResolveField()
   async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    return queryWikisCreated(user, args.limit, args.offset)
+    const repo = this.dataSource.getRepository(Activity)
+    return queryWikisCreated(user, args.limit, args.offset, repo)
   }
 
   @ResolveField()
   async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    return queryWikisEdited(user, args.limit, args.offset)
+    const repo = this.dataSource.getRepository(Activity)
+    return queryWikisEdited(user, args.limit, args.offset, repo)
   }
 
   @ResolveField(() => UserProfile)
   async profile(@Parent() user: IUser) {
     const { id } = user
-    const repository = this.connection.getRepository(UserProfile)
-    return repository.findOne({
-      where: `LOWER(id) = '${id.toLowerCase()}'`,
+    return (await this.userService.profileRepository()).findOne({
+      where: { id: `LOWER(id) = '${id.toLowerCase()}'` },
     })
   }
 }
+
 
 export default UserResolver

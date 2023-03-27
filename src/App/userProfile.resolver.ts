@@ -13,6 +13,7 @@ import {
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import { DataSource } from 'typeorm'
+import Activity from '../Database/Entities/activity.entity'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
