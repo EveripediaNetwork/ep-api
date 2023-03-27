@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm'
+import { Entity, JoinTable, ManyToMany, PrimaryColumn, Relation } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { IWiki } from './types/IWiki'
@@ -18,7 +18,7 @@ class Tag implements ITag {
   @Field(() => [Wiki])
   @ManyToMany('Wiki', 'tags')
   @JoinTable()
-  wikis!: IWiki[]
+  wikis!: Relation<IWiki>[]
 }
 
 export default Tag
