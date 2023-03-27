@@ -7,6 +7,7 @@ import {
   OneToMany,
   OneToOne,
   PrimaryColumn,
+  Relation,
 } from 'typeorm'
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 
@@ -26,18 +27,18 @@ class User implements IUser {
   id!: string
 
   @Field(() => UserProfile, { nullable: true })
-  @OneToOne(() => UserProfile, { eager: true })
+  @OneToOne(() => UserProfile, profile => profile.id, { eager: true })
   @JoinColumn()
   @Index('idx_user_profileId')
-  profile!: UserProfile
+  profile!: Relation<UserProfile>
 
   @Field(() => Boolean)
   @Column('boolean', { default: true })
   active!: boolean
 
   @Field(() => [Wiki])
-  @OneToMany('Wiki', 'user', { lazy: true })
-  wikis!: IWiki[]
+  @OneToMany(() => Wiki, wiki => wiki.user, { lazy: true })
+  wikis!: Relation<IWiki>[]
 
   @Field(() => [Activity])
   wikisCreated!: Activity[]
