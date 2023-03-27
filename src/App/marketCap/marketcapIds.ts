@@ -89,6 +89,7 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'nervos-network', wikiId: 'nervos' },
   { coingeckoId: 'everipedia', wikiId: 'iq' },
   { coingeckoId: 'iexec-rlc', wikiId: 'iexec' },
+  { coingeckoId: 'kucoin-shares', wikiId: 'kucoin' },
   { coingeckoId: 'pha', wikiId: 'phala-network' },
   { coingeckoId: 'mxc', wikiId: 'mxc-foundation' },
   { coingeckoId: 'chromaway', wikiId: 'chromia' },
