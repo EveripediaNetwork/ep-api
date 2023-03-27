@@ -45,9 +45,3 @@ export class AdminLogPayload {
 
   status?: boolean
 }
-
-
-
-
-
-
