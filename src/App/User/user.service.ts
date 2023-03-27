@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
 import { DataSource, Repository } from 'typeorm'
-import UserProfile from '../Database/Entities/userProfile.entity'
-import TokenValidator from './utils/validateToken'
-import User from '../Database/Entities/user.entity'
+import UserProfile from '../../Database/Entities/userProfile.entity'
+import User from '../../Database/Entities/user.entity'
+import TokenValidator from '../utils/validateToken'
+import { UsersByEditArgs, UsersByIdArgs } from './user.dto'
+import PaginationArgs from '../pagination.args'
 
 @Injectable()
 class UserService {
@@ -127,6 +129,51 @@ class UserService {
     const newProfile = await createProfile()
     await createUser(newProfile)
     return newProfile
+  }
+
+  async getUser(id: string): Promise<User | null> {
+    return (await this.userRepository()).findOne({
+      where: { id: `LOWER("User".id) = '${id.toLowerCase()}'` },
+    })
+  }
+
+  async getUserProfile(id: string): Promise<UserProfile | null> {
+    return (await this.profileRepository()).findOne({
+      where: { id: `LOWER(id) = '${id.toLowerCase()}'` },
+    })
+  }
+
+  async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {
+    return (await this.userRepository())
+      .createQueryBuilder()
+      .where('LOWER("User".id) LIKE :id', {
+        id: `%${args.id.toLowerCase()}%`,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .getMany()
+  }
+
+  async getUsersHidden(args: PaginationArgs): Promise<User[] | null> {
+    return (await this.userRepository()).find({
+      where: {
+        active: false,
+      },
+      take: args.limit,
+      skip: args.offset,
+    })
+  }
+
+  async getUsersByEdits(args: UsersByEditArgs): Promise<User[] | null> {
+    return (await this.userRepository())
+      .createQueryBuilder('user')
+      .innerJoin('activity', 'a', 'a."userId" = "user"."id"')
+      .innerJoin('wiki', 'w', 'w."id" = a."wikiId"')
+      .where('w."hidden" = false')
+      .groupBy('"user"."id"')
+      .limit(args.limit)
+      .offset(args.offset)
+      .getMany()
   }
 }
 

@@ -11,17 +11,17 @@ import {
 import { DataSource } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import Wiki from '../Database/Entities/wiki.entity'
-import { IWiki } from '../Database/Entities/types/IWiki'
-import Activity from '../Database/Entities/activity.entity'
-import { Author } from '../Database/Entities/types/IUser'
-import AuthGuard from './utils/admin.guard'
-import { SlugResult } from './utils/validSlug'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { IWiki } from '../../Database/Entities/types/IWiki'
+import Activity from '../../Database/Entities/activity.entity'
+import { Author } from '../../Database/Entities/types/IUser'
+import AuthGuard from '../utils/admin.guard'
+import { SlugResult } from '../utils/validSlug'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from './revalidatePage/revalidatePage.service'
-import AdminLogsInterceptor from './utils/adminLogs.interceptor'
+} from '../revalidatePage/revalidatePage.service'
+import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
   CategoryArgs,

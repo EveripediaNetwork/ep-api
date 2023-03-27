@@ -15,7 +15,7 @@ import { Validate } from 'class-validator'
 import Activity from '../Database/Entities/activity.entity'
 import Tag from '../Database/Entities/tag.entity'
 import Wiki from '../Database/Entities/wiki.entity'
-import { CategoryArgs } from './wiki.dto'
+import { CategoryArgs } from './Wiki/wiki.dto'
 import ValidStringParams from './utils/customValidator'
 
 @ObjectType()

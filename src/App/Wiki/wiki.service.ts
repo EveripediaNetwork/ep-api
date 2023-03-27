@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
-import Wiki from '../Database/Entities/wiki.entity'
-import { orderWikis, OrderBy, Direction } from './utils/queryHelpers'
-import { ValidSlug, Valid, Slug } from './utils/validSlug'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
+import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
   CategoryArgs,

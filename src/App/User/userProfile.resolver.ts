@@ -13,14 +13,14 @@ import {
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import { DataSource } from 'typeorm'
-import Activity from '../Database/Entities/activity.entity'
-import UserProfile from '../Database/Entities/userProfile.entity'
-import Wiki from '../Database/Entities/wiki.entity'
-import PaginationArgs from './pagination.args'
+import Activity from '../../Database/Entities/activity.entity'
+import UserProfile from '../../Database/Entities/userProfile.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
+import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
-import ValidStringParams from './utils/customValidator'
-import IsActiveGuard from './utils/isActive.guard'
-import { queryWikisCreated, queryWikisEdited } from './utils/queryHelpers'
+import ValidStringParams from '../utils/customValidator'
+import IsActiveGuard from '../utils/isActive.guard'
+import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
 
 @ArgsType()
 class GetProfileArgs {
