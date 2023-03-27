@@ -9,7 +9,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { Validate } from 'class-validator'
 import Activity from '../Database/Entities/activity.entity'
@@ -64,13 +64,13 @@ class UserArgs extends DateArgs {
 @Resolver(() => Activity)
 class StatsResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Query(() => [WikiStats])
   async wikisCreated(@Args() args: IntervalArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select(`Count(*)`, 'amount')
@@ -90,7 +90,7 @@ class StatsResolver {
 
   @Query(() => [WikiStats])
   async wikisEdited(@Args() args: IntervalArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select(`Count(*)`, 'amount')
@@ -110,7 +110,7 @@ class StatsResolver {
 
   @Query(() => WikiUserStats)
   async wikisCreatedByUser(@Args() args: UserArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
@@ -129,7 +129,7 @@ class StatsResolver {
 
   @Query(() => WikiUserStats)
   async wikisEditedByUser(@Args() args: UserArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select('activity.userId', 'address')
@@ -148,7 +148,7 @@ class StatsResolver {
 
   @Query(() => Count)
   async editorCount(@Args() args: DateArgs) {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
       .select(`Count(distinct activity."userId")`, 'amount')
@@ -163,7 +163,7 @@ class StatsResolver {
 
   @Query(() => Count)
   async pageViewsCount(@Args() args: DateArgs) {
-    const repository = this.connection.getRepository(Wiki)
+    const repository = this.dataSource.getRepository(Wiki)
     const response = await repository
       .createQueryBuilder('wiki')
       .select(`Sum("views")`, 'amount')
@@ -176,7 +176,7 @@ class StatsResolver {
 
   @Query(() => [Tag])
   async tagsPopular(@Args() args: DateArgs) {
-    const repository = this.connection.getRepository(Tag)
+    const repository = this.dataSource.getRepository(Tag)
     return repository.query(
       `
         SELECT "tagId" as id, COUNT(*) AS amount
@@ -194,7 +194,7 @@ class StatsResolver {
   async categoryTotal(@Args() args: CategoryArgs) {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const repository = this.connection.getRepository(Wiki)
+    const repository = this.dataSource.getRepository(Wiki)
     const response = await repository
       .createQueryBuilder('wiki')
       .select(`Count(wiki.id)`, 'amount')
