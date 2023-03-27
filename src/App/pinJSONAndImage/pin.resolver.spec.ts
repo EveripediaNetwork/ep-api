@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { getMockRes } from '@jest-mock/express'
@@ -45,7 +45,7 @@ describe('PinResolver', () => {
         MetadataChangesService,
         ActivityService,
         {
-          provide: Connection,
+          provide: DataSource,
           useValue: {
             key: '',
             secret: '',
@@ -53,7 +53,7 @@ describe('PinResolver', () => {
         },
         IPFSValidatorService,
         {
-          provide: Connection,
+          provide: DataSource,
           useValue: {
             key: '',
             secret: '',
