@@ -17,6 +17,6 @@ jobs:
             cd ep-api
             git pull
             yarn
-            yarn build
+            yarn build:swc
             /home/ubuntu/.yarn/bin/pm2 update
             

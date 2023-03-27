@@ -1,5 +1,5 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { CACHE_MANAGER, Inject } from '@nestjs/common'
 import Subscription from '../../Database/Entities/IqSubscription'
@@ -22,22 +22,22 @@ const SLEEP_TIME_QUERY = 10000
 })
 class NotificationsCommand implements CommandRunner {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private mailer: MailService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getPedingNotifications() {
-    const repository = this.connection.getRepository(Notification)
+    const repository = this.dataSource.getRepository(Notification)
     return repository.find({
-      pending: true,
+      where: { pending: true },
     })
   }
 
   async getUsersSubscribed(wiki: string) {
-    const repository = this.connection.getRepository(Subscription)
+    const repository = this.dataSource.getRepository(Subscription)
     return repository.find({
-      auxiliaryId: wiki,
+      where: { auxiliaryId: wiki },
     })
   }
 
@@ -57,7 +57,7 @@ class NotificationsCommand implements CommandRunner {
   }
 
   private async getMoreWikis() {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const id = 'latestActivity'
 
     const moreWikis = await this.cacheManager.get(id)
@@ -98,10 +98,12 @@ class NotificationsCommand implements CommandRunner {
     }
 
     for (const update of pending) {
-      const notificationRepository = this.connection.getRepository(Notification)
-      const wikiRepository = this.connection.getRepository(Wiki)
-      const userRepository = this.connection.getRepository(UserProfile)
-      const wiki = await wikiRepository.findOneOrFail({ id: update.auxId })
+      const notificationRepository = this.dataSource.getRepository(Notification)
+      const wikiRepository = this.dataSource.getRepository(Wiki)
+      const userRepository = this.dataSource.getRepository(UserProfile)
+      const wiki = await wikiRepository.findOneOrFail({
+        where: { id: update.auxId },
+      })
       const users = await this.getUsersSubscribed(update.auxId)
       const moreWikis = await this.getMoreWikis()
 
@@ -115,7 +117,7 @@ class NotificationsCommand implements CommandRunner {
       for (const user of users) {
         const random = this.randomWikis(4, moreWikis, wiki.id)
         const { email } = await userRepository.findOneOrFail({
-          id: user.userId,
+          where: { id: user.userId },
         })
         try {
           const status = await this.mailer.sendIqUpdate(

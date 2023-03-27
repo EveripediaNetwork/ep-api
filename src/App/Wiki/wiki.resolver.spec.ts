@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import { HttpModule } from '@nestjs/axios'
 import { CacheModule } from '@nestjs/common'
@@ -12,10 +12,10 @@ import {
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
-import { getProviders, ProviderEnum } from './utils/testHelpers'
-import Language from '../Database/Entities/language.entity'
-import User from '../Database/Entities/user.entity'
-import Wiki from '../Database/Entities/wiki.entity'
+import { getProviders, ProviderEnum } from '../utils/testHelpers'
+import Language from '../../Database/Entities/language.entity'
+import User from '../../Database/Entities/user.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 jest.mock('fs')
 
@@ -407,7 +407,7 @@ describe('WikiResolver', () => {
           ProviderEnum.revalidatePageService,
         ]),
         {
-          provide: Connection,
+          provide: DataSource,
           useFactory: () => ({
             findWiki: jest.fn(() => wiki),
           }),

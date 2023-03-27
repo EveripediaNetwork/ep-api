@@ -11,7 +11,9 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import AppModule from './App/app.module'
 
 async function bootstrap() {
-  let app = await NestFactory.create<NestExpressApplication>(AppModule)
+  let app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    abortOnError: false,
+  })
 
   const configService = app.get(ConfigService)
 

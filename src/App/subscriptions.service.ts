@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Connection } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import IqSubscription from '../Database/Entities/IqSubscription'
 import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 import TokenValidator from './utils/validateToken'
@@ -7,15 +7,18 @@ import TokenValidator from './utils/validateToken'
 @Injectable()
 class WikiSubscriptionService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private tokenValidator: TokenValidator,
   ) {}
 
+  async repository(): Promise<Repository<IqSubscription>> {
+    return this.dataSource.getRepository(IqSubscription)
+  }
+
   private async findSub(
     args: WikiSubscriptionArgs,
-  ): Promise<IqSubscription | undefined> {
-    const repository = this.connection.getRepository(IqSubscription)
-    return repository.findOne({
+  ): Promise<IqSubscription | null> {
+    return (await this.repository()).findOne({
       where: {
         userId: args.userId,
         subscriptionType: args.subscriptionType,
@@ -28,11 +31,10 @@ class WikiSubscriptionService {
     token: string,
     id: string,
   ): Promise<IqSubscription[] | boolean> {
-    const repository = this.connection.getRepository(IqSubscription)
     if (!this.tokenValidator.validateToken(token, id, false)) {
       return false
     }
-    return repository.find({
+    return (await this.repository()).find({
       where: {
         userId: id,
       },
@@ -43,14 +45,12 @@ class WikiSubscriptionService {
     token: string,
     args: WikiSubscriptionArgs,
   ): Promise<IqSubscription | boolean> {
-    const repository = this.connection.getRepository(IqSubscription)
-
     if (!this.tokenValidator.validateToken(token, args.userId, false)) {
       return false
     }
     if (await this.findSub(args)) return true
-    const newSub = repository.create(args)
-    return repository.save(newSub)
+    const newSub = (await this.repository()).create(args)
+    return (await this.repository()).save(newSub)
   }
 
   async removeSub(
@@ -58,11 +58,10 @@ class WikiSubscriptionService {
     id: string,
     args: WikiSubscriptionArgs,
   ): Promise<boolean> {
-    const repository = this.connection.getRepository(IqSubscription)
     if (!this.tokenValidator.validateToken(token, id, false)) {
       return false
     }
-    await repository
+    await (await this.repository())
       .createQueryBuilder()
       .delete()
       .from(IqSubscription)

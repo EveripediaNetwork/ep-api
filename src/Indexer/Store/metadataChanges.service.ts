@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import diff from 'fast-diff'
 import {
   calculateWikiScore,
@@ -16,12 +16,11 @@ export type ValidatorResult = {
 
 @Injectable()
 class MetadataChangesService {
-  constructor(private connection: Connection) {}
+  constructor(private dataSource: DataSource) {}
 
-  private async findWiki(id: string): Promise<Wiki | undefined> {
-    const wikiRepository = this.connection.getRepository(Wiki)
-    const c = await wikiRepository.findOne(id)
-    return c
+  private async findWiki(id: string): Promise<Wiki | null> {
+    const wikiRepository = this.dataSource.getRepository(Wiki)
+    return wikiRepository.findOneBy({ id })
   }
 
   async removeEditMetadata(data: WikiType): Promise<WikiType> {

@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import WikiSubscriptionService from './subscriptions.service'
 import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
 import IqSubscription from '../Database/Entities/IqSubscription'
@@ -16,7 +16,7 @@ import Wiki from '../Database/Entities/wiki.entity'
 @Resolver(() => IqSubscription)
 class WikiSubscriptionResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private wikiSubscriptionService: WikiSubscriptionService,
   ) {}
 
@@ -54,8 +54,8 @@ class WikiSubscriptionResolver {
   @ResolveField(() => Wiki)
   async wiki(@Parent() wiki: WikiSubscriptionArgs) {
     const { auxiliaryId } = wiki
-    const repository = this.connection.getRepository(Wiki)
-    return repository.findOne({ id: auxiliaryId })
+    const repository = this.dataSource.getRepository(Wiki)
+    return repository.findOneBy({ id: auxiliaryId })
   }
 }
 

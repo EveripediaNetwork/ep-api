@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import {
   Injectable,
   NestInterceptor,
@@ -11,26 +10,9 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 import { Cache } from 'cache-manager'
-import WebhookHandler, { ActionTypes } from './discordWebhookHandler'
 import TokenValidator from './validateToken'
-
-export class AdminLogPayload {
-  address!: string
-
-  endpoint!: string
-
-  id!: string
-
-  status?: boolean
-}
-
-export enum AdminMutations {
-  PROMOTE_WIKI = 'promoteWiki',
-  HIDE_WIKI = 'hideWiki',
-  UNHIDE_WIKI = 'unhideWiki',
-  REVALIDATE_PAGE = 'revalidatePage',
-  TOGGLE_USER_STATE = 'toggleUserStateById',
-}
+import { ActionTypes, AdminLogPayload, AdminMutations } from './utilTypes'
+import WebhookHandler from './discordWebhookHandler'
 
 @Injectable()
 export default class AdminLogsInterceptor implements NestInterceptor {

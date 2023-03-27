@@ -1,29 +1,26 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable import/no-cycle */
+import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
-import { Connection } from 'typeorm'
-import { ContentStoreObject } from '../content-feedback/contentFeedback.service'
-import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
-import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
-import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 import Wiki from '../../Database/Entities/wiki.entity'
-
-export enum ActionTypes {
-  FLAG_WIKI = 'flagwiki',
-  PINJSON_ERROR = 'pinJSON',
-  ADMIN_ACTION = 'adminAction',
-  CONTENT_FEEDBACK = 'contentFeedback',
-}
+import {
+  ActionTypes,
+  AdminLogPayload,
+  AdminMutations,
+  ContentStoreObject,
+  FlagWikiWebhook,
+  WikiWebhookError,
+} from './utilTypes'
 
 @Injectable()
 export default class WebhookHandler {
   constructor(
+    private dataSourece: DataSource,
     private configService: ConfigService,
-    private connection: Connection,
     private readonly httpService: HttpService,
   ) {}
 
@@ -56,15 +53,15 @@ export default class WebhookHandler {
     adminLog?: AdminLogPayload,
     contentStoreObject?: ContentStoreObject,
   ) {
-    const wikirepository = this.connection.getRepository(Wiki)
-    const userRepository = this.connection.getRepository(UserProfile)
     const boundary = this.makeId(10)
     const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
     const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
+    const wikiRepo = this.dataSourece.getRepository(Wiki)
+    const userProfileRepo = this.dataSourece.getRepository(UserProfile)
 
     if (actionType === ActionTypes.ADMIN_ACTION) {
-      const user = await userRepository.findOne({
-        where: `LOWER(id) = '${adminLog?.address.toLowerCase()}'`,
+      const user = await userProfileRepo.findOne({
+        where: { id: `LOWER(id) = '${adminLog?.address.toLowerCase()}'` },
       })
 
       let adminUser
@@ -128,7 +125,9 @@ export default class WebhookHandler {
       await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
-      const user = await userRepository.findOne(flagWiki?.userId)
+      const user = await userProfileRepo.findOneBy({
+        id: flagWiki?.userId,
+      })
 
       const jsonContent = JSON.stringify({
         username: 'EP Report',
@@ -197,7 +196,7 @@ export default class WebhookHandler {
         })
     }
     if (actionType === ActionTypes.CONTENT_FEEDBACK) {
-      const wiki = await wikirepository.find({
+      const wiki = await wikiRepo.find({
         select: ['title'],
         where: {
           id: contentStoreObject?.wikiId,
@@ -210,9 +209,9 @@ export default class WebhookHandler {
         const a = contentStoreObject.ip.split('.')
         user = `${a[0]}.${a[1]}.${a[2]}.*`
       } else {
-        const userProfile = await userRepository.findOne(
-          contentStoreObject?.userId,
-        )
+        const userProfile = await userProfileRepo.findOneBy({
+          id: contentStoreObject?.userId,
+        })
         user = userProfile?.username || 'anonymous'
       }
 
@@ -290,5 +289,12 @@ export default class WebhookHandler {
       )
     }
     return true
+  }
+
+  async postPinJSONException(errorMessage: string, data: WikiType) {
+    return this.postWebhook(ActionTypes.PINJSON_ERROR, undefined, {
+      errorMessage,
+      data,
+    })
   }
 }

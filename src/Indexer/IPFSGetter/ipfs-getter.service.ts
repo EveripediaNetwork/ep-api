@@ -11,9 +11,14 @@ class IPFSGetterService {
   ) {}
 
   async getIPFSDataFromHash(hash: string): Promise<WikiType> {
-    const response = await this.httpService
-      .get(this.configService.get('ipfsUrl') + hash)
-      .toPromise()
+    let response
+    try {
+      response = await this.httpService
+        .get(this.configService.get('ipfsUrl') + hash)
+        .toPromise()
+    } catch (err) {
+      console.error('IpfsHash ERROR', JSON.stringify(err, null, 2))
+    }
     return response?.data
   }
 }

@@ -8,20 +8,20 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import Wiki from '../Database/Entities/wiki.entity'
-import { IWiki } from '../Database/Entities/types/IWiki'
-import Activity from '../Database/Entities/activity.entity'
-import { Author } from '../Database/Entities/types/IUser'
-import AuthGuard from './utils/admin.guard'
-import { SlugResult } from './utils/validSlug'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { IWiki } from '../../Database/Entities/types/IWiki'
+import Activity from '../../Database/Entities/activity.entity'
+import { Author } from '../../Database/Entities/types/IUser'
+import AuthGuard from '../utils/admin.guard'
+import { SlugResult } from '../utils/validSlug'
 import {
   RevalidatePageService,
   RevalidateEndpoints,
-} from './revalidatePage/revalidatePage.service'
-import AdminLogsInterceptor from './utils/adminLogs.interceptor'
+} from '../revalidatePage/revalidatePage.service'
+import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
   CategoryArgs,
@@ -37,7 +37,7 @@ import WikiService from './wiki.service'
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
@@ -144,7 +144,7 @@ class WikiResolver {
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const res = await repository.query(`SELECT "userId", u.* 
         FROM activity
         LEFT JOIN "user_profile" u ON u."id" = "userId"

@@ -12,30 +12,11 @@ import {
   GraphQLISODateTime,
   ID,
   ObjectType,
-  FieldMiddleware,
-  MiddlewareContext,
-  NextFn,
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
 import Activity from './activity.entity'
 import Wiki from './wiki.entity'
-
-export const skipMiddleware: FieldMiddleware = async (
-  ctx: MiddlewareContext,
-  next: NextFn,
-) => {
-  const value = await next()
-  const allowedEndpoints = ['userById', 'getProfile', 'getProfileLikeUsername']
-  const { prev } = ctx.info.path
-  const allowed = allowedEndpoints.some(
-    endpoint =>
-      endpoint === `${prev?.prev?.key}` || endpoint === `${prev?.key}`,
-  )
-  if (!allowed) {
-    return null
-  }
-  return value
-}
+import skipMiddleware from './middlewares/skipMiddleware'
 
 @ObjectType()
 @Entity()

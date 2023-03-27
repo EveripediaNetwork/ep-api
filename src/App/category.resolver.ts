@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection, MoreThan } from 'typeorm'
+import { DataSource, MoreThan } from 'typeorm'
 import { MinLength, Validate } from 'class-validator'
 import Category from '../Database/Entities/category.entity'
 import PaginationArgs from './pagination.args'
@@ -25,11 +25,11 @@ class TitleArgs {
 
 @Resolver(() => Category)
 class CategoryResolver {
-  constructor(private connection: Connection) {}
+  constructor(private dataSource: DataSource) {}
 
   @Query(() => [Category])
   async categories(@Args() args: PaginationArgs) {
-    const repository = this.connection.getRepository(Category)
+    const repository = this.dataSource.getRepository(Category)
     return repository.find({
       take: args.limit,
       skip: args.offset,
@@ -43,15 +43,15 @@ class CategoryResolver {
   }
 
   @Query(() => Category, { nullable: true })
-  async categoryById(@Args('id', { type: () => String }) id: number) {
-    const repository = this.connection.getRepository(Category)
-    return repository.findOne(id)
+  async categoryById(@Args('id', { type: () => String }) id: string) {
+    const repository = this.dataSource.getRepository(Category)
+    return repository.findOneBy({ id })
   }
 
   @ResolveField()
   async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
     const { id } = category
-    const repository = this.connection.getRepository(Wiki)
+    const repository = this.dataSource.getRepository(Wiki)
 
     return repository
       .createQueryBuilder('wiki')
@@ -67,7 +67,7 @@ class CategoryResolver {
 
   @Query(() => [Category])
   async categoryByTitle(@Args() args: TitleArgs) {
-    const repository = this.connection.getRepository(Category)
+    const repository = this.dataSource.getRepository(Category)
 
     return repository
       .createQueryBuilder()

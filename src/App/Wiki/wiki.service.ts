@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Connection, MoreThan, Repository } from 'typeorm'
-import Wiki from '../Database/Entities/wiki.entity'
-import { orderWikis, OrderBy, Direction } from './utils/queryHelpers'
-import { ValidSlug, Valid, Slug } from './utils/validSlug'
+import { DataSource, MoreThan, Repository } from 'typeorm'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
+import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
   CategoryArgs,
@@ -17,17 +17,17 @@ import {
 @Injectable()
 class WikiService {
   constructor(
-    private connection: Connection,
     private configService: ConfigService,
     private validSlug: ValidSlug,
+    private dataSource: DataSource,
   ) {}
-
-  async repository(): Promise<Repository<Wiki>> {
-    return this.connection.getRepository(Wiki)
-  }
 
   private getWebpageUrl() {
     return this.configService.get<string>('WEBSITE_URL') || ''
+  }
+
+  async repository(): Promise<Repository<Wiki>> {
+    return this.dataSource.getRepository(Wiki)
   }
 
   async wikisIds() {
@@ -39,19 +39,17 @@ class WikiService {
     })
   }
 
-  async findWiki(args: ByIdArgs): Promise<Wiki | undefined> {
-    return (await this.repository()).findOne({
-      where: {
-        language: args.lang,
-        id: args.id,
-      },
+  async findWiki(args: ByIdArgs): Promise<Wiki | null> {
+    return (await this.repository()).findOneBy({
+      language: { id: args.lang },
+      id: args.id,
     })
   }
 
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {
     return (await this.repository()).find({
       where: {
-        language: args.lang,
+        language: { id: args.lang },
         hidden: false,
       },
       cache: {
@@ -67,7 +65,7 @@ class WikiService {
   async getPromotedWikis(args: LangArgs): Promise<Wiki[] | []> {
     return (await this.repository()).find({
       where: {
-        language: args.lang,
+        language: { id: args.lang },
         promoted: MoreThan(0),
         hidden: false,
       },
@@ -170,7 +168,7 @@ class WikiService {
   async getWikisHidden(args: LangArgs): Promise<Wiki[] | []> {
     return (await this.repository()).find({
       where: {
-        language: args.lang,
+        language: { id: args.lang },
         hidden: true,
       },
       take: args.limit,
@@ -199,8 +197,8 @@ class WikiService {
     return links
   }
 
-  async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | undefined> {
-    const wiki = (await this.repository()).findOne(args.id)
+  async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
+    const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
@@ -210,8 +208,8 @@ class WikiService {
     return wiki
   }
 
-  async hideWiki(args: ByIdArgs): Promise<Wiki | undefined> {
-    const wiki = (await this.repository()).findOne(args.id)
+  async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
+    const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
@@ -221,8 +219,8 @@ class WikiService {
     return wiki
   }
 
-  async unhideWiki(args: ByIdArgs): Promise<Wiki | undefined> {
-    const wiki = (await this.repository()).findOne(args.id)
+  async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
+    const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)

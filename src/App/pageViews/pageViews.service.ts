@@ -1,6 +1,6 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 
@@ -12,12 +12,12 @@ interface WikiViewed {
 @Injectable()
 class PageViewsService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private async updatePageViewPerDay(id: string) {
-    const repository = this.connection.getRepository(PageviewsPerDay)
+    const repository = this.dataSource.getRepository(PageviewsPerDay)
     const date = new Date()
     const perDayWikiPageView = await repository.findOne({
       where: { wikiId: id, day: date },
@@ -40,7 +40,7 @@ class PageViewsService {
   }
 
   async updateCount(id: string, ip: string): Promise<number> {
-    const wikiRepository = this.connection.getRepository(Wiki)
+    const wikiRepository = this.dataSource.getRepository(Wiki)
     const cached: WikiViewed | undefined = await this.cacheManager.get(id)
 
     if (cached) {

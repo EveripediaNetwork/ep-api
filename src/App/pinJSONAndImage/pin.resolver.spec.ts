@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 
 import { getMockRes } from '@jest-mock/express'
@@ -11,7 +11,7 @@ import { HttpModule } from '@nestjs/axios'
 import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
-import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
+// import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import ActivityService from '../Activities/activity.service'
@@ -40,12 +40,12 @@ describe('PinResolver', () => {
             secret: '',
           },
         },
-        PinJSONErrorWebhook,
+        // PinJSONErrorWebhook,
         WebhookHandler,
         MetadataChangesService,
         ActivityService,
         {
-          provide: Connection,
+          provide: DataSource,
           useValue: {
             key: '',
             secret: '',
@@ -53,7 +53,7 @@ describe('PinResolver', () => {
         },
         IPFSValidatorService,
         {
-          provide: Connection,
+          provide: DataSource,
           useValue: {
             key: '',
             secret: '',

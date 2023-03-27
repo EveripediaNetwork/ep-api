@@ -41,7 +41,7 @@ jobs:
         run: yarn lint
 
       - name: Build
-        run: yarn build
+        run: yarn build:swc
 
       - name: Tests
         run: yarn test
@@ -57,5 +57,5 @@ jobs:
             cd ep-api
             git pull
             yarn
-            yarn build
+            yarn build:swc
             pm2 update

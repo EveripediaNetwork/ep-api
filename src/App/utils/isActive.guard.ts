@@ -6,18 +6,18 @@ import {
   CanActivate,
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
-import { Connection } from 'typeorm'
 import { GqlExecutionContext } from '@nestjs/graphql'
+import { DataSource } from 'typeorm'
 import User from '../../Database/Entities/user.entity'
 
 @Injectable()
 export default class IsActiveGuard implements CanActivate {
-  constructor(private connection: Connection) {}
+  constructor(private dataSource: DataSource) {}
 
   private async authorizeUser(id: string) {
-    const repository = this.connection.getRepository(User)
+    const repository = this.dataSource.getRepository(User)
     const user = await repository.findOne({
-      where: `LOWER("User".id) = '${id.toLowerCase()}'`,
+      where: { id: `LOWER("User".id) = '${id.toLowerCase()}'` },
     })
 
     if (user?.active || !user) {

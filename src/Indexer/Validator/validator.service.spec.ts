@@ -9,7 +9,7 @@ import {
   EventType,
 } from '@everipedia/iq-utils'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 
 import IPFSValidatorService, { ValidatorResult } from './validator.service'
 
@@ -106,7 +106,7 @@ describe('PinResolver', () => {
       providers: [
         IPFSValidatorService,
         {
-          provide: Connection,
+          provide: DataSource,
           useFactory: mockConnection,
         },
       ],

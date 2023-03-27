@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Validate } from 'class-validator'
 import Tag from '../Database/Entities/tag.entity'
 import PaginationArgs from './pagination.args'
@@ -24,11 +24,11 @@ class TagIDArgs extends PaginationArgs {
 
 @Resolver(() => Tag)
 class TagResolver {
-  constructor(private connection: Connection) {}
+  constructor(private dataSource: DataSource) {}
 
   @Query(() => [Tag])
   async tags(@Args() args: PaginationArgs) {
-    const repository = this.connection.getRepository(Tag)
+    const repository = this.dataSource.getRepository(Tag)
     return repository.find({
       take: args.limit,
       skip: args.offset,
@@ -36,15 +36,15 @@ class TagResolver {
   }
 
   @Query(() => Tag, { nullable: true })
-  async tagById(@Args('id', { type: () => String }) id: number) {
-    const repository = this.connection.getRepository(Tag)
-    const tagId = await repository.findOne(id)
+  async tagById(@Args('id', { type: () => String }) id: string) {
+    const repository = this.dataSource.getRepository(Tag)
+    const tagId = await repository.findOneBy({ id })
     return tagId
   }
 
   @Query(() => [Tag])
   async tagsById(@Args() args: TagIDArgs) {
-    const repository = this.connection.getRepository(Tag)
+    const repository = this.dataSource.getRepository(Tag)
     return repository
       .createQueryBuilder('tag')
       .where('LOWER(tag.id) LIKE :id', {
@@ -59,7 +59,7 @@ class TagResolver {
   @ResolveField()
   async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
     const { id } = tag
-    const repository = this.connection.getRepository(Wiki)
+    const repository = this.dataSource.getRepository(Wiki)
 
     return repository
       .createQueryBuilder('wiki')

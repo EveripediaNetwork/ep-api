@@ -6,6 +6,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm'
 
 import {
@@ -40,16 +41,16 @@ class Activity {
   @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
   @Index('idx_activity_userId')
-  user!: User
+  user!: Relation<User>
 
-  @Field()
+  @Field(() => String)
   @Column('varchar')
   wikiId!: string
 
   @Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true, nullable: true })
   @Index('idx_activity_languageId')
-  language!: Language
+  language!: Relation<Language>
 
   @Field(() => Int)
   @Column('integer', { nullable: true })

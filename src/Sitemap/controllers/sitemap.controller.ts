@@ -2,7 +2,7 @@ import { Controller, Get, Response } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SitemapStream, streamToPromise } from 'sitemap'
 import CategoryService from '../../App/category.service'
-import WikiService from '../../App/wiki.service'
+import WikiService from '../../App/Wiki/wiki.service'
 import staticPagesData from '../data/staticPagesData'
 
 @Controller()

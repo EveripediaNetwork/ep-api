@@ -1,5 +1,5 @@
 import { registerEnumType } from '@nestjs/graphql'
-import { getConnection } from 'typeorm'
+import { Repository } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 
 export enum OrderBy {
@@ -57,11 +57,10 @@ export const queryWikisCreated = async (
   user: { id?: string },
   limit: number,
   offset: number,
+  repo: Repository<Activity>,
 ): Promise<Activity[] | undefined> => {
   const { id } = user
-  const repository = getConnection().getRepository(Activity)
-
-  return repository
+  return repo
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
     .where(
@@ -79,10 +78,10 @@ export const queryWikisEdited = async (
   user: { id?: string },
   limit: number,
   offset: number,
+  repo: Repository<Activity>,
 ): Promise<Activity[] | undefined> => {
   const { id } = user
-  const repository = getConnection().getRepository(Activity)
-  return repository.query(`
+  return repo.query(`
     SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
         (
             SELECT "wikiId", Max(datetime) as MaxDate  
