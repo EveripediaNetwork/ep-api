@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CacheModule } from '@nestjs/common'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import PageViewsService from './pageViews.service'
 import PageViewsResolver from './pageViews.resolver'
@@ -41,7 +41,7 @@ describe('PageViewsResolver', () => {
         PageViewsResolver,
         PageViewsService,
         {
-          provide: Connection,
+          provide: DataSource,
           useFactory: () => ({
             updateCount: jest.fn(() => result),
           }),
