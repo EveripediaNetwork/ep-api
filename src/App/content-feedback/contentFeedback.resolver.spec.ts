@@ -1,7 +1,7 @@
 import { HttpModule } from '@nestjs/axios'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CacheModule } from '@nestjs/common'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import ContentFeedbackService from './contentFeedback.service'
 import ContentFeedbackResolver, {
@@ -56,7 +56,7 @@ describe('ContentFeedbackResolver', () => {
           ProviderEnum.contentFeedbackResolver,
         ]),
         {
-          provide: Connection,
+          provide: DataSource,
           useFactory: () => ({
             updateCount: jest.fn(() => result),
           }),
