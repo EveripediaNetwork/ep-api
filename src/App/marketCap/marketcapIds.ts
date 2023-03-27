@@ -112,6 +112,8 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'mirror-protocol', wikiId: 'mirror' },
   { coingeckoId: 'fsn', wikiId: 'fusion' },
   { coingeckoId: 'marcopolo', wikiId: 'map-protocol' },
+  { coingeckoId: 'near', wikiId: 'near-protocol' },
+  { coingeckoId: 'true-usd', wikiId: 'trueusd' },
   { coingeckoId: 'amber', wikiId: 'ambrosus' },
   { coingeckoId: 'deus-finance-2', wikiId: 'deus-finance' },
   {
