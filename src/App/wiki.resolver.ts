@@ -8,7 +8,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../Database/Entities/wiki.entity'
@@ -37,7 +37,7 @@ import WikiService from './wiki.service'
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
@@ -144,7 +144,7 @@ class WikiResolver {
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const res = await repository.query(`SELECT "userId", u.* 
         FROM activity
         LEFT JOIN "user_profile" u ON u."id" = "userId"
