@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
-import { Connection } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -17,7 +17,7 @@ import {
 @Injectable()
 class MarketCapService {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private httpService: HttpService,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -32,7 +32,7 @@ class MarketCapService {
     exceptionIds: typeof nftIds,
     category: string,
   ) {
-    const repository = this.connection.getRepository(Wiki)
+    const repository = this.dataSource.getRepository(Wiki)
     const wiki =
       (await repository
         .createQueryBuilder('wiki')
@@ -42,8 +42,10 @@ class MarketCapService {
         .where(`wiki.id = '${id}' AND wiki.hidden = false`)
         .getOne()) ||
       (await repository.findOne({
-        id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
-        hidden: false,
+        where: {
+          id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
+          hidden: false,
+        },
       }))
 
     return wiki
