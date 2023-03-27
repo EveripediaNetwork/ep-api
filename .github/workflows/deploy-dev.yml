@@ -17,5 +17,5 @@ jobs:
             cd ep-api
             git pull
             yarn
-            yarn build
+            yarn build:swc
             pm2 update
