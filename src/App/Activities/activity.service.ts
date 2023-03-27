@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Connection, Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 import { Author } from '../../Database/Entities/types/IUser'
 import {
@@ -11,17 +11,17 @@ import {
 
 @Injectable()
 class ActivityService {
-  constructor(private connection: Connection) {}
+  constructor(private dataSource: DataSource) {}
 
   async repository(): Promise<Repository<Activity>> {
-    return this.connection.getRepository(Activity)
+    return this.dataSource.getRepository(Activity)
   }
 
   async countUserActivity(
     userId: string,
     intervalInHours: number,
   ): Promise<number> {
-    const repository = this.connection.getRepository(Activity)
+    const repository = this.dataSource.getRepository(Activity)
     const cr = await repository
       .createQueryBuilder('activity')
       .select('COUNT(*)')
@@ -98,7 +98,7 @@ class ActivityService {
       .getMany()
   }
 
-  async getActivitiesById(id: string): Promise<Activity | undefined> {
+  async getActivitiesById(id: string): Promise<Activity | null> {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
@@ -108,7 +108,7 @@ class ActivityService {
 
   async getActivitiesByWikiIdAndBlock(
     args: ByIdAndBlockArgs,
-  ): Promise<Activity | undefined> {
+  ): Promise<Activity | null> {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
