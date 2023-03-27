@@ -45,7 +45,7 @@
     "@nestjs/graphql": "^10.0.21",
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/platform-fastify": "^8.4.5",
-    "@nestjs/typeorm": "^8.0.3",
+    "@nestjs/typeorm": "^9.0.1",
     "@ntegral/nestjs-sentry": "^4.0.0",
     "@pinata/sdk": "^2.1.0",
     "@sentry/minimal": "^6.19.7",
@@ -88,7 +88,7 @@
     "sharp": "^0.30.4",
     "sitemap": "^7.1.1",
     "slugify": "^1.6.5",
-    "typeorm": "^0.2.44",
+    "typeorm": "^0.3.12",
     "web3-token": "^0.2.9",
     "winston": "^3.8.2"
   },
