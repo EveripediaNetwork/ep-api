@@ -1,19 +1,13 @@
-/* eslint-disable import/no-cycle */
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { DataSource } from 'typeorm'
 import ContentFeedback from '../../Database/Entities/contentFeedback.entity'
-import WebhookHandler, { ActionTypes } from '../utils/discordWebhookHandler'
-
-interface ContentFeedbackWebhook {
-  wikiId: string
-  userId?: string
-  choice: boolean
-}
-
-export interface ContentStoreObject extends ContentFeedbackWebhook {
-  ip: string
-}
+import {
+  ActionTypes,
+  ContentFeedbackWebhook,
+  ContentStoreObject,
+} from '../utils/utilTypes'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 @Injectable()
 class ContentFeedbackService {

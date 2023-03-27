@@ -1,23 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable import/no-cycle */
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
-import { ContentStoreObject } from '../content-feedback/contentFeedback.service'
-import { AdminMutations, AdminLogPayload } from './adminLogs.interceptor'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
-import { FlagWikiWebhook } from '../flaggingSystem/flagWiki.service'
-import { WikiWebhookError } from '../pinJSONAndImage/webhookHandler/pinJSONErrorWebhook'
 import Wiki from '../../Database/Entities/wiki.entity'
-
-export enum ActionTypes {
-  FLAG_WIKI = 'flagwiki',
-  PINJSON_ERROR = 'pinJSON',
-  ADMIN_ACTION = 'adminAction',
-  CONTENT_FEEDBACK = 'contentFeedback',
-}
+import {
+  ActionTypes,
+  AdminLogPayload,
+  AdminMutations,
+  ContentStoreObject,
+  FlagWikiWebhook,
+  WikiWebhookError,
+} from './utilTypes'
 
 @Injectable()
 export default class WebhookHandler {
@@ -292,5 +289,12 @@ export default class WebhookHandler {
       )
     }
     return true
+  }
+
+  async postPinJSONException(errorMessage: string, data: WikiType) {
+    return this.postWebhook(ActionTypes.PINJSON_ERROR, undefined, {
+      errorMessage,
+      data,
+    })
   }
 }

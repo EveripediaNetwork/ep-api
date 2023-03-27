@@ -8,9 +8,9 @@ import pinataSDK, { PinataMetadata } from '@pinata/sdk'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
-import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import ActivityService from '../Activities/activity.service'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 @Injectable()
 class PinService {
@@ -19,7 +19,7 @@ class PinService {
     private activityService: ActivityService,
     private validator: IPFSValidatorService,
     private metadataChanges: MetadataChangesService,
-    private readonly pinJSONErrorWebhook: PinJSONErrorWebhook,
+    private readonly pinJSONErrorWebhook: WebhookHandler,
   ) {}
 
   private pinata() {
@@ -61,7 +61,7 @@ class PinService {
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid.status) {
-      this.pinJSONErrorWebhook.postException(isDataValid.message, data)
+      this.pinJSONErrorWebhook.postPinJSONException(isDataValid.message, data)
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,

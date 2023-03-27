@@ -6,7 +6,6 @@ import ActivityService from '../Activities/activity.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import PinResolver from './pin.resolver'
 import PinService from './pin.service'
-import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 
 @Module({
   imports: [HttpModule],
@@ -16,7 +15,6 @@ import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
     ActivityService,
     IPFSValidatorService,
     MetadataChangesService,
-    PinJSONErrorWebhook,
     WebhookHandler,
   ],
 })
