@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios'
 import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
@@ -30,7 +30,7 @@ export interface RevalidateStatus {
 export class RevalidatePageService {
   constructor(
     private httpService: HttpService,
-    private connection: Connection,
+    private dataSource: DataSource,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
@@ -108,7 +108,7 @@ export class RevalidatePageService {
   }
 
   async checkCategory(id: string | undefined): Promise<boolean | undefined> {
-    const wikiRepository = this.connection.getRepository(Wiki)
+    const wikiRepository = this.dataSource.getRepository(Wiki)
     if (!id) {
       return false
     }
