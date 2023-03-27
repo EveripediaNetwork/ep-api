@@ -11,13 +11,13 @@ class IPFSGetterService {
   ) {}
 
   async getIPFSDataFromHash(hash: string): Promise<WikiType> {
-    let response 
+    let response
     try {
-        response = await this.httpService
-      .get(this.configService.get('ipfsUrl') + hash)
-      .toPromise()
+      response = await this.httpService
+        .get(this.configService.get('ipfsUrl') + hash)
+        .toPromise()
     } catch (err) {
-        console.error('IpfsHash ERROR', JSON.stringify(err, null, 2))
+      console.error('IpfsHash ERROR', JSON.stringify(err, null, 2))
     }
     return response?.data
   }

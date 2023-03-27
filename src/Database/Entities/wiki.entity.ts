@@ -12,6 +12,7 @@ import {
   AfterInsert,
   AfterUpdate,
   Index,
+  Relation,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -93,11 +94,11 @@ class Wiki {
 
   @Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true })
-  language!: Language
+  language!: Relation<Language>
 
   @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
-  user!: User
+  user!: Relation<User>
 
   @Field(() => Author, { nullable: true })
   author?: Author
@@ -125,12 +126,12 @@ class Wiki {
   @Field(() => [Tag])
   @ManyToMany(() => Tag, { lazy: true })
   @JoinTable()
-  tags!: Tag[]
+  tags!: Relation<Tag>[]
 
   @Field(() => [Category])
   @ManyToMany(() => Category, { lazy: true })
   @JoinTable()
-  categories!: Category[]
+  categories!: Relation<Category>[]
 
   @AfterLoad()
   @AfterInsert()
