@@ -2,7 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
-import { Connection } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import TokenValidator from './utils/validateToken'
 import User from '../Database/Entities/user.entity'
@@ -10,14 +10,22 @@ import User from '../Database/Entities/user.entity'
 @Injectable()
 class UserService {
   constructor(
+    private dataSource: DataSource,
     private configService: ConfigService,
-    private connection: Connection,
     private tokenValidator: TokenValidator,
   ) {}
 
   private provider() {
     const apiKey = this.configService.get<string>('etherScanApiKey')
     return new ethers.providers.EtherscanProvider('mainnet', apiKey)
+  }
+
+  async userRepository(): Promise<Repository<User>> {
+    return this.dataSource.getRepository(User)
+  }
+
+  async profileRepository(): Promise<Repository<UserProfile>> {
+    return this.dataSource.getRepository(UserProfile)
   }
 
   async validateEnsAddr(
@@ -40,8 +48,6 @@ class UserService {
     profileInfo: string,
     token: string,
   ): Promise<UserProfile | boolean | string> {
-    const profileRepository = this.connection.getRepository(UserProfile)
-    const userRepository = this.connection.getRepository(User)
     const data: UserProfile = JSON.parse(profileInfo)
 
     const id = this.tokenValidator.validateToken(token, data.id, false)
@@ -53,13 +59,17 @@ class UserService {
     ) {
       return false
     }
-    const existsProfile = await profileRepository.findOne(data.id)
-    const existsUser = await userRepository
+    const existsProfile = await (
+      await this.profileRepository()
+    ).findOneBy({
+      id: data.id,
+    })
+    const existsUser = await (await this.userRepository())
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
 
-    const profile = profileRepository.create({
+    const profile = (await this.profileRepository()).create({
       id: data.id,
       username: data.username,
       bio: data.bio,
@@ -72,16 +82,19 @@ class UserService {
     })
 
     const createUser = async (arg?: UserProfile) => {
-      const user = userRepository.create({ id: data.id, profile: arg })
-      await userRepository.save(user)
+      const user = (await this.userRepository()).create({
+        id: data.id,
+        profile: arg,
+      })
+      await (await this.userRepository()).save(user)
       return true
     }
     const createProfile = async () => {
-      const newProfile = await profileRepository.save(profile)
+      const newProfile = await (await this.profileRepository()).save(profile)
       return newProfile
     }
     const updateProfile = async () =>
-      profileRepository
+      (await this.profileRepository())
         .createQueryBuilder()
         .update(UserProfile)
         .set({ ...data })
@@ -96,7 +109,8 @@ class UserService {
 
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
-      userRepository
+
+      await (await this.userRepository())
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
