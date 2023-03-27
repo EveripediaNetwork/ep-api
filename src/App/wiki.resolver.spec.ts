@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import { HttpModule } from '@nestjs/axios'
 import { CacheModule } from '@nestjs/common'
@@ -407,7 +407,7 @@ describe('WikiResolver', () => {
           ProviderEnum.revalidatePageService,
         ]),
         {
-          provide: Connection,
+          provide: DataSource,
           useFactory: () => ({
             findWiki: jest.fn(() => wiki),
           }),

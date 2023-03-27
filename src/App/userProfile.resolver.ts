@@ -12,7 +12,7 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
-import { Connection } from 'typeorm'
+import { DataSource } from 'typeorm'
 import UserProfile from '../Database/Entities/userProfile.entity'
 import Wiki from '../Database/Entities/wiki.entity'
 import PaginationArgs from './pagination.args'
@@ -35,23 +35,25 @@ class GetProfileArgs {
 @Resolver(() => UserProfile)
 class UserProfileResolver {
   constructor(
-    private connection: Connection,
+    private dataSource: DataSource,
     private userService: UserService,
   ) {}
 
   @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs) {
-    const repository = this.connection.getRepository(UserProfile)
-    const profile = await repository.findOne({
-      where: `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
+    const profile = await (
+      await this.userService.userRepository()
+    ).find({
+      where: {
+        id: `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
+      },
     })
     return profile || null
   }
 
   @Query(() => [UserProfile])
   async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    const repository = this.connection.getRepository(UserProfile)
-    return repository
+    return (await this.userService.userRepository())
       .createQueryBuilder('user_profile')
       .where('LOWER(username) LIKE :username', {
         username: `%${args.username?.toLowerCase()}%`,
@@ -74,8 +76,9 @@ class UserProfileResolver {
 
   @Query(() => Boolean)
   async usernameTaken(@Args('username') username: string) {
-    const repository = this.connection.getRepository(UserProfile)
-    const name = await repository.find({
+    const name = await (
+      await this.userService.profileRepository()
+    ).find({
       select: ['username'],
       where: { username },
     })
@@ -87,7 +90,8 @@ class UserProfileResolver {
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
   ) {
-    return queryWikisCreated(user, args.limit, args.offset)
+    const repo = this.dataSource.getRepository(Activity)
+    return queryWikisCreated(user, args.limit, args.offset, repo)
   }
 
   @ResolveField()
@@ -95,14 +99,16 @@ class UserProfileResolver {
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
   ) {
-    return queryWikisEdited(user, args.limit, args.offset)
+    const repo = this.dataSource.getRepository(Activity)
+    return queryWikisEdited(user, args.limit, args.offset, repo)
   }
 
   @ResolveField()
   async active(@Parent() user: GetProfileArgs) {
     const { id } = user
-    const repository = this.connection.getRepository(UserProfile)
-    const a = await repository.query(`SELECT u."active" 
+    const a = await (
+      await this.userService.userRepository()
+    ).query(`SELECT u."active" 
         FROM "user_profile"
         LEFT JOIN "user" u on u."id" = "user_profile"."id"
         WHERE "user_profile"."id" = '${id}'`)
@@ -112,9 +118,9 @@ class UserProfileResolver {
   @ResolveField(() => [Wiki], { nullable: true })
   @Directive('@isUser')
   async wikiSubscriptions(@Parent() user: GetProfileArgs) {
-    const repository = this.connection.getRepository(Wiki)
+    const wikiRepo = this.dataSource.getRepository(Wiki)
     const { id } = user
-    const subs = await repository.query(`
+    const subs = await wikiRepo.query(`
         SELECT wiki.* FROM wiki
         LEFT JOIN "subscription" s on s."auxiliaryId" = wiki.id
         WHERE LOWER(s."userId") = '${id?.toLowerCase()}' AND s."notificationType" = 'wiki' 
