@@ -38,6 +38,7 @@ import ContentFeedback from './Entities/contentFeedback.entity'
           ContentFeedback,
         ],
         synchronize: true,
+        keepConnectionAlive: true,
       }),
       inject: [ConfigService],
     }),
