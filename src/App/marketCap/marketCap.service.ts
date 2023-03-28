@@ -33,20 +33,26 @@ class MarketCapService {
     category: string,
   ) {
     const repository = this.dataSource.getRepository(Wiki)
+    const mapId = exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId
     const wiki =
       (await repository
         .createQueryBuilder('wiki')
-        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-          categoryId: category,
-        })
+        .innerJoinAndSelect(
+          'wiki.categories',
+          'category',
+          'category.id = :categoryId',
+          {
+            categoryId: category,
+          },
+        )
         .where(`wiki.id = '${id}' AND wiki.hidden = false`)
         .getOne()) ||
-      (await repository.findOne({
-        where: {
-          id: exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId,
-          hidden: false,
-        },
-      }))
+      (await repository
+        .createQueryBuilder('wiki')
+        .where(`wiki.id = :id AND wiki.hidden = false`, {
+          id: mapId,
+        })
+        .getOne())
 
     return wiki
   }
@@ -120,7 +126,7 @@ class MarketCapService {
 
     const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds, 'nfts')
-
+      // console.log(wiki?.id)
       if (!wiki) {
         return null
       }
