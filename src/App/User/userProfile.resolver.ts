@@ -42,7 +42,7 @@ class UserProfileResolver {
 
   @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs) {
-    const profile = await(await this.userService.profileRepository())
+    const profile = await (await this.userService.profileRepository())
       .createQueryBuilder('user')
       .where(
         `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
