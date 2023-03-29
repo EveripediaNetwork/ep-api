@@ -53,7 +53,7 @@ class UserProfileResolver {
 
   @Query(() => [UserProfile])
   async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    return (await this.userService.userRepository())
+    return (await this.userService.profileRepository())
       .createQueryBuilder('user_profile')
       .where('LOWER(username) LIKE :username', {
         username: `%${args.username?.toLowerCase()}%`,
