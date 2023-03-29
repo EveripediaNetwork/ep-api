@@ -21,6 +21,7 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
           }
           return event
         },
+        tracesSampleRate: 0.3,
       }),
       inject: [ConfigService],
     }),
