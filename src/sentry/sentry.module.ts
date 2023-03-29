@@ -11,6 +11,7 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
         debug: true,
         environment: cfg.get('NODE_ENV'),
         logLevels: ['debug'],
+        tracesSampleRate: 0.3,
         beforeSend: event => {
           if (
             event.exception &&
@@ -21,7 +22,6 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
           }
           return event
         },
-        tracesSampleRate: 0.3,
       }),
       inject: [ConfigService],
     }),
