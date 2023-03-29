@@ -17,7 +17,7 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
             event.exception?.values &&
             event.exception.values[0].type === 'RangeError'
           ) {
-            console.log(event)
+            console.error(event)
           }
           return event
         },
