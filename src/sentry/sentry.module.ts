@@ -12,16 +12,6 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
         environment: cfg.get('NODE_ENV'),
         logLevels: ['debug'],
         tracesSampleRate: 0.3,
-        beforeSend: event => {
-          if (
-            event.exception &&
-            event.exception?.values &&
-            event.exception.values[0].type === 'RangeError'
-          ) {
-            console.error(event)
-          }
-          return event
-        },
       }),
       inject: [ConfigService],
     }),

@@ -1,7 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common'
+import {
+  BadRequestException,
+  CacheModule,
+  MiddlewareConsumer,
+  Module,
+} from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
@@ -119,7 +124,16 @@ import SentryMod from '../sentry/sentry.module'
     SentryPlugin,
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new GraphqlInterceptor(),
+      useFactory: () =>
+        new GraphqlInterceptor({
+          filters: [
+            {
+              type: BadRequestException,
+              filter: (e: BadRequestException) =>
+                e.message !== 'Invalid parameters',
+            },
+          ],
+        }),
     },
   ],
 })
