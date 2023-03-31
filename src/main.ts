@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
@@ -34,6 +35,10 @@ async function bootstrap() {
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 0.3,
+    // beforeBreadcrumb(breadcrumb, hint) {
+    //   console.log(breadcrumb)
+    //   return breadcrumb
+    // },
     beforeSend: e => {
       if (
         e.exception &&

@@ -89,7 +89,7 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(` activity.userId = :user AND w."hidden" = false`, {
+      .where(`activity.userId = :user AND w."hidden" = false`, {
         user: args.userId,
       })
       .orderBy('activity.datetime', 'DESC')
@@ -120,12 +120,14 @@ class ActivityService {
   }
 
   async resolveAuthor(id: number): Promise<Author> {
-    const res = await (
-      await this.repository()
-    ).query(`SELECT "userId", u.* 
-        FROM activity
-        LEFT JOIN "user_profile" u ON u."id" = "userId"
-        WHERE activity."id" = '${id}' AND "type" = '0'`)
+    const res = await(await this.repository())
+      .createQueryBuilder('activity')
+      .select('activity.userId')
+      .addSelect('u.*')
+      .leftJoin('user_profile', 'u', 'u."id" = activity.userId')
+      .where(`activity.wikiId = '${id}' AND "type" = '0'`)
+      .cache(`author-id-for${id}`, 60000)
+      .execute()
     return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }

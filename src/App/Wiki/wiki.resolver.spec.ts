@@ -399,6 +399,7 @@ describe('WikiResolver', () => {
         ...getProviders([
           ProviderEnum.wikiResolver,
           ProviderEnum.wikiService,
+          ProviderEnum.activityService,
           ProviderEnum.validSlug,
           ProviderEnum.eventEmitter2,
           ProviderEnum.configService,
