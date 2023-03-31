@@ -51,6 +51,7 @@ class Wiki {
     nullable: true,
   })
   @CreateDateColumn()
+  @Index('idx_wiki_created')
   created!: Date
 
   @Field(() => GraphQLISODateTime, {
@@ -58,6 +59,7 @@ class Wiki {
     nullable: true,
   })
   @UpdateDateColumn()
+  @Index('idx_wiki_updated')
   updated!: Date
 
   @Field(() => Int)

@@ -14,7 +14,6 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import NormalActivity from '../../Database/Entities/normalActivity.entity'
 
 @Injectable()
 class DBStoreService {
@@ -30,7 +29,6 @@ class DBStoreService {
     const tagRepository = this.dataSource.getRepository(Tag)
     const categoryRepository = this.dataSource.getRepository(Category)
     const activityRepository = this.dataSource.getRepository(Activity)
-    const normalActivityRepository = this.dataSource.getRepository(NormalActivity)
     const iqSubscriptionRepository =
       this.dataSource.getRepository(IqSubscription)
     const notificationRepository = this.dataSource.getRepository(Notification)
@@ -114,48 +112,11 @@ class DBStoreService {
       ipfs: hash.id,
     }
 
-    const incomingNormalizedActivity = {
-      wikiId: wiki.id,
-      user,
-      content: [
-        {
-          id: wiki.id,
-          title: wiki.title,
-          block: hash.block,
-          //   content: wiki.content,
-          summary: wiki.summary,
-          version: wiki.version,
-          language,
-          user,
-          tags,
-          created: existWiki?.created || new Date(Date.now()),
-          updated: new Date(Date.now()),
-          categories,
-          images: wiki.images,
-        //   media: wiki.media || [],
-          //   metadata: wiki.metadata,
-          transactionHash: hash.transactionHash,
-          ipfs: hash.id,
-        },
-      ],
-      wikiContent: wiki.content,
-      metadata: wiki.metadata,
-      media: wiki.media || [],
-      block: hash.block,
-      language,
-      datetime: new Date(Date.now()),
-      ipfs: hash.id,
-    }
-
     const createActivity = (
       repo: Repository<Activity>,
       data: Partial<Activity>,
     ) => repo.create(data)
 
-    const createNormalActivity = (
-      repo: Repository<NormalActivity>,
-      data: Partial<NormalActivity>,
-    ) => repo.create(data)
 
     if (existWiki && existWiki.content !== wiki.content && existSub) {
       await notificationRepository
@@ -191,13 +152,6 @@ class DBStoreService {
           ...incomingActivity,
           type: Status.UPDATED,
         } as Activity),
-      )
-
-      await normalActivityRepository.save(
-        createNormalActivity(normalActivityRepository, {
-          ...incomingNormalizedActivity,
-          type: Status.UPDATED,
-        } as NormalActivity),
       )
 
       await this.revalidate.revalidatePage(
@@ -236,14 +190,6 @@ class DBStoreService {
         type: Status.CREATED,
       } as Activity),
     )
-
-      await normalActivityRepository.save(
-        createNormalActivity(normalActivityRepository, {
-          ...incomingNormalizedActivity,
-          type: Status.CREATED,
-        } as NormalActivity),
-      )
-      
     await this.revalidate.revalidatePage(
       RevalidateEndpoints.STORE_WIKI,
       newWiki.user.id,
