@@ -117,7 +117,6 @@ class DBStoreService {
       data: Partial<Activity>,
     ) => repo.create(data)
 
-
     if (existWiki && existWiki.content !== wiki.content && existSub) {
       await notificationRepository
         .createQueryBuilder()
