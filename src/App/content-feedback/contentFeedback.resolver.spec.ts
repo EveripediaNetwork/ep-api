@@ -75,7 +75,7 @@ describe('ContentFeedbackResolver', () => {
     jest.spyOn(service, 'postWikiFeedback').mockResolvedValue(true)
     expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(true)
     expect(
-      await resolver.contentFeedback(ctx, { ...thumbsUp, choice: false }, ),
+      await resolver.contentFeedback(ctx, { ...thumbsUp, choice: false }),
     ).toBe(true)
   })
 
