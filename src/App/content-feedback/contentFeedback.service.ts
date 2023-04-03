@@ -6,6 +6,7 @@ import {
   ActionTypes,
   ContentFeedbackWebhook,
   ContentStoreObject,
+  IQSocialFeedbackWebhook,
 } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 
@@ -17,7 +18,7 @@ class ContentFeedbackService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async postFeedback(data: ContentFeedbackWebhook, ip: string) {
+  async postWikiFeedback(data: ContentFeedbackWebhook, ip: string) {
     const waitIP = await this.checkIP(ip)
 
     if (!waitIP) {
@@ -26,8 +27,8 @@ class ContentFeedbackService {
 
     const checkFeedback = await this.storeFeedback({
       ip,
-      wikiId: data.wikiId,
-      choice: data.choice,
+      wikiId: data.wikiId as string,
+      choice: data.choice as boolean,
       userId: data.userId as string,
     })
 
@@ -46,6 +47,20 @@ class ContentFeedbackService {
       )
     }
     return checkFeedback
+  }
+
+  async postSocialFeedback(data: IQSocialFeedbackWebhook) {
+    await this.webhookHandler.postWebhook(
+      ActionTypes.CONTENT_FEEDBACK,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        reportType: data.reportType,
+        message: data.message,
+      } as IQSocialFeedbackWebhook,
+    )
   }
 
   async storeFeedback(args: ContentStoreObject): Promise<boolean> {

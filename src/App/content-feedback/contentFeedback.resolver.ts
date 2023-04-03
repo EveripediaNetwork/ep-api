@@ -11,14 +11,23 @@ import ContentFeebackService from './contentFeedback.service'
 
 @ArgsType()
 export class ContentFeedbackArgs {
-  @Field(() => String)
-  wikiId!: string
+  @Field(() => String, { nullable: true })
+  wikiId?: string
 
   @Field(() => String, { nullable: true })
   userId?: string
 
-  @Field(() => Boolean)
-  choice!: boolean
+  @Field(() => Boolean, { nullable: true })
+  choice?: boolean
+}
+
+@ArgsType()
+export class IQSocialFeedbackArgs {
+  @Field(() => String, { nullable: true })
+  reportType?: string
+
+  @Field(() => String, { nullable: true })
+  message?: string
 }
 
 @Resolver(() => Boolean)
@@ -27,10 +36,23 @@ class ContentFeedbackResolver {
 
   @Mutation(() => Boolean)
   async contentFeedback(
-    @Args() args: ContentFeedbackArgs,
     @Context() ctx: any,
+    @Args({ nullable: true }) iqwikiArgs?: ContentFeedbackArgs,
+    @Args({ nullable: true }) iqSocialArgs?: IQSocialFeedbackArgs,
   ) {
-    return this.contentFeebackService.postFeedback(args, ctx.req.ip)
+    let state
+
+    if (iqSocialArgs) {
+      state = this.contentFeebackService.postSocialFeedback(iqSocialArgs)
+    }
+    if (iqwikiArgs) {
+      state = this.contentFeebackService.postWikiFeedback(
+        iqwikiArgs,
+        ctx.req.ip,
+      )
+    }
+
+    return state
   }
 }
 

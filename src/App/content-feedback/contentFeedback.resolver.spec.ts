@@ -72,15 +72,15 @@ describe('ContentFeedbackResolver', () => {
   })
 
   it('should return true if content feedback is created or updated', async () => {
-    jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
-    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(true)
+    jest.spyOn(service, 'postWikiFeedback').mockResolvedValue(true)
+    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(true)
     expect(
-      await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
+      await resolver.contentFeedback(ctx, { ...thumbsUp, choice: false }, ),
     ).toBe(true)
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
-    jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
-    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(false)
+    jest.spyOn(service, 'postWikiFeedback').mockResolvedValue(false)
+    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(false)
   })
 })

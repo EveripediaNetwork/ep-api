@@ -16,9 +16,14 @@ export enum AdminMutations {
 }
 
 export interface ContentFeedbackWebhook {
-  wikiId: string
+  wikiId?: string
   userId?: string
-  choice: boolean
+  choice?: boolean
+}
+
+export interface IQSocialFeedbackWebhook {
+  reportType?: string
+  message?: string
 }
 
 export interface ContentStoreObject extends ContentFeedbackWebhook {

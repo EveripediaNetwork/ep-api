@@ -13,6 +13,7 @@ import {
   AdminMutations,
   ContentStoreObject,
   FlagWikiWebhook,
+  IQSocialFeedbackWebhook,
   WikiWebhookError,
 } from './utilTypes'
 
@@ -52,6 +53,7 @@ export default class WebhookHandler {
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
     contentStoreObject?: ContentStoreObject,
+    iQSocialFeedbackWebhook?: IQSocialFeedbackWebhook,
   ) {
     const boundary = this.makeId(10)
     const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
@@ -196,45 +198,62 @@ export default class WebhookHandler {
         })
     }
     if (actionType === ActionTypes.CONTENT_FEEDBACK) {
-      const wiki = await wikiRepo.find({
-        select: ['title'],
-        where: {
-          id: contentStoreObject?.wikiId,
-          hidden: false,
-        },
-      })
-      let user
-
-      if (contentStoreObject && !contentStoreObject.userId) {
-        const a = contentStoreObject.ip.split('.')
-        user = `${a[0]}.${a[1]}.${a[2]}.*`
-      } else {
-        const userProfile = await userProfileRepo.findOneBy({
-          id: contentStoreObject?.userId,
-        })
-        user = userProfile?.username || 'anonymous'
-      }
-
-      const jsonContent = JSON.stringify({
-        username: 'EP feedback',
-        embeds: [
-          {
-            color: contentStoreObject?.choice ? 0x6beb34 : 0xeb6234,
-            title: `${contentStoreObject?.choice ? '👍' : '👎'}  ${
-              wiki.length !== 0 ? wiki[0].title : 'invalid title'
-            }`,
-            url: `${this.getWebpageUrl()}/wiki/${contentStoreObject?.wikiId}`,
-            description: `${user} ${
-              contentStoreObject?.choice ? 'finds' : 'does not find'
-            } this wiki interesting`,
-            footer: {
-              text: `IQ.wiki feedback`,
+      let jsonContent
+      if (iQSocialFeedbackWebhook) {
+        jsonContent = JSON.stringify({
+          username: 'EP feedback',
+          embeds: [
+            {
+              color: 0xbe185d,
+              title: iQSocialFeedbackWebhook?.reportType,
+              description: iQSocialFeedbackWebhook?.message,
+              footer: {
+                text: `IQ.social feedback`,
+              },
             },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
+      if (contentStoreObject) {
+        const wiki = await wikiRepo.find({
+          select: ['title'],
+          where: {
+            id: contentStoreObject?.wikiId,
+            hidden: false,
           },
-        ],
-      })
+        })
+        let user
 
-      await this.sendToChannel(boundary, jsonContent, internalActivity)
+        if (contentStoreObject && !contentStoreObject.userId) {
+          const a = contentStoreObject.ip.split('.')
+          user = `${a[0]}.${a[1]}.${a[2]}.*`
+        } else {
+          const userProfile = await userProfileRepo.findOneBy({
+            id: contentStoreObject?.userId,
+          })
+          user = userProfile?.username || 'anonymous'
+        }
+        jsonContent = JSON.stringify({
+          username: 'EP feedback',
+          embeds: [
+            {
+              color: contentStoreObject?.choice ? 0x6beb34 : 0xeb6234,
+              title: `${contentStoreObject?.choice ? '👍' : '👎'}  ${
+                wiki.length !== 0 ? wiki[0].title : 'invalid title'
+              }`,
+              url: `${this.getWebpageUrl()}/wiki/${contentStoreObject?.wikiId}`,
+              description: `${user} ${
+                contentStoreObject?.choice ? 'finds' : 'does not find'
+              } this wiki interesting`,
+              footer: {
+                text: `IQ.wiki feedback`,
+              },
+            },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
     }
 
     return true
@@ -269,6 +288,7 @@ export default class WebhookHandler {
     wikiException?: WikiWebhookError,
     adminLog?: AdminLogPayload,
     contentStoreObject?: ContentStoreObject,
+    iQSocialFeedbackWebhook?: IQSocialFeedbackWebhook,
   ) {
     if (flagWiki) {
       return this.embedWebhook(actionType, flagWiki)
@@ -286,6 +306,16 @@ export default class WebhookHandler {
         undefined,
         undefined,
         contentStoreObject,
+      )
+    }
+    if (iQSocialFeedbackWebhook) {
+      return this.embedWebhook(
+        actionType,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        iQSocialFeedbackWebhook,
       )
     }
     return true
