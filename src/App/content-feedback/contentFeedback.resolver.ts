@@ -1,34 +1,12 @@
 import {
   Args,
-  ArgsType,
   Context,
-  Field,
   Mutation,
   Resolver,
 } from '@nestjs/graphql'
 
 import ContentFeebackService from './contentFeedback.service'
-
-@ArgsType()
-export class ContentFeedbackArgs {
-  @Field(() => String, { nullable: true })
-  wikiId?: string
-
-  @Field(() => String, { nullable: true })
-  userId?: string
-
-  @Field(() => Boolean, { nullable: true })
-  choice?: boolean
-}
-
-@ArgsType()
-export class IQSocialFeedbackArgs {
-  @Field(() => String, { nullable: true })
-  reportType?: string
-
-  @Field(() => String, { nullable: true })
-  message?: string
-}
+import { ContentFeedbackArgs, IQSocialFeedbackArgs } from './contentFeedback.dto'
 
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {

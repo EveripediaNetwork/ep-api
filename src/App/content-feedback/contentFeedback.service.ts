@@ -7,6 +7,7 @@ import {
   ContentFeedbackWebhook,
   ContentStoreObject,
   IQSocialFeedbackWebhook,
+  WebhookPayload,
 } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 
@@ -35,15 +36,12 @@ class ContentFeedbackService {
     if (checkFeedback) {
       await this.webhookHandler.postWebhook(
         ActionTypes.CONTENT_FEEDBACK,
-        undefined,
-        undefined,
-        undefined,
         {
           ip,
-          wikiId: data.wikiId,
+          urlId: data.wikiId,
           choice: data.choice,
-          userId: data.userId as string,
-        } as ContentStoreObject,
+          user: data.userId
+        } as WebhookPayload,
       )
     }
     return checkFeedback
@@ -52,14 +50,10 @@ class ContentFeedbackService {
   async postSocialFeedback(data: IQSocialFeedbackWebhook) {
     await this.webhookHandler.postWebhook(
       ActionTypes.CONTENT_FEEDBACK,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
       {
-        reportType: data.reportType,
-        message: data.message,
-      } as IQSocialFeedbackWebhook,
+        title: data.reportType,
+        description: data.message
+      } as WebhookPayload,
     )
   }
 

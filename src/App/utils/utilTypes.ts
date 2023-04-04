@@ -50,3 +50,15 @@ export class AdminLogPayload {
 
   status?: boolean
 }
+
+export interface WebhookPayload {
+  user?: string
+  title?: string
+  description?: string
+  username?: string
+  urlId?: string
+  adminAction?: AdminMutations
+  content?: Record<string, unknown> 
+  ip?: string
+  choice?: boolean
+}

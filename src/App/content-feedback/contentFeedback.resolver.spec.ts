@@ -4,10 +4,9 @@ import { CacheModule } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import ContentFeedbackService from './contentFeedback.service'
-import ContentFeedbackResolver, {
-  ContentFeedbackArgs,
-} from './contentFeedback.resolver'
+import ContentFeedbackResolver from './contentFeedback.resolver'
 import { getProviders, ProviderEnum } from '../utils/testHelpers'
+import { ContentFeedbackArgs } from './contentFeedback.dto'
 
 jest.mock('fs')
 
