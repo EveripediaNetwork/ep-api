@@ -1,5 +1,3 @@
-import { Wiki as WikiType } from '@everipedia/iq-utils'
-
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
@@ -30,11 +28,6 @@ export interface ContentStoreObject extends ContentFeedbackWebhook {
   ip: string
 }
 
-export interface WikiWebhookError {
-  errorMessage: string
-  data: WikiType
-}
-
 export interface FlagWikiWebhook {
   report: string
   wikiId: string
@@ -58,7 +51,7 @@ export interface WebhookPayload {
   username?: string
   urlId?: string
   adminAction?: AdminMutations
-  content?: Record<string, unknown> 
+  content?: Record<string, unknown>
   ip?: string
   choice?: boolean
 }

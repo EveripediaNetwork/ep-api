@@ -21,7 +21,6 @@ export class IQSocialFeedbackArgs {
   message?: string
 }
 
-
 export enum ContentFeedbackSite {
   IQWIKI = 'iq-wiki',
   IQSOCIAL = 'iq-social',
@@ -29,9 +28,9 @@ export enum ContentFeedbackSite {
 }
 
 export enum ContentFeedbackType {
-    POSITIVE = 'positive',
-    NEGATIVE = 'negative',
-    NEUTRAl = 'neutral',
+  POSITIVE = 'positive',
+  NEGATIVE = 'negative',
+  NEUTRAl = 'neutral',
 }
 
 export interface ContentFeedbackPayload {

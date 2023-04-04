@@ -1,12 +1,10 @@
-import {
-  Args,
-  Context,
-  Mutation,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 
 import ContentFeebackService from './contentFeedback.service'
-import { ContentFeedbackArgs, IQSocialFeedbackArgs } from './contentFeedback.dto'
+import {
+  ContentFeedbackArgs,
+  IQSocialFeedbackArgs,
+} from './contentFeedback.dto'
 
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {

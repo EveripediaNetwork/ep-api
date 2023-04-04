@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
 
 import {
@@ -23,7 +22,6 @@ export type ValidatorResult = {
 
 @Injectable()
 class IPFSValidatorService {
-  private configService: ConfigService = new ConfigService()
 
   async validate(
     wiki: WikiType,

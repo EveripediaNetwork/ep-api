@@ -34,27 +34,21 @@ class ContentFeedbackService {
     })
 
     if (checkFeedback) {
-      await this.webhookHandler.postWebhook(
-        ActionTypes.CONTENT_FEEDBACK,
-        {
-          ip,
-          urlId: data.wikiId,
-          choice: data.choice,
-          user: data.userId
-        } as WebhookPayload,
-      )
+      await this.webhookHandler.postWebhook(ActionTypes.CONTENT_FEEDBACK, {
+        ip,
+        urlId: data.wikiId,
+        choice: data.choice,
+        user: data.userId,
+      } as WebhookPayload)
     }
     return checkFeedback
   }
 
   async postSocialFeedback(data: IQSocialFeedbackWebhook) {
-    await this.webhookHandler.postWebhook(
-      ActionTypes.CONTENT_FEEDBACK,
-      {
-        title: data.reportType,
-        description: data.message
-      } as WebhookPayload,
-    )
+    await this.webhookHandler.postWebhook(ActionTypes.CONTENT_FEEDBACK, {
+      title: data.reportType,
+      description: data.message,
+    } as WebhookPayload)
   }
 
   async storeFeedback(args: ContentStoreObject): Promise<boolean> {

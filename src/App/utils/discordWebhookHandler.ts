@@ -7,11 +7,7 @@ import { promises as fss } from 'fs'
 // import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 // import Wiki from '../../Database/Entities/wiki.entity'
-import {
-  ActionTypes,
-  AdminMutations,
-  WebhookPayload,
-} from './utilTypes'
+import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
 
 @Injectable()
 export default class WebhookHandler {
@@ -43,10 +39,7 @@ export default class WebhookHandler {
     return result
   }
 
-  private async embedWebhook(
-    actionType: ActionTypes,
-    payload: WebhookPayload,
-  ) {
+  private async embedWebhook(actionType: ActionTypes, payload: WebhookPayload) {
     const boundary = this.makeId(10)
     const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
     const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
@@ -274,11 +267,7 @@ export default class WebhookHandler {
       .toPromise()
   }
 
-  async postWebhook(
-    actionType: ActionTypes,
-    payload: WebhookPayload,
-  ) {
-
-      return this.embedWebhook(actionType, payload)
+  async postWebhook(actionType: ActionTypes, payload: WebhookPayload) {
+    return this.embedWebhook(actionType, payload)
   }
 }

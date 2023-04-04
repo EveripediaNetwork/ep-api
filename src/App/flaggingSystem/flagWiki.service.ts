@@ -11,14 +11,11 @@ class FlagWikiService {
   constructor(private webhookHandler: WebhookHandler) {}
 
   async flagWiki(data: FlagWikiWebhook) {
-    await this.webhookHandler.postWebhook(
-      ActionTypes.FLAG_WIKI,
-      {
-        user: data.userId,
-        description: data.report,
-        urlId: data.wikiId,
-      } as WebhookPayload,
-    )
+    await this.webhookHandler.postWebhook(ActionTypes.FLAG_WIKI, {
+      user: data.userId,
+      description: data.report,
+      urlId: data.wikiId,
+    } as WebhookPayload)
     return true
   }
 }
