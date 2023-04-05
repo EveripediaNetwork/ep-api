@@ -11,8 +11,8 @@ export enum OrderBy {
 }
 
 export enum ActivityType {
-  CREATED,
-  UPDATED,
+  CREATED = 0,
+  UPDATED = 1,
 }
 
 export enum Direction {

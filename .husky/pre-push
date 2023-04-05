@@ -3,3 +3,4 @@
 
 yarn build:swc
 yarn test
+yarn rome ci ./src

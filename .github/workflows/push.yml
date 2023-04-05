@@ -34,7 +34,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Lint
-        run: yarn rome format ./src --write
+        run: yarn rome ci ./src
 
       - name: Build
         run: yarn build:swc

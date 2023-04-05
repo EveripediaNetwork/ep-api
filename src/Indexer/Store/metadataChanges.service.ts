@@ -104,8 +104,8 @@ class MetadataChangesService {
     if (oldWiki?.events !== newWiki.events) {
       blocksChanged.push('events')
     }
-    const oldImgId = oldWiki.images && oldWiki.images[0].id
-    const newImgId = newWiki.images && newWiki.images[0].id
+    const oldImgId = oldWiki.images?.[0].id
+    const newImgId = newWiki.images?.[0].id
 
     if (oldImgId !== newImgId) {
       blocksChanged.push('image')

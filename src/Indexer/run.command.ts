@@ -58,7 +58,7 @@ class RunCommand implements CommandRunner {
         unixtime,
       )
 
-      console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
+      console.log('🔁 Running Indexer on Loop, checking for new hashes! 🔁')
       console.log(`❕ Found ${newHashes.length} hashes!`)
 
       newUnixtime = await this.getUnixtime()

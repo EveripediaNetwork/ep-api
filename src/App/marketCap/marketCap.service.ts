@@ -49,7 +49,7 @@ class MarketCapService {
         .getOne()) ||
       (await repository
         .createQueryBuilder('wiki')
-        .where(`wiki.id = :id AND wiki.hidden = false`, {
+        .where('wiki.id = :id AND wiki.hidden = false', {
           id: mapId,
         })
         .getOne())
