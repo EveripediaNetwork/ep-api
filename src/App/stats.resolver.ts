@@ -73,7 +73,7 @@ class StatsResolver {
     const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
-      .select(`Count(*)`, 'amount')
+      .select('Count(*)', 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
       .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
@@ -93,7 +93,7 @@ class StatsResolver {
     const repository = this.dataSource.getRepository(Activity)
     const response = await repository
       .createQueryBuilder('activity')
-      .select(`Count(*)`, 'amount')
+      .select('Count(*)', 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
       .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
@@ -197,7 +197,7 @@ class StatsResolver {
     const repository = this.dataSource.getRepository(Wiki)
     const response = await repository
       .createQueryBuilder('wiki')
-      .select(`Count(wiki.id)`, 'amount')
+      .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
       .innerJoin(
         'category',

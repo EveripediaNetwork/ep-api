@@ -15,7 +15,7 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "off"
       },
       "performance": {
         "noDelete": "off"

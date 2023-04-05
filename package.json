@@ -8,7 +8,7 @@
     "prepare": "husky install",
     "prebuild": "rimraf dist",
     "build": "nest build && yarn run copy:templates",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" --loglevel warn",
+    "format": "yarn rome check ./src --apply",
     "start": "nest start",
     "dev": "nest start --watch",
     "build:swc": "npx swc --copy-files --out-dir dist/src src",

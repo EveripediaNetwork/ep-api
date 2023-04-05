@@ -35,11 +35,7 @@ async function bootstrap() {
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 0.3,
     beforeSend: (e) => {
-      if (
-        e.exception &&
-        e.exception?.values &&
-        e.exception.values[0].type === 'RangeError'
-      ) {
+      if (e.exception?.values && e.exception.values[0].type === 'RangeError') {
         console.error(e)
       }
       return e
@@ -54,7 +50,7 @@ async function bootstrap() {
     rateLimit({
       windowMs: configService.get<number>('THROTTLE_TTL'),
       max: configService.get<number>('THROTTLE_LIMIT'),
-      message: async (request: any, response: any) =>
+      message: async (_request: any, response: any) =>
         response.json({ message: 'You are being rate limited' }),
     }),
   )
