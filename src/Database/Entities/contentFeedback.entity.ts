@@ -1,35 +1,35 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
 class ContentFeedback {
-	@Field(() => ID)
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
-	id!: string;
+  id!: string
 
-	@Field({ nullable: true })
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
     nullable: true,
   })
-	userId?: string;
+  userId?: string
 
-	@Field()
+  @Field()
   @Column('varchar', {
     length: 255,
   })
-	wikiId!: string;
+  wikiId!: string
 
-	@Field()
+  @Field()
   @Column('varchar', {
     length: 255,
   })
-	ip!: string;
+  ip!: string
 
-	@Field()
+  @Field()
   @Column('boolean')
-	choice!: boolean;
+  choice!: boolean
 }
 
-export default ContentFeedback;
+export default ContentFeedback

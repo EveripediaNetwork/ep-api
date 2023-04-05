@@ -1,78 +1,78 @@
 /* eslint-disable max-classes-per-file */
-import { ArgsType, Field, Int, ObjectType } from "@nestjs/graphql";
-import { MinLength, Validate } from "class-validator";
-import PaginationArgs from "../pagination.args";
-import ValidStringParams from "../utils/customValidator";
-import { Direction, OrderBy } from "../utils/queryHelpers";
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
+import { MinLength, Validate } from 'class-validator'
+import PaginationArgs from '../pagination.args'
+import ValidStringParams from '../utils/customValidator'
+import { Direction, OrderBy } from '../utils/queryHelpers'
 
 @ArgsType()
 export class LangArgs extends PaginationArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	lang = "en";
+  lang = 'en'
 
-	@Field(() => Direction)
-	direction = Direction.DESC;
+  @Field(() => Direction)
+  direction = Direction.DESC
 
-	@Field(() => OrderBy)
-	order = OrderBy.UPDATED;
+  @Field(() => OrderBy)
+  order = OrderBy.UPDATED
 }
 
 @ArgsType()
 export class TitleArgs extends LangArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
   @MinLength(3)
-	title!: string;
+  title!: string
 
-	@Field(() => Boolean)
-	hidden = false;
+  @Field(() => Boolean)
+  hidden = false
 }
 
 @ArgsType()
 export class CategoryArgs extends LangArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	category!: string;
+  category!: string
 }
 
 @ArgsType()
 export class ByIdArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	id!: string;
+  id!: string
 
-	@Field(() => String)
-	lang = "en";
+  @Field(() => String)
+  lang = 'en'
 }
 
 @ArgsType()
 export class PromoteWikiArgs extends ByIdArgs {
-	@Field(() => Int)
-	level = 0;
+  @Field(() => Int)
+  level = 0
 }
 
 @ArgsType()
 export class PageViewArgs {
-	@Field(() => Int)
-	amount!: number;
+  @Field(() => Int)
+  amount!: number
 
-	@Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
   @Validate(ValidStringParams)
-	startDay!: string;
+  startDay!: string
 
-	@Field(() => String, { description: 'Format <YYYY/MM/DD>' })
+  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
   @Validate(ValidStringParams)
-	endDay!: string;
+  endDay!: string
 
-	@Field(() => String, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
-	category?: string;
+  category?: string
 }
 
 @ObjectType()
 export class WikiUrl {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	wiki!: string;
+  wiki!: string
 }

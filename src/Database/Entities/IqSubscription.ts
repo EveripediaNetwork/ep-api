@@ -1,30 +1,30 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
 class IqSubscription {
-	@Field(() => ID, { nullable: true })
+  @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn('uuid')
-	id!: string;
+  id!: string
 
-	@Field({ nullable: true })
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
   })
-	userId!: string;
+  userId!: string
 
-	@Field({ nullable: true })
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
   })
-	subscriptionType!: string;
+  subscriptionType!: string
 
-	@Field({ nullable: true })
+  @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
   })
-	auxiliaryId!: string;
+  auxiliaryId!: string
 }
 
-export default IqSubscription;
+export default IqSubscription

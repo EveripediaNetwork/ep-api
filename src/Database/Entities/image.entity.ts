@@ -1,12 +1,12 @@
-import { Field, ObjectType } from "@nestjs/graphql";
+import { Field, ObjectType } from '@nestjs/graphql'
 
 @ObjectType()
 class Image {
-	@Field()
-	id!: string;
+  @Field()
+  id!: string
 
-	@Field()
-	type!: string;
+  @Field()
+  type!: string
 }
 
-export default Image;
+export default Image

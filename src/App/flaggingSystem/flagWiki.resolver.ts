@@ -1,31 +1,31 @@
-import { Args, ArgsType, Field, Mutation, Resolver } from "@nestjs/graphql";
-import { Validate } from "class-validator";
-import ValidStringParams from "../utils/customValidator";
-import FlagWikiService from "./flagWiki.service";
+import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
+import ValidStringParams from '../utils/customValidator'
+import FlagWikiService from './flagWiki.service'
 
 @ArgsType()
 class FlagWikiArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	report!: string;
+  report!: string
 
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	wikiId!: string;
+  wikiId!: string
 
-	@Validate(ValidStringParams)
-	userId!: string;
+  @Validate(ValidStringParams)
+  userId!: string
 }
 
 @Resolver(() => Boolean)
 class FlagWikiResolver {
-	constructor(private flagWikiService: FlagWikiService) {}
+  constructor(private flagWikiService: FlagWikiService) {}
 
-	@Mutation(() => Boolean)
-	async flagWiki(@Args() args: FlagWikiArgs) {
-		await this.flagWikiService.flagWiki(args);
-		return true;
-	}
+  @Mutation(() => Boolean)
+  async flagWiki(@Args() args: FlagWikiArgs) {
+    await this.flagWikiService.flagWiki(args)
+    return true
+  }
 }
 
-export default FlagWikiResolver;
+export default FlagWikiResolver

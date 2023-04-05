@@ -1,18 +1,18 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity()
 class Notification {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string
 
-	@Column('varchar')
-	auxId!: string;
+  @Column('varchar')
+  auxId!: string
 
-	@Column('varchar', { default: 'UPDATED' })
-	notificationType!: string;
+  @Column('varchar', { default: 'UPDATED' })
+  notificationType!: string
 
-	@Column()
-	pending!: boolean;
+  @Column()
+  pending!: boolean
 }
 
-export default Notification;
+export default Notification

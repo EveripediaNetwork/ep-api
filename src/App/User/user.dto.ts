@@ -1,28 +1,28 @@
-import { ArgsType, Field } from "@nestjs/graphql";
-import { Validate, MinLength } from "class-validator";
-import PaginationArgs from "../pagination.args";
-import ValidStringParams from "../utils/customValidator";
+import { ArgsType, Field } from '@nestjs/graphql'
+import { Validate, MinLength } from 'class-validator'
+import PaginationArgs from '../pagination.args'
+import ValidStringParams from '../utils/customValidator'
 
 @ArgsType()
 export class UserStateArgs {
-	@Field(() => String)
+  @Field(() => String)
   @Validate(ValidStringParams)
-	id!: string;
+  id!: string
 
-	@Field(() => Boolean)
-	active = true;
+  @Field(() => Boolean)
+  active = true
 }
 
 @ArgsType()
 export class UsersByIdArgs extends PaginationArgs {
-	@Field(() => String)
+  @Field(() => String)
   @MinLength(3)
   @Validate(ValidStringParams)
-	id!: string;
+  id!: string
 }
 
 @ArgsType()
 export class UsersByEditArgs extends PaginationArgs {
-	@Field(() => Boolean, { nullable: true })
-	edits!: boolean;
+  @Field(() => Boolean, { nullable: true })
+  edits!: boolean
 }

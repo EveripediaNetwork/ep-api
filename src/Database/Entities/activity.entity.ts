@@ -1,77 +1,77 @@
 /* eslint-disable import/no-cycle */
 import {
-	Column,
-	CreateDateColumn,
-	Entity,
-	Index,
-	ManyToOne,
-	PrimaryGeneratedColumn,
-	Relation,
-} from "typeorm";
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm'
 
 import {
-	Field,
-	GraphQLISODateTime,
-	ID,
-	Int,
-	ObjectType,
-	registerEnumType,
-} from "@nestjs/graphql";
+  Field,
+  GraphQLISODateTime,
+  ID,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql'
 
-import Wiki from "./wiki.entity";
-import User from "./user.entity";
-import Language from "./language.entity";
+import Wiki from './wiki.entity'
+import User from './user.entity'
+import Language from './language.entity'
 
 export enum Status {
-	CREATED,
-	UPDATED,
+  CREATED,
+  UPDATED,
 }
 
 registerEnumType(Status, {
-	name: "Status",
-});
+  name: 'Status',
+})
 
 @ObjectType()
 @Entity()
 class Activity {
-	@Field(() => ID)
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
-	id!: string;
+  id!: string
 
-	@Field(() => User)
+  @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
   @Index('idx_activity_userId')
-	user!: Relation<User>;
+  user!: Relation<User>
 
-	@Field(() => String)
+  @Field(() => String)
   @Column('varchar')
-	wikiId!: string;
+  wikiId!: string
 
-	@Field(() => Language)
+  @Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true, nullable: true })
   @Index('idx_activity_languageId')
-	language!: Relation<Language>;
+  language!: Relation<Language>
 
-	@Field(() => Int)
+  @Field(() => Int)
   @Column('integer', { nullable: true })
-	block!: number;
+  block!: number
 
-	@Field(() => Status)
+  @Field(() => Status)
   @Column('enum', { enum: Status })
-	type!: Status;
+  type!: Status
 
-	@Field(() => [Wiki])
+  @Field(() => [Wiki])
   @Column('jsonb')
-	content!: Wiki[];
+  content!: Wiki[]
 
-	@Field(() => GraphQLISODateTime)
+  @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
   @Index('idx_activity_datetime')
-	datetime!: Date;
+  datetime!: Date
 
-	@Field()
+  @Field()
   @Column('varchar', { nullable: true })
-	ipfs!: string;
+  ipfs!: string
 }
 
-export default Activity;
+export default Activity

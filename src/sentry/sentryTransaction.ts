@@ -1,15 +1,15 @@
-import * as Sentry from "@sentry/node";
-import "@sentry/tracing";
-import { Transaction } from "@sentry/types";
+import * as Sentry from '@sentry/node'
+import '@sentry/tracing'
+import { Transaction } from '@sentry/types'
 
 export interface Context {
-	transaction: Transaction;
+  transaction: Transaction
 }
 
 export async function createContext(): Promise<Context> {
-	const transaction = Sentry.startTransaction({
-		op: "gql",
-		name: "GraphQLTransaction",
-	});
-	return { transaction };
+  const transaction = Sentry.startTransaction({
+    op: 'gql',
+    name: 'GraphQLTransaction',
+  })
+  return { transaction }
 }

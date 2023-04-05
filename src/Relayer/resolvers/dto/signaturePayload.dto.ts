@@ -1,16 +1,16 @@
-import { Field, InputType } from "@nestjs/graphql";
+import { Field, InputType } from '@nestjs/graphql'
 
 @InputType()
 export default class SignaturePayloadInput {
-	@Field() ipfs!: string;
+  @Field() ipfs!: string
 
-	@Field() userAddr!: string;
+  @Field() userAddr!: string
 
-	@Field() deadline!: number;
+  @Field() deadline!: number
 
-	@Field() v!: string;
+  @Field() v!: string
 
-	@Field() r!: string;
+  @Field() r!: string
 
-	@Field() s!: string;
+  @Field() s!: string
 }

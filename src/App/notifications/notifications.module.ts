@@ -1,10 +1,10 @@
-import { CacheModule, Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import DatabaseModule from "../../Database/database.module";
-import httpModule from "../../httpModule";
-import MailModule from "../mailer/mail.module";
-import MailService from "../mailer/mail.service";
-import NotificationsCommand from "./notifications.command";
+import { CacheModule, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import DatabaseModule from '../../Database/database.module'
+import httpModule from '../../httpModule'
+import MailModule from '../mailer/mail.module'
+import MailService from '../mailer/mail.service'
+import NotificationsCommand from './notifications.command'
 
 @Module({
   imports: [
@@ -21,4 +21,4 @@ import NotificationsCommand from "./notifications.command";
 })
 class NotificationsModule {}
 
-export default NotificationsModule;
+export default NotificationsModule
