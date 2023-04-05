@@ -60,7 +60,7 @@ class ContentFeedbackService {
         : { contentId: args.contentId, ip: args.ip }
 
     const check = await repository.findOne({ where: query })
-    
+
     if (cached || (check && check.feedback === args.feedback)) {
       return false
     }
