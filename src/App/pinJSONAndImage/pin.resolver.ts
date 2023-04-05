@@ -61,7 +61,7 @@ class PinResolver {
     return new Promise((res, rej) => {
       const read = createReadStream()
 
-      read.on('error', async err => {
+      read.on('error', async (err) => {
         await fs.unlink(destinationPath)
         rej(err)
       })
