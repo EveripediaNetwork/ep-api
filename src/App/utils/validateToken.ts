@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common'
-import * as Web3Token from 'web3-token'
+import * as Web3Token from '@everipedia/web3-signer'
 
 class TokenValidator {
   public validateToken(
