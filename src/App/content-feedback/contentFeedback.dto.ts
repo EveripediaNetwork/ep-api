@@ -25,10 +25,9 @@ export class ContentFeedbackArgs {
   userId?: string
 
   @Field(() => String, {
-    nullable: true,
     description: 'IQ platorm, e.g iq-wiki, iq-social',
   })
-  site?: ContentFeedbackSite
+  site!: ContentFeedbackSite
 
   @Field(() => String, { nullable: true })
   message?: string
