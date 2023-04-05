@@ -1,15 +1,15 @@
 /* eslint-disable import/no-cycle */
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Field, ObjectType } from "@nestjs/graphql";
 
-type LinkedWikisType = string[]
+type LinkedWikisType = string[];
 
 @ObjectType()
 class LinkedWikis {
-  @Field(() => [String], { nullable: true })
-  founders?: LinkedWikisType
+	@Field(() => [String], { nullable: true })
+	founders?: LinkedWikisType;
 
-  @Field(() => [String], { nullable: true })
-  blockchains?: LinkedWikisType
+	@Field(() => [String], { nullable: true })
+	blockchains?: LinkedWikisType;
 }
 
-export default LinkedWikis
+export default LinkedWikis;

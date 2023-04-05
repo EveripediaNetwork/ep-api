@@ -1,10 +1,10 @@
 /* eslint-disable import/no-cycle */
-import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm'
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
+import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
-import { IWiki } from './types/IWiki'
-import { ICategory } from './types/ICategory'
-import Wiki from './wiki.entity'
+import { IWiki } from "./types/IWiki";
+import { ICategory } from "./types/ICategory";
+import Wiki from "./wiki.entity";
 
 @ObjectType()
 @Entity({
@@ -14,40 +14,40 @@ import Wiki from './wiki.entity'
   },
 })
 class Category implements ICategory {
-  @Field(() => ID)
+	@Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
-  id!: string
+	id!: string;
 
-  @Field(() => String)
+	@Field(() => String)
   @Column('varchar')
-  title = ''
+	title = "";
 
-  @Field(() => String)
+	@Field(() => String)
   @Column('text')
-  description = ''
+	description = "";
 
-  @Field(() => String)
+	@Field(() => String)
   @Column('varchar')
-  cardImage = '' // TODO: get defaults for hero card and icon
+	cardImage = ""; // TODO: get defaults for hero card and icon
 
-  @Field(() => String)
+	@Field(() => String)
   @Column('varchar')
-  heroImage = ''
+	heroImage = "";
 
-  @Field(() => String)
+	@Field(() => String)
   @Column('varchar')
-  icon = ''
+	icon = "";
 
-  @Field(() => Int)
+	@Field(() => Int)
   @Column('smallint')
-  weight = 0
+	weight = 0;
 
-  @Field(() => [Wiki])
+	@Field(() => [Wiki])
   @ManyToMany('Wiki', 'categories', { lazy: true })
   @JoinTable()
-  wikis!: IWiki[]
+	wikis!: IWiki[];
 }
 
-export default Category
+export default Category;

@@ -1,56 +1,56 @@
 /* eslint-disable import/no-cycle */
-import { Field, ObjectType } from '@nestjs/graphql'
-import { Max } from 'class-validator'
-import { Relation } from 'typeorm'
-import UserProfile from '../userProfile.entity'
-import { IWiki } from './IWiki'
+import { Field, ObjectType } from "@nestjs/graphql";
+import { Max } from "class-validator";
+import { Relation } from "typeorm";
+import UserProfile from "../userProfile.entity";
+import { IWiki } from "./IWiki";
 
 export interface IUser {
-  id: string
-  wikis: IWiki[]
+	id: string;
+	wikis: IWiki[];
 }
 
 @ObjectType()
 export class Author {
-  @Field({ nullable: true })
-  id?: string
+	@Field({ nullable: true })
+	id?: string;
 
-  @Field(() => UserProfile, { nullable: true })
-  profile!: Relation<UserProfile>
+	@Field(() => UserProfile, { nullable: true })
+	profile!: Relation<UserProfile>;
 }
 
 @ObjectType()
 export class Links {
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Max(255)
-  instagram?: string
+	instagram?: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Max(255)
-  twitter?: string
+	twitter?: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Max(255)
-  website?: string
+	website?: string;
 }
 
 @ObjectType()
 export class Notifications {
-  @Field(() => Boolean)
-  EVERIPEDIA_NOTIFICATIONS = false
+	@Field(() => Boolean)
+	EVERIPEDIA_NOTIFICATIONS = false;
 
-  @Field(() => Boolean)
-  WIKI_OF_THE_DAY = false
+	@Field(() => Boolean)
+	WIKI_OF_THE_DAY = false;
 
-  @Field(() => Boolean)
-  WIKI_OF_THE_MONTH = false
+	@Field(() => Boolean)
+	WIKI_OF_THE_MONTH = false;
 
-  @Field(() => Boolean)
-  EDIT_NOTIFICATIONS = false
+	@Field(() => Boolean)
+	EDIT_NOTIFICATIONS = false;
 }
 
 @ObjectType()
 export class AdvancedSettings {
-  @Field(() => Boolean)
-  SIGN_EDITS_WITH_RELAYER = true
+	@Field(() => Boolean)
+	SIGN_EDITS_WITH_RELAYER = true;
 }

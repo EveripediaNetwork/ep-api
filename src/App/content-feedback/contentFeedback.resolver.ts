@@ -1,37 +1,37 @@
 import {
-  Args,
-  ArgsType,
-  Context,
-  Field,
-  Mutation,
-  Resolver,
-} from '@nestjs/graphql'
+	Args,
+	ArgsType,
+	Context,
+	Field,
+	Mutation,
+	Resolver,
+} from "@nestjs/graphql";
 
-import ContentFeebackService from './contentFeedback.service'
+import ContentFeebackService from "./contentFeedback.service";
 
 @ArgsType()
 export class ContentFeedbackArgs {
-  @Field(() => String)
-  wikiId!: string
+	@Field(() => String)
+	wikiId!: string;
 
-  @Field(() => String, { nullable: true })
-  userId?: string
+	@Field(() => String, { nullable: true })
+	userId?: string;
 
-  @Field(() => Boolean)
-  choice!: boolean
+	@Field(() => Boolean)
+	choice!: boolean;
 }
 
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {
-  constructor(private contentFeebackService: ContentFeebackService) {}
+	constructor(private contentFeebackService: ContentFeebackService) {}
 
-  @Mutation(() => Boolean)
-  async contentFeedback(
-    @Args() args: ContentFeedbackArgs,
-    @Context() ctx: any,
-  ) {
-    return this.contentFeebackService.postFeedback(args, ctx.req.ip)
-  }
+	@Mutation(() => Boolean)
+	async contentFeedback(
+		@Args() args: ContentFeedbackArgs,
+		@Context() ctx: any,
+	) {
+		return this.contentFeebackService.postFeedback(args, ctx.req.ip);
+	}
 }
 
-export default ContentFeedbackResolver
+export default ContentFeedbackResolver;
