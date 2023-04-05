@@ -1,21 +1,21 @@
-import { ObjectType, Field } from "@nestjs/graphql";
-import { IsOptional } from "class-validator";
+import { ObjectType, Field } from '@nestjs/graphql'
+import { IsOptional } from 'class-validator'
 
 @ObjectType()
 export default class IpfsHash {
-	@Field()
+  @Field()
   @IsOptional()
-	IpfsHash?: string;
+  IpfsHash?: string
 
-	@Field()
+  @Field()
   @IsOptional()
-	PinSize?: number;
+  PinSize?: number
 
-	@Field()
+  @Field()
   @IsOptional()
-	Timestamp?: string;
+  Timestamp?: string
 
-	@Field({ nullable: true })
+  @Field({ nullable: true })
   @IsOptional()
-	IsDuplicate?: boolean;
+  IsDuplicate?: boolean
 }

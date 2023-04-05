@@ -1,6 +1,6 @@
-import { IWiki } from "./IWiki";
+import { IWiki } from './IWiki'
 
 export interface ITag {
-	id: string;
-	wikis: IWiki[];
+  id: string
+  wikis: IWiki[]
 }
