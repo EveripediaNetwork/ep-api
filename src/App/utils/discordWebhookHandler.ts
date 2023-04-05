@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
-// import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
