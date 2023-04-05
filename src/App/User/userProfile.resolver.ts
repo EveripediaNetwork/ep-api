@@ -103,12 +103,12 @@ class UserProfileResolver {
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
   ) {
-     return this.userService.userWikis(
-       'wikis edited',
-       user?.id as string,
-       args.limit,
-       args.offset,
-     )
+    return this.userService.userWikis(
+      'wikis edited',
+      user?.id as string,
+      args.limit,
+      args.offset,
+    )
   }
 
   @ResolveField()

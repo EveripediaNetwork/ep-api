@@ -58,8 +58,8 @@ export const queryWikisCreated = async (
   limit: number,
   offset: number,
   repo: Repository<Activity>,
-): Promise<Activity[] | undefined> => 
- repo
+): Promise<Activity[] | undefined> =>
+  repo
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
     .where(
@@ -72,14 +72,13 @@ export const queryWikisCreated = async (
     .orderBy('datetime', 'DESC')
     .getMany()
 
-
 export const queryWikisEdited = async (
-  id: string ,
+  id: string,
   limit: number,
   offset: number,
   repo: Repository<Activity>,
-): Promise<Activity[] | undefined> => 
-   repo.query(`
+): Promise<Activity[] | undefined> =>
+  repo.query(`
     SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
         (
             SELECT "wikiId", Max(datetime) as MaxDate  
@@ -96,4 +95,3 @@ export const queryWikisEdited = async (
         LIMIT ${limit}
         OFFSET ${offset}
     `)
-
