@@ -8,6 +8,9 @@ import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
 import { UsersByEditArgs, UsersByIdArgs } from './user.dto'
 import PaginationArgs from '../pagination.args'
+import Activity from '../../Database/Entities/activity.entity'
+import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
+import { IUser } from '../../Database/Entities/types/IUser'
 
 @Injectable()
 class UserService {
@@ -66,9 +69,7 @@ class UserService {
     ).findOneBy({
       id: data.id,
     })
-    const existsUser = await (
-      await this.userRepository()
-    )
+    const existsUser = await (await this.userRepository())
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
@@ -114,9 +115,7 @@ class UserService {
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
 
-      await (
-        await this.userRepository()
-      )
+      await (await this.userRepository())
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
@@ -180,6 +179,21 @@ class UserService {
       .limit(args.limit)
       .offset(args.offset)
       .getMany()
+  }
+
+  async userWikis(
+    type: string,
+    user: IUser,
+    limit: number,
+    offset: number,
+  ): Promise<Activity[] | undefined> {
+    const repo = this.dataSource.getRepository(Activity)
+    const wikis =
+      type === 'wikis created'
+        ? queryWikisCreated(user, limit, offset, repo)
+        : queryWikisEdited(user, limit, offset, repo)
+
+    return wikis
   }
 }
 
