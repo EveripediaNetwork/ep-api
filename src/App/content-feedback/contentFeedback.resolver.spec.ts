@@ -73,11 +73,12 @@ describe('ContentFeedbackResolver', () => {
 
   it('should return true if content feedback is created or updated', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
-    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(
-     true,
-    )
+    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(true)
     expect(
-      await resolver.contentFeedback(ctx, { ...thumbsUp, feedback: ContentFeedbackType.NEGATIVE }),
+      await resolver.contentFeedback(ctx, {
+        ...thumbsUp,
+        feedback: ContentFeedbackType.NEGATIVE,
+      }),
     ).toBe(true)
   })
 
@@ -85,4 +86,4 @@ describe('ContentFeedbackResolver', () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
     expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(false)
   })
-})  
+})

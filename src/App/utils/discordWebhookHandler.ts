@@ -6,9 +6,12 @@ import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
 // import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
-// import Wiki from '../../Database/Entities/wiki.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
 import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
-import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
+import {
+  ContentFeedbackSite,
+  ContentFeedbackType,
+} from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
 export default class WebhookHandler {
@@ -44,7 +47,7 @@ export default class WebhookHandler {
     const boundary = this.makeId(10)
     const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
     const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
-    // const wikiRepo = this.dataSourece.getRepository(Wiki)
+    const wikiRepo = this.dataSourece.getRepository(Wiki)
     const userProfileRepo = this.dataSourece.getRepository(UserProfile)
 
     if (actionType === ActionTypes.ADMIN_ACTION) {
@@ -185,64 +188,67 @@ export default class WebhookHandler {
           },
         })
     }
-    // if (actionType === ActionTypes.CONTENT_FEEDBACK) {
-    //   let jsonContent
-    //   if (iQSocialFeedbackWebhook) {
-    //     jsonContent = JSON.stringify({
-    //       username: 'EP feedback',
-    //       embeds: [
-    //         {
-    //           color: 0xbe185d,
-    //           title: iQSocialFeedbackWebhook?.reportType,
-    //           description: iQSocialFeedbackWebhook?.message,
-    //           footer: {
-    //             text: `IQ.social feedback`,
-    //           },
-    //         },
-    //       ],
-    //     })
-    //     await this.sendToChannel(boundary, jsonContent, internalActivity)
-    //   }
-    //   if (contentStoreObject) {
-    //     const wiki = await wikiRepo.find({
-    //       select: ['title'],
-    //       where: {
-    //         id: contentStoreObject?.wikiId,
-    //         hidden: false,
-    //       },
-    //     })
-    //     let user
+    if (actionType === ActionTypes.CONTENT_FEEDBACK) {
+      let jsonContent
+      let user
+      if (payload && !payload.user && payload.ip) {
+        const a = payload.ip.split('.')
+        user = `${a[0]}.${a[1]}.${a[2]}.*`
+      } else {
+        const userProfile = await userProfileRepo.findOneBy({
+          id: payload?.user,
+        })
+        user = userProfile?.username || 'anonymous'
+      }
 
-    //     if (contentStoreObject && !contentStoreObject.userId) {
-    //       const a = contentStoreObject.ip.split('.')
-    //       user = `${a[0]}.${a[1]}.${a[2]}.*`
-    //     } else {
-    //       const userProfile = await userProfileRepo.findOneBy({
-    //         id: contentStoreObject?.userId,
-    //       })
-    //       user = userProfile?.username || 'anonymous'
-    //     }
-    //     jsonContent = JSON.stringify({
-    //       username: 'EP feedback',
-    //       embeds: [
-    //         {
-    //           color: contentStoreObject?.choice ? 0x6beb34 : 0xeb6234,
-    //           title: `${contentStoreObject?.choice ? '👍' : '👎'}  ${
-    //             wiki.length !== 0 ? wiki[0].title : 'invalid title'
-    //           }`,
-    //           url: `${this.getWebpageUrl()}/wiki/${contentStoreObject?.wikiId}`,
-    //           description: `${user} ${
-    //             contentStoreObject?.choice ? 'finds' : 'does not find'
-    //           } this wiki interesting`,
-    //           footer: {
-    //             text: `IQ.wiki feedback`,
-    //           },
-    //         },
-    //       ],
-    //     })
-    //     await this.sendToChannel(boundary, jsonContent, internalActivity)
-    //   }
-    // }
+      if (payload.title === ContentFeedbackSite.IQWIKI) {
+        const wiki = await wikiRepo.find({
+          select: ['title'],
+          where: {
+            id: payload?.urlId,
+            hidden: false,
+          },
+        })
+        jsonContent = JSON.stringify({
+          username: 'IQ Wiki feedback',
+          embeds: [
+            {
+              color:
+                payload?.type === ContentFeedbackType.POSITIVE
+                  ? 0x6beb34
+                  : 0xeb6234,
+              title: `${
+                payload?.type === ContentFeedbackType.POSITIVE ? '👍' : '👎'
+              }  ${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
+              url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
+              description: `${user} ${
+                payload?.type === ContentFeedbackType.POSITIVE
+                  ? 'finds'
+                  : 'does not find'
+              } this wiki interesting`,
+              footer: {
+                text: `IQ.wiki feedback`,
+              },
+            },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
+
+      if (payload.title === ContentFeedbackSite.IQSOCIAL) {
+        jsonContent = JSON.stringify({
+          username: 'IQ Social feedback',
+          embeds: [
+            {
+              color: 0xbe185d,
+              title: payload?.type,
+              description: `${payload?.description} 🎤 \n\n _Reported by_ ***${user}*** `,
+            },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
+    }
 
     return true
   }
