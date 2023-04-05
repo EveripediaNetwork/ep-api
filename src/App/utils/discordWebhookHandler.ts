@@ -138,7 +138,7 @@ export default class WebhookHandler {
     }
     if (actionType === ActionTypes.PINJSON_ERROR) {
       await fss.writeFile(
-        `./uploads/message.json`,
+        './uploads/message.json',
         `${JSON.stringify(payload?.content, null, 2)}`,
       )
       const readText = await fss.readFile('./uploads/message.json')
@@ -216,7 +216,7 @@ export default class WebhookHandler {
                   : 'does not find'
               } this wiki interesting`,
               footer: {
-                text: `IQ.wiki feedback`,
+                text: 'IQ.wiki feedback',
               },
             },
           ],
