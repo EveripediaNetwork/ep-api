@@ -54,18 +54,13 @@ class ContentFeedbackService {
     const id = `${args.ip}-${args.contentId || args.content}`
     const cached: string | undefined = await this.cacheManager.get(id)
 
-    let check
+    const query =
+      args.site === ContentFeedbackSite.IQSEARCH
+        ? { content: args.content, ip: args.ip }
+        : { contentId: args.contentId, ip: args.ip }
 
-    if (args.site === ContentFeedbackSite.IQSEARCH) {
-      check = await repository.findOne({
-        where: { content: args.content, ip: args.ip },
-      })
-    } else {
-      check = await repository.findOne({
-        where: { contentId: args.contentId, ip: args.ip },
-      })
-    }
-
+    const check = await repository.findOne({ where: query })
+    
     if (cached || (check && check.feedback === args.feedback)) {
       return false
     }
