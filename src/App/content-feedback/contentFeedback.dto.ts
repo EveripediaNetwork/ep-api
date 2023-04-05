@@ -33,8 +33,11 @@ export class ContentFeedbackArgs {
   @Field(() => String, { nullable: true })
   message?: string
 
-  @Field(() => [Content], { nullable: true })
-  content?: Content
+  @Field(() => String, { nullable: true })
+  input?: string
+
+  @Field(() => String, { nullable: true })
+  output?: string
 
   @Field(() => String, { nullable: true })
   contentId?: string

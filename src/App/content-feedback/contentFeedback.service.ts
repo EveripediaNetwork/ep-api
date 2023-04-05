@@ -27,7 +27,8 @@ class ContentFeedbackService {
 
     const checkFeedback = await this.storeFeedback({
       ip: args.ip,
-      content: args.content,
+      input: args.input,
+      output: args.output,
       userId: args.userId as string,
       contentId: args.contentId as string,
       message: args.message as string,
@@ -51,15 +52,20 @@ class ContentFeedbackService {
 
   async storeFeedback(args: ContentFeedbackPayload): Promise<boolean> {
     const repository = this.dataSource.getRepository(Feedback)
-    const id = `${args.ip}-${args.contentId || args.content}`
+    const id = `${args.ip}-${args.contentId || args.input}`
     const cached: string | undefined = await this.cacheManager.get(id)
 
-    const query =
-      args.site === ContentFeedbackSite.IQSEARCH
-        ? { content: args.content, ip: args.ip }
-        : { contentId: args.contentId, ip: args.ip }
-
-    const check = await repository.findOne({ where: query })
+    let check
+    if (args.site === ContentFeedbackSite.IQSEARCH) {
+      check = await repository
+        .createQueryBuilder('feeback')
+        .where(`feeback.content @> '{"input": "${args.input}"}'`)
+        .getOne()
+    } else {
+      check = await repository.findOne({
+        where: { contentId: args.contentId, ip: args.ip },
+      })
+    }
 
     if (cached || (check && check.feedback === args.feedback)) {
       return false
@@ -73,8 +79,8 @@ class ContentFeedbackService {
         )
       } else {
         await repository.query(
-          `UPDATE feedback SET feedback = $1 where "contentId" = $2 OR content = $3 AND ip = $4`,
-          [args.feedback, args.contentId, args.content, args.ip],
+          `UPDATE feedback SET feedback = $1 where "contentId" = $2 OR feeback.content @> '{"input": "$3"}' AND ip = $4`,
+          [args.feedback, args.contentId, args.input, args.ip],
         )
       }
     }
@@ -82,7 +88,13 @@ class ContentFeedbackService {
     if (!check) {
       const newFeedback = repository.create({
         ...args,
-      } as Feedback)
+        content: [
+          {
+            input: args.input,
+            output: args.output,
+          },
+        ],
+      } as unknown as Feedback)
       await repository.save(newFeedback)
     }
     await this.cacheManager.set(id, args.ip)
