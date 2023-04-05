@@ -187,15 +187,15 @@ class UserService {
 
   async userWikis(
     type: string,
-    user: IUser,
+    id: string,
     limit: number,
     offset: number,
   ): Promise<Activity[] | undefined> {
     const repo = this.dataSource.getRepository(Activity)
     const wikis =
       type === 'wikis created'
-        ? queryWikisCreated(user, limit, offset, repo)
-        : queryWikisEdited(user, limit, offset, repo)
+        ? queryWikisCreated(id, limit, offset, repo)
+        : queryWikisEdited(id, limit, offset, repo)
 
     return wikis
   }

@@ -101,7 +101,7 @@ class UserResolver {
   async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
     return this.userService.userWikis(
       'wikis created',
-      user,
+      user?.id as string,
       args.limit,
       args.offset,
     )
@@ -111,7 +111,7 @@ class UserResolver {
   async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
     return this.userService.userWikis(
       'wikis edited',
-      user,
+      user?.id as string,
       args.limit,
       args.offset,
     )
