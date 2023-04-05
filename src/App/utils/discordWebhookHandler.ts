@@ -108,7 +108,7 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0x0c71e0,
-            title: `🚧  Admin activity  🚧`,
+            title: '🚧  Admin activity  🚧',
             description: message,
           },
         ],
@@ -141,7 +141,7 @@ export default class WebhookHandler {
         `./uploads/message.json`,
         `${JSON.stringify(payload?.content, null, 2)}`,
       )
-      const readText = await fss.readFile(`./uploads/message.json`)
+      const readText = await fss.readFile('./uploads/message.json')
 
       const jsonContent = JSON.stringify({
         username: 'EP Alarm',
@@ -159,16 +159,7 @@ export default class WebhookHandler {
         ],
       })
 
-      const content =
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="payload_json"\n` +
-        `Content-Type: application/json\n\n` +
-        `${jsonContent}\n` +
-        `--${boundary}\n` +
-        `Content-Disposition: form-data; name="files[0]"; filename="message.json"\n` +
-        `Content-Type: application/json\n\n` +
-        `${readText} \n` +
-        `--${boundary}--`
+      const content = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\nContent-Type: application/json\n\n${jsonContent}\n--${boundary}\nContent-Disposition: form-data; name="files[0]"; filename="message.json"\nContent-Type: application/json\n\n${readText} \n--${boundary}--`
 
       this.httpService
         .post(braindaoAlarms, content, {
@@ -178,10 +169,10 @@ export default class WebhookHandler {
         })
         .subscribe({
           complete: async () => {
-            await fss.unlink(`./uploads/message.json`)
+            await fss.unlink('./uploads/message.json')
           },
-          error: async err => {
-            await fss.unlink(`./uploads/message.json`)
+          error: async (err) => {
+            await fss.unlink('./uploads/message.json')
             console.log(err.response)
           },
         })
@@ -256,14 +247,7 @@ export default class WebhookHandler {
     content: string,
     wehhookChannel: string,
   ): Promise<void> {
-    const payload =
-      `--${boundary}\n` +
-      `Content-Disposition: form-data; name="payload_json"\n\n` +
-      `${content}\n` +
-      `--${boundary}\n` +
-      `Content-Disposition: form-data; name="tts" \n\n` +
-      `true\n` +
-      `--${boundary}--`
+    const payload = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\n\n${content}\n--${boundary}\nContent-Disposition: form-data; name="tts" \n\ntrue\n--${boundary}--`
 
     this.httpService
       .post(wehhookChannel, payload, {

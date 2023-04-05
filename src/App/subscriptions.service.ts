@@ -61,7 +61,9 @@ class WikiSubscriptionService {
     if (!this.tokenValidator.validateToken(token, id, false)) {
       return false
     }
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .delete()
       .from(IqSubscription)

@@ -53,12 +53,12 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
 
-      console.log(`🔁 Running Indexer on Loop, checking for new hashes! 🔁`)
+      console.log('🔁 Running Indexer on Loop, checking for new hashes! 🔁')
       console.log(`❕ Found ${newHashes.length} hashes!`)
 
       newUnixtime = await this.getUnixtime()
@@ -89,7 +89,7 @@ class RunCommand implements CommandRunner {
           console.log(stat)
           console.error(`🔥 Invalid IPFS: ${hash.id}`)
         }
-        await new Promise(r => setTimeout(r, SLEEP_TIME))
+        await new Promise((r) => setTimeout(r, SLEEP_TIME))
       } catch (ex) {
         console.error(`🛑 Invalid IPFS: ${hash.id}`)
         console.error(ex)

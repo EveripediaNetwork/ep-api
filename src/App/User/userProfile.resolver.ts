@@ -13,14 +13,12 @@ import {
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import { DataSource } from 'typeorm'
-import Activity from '../../Database/Entities/activity.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
 import ValidStringParams from '../utils/customValidator'
 import IsActiveGuard from '../utils/isActive.guard'
-import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
 
 @ArgsType()
 class GetProfileArgs {
@@ -42,7 +40,9 @@ class UserProfileResolver {
 
   @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs) {
-    const profile = await (await this.userService.profileRepository())
+    const profile = await (
+      await this.userService.profileRepository()
+    )
       .createQueryBuilder('user')
       .where(
         `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
@@ -90,8 +90,12 @@ class UserProfileResolver {
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
   ) {
-    const repo = this.dataSource.getRepository(Activity)
-    return queryWikisCreated(user, args.limit, args.offset, repo)
+    return this.userService.userWikis(
+      'wikis created',
+      user?.id as string,
+      args.limit,
+      args.offset,
+    )
   }
 
   @ResolveField()
@@ -99,8 +103,12 @@ class UserProfileResolver {
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
   ) {
-    const repo = this.dataSource.getRepository(Activity)
-    return queryWikisEdited(user, args.limit, args.offset, repo)
+    return this.userService.userWikis(
+      'wikis edited',
+      user?.id as string,
+      args.limit,
+      args.offset,
+    )
   }
 
   @ResolveField()

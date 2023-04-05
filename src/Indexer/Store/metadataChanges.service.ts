@@ -28,13 +28,13 @@ class MetadataChangesService {
 
     const meta = [
       ...Object.values(EditSpecificMetaIds).filter(
-        k =>
+        (k) =>
           k !== EditSpecificMetaIds.COMMIT_MESSAGE &&
           k !== EditSpecificMetaIds.PREVIOUS_CID,
       ),
     ]
     const update = data.metadata.filter(
-      m => !meta.includes(m.id as EditSpecificMetaIds),
+      (m) => !meta.includes(m.id as EditSpecificMetaIds),
     )
 
     let wiki
@@ -68,15 +68,15 @@ class MetadataChangesService {
       oldCategories.push({ id: c.id, title: c.title })
     }
 
-    const oldTagIds = oldTags.map(t => t.id)
-    const newTagIds = newWiki.tags.map(t => t.id)
+    const oldTagIds = oldTags.map((t) => t.id)
+    const newTagIds = newWiki.tags.map((t) => t.id)
 
-    const tags = newTagIds.filter(t => !oldTagIds.includes(t))
+    const tags = newTagIds.filter((t) => !oldTagIds.includes(t))
 
-    const oldCategoryIds = oldCategories.map(c => c.id)
-    const newCategoryIds = newWiki.categories.map(c => c.id)
+    const oldCategoryIds = oldCategories.map((c) => c.id)
+    const newCategoryIds = newWiki.categories.map((c) => c.id)
 
-    const categories = newCategoryIds.filter(c => !oldCategoryIds.includes(c))
+    const categories = newCategoryIds.filter((c) => !oldCategoryIds.includes(c))
 
     const checkSameArrayValues = (a: any[], b: any[]) =>
       a.length === b.length &&
@@ -104,14 +104,14 @@ class MetadataChangesService {
     if (oldWiki?.events !== newWiki.events) {
       blocksChanged.push('events')
     }
-    const oldImgId = oldWiki.images && oldWiki.images[0].id
-    const newImgId = newWiki.images && newWiki.images[0].id
+    const oldImgId = oldWiki.images?.[0].id
+    const newImgId = newWiki.images?.[0].id
 
     if (oldImgId !== newImgId) {
       blocksChanged.push('image')
     }
     const getWordCount = (str: string) =>
-      str.split(' ').filter(n => n !== '').length
+      str.split(' ').filter((n) => n !== '').length
 
     let contentAdded = 0
     let contentRemoved = 0
@@ -119,7 +119,7 @@ class MetadataChangesService {
 
     let wordsAdded = 0
     let wordsRemoved = 0
-    diff(oldWiki.content, newWiki.content).forEach(part => {
+    diff(oldWiki.content, newWiki.content).forEach((part) => {
       if (part[0] === 1) {
         contentAdded += part[1].length
         wordsAdded += getWordCount(part[1])
@@ -159,11 +159,11 @@ class MetadataChangesService {
 
     const noChanges = () => {
       let checkChanges = true
-      checkChanges = changes.every(e => e.value === '')
+      checkChanges = changes.every((e) => e.value === '')
       return checkChanges
     }
 
-    const nonEmptyChanges = changes.filter(e => e.value !== '')
+    const nonEmptyChanges = changes.filter((e) => e.value !== '')
 
     const finalChanges = nonEmptyChanges.length > 0 ? nonEmptyChanges : changes
 
