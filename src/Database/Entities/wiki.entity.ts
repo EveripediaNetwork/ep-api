@@ -1,146 +1,152 @@
 /* eslint-disable import/no-cycle */
 import {
-  Column,
-  Entity,
-  ManyToMany,
-  ManyToOne,
-  PrimaryColumn,
-  JoinTable,
-  CreateDateColumn,
-  UpdateDateColumn,
-  AfterLoad,
-  AfterInsert,
-  AfterUpdate,
-  Index,
-  Relation,
-} from 'typeorm'
-import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
+	Column,
+	Entity,
+	ManyToMany,
+	ManyToOne,
+	PrimaryColumn,
+	JoinTable,
+	CreateDateColumn,
+	UpdateDateColumn,
+	AfterLoad,
+	AfterInsert,
+	AfterUpdate,
+	Index,
+	Relation,
+} from "typeorm";
+import {
+	Field,
+	GraphQLISODateTime,
+	ID,
+	Int,
+	ObjectType,
+} from "@nestjs/graphql";
 
-import Category from './category.entity'
-import Tag from './tag.entity'
-import User from './user.entity'
-import Language from './language.entity'
-import Metadata from './metadata.entity'
-import Media from './types/IMedia'
-import Image from './image.entity'
-import { Author } from './types/IUser'
-import dateMiddleware from './middlewares/wikiMiddleware'
-import LinkedWikis from './types/ILinkedWikis'
-import Events from './types/IEvents'
+import Category from "./category.entity";
+import Tag from "./tag.entity";
+import User from "./user.entity";
+import Language from "./language.entity";
+import Metadata from "./metadata.entity";
+import Media from "./types/IMedia";
+import Image from "./image.entity";
+import { Author } from "./types/IUser";
+import dateMiddleware from "./middlewares/wikiMiddleware";
+import LinkedWikis from "./types/ILinkedWikis";
+import Events from "./types/IEvents";
 
 @ObjectType()
 @Entity()
 class Wiki {
-  @Field(() => ID)
+	@Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
-  id!: string
+	id!: string;
 
-  @Field()
+	@Field()
   @Column()
-  title!: string
+	title!: string;
 
-  @Field()
+	@Field()
   @Column('boolean', { default: false })
   @Index('idx_wiki_hidden')
-  hidden!: boolean
+	hidden!: boolean;
 
-  @Field(() => GraphQLISODateTime, {
+	@Field(() => GraphQLISODateTime, {
     middleware: [dateMiddleware],
     nullable: true,
   })
   @CreateDateColumn()
-  created!: Date
+	created!: Date;
 
-  @Field(() => GraphQLISODateTime, {
+	@Field(() => GraphQLISODateTime, {
     middleware: [dateMiddleware],
     nullable: true,
   })
   @UpdateDateColumn()
-  updated!: Date
+	updated!: Date;
 
-  @Field(() => Int)
+	@Field(() => Int)
   @Column('integer')
-  block!: number
+	block!: number;
 
-  @Field()
+	@Field()
   @Column()
-  transactionHash!: string
+	transactionHash!: string;
 
-  @Field()
+	@Field()
   @Column('varchar', { default: '' })
-  ipfs!: string
+	ipfs!: string;
 
-  @Field(() => Int)
+	@Field(() => Int)
   @Column('smallint')
-  version = 1
+	version = 1;
 
-  @Field(() => Int, { nullable: true })
+	@Field(() => Int, { nullable: true })
   @Column('integer', { default: 0 })
-  views!: number
+	views!: number;
 
-  @Field(() => Int)
+	@Field(() => Int)
   @Column('smallint', { default: 0 })
-  promoted = 0
+	promoted = 0;
 
-  @Field()
+	@Field()
   @Column('text')
-  content!: string
+	content!: string;
 
-  @Field()
+	@Field()
   @Column('varchar')
-  summary!: string
+	summary!: string;
 
-  @Field(() => Language)
+	@Field(() => Language)
   @ManyToOne('Language', 'language', { lazy: true })
-  language!: Relation<Language>
+	language!: Relation<Language>;
 
-  @Field(() => User)
+	@Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
-  user!: Relation<User>
+	user!: Relation<User>;
 
-  @Field(() => Author, { nullable: true })
-  author?: Author
+	@Field(() => Author, { nullable: true })
+	author?: Author;
 
-  @Field(() => [Metadata])
+	@Field(() => [Metadata])
   @Column('json', { nullable: true })
-  metadata!: Metadata[]
+	metadata!: Metadata[];
 
-  @Field(() => [Media], { nullable: true })
+	@Field(() => [Media], { nullable: true })
   @Column('json', { nullable: true })
-  media?: Media[]
+	media?: Media[];
 
-  @Field(() => LinkedWikis, { nullable: true })
+	@Field(() => LinkedWikis, { nullable: true })
   @Column('json', { nullable: true })
-  linkedWikis?: LinkedWikis
+	linkedWikis?: LinkedWikis;
 
-  @Field(() => [Events], { nullable: true })
+	@Field(() => [Events], { nullable: true })
   @Column('json', { nullable: true })
-  events?: Events[]
+	events?: Events[];
 
-  @Field(() => [Image])
+	@Field(() => [Image])
   @Column('json', { nullable: true })
-  images!: Image[]
+	images!: Image[];
 
-  @Field(() => [Tag])
+	@Field(() => [Tag])
   @ManyToMany(() => Tag, { lazy: true })
   @JoinTable()
-  tags!: Relation<Tag>[]
+	tags!: Relation<Tag>[];
 
-  @Field(() => [Category])
+	@Field(() => [Category])
   @ManyToMany(() => Category, { lazy: true })
   @JoinTable()
-  categories!: Relation<Category>[]
+	categories!: Relation<Category>[];
 
-  @AfterLoad()
+	@AfterLoad()
   @AfterInsert()
   @AfterUpdate()
-  async nullField() {
-    if (!this.media) {
-      this.media = []
-    }
-  }
+	async nullField() {
+		if (!this.media) {
+			this.media = [];
+		}
+	}
 }
 
-export default Wiki
+export default Wiki;

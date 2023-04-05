@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { SentryModule } from '@ntegral/nestjs-sentry'
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { SentryModule } from "@ntegral/nestjs-sentry";
 
 @Module({
   imports: [
@@ -19,4 +19,4 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
 })
 class SentryMod {}
 
-export default SentryMod
+export default SentryMod;

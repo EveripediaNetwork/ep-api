@@ -1,108 +1,108 @@
 /* eslint-disable import/no-cycle */
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm'
+	Column,
+	CreateDateColumn,
+	Entity,
+	PrimaryColumn,
+	UpdateDateColumn,
+} from "typeorm";
 import {
-  Directive,
-  Field,
-  GraphQLISODateTime,
-  ID,
-  ObjectType,
-} from '@nestjs/graphql'
-import { Links, Notifications, AdvancedSettings } from './types/IUser'
-import Activity from './activity.entity'
-import Wiki from './wiki.entity'
-import skipMiddleware from './middlewares/skipMiddleware'
+	Directive,
+	Field,
+	GraphQLISODateTime,
+	ID,
+	ObjectType,
+} from "@nestjs/graphql";
+import { Links, Notifications, AdvancedSettings } from "./types/IUser";
+import Activity from "./activity.entity";
+import Wiki from "./wiki.entity";
+import skipMiddleware from "./middlewares/skipMiddleware";
 
 @ObjectType()
 @Entity()
 class UserProfile {
-  @Field(() => ID)
+	@Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
-  id!: string
+	id!: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Column('varchar', {
     length: 25,
     nullable: true,
     unique: true,
   })
-  username?: string
+	username?: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Column('varchar', {
     length: 250,
     nullable: true,
   })
-  bio?: string
+	bio?: string;
 
-  @Directive('@isUser')
+	@Directive('@isUser')
   @Field({ nullable: true, middleware: [skipMiddleware] })
   @Column('varchar', {
     length: 100,
     nullable: true,
   })
-  email?: string
+	email?: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Column('varchar', {
     length: 46,
     nullable: true,
   })
-  avatar?: string
+	avatar?: string;
 
-  @Field({ nullable: true })
+	@Field({ nullable: true })
   @Column('varchar', {
     length: 46,
     nullable: true,
   })
-  banner?: string
+	banner?: string;
 
-  @Field(() => [Links], { nullable: true })
+	@Field(() => [Links], { nullable: true })
   @Column('jsonb', { default: [] })
-  links?: Links[]
+	links?: Links[];
 
-  @Directive('@isUser')
+	@Directive('@isUser')
   @Field(() => [Notifications], {
     nullable: true,
     middleware: [skipMiddleware],
   })
   @Column('jsonb', { default: [new Notifications()] })
-  notifications!: Notifications[]
+	notifications!: Notifications[];
 
-  @Directive('@isUser')
+	@Directive('@isUser')
   @Field(() => [AdvancedSettings], {
     nullable: true,
     middleware: [skipMiddleware],
   })
   @Column('jsonb', { default: [new AdvancedSettings()] })
-  advancedSettings!: AdvancedSettings[]
+	advancedSettings!: AdvancedSettings[];
 
-  @Field(() => GraphQLISODateTime)
+	@Field(() => GraphQLISODateTime)
   @CreateDateColumn()
-  created!: Date
+	created!: Date;
 
-  @Field(() => GraphQLISODateTime)
+	@Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
-  updated!: Date
+	updated!: Date;
 
-  @Field(() => Boolean)
-  active!: boolean
+	@Field(() => Boolean)
+	active!: boolean;
 
-  @Field(() => [Activity])
-  wikisCreated!: Activity[]
+	@Field(() => [Activity])
+	wikisCreated!: Activity[];
 
-  @Field(() => [Activity])
-  wikisEdited!: Activity[]
+	@Field(() => [Activity])
+	wikisEdited!: Activity[];
 
-  @Field(() => [Wiki])
-  wikiSubscribed!: Wiki[]
+	@Field(() => [Wiki])
+	wikiSubscribed!: Wiki[];
 }
 
-export default UserProfile
+export default UserProfile;

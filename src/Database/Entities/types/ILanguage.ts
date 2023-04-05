@@ -1,7 +1,7 @@
-import { IWiki } from './IWiki'
+import { IWiki } from "./IWiki";
 
 export interface ILanguage {
-  id: string
-  title: string
-  wikis: IWiki[]
+	id: string;
+	title: string;
+	wikis: IWiki[];
 }

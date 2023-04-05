@@ -1,26 +1,26 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Field, GraphQLISODateTime, ID, ObjectType } from "@nestjs/graphql";
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()
 class PageviewsPerDay {
-  @Field(() => ID)
+	@Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+	id!: string;
 
-  @Field()
+	@Field()
   @Column('varchar', {
     length: 255,
   })
-  wikiId!: string
+	wikiId!: string;
 
-  @Field(() => GraphQLISODateTime)
+	@Field(() => GraphQLISODateTime)
   @Column('date')
-  day!: Date
+	day!: Date;
 
-  @Field()
+	@Field()
   @Column('integer')
-  visits!: number
+	visits!: number;
 }
 
-export default PageviewsPerDay
+export default PageviewsPerDay;

@@ -1,50 +1,50 @@
 /* eslint-disable import/no-cycle */
 import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  Relation,
-} from 'typeorm'
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+	Column,
+	Entity,
+	Index,
+	JoinColumn,
+	OneToMany,
+	OneToOne,
+	PrimaryColumn,
+	Relation,
+} from "typeorm";
+import { Field, ID, ObjectType } from "@nestjs/graphql";
 
-import { IUser } from './types/IUser'
-import { IWiki } from './types/IWiki'
-import Wiki from './wiki.entity'
-import Activity from './activity.entity'
-import UserProfile from './userProfile.entity'
+import { IUser } from "./types/IUser";
+import { IWiki } from "./types/IWiki";
+import Wiki from "./wiki.entity";
+import Activity from "./activity.entity";
+import UserProfile from "./userProfile.entity";
 
 @ObjectType()
 @Entity()
 class User implements IUser {
-  @Field(() => ID)
+	@Field(() => ID)
   @PrimaryColumn('varchar', {
     length: 255,
   })
-  id!: string
+	id!: string;
 
-  @Field(() => UserProfile, { nullable: true })
+	@Field(() => UserProfile, { nullable: true })
   @OneToOne(() => UserProfile, profile => profile.id, { eager: true })
   @JoinColumn()
   @Index('idx_user_profileId')
-  profile!: Relation<UserProfile>
+	profile!: Relation<UserProfile>;
 
-  @Field(() => Boolean)
+	@Field(() => Boolean)
   @Column('boolean', { default: true })
-  active!: boolean
+	active!: boolean;
 
-  @Field(() => [Wiki])
+	@Field(() => [Wiki])
   @OneToMany(() => Wiki, wiki => wiki.user, { lazy: true })
-  wikis!: Relation<IWiki>[]
+	wikis!: Relation<IWiki>[];
 
-  @Field(() => [Activity])
-  wikisCreated!: Activity[]
+	@Field(() => [Activity])
+	wikisCreated!: Activity[];
 
-  @Field(() => [Activity])
-  wikisEdited!: Activity[]
+	@Field(() => [Activity])
+	wikisEdited!: Activity[];
 }
 
-export default User
+export default User;
