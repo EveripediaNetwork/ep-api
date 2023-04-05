@@ -1,9 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
-import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from './types/IFeedback'
+import { ContentFeedbackSite, ContentFeedbackType } from './types/IFeedback'
 import { Content } from '../../App/content-feedback/contentFeedback.dto'
 
 registerEnumType(ContentFeedbackSite, {
@@ -12,8 +9,6 @@ registerEnumType(ContentFeedbackSite, {
 registerEnumType(ContentFeedbackType, {
   name: 'ContentFeedbackType',
 })
-
-
 
 @ObjectType({ description: 'User subscriptions' })
 @Entity()

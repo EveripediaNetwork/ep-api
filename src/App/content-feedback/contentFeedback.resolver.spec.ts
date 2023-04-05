@@ -7,6 +7,7 @@ import ContentFeedbackService from './contentFeedback.service'
 import ContentFeedbackResolver from './contentFeedback.resolver'
 import { getProviders, ProviderEnum } from '../utils/testHelpers'
 import { ContentFeedbackArgs } from './contentFeedback.dto'
+import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
 
 jest.mock('fs')
 
@@ -22,9 +23,9 @@ const ctx = {
 }
 
 const thumbsUp = {
-  wikId: 'right-of-way',
+  contentId: 'right-of-way',
   userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-  choice: true,
+  feedback: ContentFeedbackType.NEGATIVE,
 } as unknown as ContentFeedbackArgs
 
 describe('ContentFeedbackResolver', () => {
@@ -71,15 +72,17 @@ describe('ContentFeedbackResolver', () => {
   })
 
   it('should return true if content feedback is created or updated', async () => {
-    jest.spyOn(service, 'postWikiFeedback').mockResolvedValue(true)
-    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(true)
+    jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
+    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(
+     true,
+    )
     expect(
-      await resolver.contentFeedback(ctx, { ...thumbsUp, choice: false }),
+      await resolver.contentFeedback(ctx, { ...thumbsUp, feedback: ContentFeedbackType.NEGATIVE }),
     ).toBe(true)
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
-    jest.spyOn(service, 'postWikiFeedback').mockResolvedValue(false)
+    jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
     expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(false)
   })
-})
+})  

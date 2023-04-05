@@ -10,7 +10,6 @@ import UserProfile from '../../Database/Entities/userProfile.entity'
 import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
 import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
 
-
 @Injectable()
 export default class WebhookHandler {
   constructor(

@@ -1,5 +1,8 @@
 import { ArgsType, Field, ObjectType } from '@nestjs/graphql'
-import { ContentFeedbackSite, ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
+import {
+  ContentFeedbackSite,
+  ContentFeedbackType,
+} from '../../Database/Entities/types/IFeedback'
 
 @ObjectType()
 export class Content {
@@ -38,7 +41,7 @@ export class ContentFeedbackArgs {
 
   @Field(() => String, { nullable: true })
   feedback?: ContentFeedbackType
- 
+
   @Field(() => String, { nullable: true })
   reportType?: string
 }
