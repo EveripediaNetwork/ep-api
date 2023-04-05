@@ -22,7 +22,6 @@ export type ValidatorResult = {
 
 @Injectable()
 class IPFSValidatorService {
-
   async validate(
     wiki: WikiType,
     validateJSON?: boolean,

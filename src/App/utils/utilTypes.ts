@@ -1,3 +1,5 @@
+import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
+
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
@@ -13,19 +15,9 @@ export enum AdminMutations {
   TOGGLE_USER_STATE = 'toggleUserStateById',
 }
 
-export interface ContentFeedbackWebhook {
-  wikiId?: string
-  userId?: string
-  choice?: boolean
-}
-
 export interface IQSocialFeedbackWebhook {
   reportType?: string
   message?: string
-}
-
-export interface ContentStoreObject extends ContentFeedbackWebhook {
-  ip: string
 }
 
 export interface FlagWikiWebhook {
@@ -45,13 +37,13 @@ export class AdminLogPayload {
 }
 
 export interface WebhookPayload {
+  ip?: string
   user?: string
   title?: string
-  description?: string
-  username?: string
   urlId?: string
+  username?: string
+  description?: string
   adminAction?: AdminMutations
+  type?: ContentFeedbackType
   content?: Record<string, unknown>
-  ip?: string
-  choice?: boolean
 }

@@ -1,10 +1,7 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 
 import ContentFeebackService from './contentFeedback.service'
-import {
-  ContentFeedbackArgs,
-  IQSocialFeedbackArgs,
-} from './contentFeedback.dto'
+import { ContentFeedbackArgs } from './contentFeedback.dto'
 
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {
@@ -13,22 +10,12 @@ class ContentFeedbackResolver {
   @Mutation(() => Boolean)
   async contentFeedback(
     @Context() ctx: any,
-    @Args({ nullable: true }) iqwikiArgs?: ContentFeedbackArgs,
-    @Args({ nullable: true }) iqSocialArgs?: IQSocialFeedbackArgs,
+    @Args() args: ContentFeedbackArgs,
   ) {
-    let state
-
-    if (iqSocialArgs) {
-      state = this.contentFeebackService.postSocialFeedback(iqSocialArgs)
-    }
-    if (iqwikiArgs) {
-      state = this.contentFeebackService.postWikiFeedback(
-        iqwikiArgs,
-        ctx.req.ip,
-      )
-    }
-
-    return state
+    return this.contentFeebackService.postFeedback({
+      ...args,
+      ip: ctx.req.ip,
+    })
   }
 }
 

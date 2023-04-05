@@ -8,6 +8,8 @@ import { promises as fss } from 'fs'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 // import Wiki from '../../Database/Entities/wiki.entity'
 import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
+import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
+
 
 @Injectable()
 export default class WebhookHandler {
@@ -86,13 +88,15 @@ export default class WebhookHandler {
           break
         }
         case AdminMutations.TOGGLE_USER_STATE: {
-          payload?.choice === true
-            ? (message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
-                payload?.urlId
-              }  ✅ \n\n _Performed by_ ***${adminUser}*** `)
-            : (message = `**User banned** - ${this.getWebpageUrl()}/account/${
-                payload?.urlId
-              } ❌ \n\n _Performed by_ ***${adminUser}*** `)
+          if (payload?.type === ContentFeedbackType.POSITIVE) {
+            message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
+              payload?.urlId
+            }  ✅ \n\n _Performed by_ ***${adminUser}*** `
+          }
+          if (payload?.type === ContentFeedbackType.NEGATIVE)
+            message = `**User banned** - ${this.getWebpageUrl()}/account/${
+              payload?.urlId
+            } ❌ \n\n _Performed by_ ***${adminUser}*** `
           break
         }
         default:
