@@ -1,4 +1,5 @@
 /* eslint-disable new-cap */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
@@ -10,7 +11,6 @@ import USER_ACTIVITY_LIMIT from '../../globalVars'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import ActivityService from '../Activities/activity.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
-import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 
 @Injectable()
 class PinService {
@@ -61,10 +61,7 @@ class PinService {
     const isDataValid = await this.validator.validate(data, true)
 
     if (!isDataValid.status) {
-      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-        title: isDataValid.message,
-        content: data,
-      } as unknown as WebhookPayload)
+      this.pinJSONErrorWebhook.postPinJSONException(isDataValid.message, data)
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,

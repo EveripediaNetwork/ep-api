@@ -1,4 +1,4 @@
-import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
@@ -15,9 +15,19 @@ export enum AdminMutations {
   TOGGLE_USER_STATE = 'toggleUserStateById',
 }
 
-export interface IQSocialFeedbackWebhook {
-  reportType?: string
-  message?: string
+export interface ContentFeedbackWebhook {
+  wikiId: string
+  userId?: string
+  choice: boolean
+}
+
+export interface ContentStoreObject extends ContentFeedbackWebhook {
+  ip: string
+}
+
+export interface WikiWebhookError {
+  errorMessage: string
+  data: WikiType
 }
 
 export interface FlagWikiWebhook {
@@ -34,16 +44,4 @@ export class AdminLogPayload {
   id!: string
 
   status?: boolean
-}
-
-export interface WebhookPayload {
-  ip?: string
-  user?: string
-  title?: string
-  urlId?: string
-  username?: string
-  description?: string
-  adminAction?: AdminMutations
-  type?: ContentFeedbackType
-  content?: Record<string, unknown>
 }

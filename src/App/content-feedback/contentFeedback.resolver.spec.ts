@@ -4,10 +4,10 @@ import { CacheModule } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import ContentFeedbackService from './contentFeedback.service'
-import ContentFeedbackResolver from './contentFeedback.resolver'
+import ContentFeedbackResolver, {
+  ContentFeedbackArgs,
+} from './contentFeedback.resolver'
 import { getProviders, ProviderEnum } from '../utils/testHelpers'
-import { ContentFeedbackArgs } from './contentFeedback.dto'
-import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
 
 jest.mock('fs')
 
@@ -23,9 +23,9 @@ const ctx = {
 }
 
 const thumbsUp = {
-  contentId: 'right-of-way',
+  wikId: 'right-of-way',
   userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
-  feedback: ContentFeedbackType.NEGATIVE,
+  choice: true,
 } as unknown as ContentFeedbackArgs
 
 describe('ContentFeedbackResolver', () => {
@@ -73,17 +73,14 @@ describe('ContentFeedbackResolver', () => {
 
   it('should return true if content feedback is created or updated', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(true)
-    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(true)
+    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(true)
     expect(
-      await resolver.contentFeedback(ctx, {
-        ...thumbsUp,
-        feedback: ContentFeedbackType.NEGATIVE,
-      }),
+      await resolver.contentFeedback({ ...thumbsUp, choice: false }, ctx),
     ).toBe(true)
   })
 
   it('should return false if content feedback is duplicated or cached', async () => {
     jest.spyOn(service, 'postFeedback').mockResolvedValue(false)
-    expect(await resolver.contentFeedback(ctx, thumbsUp)).toBe(false)
+    expect(await resolver.contentFeedback(thumbsUp, ctx)).toBe(false)
   })
 })

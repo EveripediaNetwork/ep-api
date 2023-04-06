@@ -11,12 +11,7 @@ import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
 import { Cache } from 'cache-manager'
 import TokenValidator from './validateToken'
-import {
-  ActionTypes,
-  AdminLogPayload,
-  AdminMutations,
-  WebhookPayload,
-} from './utilTypes'
+import { ActionTypes, AdminLogPayload, AdminMutations } from './utilTypes'
 import WebhookHandler from './discordWebhookHandler'
 
 @Injectable()
@@ -64,16 +59,14 @@ export default class AdminLogsInterceptor implements NestInterceptor {
 
   @OnEvent('admin.action', { async: true })
   async sendAdminLog(cacheId: string) {
-    const payload: AdminLogPayload | undefined = await this.cacheManager.get(
-      cacheId,
-    )
+    const payload = await this.cacheManager.get(cacheId)
     if (payload) {
-      await this.webhookHandler.postWebhook(ActionTypes.ADMIN_ACTION, {
-        user: payload.address,
-        urlId: payload.id,
-        adminAction: payload.endpoint,
-        choice: payload.status,
-      } as WebhookPayload)
+      await this.webhookHandler.postWebhook(
+        ActionTypes.ADMIN_ACTION,
+        undefined,
+        undefined,
+        payload as AdminLogPayload,
+      )
       await this.cacheManager.del(`${cacheId}`)
     }
     return true

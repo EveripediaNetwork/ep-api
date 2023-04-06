@@ -1,15 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { promises as fss } from 'fs'
+import { Wiki as WikiType } from '@everipedia/iq-utils'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
 import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from '../../Database/Entities/types/IFeedback'
+  ActionTypes,
+  AdminLogPayload,
+  AdminMutations,
+  ContentStoreObject,
+  FlagWikiWebhook,
+  WikiWebhookError,
+} from './utilTypes'
 
 @Injectable()
 export default class WebhookHandler {
@@ -41,7 +46,13 @@ export default class WebhookHandler {
     return result
   }
 
-  private async embedWebhook(actionType: ActionTypes, payload: WebhookPayload) {
+  private async embedWebhook(
+    actionType: ActionTypes,
+    flagWiki?: FlagWikiWebhook,
+    wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
+    contentStoreObject?: ContentStoreObject,
+  ) {
     const boundary = this.makeId(10)
     const internalActivity = this.getWebhookUrls().INTERNAL_ACTIVITY
     const braindaoAlarms = this.getWebhookUrls().BRAINDAO_ALARMS
@@ -50,53 +61,51 @@ export default class WebhookHandler {
 
     if (actionType === ActionTypes.ADMIN_ACTION) {
       const user = await userProfileRepo.findOne({
-        where: { id: `LOWER(id) = '${payload?.user?.toLowerCase()}'` },
+        where: { id: `LOWER(id) = '${adminLog?.address.toLowerCase()}'` },
       })
 
       let adminUser
 
       if (!user) {
-        adminUser = payload?.user
+        adminUser = adminLog?.address
       } else {
         adminUser = user.username
       }
 
       let message
-      switch (payload?.adminAction) {
+      switch (adminLog?.endpoint) {
         case AdminMutations.HIDE_WIKI: {
           message = `**Wiki archived** - ${this.getWebpageUrl()}/wiki/${
-            payload?.urlId
+            adminLog?.id
           } 🔒 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.UNHIDE_WIKI: {
           message = `**Wiki unarchived** - ${this.getWebpageUrl()}/wiki/${
-            payload?.urlId
+            adminLog?.id
           } 🔓 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.PROMOTE_WIKI: {
           message = `**Wiki promoted** - ${this.getWebpageUrl()}/wiki/${
-            payload?.urlId
+            adminLog?.id
           }  📌 \n\n _Performed by_ ***${adminUser}***`
           break
         }
         case AdminMutations.REVALIDATE_PAGE: {
           message = `**Route revalidated** - ${this.getWebpageUrl()}${
-            payload?.urlId
+            adminLog?.id
           }  ♻️ \n\n _Performed by_ ***${adminUser}*** `
           break
         }
         case AdminMutations.TOGGLE_USER_STATE: {
-          if (payload?.type === ContentFeedbackType.POSITIVE) {
-            message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
-              payload?.urlId
-            }  ✅ \n\n _Performed by_ ***${adminUser}*** `
-          }
-          if (payload?.type === ContentFeedbackType.NEGATIVE)
-            message = `**User banned** - ${this.getWebpageUrl()}/account/${
-              payload?.urlId
-            } ❌ \n\n _Performed by_ ***${adminUser}*** `
+          adminLog?.status === true
+            ? (message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
+                adminLog?.id
+              }  ✅ \n\n _Performed by_ ***${adminUser}*** `)
+            : (message = `**User banned** - ${this.getWebpageUrl()}/account/${
+                adminLog?.id
+              } ❌ \n\n _Performed by_ ***${adminUser}*** `)
           break
         }
         default:
@@ -117,7 +126,7 @@ export default class WebhookHandler {
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
       const user = await userProfileRepo.findOneBy({
-        id: payload?.user,
+        id: flagWiki?.userId,
       })
 
       const jsonContent = JSON.stringify({
@@ -125,9 +134,9 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0xff9900,
-            title: `📢   Wiki report on ${payload?.urlId}  📢`,
-            url: `${this.getWebpageUrl()}wiki/${payload?.urlId}`,
-            description: `${payload?.description}`,
+            title: `📢   Wiki report on ${flagWiki?.wikiId}  📢`,
+            url: `${this.getWebpageUrl()}wiki/${flagWiki?.wikiId}`,
+            description: `${flagWiki?.report}`,
             footer: {
               text: `Flagged by ${user?.username || 'user'}`,
             },
@@ -139,7 +148,7 @@ export default class WebhookHandler {
     if (actionType === ActionTypes.PINJSON_ERROR) {
       await fss.writeFile(
         './uploads/message.json',
-        `${JSON.stringify(payload?.content, null, 2)}`,
+        `${JSON.stringify(wikiException?.data, null, 2)}`,
       )
       const readText = await fss.readFile('./uploads/message.json')
 
@@ -148,7 +157,7 @@ export default class WebhookHandler {
         embeds: [
           {
             color: 0xcf2323,
-            title: `${payload?.title} on Wiki, ID: - ${payload?.content?.id}`,
+            title: `${wikiException?.errorMessage} on Wiki, ID: - ${wikiException?.data.id}`,
           },
         ],
         attachments: [
@@ -178,65 +187,45 @@ export default class WebhookHandler {
         })
     }
     if (actionType === ActionTypes.CONTENT_FEEDBACK) {
-      let jsonContent
+      const wiki = await wikiRepo.find({
+        select: ['title'],
+        where: {
+          id: contentStoreObject?.wikiId,
+          hidden: false,
+        },
+      })
       let user
-      if (payload && !payload.user && payload.ip) {
-        const a = payload.ip.split('.')
+
+      if (contentStoreObject && !contentStoreObject.userId) {
+        const a = contentStoreObject.ip.split('.')
         user = `${a[0]}.${a[1]}.${a[2]}.*`
       } else {
         const userProfile = await userProfileRepo.findOneBy({
-          id: payload?.user,
+          id: contentStoreObject?.userId,
         })
         user = userProfile?.username || 'anonymous'
       }
 
-      if (payload.title === ContentFeedbackSite.IQWIKI) {
-        const wiki = await wikiRepo.find({
-          select: ['title'],
-          where: {
-            id: payload?.urlId,
-            hidden: false,
+      const jsonContent = JSON.stringify({
+        username: 'EP feedback',
+        embeds: [
+          {
+            color: contentStoreObject?.choice ? 0x6beb34 : 0xeb6234,
+            title: `${contentStoreObject?.choice ? '👍' : '👎'}  ${
+              wiki.length !== 0 ? wiki[0].title : 'invalid title'
+            }`,
+            url: `${this.getWebpageUrl()}/wiki/${contentStoreObject?.wikiId}`,
+            description: `${user} ${
+              contentStoreObject?.choice ? 'finds' : 'does not find'
+            } this wiki interesting`,
+            footer: {
+              text: 'IQ.wiki feedback',
+            },
           },
-        })
-        jsonContent = JSON.stringify({
-          username: 'IQ Wiki feedback',
-          embeds: [
-            {
-              color:
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 0x6beb34
-                  : 0xeb6234,
-              title: `${
-                payload?.type === ContentFeedbackType.POSITIVE ? '👍' : '👎'
-              }  ${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
-              url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
-              description: `${user} ${
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 'finds'
-                  : 'does not find'
-              } this wiki interesting`,
-              footer: {
-                text: 'IQ.wiki feedback',
-              },
-            },
-          ],
-        })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
-      }
+        ],
+      })
 
-      if (payload.title === ContentFeedbackSite.IQSOCIAL) {
-        jsonContent = JSON.stringify({
-          username: 'IQ Social feedback',
-          embeds: [
-            {
-              color: 0xbe185d,
-              title: payload?.type,
-              description: `${payload?.description} 🎤 \n\n _Reported by_ ***${user}*** `,
-            },
-          ],
-        })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
-      }
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
 
     return true
@@ -258,7 +247,38 @@ export default class WebhookHandler {
       .toPromise()
   }
 
-  async postWebhook(actionType: ActionTypes, payload: WebhookPayload) {
-    return this.embedWebhook(actionType, payload)
+  async postWebhook(
+    actionType: ActionTypes,
+    flagWiki?: FlagWikiWebhook,
+    wikiException?: WikiWebhookError,
+    adminLog?: AdminLogPayload,
+    contentStoreObject?: ContentStoreObject,
+  ) {
+    if (flagWiki) {
+      return this.embedWebhook(actionType, flagWiki)
+    }
+    if (wikiException) {
+      return this.embedWebhook(actionType, undefined, wikiException)
+    }
+    if (adminLog) {
+      return this.embedWebhook(actionType, undefined, undefined, adminLog)
+    }
+    if (contentStoreObject) {
+      return this.embedWebhook(
+        actionType,
+        undefined,
+        undefined,
+        undefined,
+        contentStoreObject,
+      )
+    }
+    return true
+  }
+
+  async postPinJSONException(errorMessage: string, data: WikiType) {
+    return this.postWebhook(ActionTypes.PINJSON_ERROR, undefined, {
+      errorMessage,
+      data,
+    })
   }
 }

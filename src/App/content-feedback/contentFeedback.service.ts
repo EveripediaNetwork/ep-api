@@ -1,14 +1,13 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { DataSource } from 'typeorm'
-import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
-import WebhookHandler from '../utils/discordWebhookHandler'
-import { ContentFeedbackPayload } from './contentFeedback.dto'
-import Feedback from '../../Database/Entities/feedback.entity'
+import ContentFeedback from '../../Database/Entities/contentFeedback.entity'
 import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from '../../Database/Entities/types/IFeedback'
+  ActionTypes,
+  ContentFeedbackWebhook,
+  ContentStoreObject,
+} from '../utils/utilTypes'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 @Injectable()
 class ContentFeedbackService {
@@ -18,83 +17,61 @@ class ContentFeedbackService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async postFeedback(args: ContentFeedbackPayload) {
-    const waitIP = await this.checkIP(args.ip)
+  async postFeedback(data: ContentFeedbackWebhook, ip: string) {
+    const waitIP = await this.checkIP(ip)
 
     if (!waitIP) {
       return waitIP
     }
 
     const checkFeedback = await this.storeFeedback({
-      ip: args.ip,
-      input: args.input,
-      output: args.output,
-      userId: args.userId as string,
-      contentId: args.contentId as string,
-      message: args.message as string,
-      site: args.site as ContentFeedbackSite,
-      feedback: args.feedback,
-      reportType: args.reportType as ContentFeedbackType,
+      ip,
+      wikiId: data.wikiId,
+      choice: data.choice,
+      userId: data.userId as string,
     })
 
     if (checkFeedback) {
-      await this.webhookHandler.postWebhook(ActionTypes.CONTENT_FEEDBACK, {
-        ip: args.ip,
-        urlId: args.contentId,
-        type: args.feedback,
-        user: args.userId,
-        title: args.site,
-        description: args.message,
-      } as WebhookPayload)
+      await this.webhookHandler.postWebhook(
+        ActionTypes.CONTENT_FEEDBACK,
+        undefined,
+        undefined,
+        undefined,
+        {
+          ip,
+          wikiId: data.wikiId,
+          choice: data.choice,
+          userId: data.userId as string,
+        } as ContentStoreObject,
+      )
     }
     return checkFeedback
   }
 
-  async storeFeedback(args: ContentFeedbackPayload): Promise<boolean> {
-    const repository = this.dataSource.getRepository(Feedback)
-    const id = `${args.ip}-${args.contentId || args.input}`
+  async storeFeedback(args: ContentStoreObject): Promise<boolean> {
+    const repository = this.dataSource.getRepository(ContentFeedback)
+    const id = `${args.ip}-${args.wikiId}`
     const cached: string | undefined = await this.cacheManager.get(id)
 
-    let check
-    if (args.site === ContentFeedbackSite.IQSEARCH) {
-      check = await repository
-        .createQueryBuilder('feeback')
-        .where(`feeback.content @> '{"input": "${args.input}"}'`)
-        .getOne()
-    } else {
-      check = await repository.findOne({
-        where: { contentId: args.contentId, ip: args.ip },
-      })
-    }
+    const feedback = await repository.findOne({
+      where: { wikiId: args.wikiId, ip: args.ip },
+    })
 
-    if (cached || (check && check.feedback === args.feedback)) {
+    if (cached || (feedback && feedback.choice === args.choice)) {
       return false
     }
 
-    if (check && check.feedback !== args.feedback) {
-      if (args.reportType) {
-        await repository.query(
-          `UPDATE feedback SET feedback = $1 where "contentId" = $2 AND ip = $3`,
-          [args.feedback, args.contentId, args.ip],
-        )
-      } else {
-        await repository.query(
-          `UPDATE feedback SET feedback = $1 where "contentId" = $2 OR feeback.content @> '{"input": "$3"}' AND ip = $4`,
-          [args.feedback, args.contentId, args.input, args.ip],
-        )
-      }
+    if (feedback && feedback.choice !== args.choice) {
+      await repository.query(
+        `UPDATE content_feedback SET choice = $1 where "wikiId" = $2 AND ip = $3`,
+        [args.choice, args.wikiId, args.ip],
+      )
     }
 
-    if (!check) {
+    if (!feedback) {
       const newFeedback = repository.create({
         ...args,
-        content: [
-          {
-            input: args.input,
-            output: args.output,
-          },
-        ],
-      } as unknown as Feedback)
+      })
       await repository.save(newFeedback)
     }
     await this.cacheManager.set(id, args.ip)
