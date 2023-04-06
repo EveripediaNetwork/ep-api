@@ -23,12 +23,11 @@ export enum Direction {
 }
 
 @ArgsType()
-export class ArgsById  {
+export class ArgsById {
   @Field(() => String)
   @Validate(ValidStringParams)
   id!: string
 }
-
 
 registerEnumType(OrderBy, { name: 'OrderBy' })
 registerEnumType(Direction, { name: 'Direction' })

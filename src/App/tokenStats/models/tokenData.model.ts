@@ -38,7 +38,6 @@ export default class TokenData {
   volume_percentage_change!: number
 }
 
-
 @ArgsType()
 export class TokenStatArgs {
   @Field(() => String, { nullable: true, name: 'tokenName' })

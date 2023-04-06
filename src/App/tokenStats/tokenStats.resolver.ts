@@ -8,7 +8,7 @@ class TokenStatsResolver {
 
   @Query(() => TokenData, { name: 'tokenStats' })
   async getTokenStats(
-    @Args() args: TokenStatArgs
+    @Args() args: TokenStatArgs,
   ): Promise<TokenData> {
     const result = await this.tokenStatsService.getStats(
       args.tokenName.toLowerCase(),
