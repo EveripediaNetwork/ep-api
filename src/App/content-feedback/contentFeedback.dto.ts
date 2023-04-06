@@ -19,6 +19,7 @@ export class ContentFeedbackArgs {
     nullable: true,
     description: 'The slug id of content page',
   })
+
   contentId?: string
 
   @Field(() => String, { nullable: true })
