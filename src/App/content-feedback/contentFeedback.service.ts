@@ -70,7 +70,12 @@ class ContentFeedbackService {
       })
     }
 
-    if (cached || (check && check.feedback === args.feedback)) {
+    if (
+      cached ||
+      (check &&
+        check.feedback === args.feedback &&
+        !(args.site === ContentFeedbackSite.IQSOCIAL))
+    ) {
       return false
     }
 
