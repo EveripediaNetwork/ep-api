@@ -1,9 +1,9 @@
 /* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { MinLength, Validate } from 'class-validator'
-import PaginationArgs from '../pagination.args'
 import ValidStringParams from '../utils/customValidator'
 import { Direction, OrderBy } from '../utils/queryHelpers'
+import PaginationArgs from '../pagination.args'
 
 @ArgsType()
 export class LangArgs extends PaginationArgs {

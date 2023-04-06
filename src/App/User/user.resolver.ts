@@ -20,6 +20,7 @@ import IsActiveGuard from '../utils/isActive.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
+import { ArgsById } from '../utils/queryHelpers'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -53,8 +54,8 @@ class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
-  async userById(@Args('id', { type: () => String }) id: string) {
-    return this.userService.getUser(id)
+  async userById(@Args() args: ArgsById) {
+    return this.userService.getUser(args.id)
   }
 
   @Query(() => Boolean)

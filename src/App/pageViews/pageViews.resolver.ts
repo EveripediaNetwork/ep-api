@@ -1,5 +1,6 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 import PageViewsService from './pageViews.service'
+import { ArgsById } from '../utils/queryHelpers'
 
 @Resolver(() => Number)
 class PageViewsResolver {
@@ -7,10 +8,10 @@ class PageViewsResolver {
 
   @Mutation(() => Number)
   async wikiViewCount(
-    @Args('id', { type: () => String }) id: string,
+    @Args() args: ArgsById,
     @Context() ctx: any,
   ) {
-    return this.pageViewsService.updateCount(id, ctx.req.ip)
+    return this.pageViewsService.updateCount(args.id, ctx.req.ip)
   }
 }
 

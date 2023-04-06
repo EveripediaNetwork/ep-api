@@ -9,6 +9,7 @@ import {
   ActivityByCategoryArgs,
   ByIdAndBlockArgs,
 } from './dto/activity.dto'
+import { ArgsById } from '../utils/queryHelpers'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -35,8 +36,8 @@ class ActivityResolver {
   }
 
   @Query(() => Activity)
-  async activityById(@Args('id', { type: () => String }) id: string) {
-    return this.activityService.getActivitiesById(id)
+  async activityById(@Args() args: ArgsById) {
+    return this.activityService.getActivitiesById(args.id)
   }
 
   @Query(() => Activity)
