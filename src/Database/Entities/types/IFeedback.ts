@@ -7,5 +7,5 @@ export enum ContentFeedbackSite {
 export enum ContentFeedbackType {
   POSITIVE = 'positive',
   NEGATIVE = 'negative',
-  NEUTRAl = 'neutral',
+  NEUTRAL = 'neutral',
 }
