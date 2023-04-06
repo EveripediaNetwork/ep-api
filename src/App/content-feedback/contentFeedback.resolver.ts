@@ -1,25 +1,7 @@
-import {
-  Args,
-  ArgsType,
-  Context,
-  Field,
-  Mutation,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql'
 
 import ContentFeebackService from './contentFeedback.service'
-
-@ArgsType()
-export class ContentFeedbackArgs {
-  @Field(() => String)
-  wikiId!: string
-
-  @Field(() => String, { nullable: true })
-  userId?: string
-
-  @Field(() => Boolean)
-  choice!: boolean
-}
+import { ContentFeedbackArgs } from './contentFeedback.dto'
 
 @Resolver(() => Boolean)
 class ContentFeedbackResolver {
@@ -27,10 +9,13 @@ class ContentFeedbackResolver {
 
   @Mutation(() => Boolean)
   async contentFeedback(
-    @Args() args: ContentFeedbackArgs,
     @Context() ctx: any,
+    @Args() args: ContentFeedbackArgs,
   ) {
-    return this.contentFeebackService.postFeedback(args, ctx.req.ip)
+    return this.contentFeebackService.postFeedback({
+      ...args,
+      ip: ctx.req.ip,
+    })
   }
 }
 
