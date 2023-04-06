@@ -44,6 +44,7 @@ class ContentFeedbackService {
         type: args.feedback,
         user: args.userId,
         title: args.site,
+        reportSubject: args.reportType,
         description: args.message,
       } as WebhookPayload)
     }
@@ -59,7 +60,9 @@ class ContentFeedbackService {
     if (args.site === ContentFeedbackSite.IQSEARCH) {
       check = await repository
         .createQueryBuilder('feeback')
-        .where(`feeback.content @> '{"input": "${args.input}"}'`)
+        .where('feeback.content @> :input', {
+          input: `[{"input":"${args.input}"}]`,
+        })
         .getOne()
     } else {
       check = await repository.findOne({
@@ -79,21 +82,31 @@ class ContentFeedbackService {
         )
       } else {
         await repository.query(
-          `UPDATE feedback SET feedback = $1 where "contentId" = $2 OR feeback.content @> '{"input": "$3"}' AND ip = $4`,
-          [args.feedback, args.contentId, args.input, args.ip],
+          'UPDATE feedback SET feedback = $1 where "contentId" = $2 OR feedback.content @> $3 AND ip = $4',
+          [
+            args.feedback,
+            args.contentId,
+            `[{ "input":"${args.input}"}]`,
+            args.ip,
+          ],
         )
       }
     }
 
+    const content =
+      args.input && args.output
+        ? [
+            {
+              input: args.input,
+              output: args.output,
+            },
+          ]
+        : null
+
     if (!check) {
       const newFeedback = repository.create({
         ...args,
-        content: [
-          {
-            input: args.input,
-            output: args.output,
-          },
-        ],
+        content,
       } as unknown as Feedback)
       await repository.save(newFeedback)
     }

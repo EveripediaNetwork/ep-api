@@ -10,7 +10,6 @@ import { UsersByEditArgs, UsersByIdArgs } from './user.dto'
 import PaginationArgs from '../pagination.args'
 import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
-import { IUser } from '../../Database/Entities/types/IUser'
 
 @Injectable()
 class UserService {

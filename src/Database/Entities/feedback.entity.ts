@@ -10,7 +10,7 @@ registerEnumType(ContentFeedbackType, {
   name: 'ContentFeedbackType',
 })
 
-@ObjectType({ description: 'User subscriptions' })
+@ObjectType({ description: 'IQ feedback' })
 @Entity()
 class Feedback {
   @Field(() => ID)
@@ -27,6 +27,7 @@ class Feedback {
   @Field({ nullable: true })
   @Column('varchar', {
     length: 255,
+    nullable: true,
   })
   contentId?: string
 
@@ -45,15 +46,15 @@ class Feedback {
   feedback!: ContentFeedbackType
 
   @Field({ nullable: true })
-  @Column('text')
+  @Column('text', { nullable: true })
   message?: string
 
   @Field({ nullable: true })
-  @Column('text')
+  @Column('text', { nullable: true })
   reportType?: string
 
   @Field(() => [Content], { nullable: true })
-  @Column('jsonb')
+  @Column('jsonb', { nullable: true })
   content?: Content[]
 }
 

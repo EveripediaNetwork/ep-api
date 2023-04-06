@@ -49,9 +49,10 @@ export default class WebhookHandler {
     const userProfileRepo = this.dataSourece.getRepository(UserProfile)
 
     if (actionType === ActionTypes.ADMIN_ACTION) {
-      const user = await userProfileRepo.findOne({
-        where: { id: `LOWER(id) = '${payload?.user?.toLowerCase()}'` },
-      })
+      const user = await userProfileRepo
+        .createQueryBuilder('user_profile')
+        .where(`LOWER(id) = LOWER('${payload?.user?.toLowerCase()}')`)
+        .getOne()
 
       let adminUser
 
@@ -230,8 +231,8 @@ export default class WebhookHandler {
           embeds: [
             {
               color: 0xbe185d,
-              title: payload?.type,
-              description: `${payload?.description} 🎤 \n\n _Reported by_ ***${user}*** `,
+              title: payload?.reportSubject,
+              description: `_${payload?.description}_ \n\n ID: ${payload?.urlId}  \n\n _Reported by_ 🎤 ***${user}*** `,
             },
           ],
         })

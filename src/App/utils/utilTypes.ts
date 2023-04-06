@@ -43,6 +43,7 @@ export interface WebhookPayload {
   urlId?: string
   username?: string
   description?: string
+  reportSubject?: string
   adminAction?: AdminMutations
   type?: ContentFeedbackType
   content?: Record<string, unknown>

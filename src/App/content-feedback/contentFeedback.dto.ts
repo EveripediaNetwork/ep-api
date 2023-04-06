@@ -19,12 +19,12 @@ export class ContentFeedbackArgs {
     nullable: true,
     description: 'The slug id of content page',
   })
-  id?: string
+  contentId?: string
 
   @Field(() => String, { nullable: true })
   userId?: string
 
-  @Field(() => String, {
+  @Field(() => ContentFeedbackSite, {
     description: 'IQ platorm, e.g iq-wiki, iq-social',
   })
   site!: ContentFeedbackSite
@@ -38,11 +38,8 @@ export class ContentFeedbackArgs {
   @Field(() => String, { nullable: true })
   output?: string
 
-  @Field(() => String, { nullable: true })
-  contentId?: string
-
-  @Field(() => String, { nullable: true })
-  feedback?: ContentFeedbackType
+  @Field(() => ContentFeedbackType, { nullable: true })
+  feedback = ContentFeedbackType.NEUTRAL
 
   @Field(() => String, { nullable: true })
   reportType?: string
