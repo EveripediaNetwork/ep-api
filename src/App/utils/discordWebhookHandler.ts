@@ -53,7 +53,7 @@ export default class WebhookHandler {
         .createQueryBuilder('user_profile')
         .where(`LOWER(id) = LOWER('${payload?.user?.toLowerCase()}')`)
         .getOne()
-        
+
       let adminUser
 
       if (!user) {
@@ -172,7 +172,7 @@ export default class WebhookHandler {
           complete: async () => {
             await fss.unlink('./uploads/message.json')
           },
-          error: async err => {
+          error: async (err) => {
             await fss.unlink('./uploads/message.json')
             console.log(err.response)
           },
@@ -233,7 +233,6 @@ export default class WebhookHandler {
               color: 0xbe185d,
               title: payload?.reportSubject,
               description: `_${payload?.description}_ \n\n ID: ${payload?.urlId}  \n\n _Reported by_ 🎤 ***${user}*** `,
-
             },
           ],
         })
