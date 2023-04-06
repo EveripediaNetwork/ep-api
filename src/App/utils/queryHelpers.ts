@@ -1,6 +1,8 @@
-import { registerEnumType } from '@nestjs/graphql'
+import { ArgsType, Field, registerEnumType } from '@nestjs/graphql'
 import { Repository } from 'typeorm'
+import { Validate } from 'class-validator'
 import Activity from '../../Database/Entities/activity.entity'
+import ValidStringParams from './customValidator'
 
 export enum OrderBy {
   ID = 'id',
@@ -18,6 +20,13 @@ export enum ActivityType {
 export enum Direction {
   ASC = 'ASC',
   DESC = 'DESC',
+}
+
+@ArgsType()
+export class ArgsById {
+  @Field(() => String)
+  @Validate(ValidStringParams)
+  id!: string
 }
 
 registerEnumType(OrderBy, { name: 'OrderBy' })

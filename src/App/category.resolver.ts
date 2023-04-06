@@ -14,6 +14,7 @@ import PaginationArgs from './pagination.args'
 import Wiki from '../Database/Entities/wiki.entity'
 import { ICategory } from '../Database/Entities/types/ICategory'
 import ValidStringParams from './utils/customValidator'
+import { ArgsById } from './utils/queryHelpers'
 
 @ArgsType()
 class TitleArgs {
@@ -43,9 +44,9 @@ class CategoryResolver {
   }
 
   @Query(() => Category, { nullable: true })
-  async categoryById(@Args('id', { type: () => String }) id: string) {
+  async categoryById(@Args() args: ArgsById) {
     const repository = this.dataSource.getRepository(Category)
-    return repository.findOneBy({ id })
+    return repository.findOneBy({ id: args.id })
   }
 
   @ResolveField()

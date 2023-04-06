@@ -1,4 +1,6 @@
-import { ObjectType, Field } from '@nestjs/graphql'
+import { ObjectType, Field, ArgsType } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
+import ValidStringParams from '../../utils/customValidator'
 
 @ObjectType()
 export default class TokenData {
@@ -34,4 +36,15 @@ export default class TokenData {
 
   @Field()
   volume_percentage_change!: number
+}
+
+@ArgsType()
+export class TokenStatArgs {
+  @Field(() => String, { nullable: true, name: 'tokenName' })
+  @Validate(ValidStringParams)
+  tokenName!: string
+
+  @Field(() => String, { nullable: true, name: 'cmcTokenName' })
+  @Validate(ValidStringParams)
+  cmcTokenName?: string
 }
