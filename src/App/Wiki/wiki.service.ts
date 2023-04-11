@@ -13,6 +13,7 @@ import {
   TitleArgs,
   WikiUrl,
 } from './wiki.dto'
+import { Author } from '../../Database/Entities/types/IUser'
 
 @Injectable()
 class WikiService {
@@ -234,6 +235,16 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
     return wiki
+  }
+
+  async resolveAuthor(id: number): Promise<Author> {
+    const res = await (
+      await this.repository()
+    ).query(`SELECT "userId", u.* 
+        FROM activity
+        LEFT JOIN "user_profile" u ON u."id" = "userId"
+        WHERE "wikiId" = '${id}' AND "type" = '0'`)
+    return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }
 

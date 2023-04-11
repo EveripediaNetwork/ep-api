@@ -8,8 +8,14 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+  CACHE_MANAGER,
+  Inject,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { IWiki } from '../../Database/Entities/types/IWiki'
 import { Author } from '../../Database/Entities/types/IUser'
@@ -36,10 +42,11 @@ import ActivityService from '../Activities/activity.service'
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
+    private activityService: ActivityService,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
-    private activityService: ActivityService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Query(() => Wiki, { nullable: true })
@@ -143,7 +150,18 @@ class WikiResolver {
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
-    return this.activityService.resolveAuthor(id)
+
+    const cached: Author | undefined = await this.cacheManager.get(
+      id as unknown as string,
+    )
+
+    if (!cached) {
+      const a = await this.wikiService.resolveAuthor(id)
+      await this.cacheManager.set(id as unknown as string, a, { ttl: 180 })
+      return a
+    }
+    // console.log('from cached', cached)
+    return cached
   }
 }
 

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
-import { Author } from '../../Database/Entities/types/IUser'
 import {
   ActivityArgs,
   ActivityArgsByUser,
@@ -117,20 +116,6 @@ class ActivityService {
         `activity.language = '${args.lang}' AND activity.block = '${args.block}'`,
       )
       .getOne()
-  }
-
-  async resolveAuthor(id: number): Promise<Author> {
-    const res = await (
-      await this.repository()
-    )
-      .createQueryBuilder('activity')
-      .select('activity.userId')
-      .addSelect('u.*')
-      .leftJoin('user_profile', 'u', 'u."id" = activity.userId')
-      .where(`activity.wikiId = '${id}' AND "type" = '0'`)
-      .cache(`author-id-for${id}`, 60000)
-      .execute()
-    return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }
 
