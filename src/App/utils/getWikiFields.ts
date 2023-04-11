@@ -23,7 +23,7 @@ export const isValidUrl = (urlString: string) => {
 export const getWikiInternalLinks = (content: string): number => {
   const markdownLinks = content.match(/\[(.*?)\]\((.*?)\)/g)
   let internalLinksCount = 0
-  markdownLinks?.forEach(link => {
+  markdownLinks?.forEach((link) => {
     const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
     const url = linkMatch?.[2]
     if (url && url.charAt(0) !== '#' && isValidUrl(url)) {
@@ -60,7 +60,7 @@ export const getWikiCitationLinks = (wiki: Wiki) => {
 
 export const getSocialsCount = (wiki: Wiki): number => {
   let socialsCount = 0
-  wiki.metadata.forEach(meta => {
+  wiki.metadata.forEach((meta) => {
     if (WikiPossibleSocialsList.includes(meta.id as CommonMetaIds)) {
       if (meta.value) {
         socialsCount += 1

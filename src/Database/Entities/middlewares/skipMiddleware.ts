@@ -8,7 +8,7 @@ const skipMiddleware: FieldMiddleware = async (
   const allowedEndpoints = ['userById', 'getProfile', 'getProfileLikeUsername']
   const { prev } = ctx.info.path
   const allowed = allowedEndpoints.some(
-    endpoint =>
+    (endpoint) =>
       endpoint === `${prev?.prev?.key}` || endpoint === `${prev?.key}`,
   )
   if (!allowed) {

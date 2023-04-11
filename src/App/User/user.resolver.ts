@@ -17,11 +17,10 @@ import { IUser } from '../../Database/Entities/types/IUser'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import AuthGuard from '../utils/admin.guard'
 import IsActiveGuard from '../utils/isActive.guard'
-import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
-import Activity from '../../Database/Entities/activity.entity'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
+import { ArgsById } from '../utils/queryHelpers'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -55,8 +54,8 @@ class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
-  async userById(@Args('id', { type: () => String }) id: string) {
-    return this.userService.getUser(id)
+  async userById(@Args() args: ArgsById) {
+    return this.userService.getUser(args.id)
   }
 
   @Query(() => Boolean)
@@ -72,7 +71,9 @@ class UserResolver {
 
     const user = await this.userService.getUser(args.id)
 
-    await (await this.userService.userRepository())
+    await (
+      await this.userService.userRepository()
+    )
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
@@ -99,14 +100,22 @@ class UserResolver {
 
   @ResolveField()
   async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    const repo = this.dataSource.getRepository(Activity)
-    return queryWikisCreated(user, args.limit, args.offset, repo)
+    return this.userService.userWikis(
+      'wikis created',
+      user?.id as string,
+      args.limit,
+      args.offset,
+    )
   }
 
   @ResolveField()
   async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
-    const repo = this.dataSource.getRepository(Activity)
-    return queryWikisEdited(user, args.limit, args.offset, repo)
+    return this.userService.userWikis(
+      'wikis edited',
+      user?.id as string,
+      args.limit,
+      args.offset,
+    )
   }
 
   @ResolveField(() => UserProfile)

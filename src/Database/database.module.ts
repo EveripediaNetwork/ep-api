@@ -12,6 +12,7 @@ import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
 import PageviewsPerDay from './Entities/pageviewsPerPage.entity'
 import ContentFeedback from './Entities/contentFeedback.entity'
+import Feedback from './Entities/feedback.entity'
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import ContentFeedback from './Entities/contentFeedback.entity'
           Notification,
           PageviewsPerDay,
           ContentFeedback,
+          Feedback,
         ],
         synchronize: true,
         keepConnectionAlive: true,

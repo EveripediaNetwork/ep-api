@@ -6,8 +6,10 @@ import {
   registerEnumType,
   ArgsType,
 } from '@nestjs/graphql'
+import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
+import ValidStringParams from '../utils/customValidator'
 
 @ObjectType()
 class MarketDataGenerals {
@@ -92,5 +94,6 @@ registerEnumType(RankType, {
 @ArgsType()
 export class MarketCapInputs extends PaginationArgs {
   @Field(() => RankType, { defaultValue: RankType.TOKEN })
+  @Validate(ValidStringParams)
   kind?: RankType
 }

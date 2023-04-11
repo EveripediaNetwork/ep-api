@@ -30,7 +30,7 @@ export default class SitemapController {
       hostname: this.configService.get('WEBSITE_URL'),
       lastmodDateOnly: true,
     })
-    staticPagesData.map(data =>
+    staticPagesData.map((data) =>
       smStream.write({
         url: data.url,
         changefreq: data.changeFreq,
@@ -42,7 +42,7 @@ export default class SitemapController {
       this.wikiService.wikisIds(),
       this.categoryService.categoriesIds(),
     ])
-    wikisIds.map(wiki =>
+    wikisIds.map((wiki) =>
       smStream.write({
         url: `/wiki/${wiki.id}`,
         changefreq: 'daily',
@@ -50,7 +50,7 @@ export default class SitemapController {
         lastmod: wiki.updated,
       }),
     )
-    categoriesId.map(category =>
+    categoriesId.map((category) =>
       smStream.write({
         url: `/categories/${category.id}`,
         changefreq: 'weekly',

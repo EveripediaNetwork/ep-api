@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import slugify from 'slugify'
 
 import {
@@ -23,8 +22,6 @@ export type ValidatorResult = {
 
 @Injectable()
 class IPFSValidatorService {
-  private configService: ConfigService = new ConfigService()
-
   async validate(
     wiki: WikiType,
     validateJSON?: boolean,
@@ -102,7 +99,7 @@ class IPFSValidatorService {
         validatingWiki.images.length <= 5
       ) {
         let result = true
-        validatingWiki.images.forEach(image => {
+        validatingWiki.images.forEach((image) => {
           const keys = Object.keys(image)
           const key = keys.includes('id') && keys.includes('type')
           result =
@@ -121,7 +118,7 @@ class IPFSValidatorService {
     const checkExternalUrls = (validatingWiki: WikiType) => {
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
-      markdownLinks?.every(link => {
+      markdownLinks?.every((link) => {
         const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
         const text = linkMatch?.[1]
         const url = linkMatch?.[2]
@@ -157,7 +154,7 @@ class IPFSValidatorService {
         ...Object.values(EditSpecificMetaIds),
       ]
 
-      const valueField = validatingWiki.metadata.every(e => {
+      const valueField = validatingWiki.metadata.every((e) => {
         ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds)
         if (e.id !== CommonMetaIds.REFERENCES) {
           return e.value.length < 255
@@ -186,7 +183,7 @@ class IPFSValidatorService {
 
       const size = validatingWiki.media.length
 
-      const contentCheck = validatingWiki.media.every(m => {
+      const contentCheck = validatingWiki.media.every((m) => {
         let isContentValid = false
 
         if (
@@ -212,7 +209,7 @@ class IPFSValidatorService {
       })
 
       const wikiMediasWithIcon = validatingWiki.media.filter(
-        m => m.type === MediaType.ICON,
+        (m) => m.type === MediaType.ICON,
       )
 
       const isValidMedia =

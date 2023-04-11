@@ -35,10 +35,6 @@ async function bootstrap() {
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 0.3,
-    // beforeBreadcrumb(breadcrumb, hint) {
-    //   console.log(breadcrumb)
-    //   return breadcrumb
-    // },
     beforeSend: e => {
       if (
         e.exception &&
@@ -59,7 +55,7 @@ async function bootstrap() {
     rateLimit({
       windowMs: configService.get<number>('THROTTLE_TTL'),
       max: configService.get<number>('THROTTLE_LIMIT'),
-      message: async (request: any, response: any) =>
+      message: async (_request: any, response: any) =>
         response.json({ message: 'You are being rate limited' }),
     }),
   )

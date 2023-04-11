@@ -199,7 +199,9 @@ class WikiService {
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ promoted: args.level })
@@ -210,7 +212,9 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -221,7 +225,9 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })

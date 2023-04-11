@@ -49,7 +49,7 @@ class PageViewsService {
 
     try {
       await wikiRepository.query(
-        `UPDATE wiki SET views = views + $1, updated = updated where id = $2`,
+        'UPDATE wiki SET views = views + $1, updated = updated where id = $2',
         [1, id],
       )
       await this.cacheManager.set(id, ip)

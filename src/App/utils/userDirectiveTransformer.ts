@@ -9,7 +9,7 @@ export default function UserDirectiveTransformer(
   directiveName: string,
 ) {
   return mapSchema(schema, {
-    [MapperKind.OBJECT_FIELD]: fieldConfig => {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
       const upperDirective = getDirective(
         schema,
         fieldConfig,
