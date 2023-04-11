@@ -35,12 +35,8 @@ async function bootstrap() {
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 0.3,
-    beforeSend: e => {
-      if (
-        e.exception &&
-        e.exception?.values &&
-        e.exception.values[0].type === 'RangeError'
-      ) {
+    beforeSend: (e) => {
+      if (e.exception?.values && e.exception.values[0].type === 'RangeError') {
         console.error(e)
       }
       return e
