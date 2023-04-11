@@ -120,7 +120,9 @@ class ActivityService {
   }
 
   async resolveAuthor(id: number): Promise<Author> {
-    const res = await (await this.repository())
+    const res = await (
+      await this.repository()
+    )
       .createQueryBuilder('activity')
       .select('activity.userId')
       .addSelect('u.*')
