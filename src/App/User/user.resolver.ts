@@ -8,8 +8,14 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+  CACHE_MANAGER,
+  Inject,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Cache } from 'cache-manager'
 import User from '../../Database/Entities/user.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -29,6 +35,7 @@ class UserResolver {
     private dataSource: DataSource,
     private userService: UserService,
     private eventEmitter: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Query(() => [User])
@@ -71,9 +78,7 @@ class UserResolver {
 
     const user = await this.userService.getUser(args.id)
 
-    await (
-      await this.userService.userRepository()
-    )
+    await (await this.userService.userRepository())
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })

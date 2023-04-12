@@ -237,7 +237,7 @@ class WikiService {
     return wiki
   }
 
-  async resolveAuthor(id: number): Promise<Author> {
+  async resolveAuthor(id: string): Promise<Author> {
     const res = await (
       await this.repository()
     ).query(`SELECT "userId", u.* 
