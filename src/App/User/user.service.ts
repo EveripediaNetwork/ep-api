@@ -148,6 +148,7 @@ class UserService {
     return (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .where(`LOWER(id) = LOWER('${id.toLowerCase()}')`)
+      .cache(`cache-for-user-profile-${id.toLowerCase()}`, 60000)
       .getOne()
   }
 
