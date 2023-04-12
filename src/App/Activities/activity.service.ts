@@ -54,7 +54,9 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.wikiId = :wikiId AND w."hidden" = false', {wikiId: args.wikiId})
+      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
+        wikiId: args.wikiId,
+      })
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
