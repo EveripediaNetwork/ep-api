@@ -160,7 +160,6 @@ class WikiResolver {
       await this.cacheManager.set(id as unknown as string, a, { ttl: 180 })
       return a
     }
-    console.log(id, ' was cached - from cached wiki author', cached)
     return cached
   }
 }

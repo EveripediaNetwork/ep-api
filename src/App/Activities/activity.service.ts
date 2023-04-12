@@ -54,7 +54,7 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
+      .where('activity.wikiId = :wikiId AND w."hidden" = false', {wikiId: args.wikiId})
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
@@ -76,7 +76,10 @@ class ActivityService {
         },
       )
       .where(
-        `c."wikiId" = activity.wikiId AND  w."hidden" = false AND type = '${args.type}'`,
+        'c."wikiId" = activity.wikiId AND  w."hidden" = false AND type = :type',
+        {
+          type: args.type,
+        },
       )
       .limit(args.limit)
       .offset(args.offset)
@@ -88,8 +91,8 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.userId = :user AND w."hidden" = false`, {
-        user: args.userId,
+      .where('activity.userId = :id AND w."hidden" = false', {
+        id: args.userId,
       })
       .orderBy('activity.datetime', 'DESC')
       .limit(args.limit)
@@ -101,7 +104,7 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.id = '${id}' AND w."hidden" = false`)
+      .where('activity.id = :id AND w."hidden" = false', { id })
       .getOne()
   }
 
@@ -111,10 +114,13 @@ class ActivityService {
     return (await this.repository())
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where(`activity.wikiId = '${args.wikiId}' AND w."hidden" = false`)
-      .andWhere(
-        `activity.language = '${args.lang}' AND activity.block = '${args.block}'`,
-      )
+      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
+        wikiId: args.wikiId,
+      })
+      .andWhere('activity.language = :lang AND activity.block = :block ', {
+        lang: args.lang,
+        block: args.block,
+      })
       .getOne()
   }
 }
