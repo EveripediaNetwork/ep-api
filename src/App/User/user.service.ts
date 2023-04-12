@@ -68,7 +68,9 @@ class UserService {
     ).findOneBy({
       id: data.id,
     })
-    const existsUser = await (await this.userRepository())
+    const existsUser = await (
+      await this.userRepository()
+    )
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
@@ -114,7 +116,9 @@ class UserService {
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
 
-      await (await this.userRepository())
+      await (
+        await this.userRepository()
+      )
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
@@ -141,13 +145,11 @@ class UserService {
   }
 
   async getUserProfile(id: string): Promise<UserProfile | null> {
-    return (
-      (await this.profileRepository())
-        .createQueryBuilder('user_profile')
-        .where(`LOWER(id) = LOWER('${id.toLowerCase()}')`)
-        .cache(`cache-for-user-profile-${id.toLowerCase()}`, 60000)
-        .getOne()
-    )
+    return (await this.profileRepository())
+      .createQueryBuilder('user_profile')
+      .where(`LOWER(id) = LOWER('${id.toLowerCase()}')`)
+      .cache(`cache-for-user-profile-${id.toLowerCase()}`, 60000)
+      .getOne()
   }
 
   async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {
