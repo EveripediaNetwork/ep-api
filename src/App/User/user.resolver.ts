@@ -128,7 +128,17 @@ class UserResolver {
   @ResolveField(() => UserProfile)
   async profile(@Parent() user: IUser) {
     const { id } = user
-    return this.userService.getUserProfile(id)
+    const key = id.toLowerCase()
+    const cached: UserProfile | undefined = await this.cacheManager.get(
+      key as unknown as string,
+    )
+
+    if (!cached) {
+      const a = await this.userService.getUserProfile(id)
+      await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
+      return a
+    }
+    return cached
   }
 }
 

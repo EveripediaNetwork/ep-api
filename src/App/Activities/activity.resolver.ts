@@ -1,4 +1,4 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Query, ResolveField, Resolver, Root } from '@nestjs/graphql'
 import Activity from '../../Database/Entities/activity.entity'
 import ActivityService from './activity.service'
 import {
@@ -8,6 +8,7 @@ import {
   ByIdAndBlockArgs,
 } from './dto/activity.dto'
 import { ArgsById } from '../utils/queryHelpers'
+import User from '../../Database/Entities/user.entity'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -41,6 +42,11 @@ class ActivityResolver {
   @Query(() => Activity)
   async activityByWikiIdAndBlock(@Args() args: ByIdAndBlockArgs) {
     return this.activityService.getActivitiesByWikiIdAndBlock(args)
+  }
+
+  @ResolveField(() => User, { name: 'user' })
+  async forId(@Root() activity: Activity): Promise<User> {
+    return { id: activity.userAddress } as User
   }
 }
 

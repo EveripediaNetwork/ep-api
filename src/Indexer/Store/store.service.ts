@@ -106,6 +106,7 @@ class DBStoreService {
           ipfs: hash.id,
         },
       ],
+      userAddress: user.id,
       block: hash.block,
       language,
       datetime: new Date(Date.now()),
