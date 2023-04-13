@@ -106,6 +106,7 @@ class DBStoreService {
           ipfs: hash.id,
         },
       ],
+      userAddress: user.id,
       block: hash.block,
       language,
       datetime: new Date(Date.now()),
@@ -152,6 +153,7 @@ class DBStoreService {
           type: Status.UPDATED,
         } as Activity),
       )
+
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
         existWiki.user.id,

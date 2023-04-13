@@ -38,10 +38,15 @@ class Activity {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Field(() => User)
   @ManyToOne('User', 'user', { lazy: true })
   @Index('idx_activity_userId')
   user!: Relation<User>
+
+  @Field(() => User, { name: 'user' })
+  forId!: Relation<User>
+
+  @Column('varchar', { nullable: true })
+  userAddress!: string
 
   @Field(() => String)
   @Column('varchar')

@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import SentryPlugin from '../../sentry/sentryPlugin'
 import ActivityResolver from '../Activities/activity.resolver'
+import ActivityService from '../Activities/activity.service'
 import CategoryResolver from '../category.resolver'
 import CategoryService from '../category.service'
 import ContentFeedbackResolver from '../content-feedback/contentFeedback.resolver'
@@ -42,6 +43,7 @@ export const providerObjects = {
   configService: ConfigService,
   tokenValidator: TokenValidator,
   webhookHandler: WebhookHandler,
+  activityService: ActivityService,
   categoryService: CategoryService,
   flagWikiService: FlagWikiService,
   flagWikiResolver: FlagWikiResolver,
@@ -75,6 +77,7 @@ export enum ProviderEnum {
   configService = 'configService',
   tokenValidator = 'tokenValidator',
   webhookHandler = 'webhookHandler',
+  activityService = 'activityService',
   categoryService = 'categoryService',
   flagWikiService = 'flagWikiService',
   flagWikiResolver = 'flagWikiResolver',

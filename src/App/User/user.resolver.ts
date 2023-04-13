@@ -8,8 +8,14 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+  CACHE_MANAGER,
+  Inject,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Cache } from 'cache-manager'
 import User from '../../Database/Entities/user.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -29,6 +35,7 @@ class UserResolver {
     private dataSource: DataSource,
     private userService: UserService,
     private eventEmitter: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Query(() => [User])
@@ -121,7 +128,17 @@ class UserResolver {
   @ResolveField(() => UserProfile)
   async profile(@Parent() user: IUser) {
     const { id } = user
-    return this.userService.getUserProfile(id)
+    const key = id.toLowerCase()
+    const cached: UserProfile | undefined = await this.cacheManager.get(
+      key as unknown as string,
+    )
+
+    if (!cached) {
+      const a = await this.userService.getUserProfile(id)
+      await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
+      return a
+    }
+    return cached
   }
 }
 

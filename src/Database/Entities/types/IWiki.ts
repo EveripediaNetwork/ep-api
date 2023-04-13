@@ -4,7 +4,7 @@
 import { ArgsType, Field } from '@nestjs/graphql'
 
 export interface IWiki {
-  id: number
+  id: string
   title: string
 }
 

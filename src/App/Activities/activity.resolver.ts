@@ -1,7 +1,5 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
+import { Args, Query, ResolveField, Resolver, Root } from '@nestjs/graphql'
 import Activity from '../../Database/Entities/activity.entity'
-import { Author } from '../../Database/Entities/types/IUser'
-import { IWiki } from '../../Database/Entities/types/IWiki'
 import ActivityService from './activity.service'
 import {
   ActivityArgs,
@@ -10,6 +8,7 @@ import {
   ByIdAndBlockArgs,
 } from './dto/activity.dto'
 import { ArgsById } from '../utils/queryHelpers'
+import User from '../../Database/Entities/user.entity'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -45,10 +44,9 @@ class ActivityResolver {
     return this.activityService.getActivitiesByWikiIdAndBlock(args)
   }
 
-  @ResolveField(() => Author)
-  async author(@Parent() wiki: IWiki) {
-    const { id } = wiki
-    return this.activityService.resolveAuthor(id)
+  @ResolveField(() => User, { name: 'user' })
+  async forId(@Root() activity: Activity): Promise<User> {
+    return { id: activity.userAddress } as User
   }
 }
 
