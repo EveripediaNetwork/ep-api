@@ -41,10 +41,6 @@ import Feedback from './Entities/feedback.entity'
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        cache: {
-          type: 'database',
-          max: 30
-        },
         // logging: true,
       }),
       inject: [ConfigService],

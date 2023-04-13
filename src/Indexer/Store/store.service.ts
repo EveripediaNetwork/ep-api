@@ -152,7 +152,6 @@ class DBStoreService {
           type: Status.UPDATED,
         } as Activity),
       )
-
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
         existWiki.user.id,
