@@ -74,6 +74,14 @@ class Activity {
   @Index('idx_activity_datetime')
   datetime!: Date
 
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @Column('timestamp without time zone', { nullable: true })
+  created_timestamp!: Date
+
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @Column('timestamp without time zone', { nullable: true })
+  updated_timestamp!: Date
+
   @Field()
   @Column('varchar', { nullable: true })
   ipfs!: string

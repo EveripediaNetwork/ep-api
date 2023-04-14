@@ -24,7 +24,6 @@ import Metadata from './metadata.entity'
 import Media from './types/IMedia'
 import Image from './image.entity'
 import { Author } from './types/IUser'
-import dateMiddleware from './middlewares/wikiMiddleware'
 import LinkedWikis from './types/ILinkedWikis'
 import Events from './types/IEvents'
 
@@ -47,14 +46,12 @@ class Wiki {
   hidden!: boolean
 
   @Field(() => GraphQLISODateTime, {
-    middleware: [dateMiddleware],
     nullable: true,
   })
   @CreateDateColumn()
   created!: Date
 
   @Field(() => GraphQLISODateTime, {
-    middleware: [dateMiddleware],
     nullable: true,
   })
   @UpdateDateColumn()
