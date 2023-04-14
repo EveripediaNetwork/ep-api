@@ -9,6 +9,7 @@ import {
 } from './dto/activity.dto'
 import { ArgsById } from '../utils/queryHelpers'
 import User from '../../Database/Entities/user.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -47,6 +48,17 @@ class ActivityResolver {
   @ResolveField(() => User, { name: 'user' })
   async forId(@Root() activity: Activity): Promise<User> {
     return { id: activity.userAddress } as User
+  }
+
+  @ResolveField(() => [Wiki])
+  async content(@Root() activity: Activity) {
+    const { content } = activity
+    const updatedContent = content.map((wiki) => ({
+      ...wiki,
+      created: activity.created_timestamp,
+      updated: activity.updated_timestamp,
+    }))
+    return updatedContent
   }
 }
 

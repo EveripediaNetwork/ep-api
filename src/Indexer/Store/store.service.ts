@@ -107,6 +107,8 @@ class DBStoreService {
         },
       ],
       userAddress: user.id,
+      created_timestamp: existWiki?.created,
+      updated_timestamp: existWiki?.updated,
       block: hash.block,
       language,
       datetime: new Date(Date.now()),

@@ -92,8 +92,21 @@ class ActivityService {
   async getActivitiesByUser(args: ActivityArgsByUser): Promise<Activity[]> {
     return (await this.repository())
       .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.userId = :id AND w."hidden" = false', {
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId AND w."hidden" = false')
+      .select([
+        'activity.id',
+        'activity.type',
+        'activity.datetime',
+        'activity.userAddress',
+        'activity.wikiId',
+        'activity.languageId',
+        'activity.created_timestamp',
+        'activity.updated_timestamp',
+        'activity.block',
+        'activity.content',
+        'activity.ipfs',
+      ])
+      .where('activity.userAddress = :id', {
         id: args.userId,
       })
       .orderBy('activity.datetime', 'DESC')
