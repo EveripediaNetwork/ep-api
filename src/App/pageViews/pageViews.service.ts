@@ -23,25 +23,22 @@ class PageViewsService {
   }
 
   private async updatePageViewPerDay(id: string) {
+    const repository = this.dataSource.getRepository(PageviewsPerDay)
     const date = new Date()
-    const perDayWikiPageView = await (
-      await this.repository()
-    ).findOne({
+    const perDayWikiPageView = await repository.findOne({
       where: { wikiId: id, day: date },
     })
 
     if (!perDayWikiPageView) {
-      const newPageView = (await this.repository()).create({
+      const newPageView = repository.create({
         wikiId: id,
         day: date,
         visits: 1,
       })
-      await (await this.repository()).save(newPageView)
+      await repository.save(newPageView)
       return 1
     }
-    await (
-      await this.repository()
-    ).query(
+    await repository.query(
       `UPDATE pageviews_per_day SET visits = visits + $1 where "wikiId" = $2 AND day = $3`,
       [1, id, date],
     )
