@@ -68,7 +68,9 @@ describe('PageViewsResolver', () => {
 
   it('should return 1 if wiki view count is updated', async () => {
     jest.spyOn(service, 'updateCount').mockResolvedValue(1)
-    expect(await resolver.wikiViewCount('right-of-way' as unknown as ArgsById, ctx)).toBe(1)
+    expect(
+      await resolver.wikiViewCount('right-of-way' as unknown as ArgsById, ctx),
+    ).toBe(1)
   })
 
   it('should return 0 if wiki view count is updated in the last hour by same ip', async () => {
