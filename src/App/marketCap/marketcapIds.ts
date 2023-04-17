@@ -53,6 +53,14 @@ export const nftIds = [
 ]
 
 export const cryptocurrencyIds = [
+  { coingeckoId: 'bitcoin', wikiId: 'bitcoin-btc' },
+  { coingeckoId: 'ethereum', wikiId: 'ethereum-eth' },
+  { coingeckoId: 'solana', wikiId: 'solana-sol' },
+  { coingeckoId: 'polkadot', wikiId: 'polkadot-dot' },
+  { coingeckoId: 'stellar', wikiId: 'stellar-xlm' },
+  { coingeckoId: 'algorand', wikiId: 'algorand-algo' },
+  { coingeckoId: 'arbitrum', wikiId: 'arbitrum-arb' },
+  { coingeckoId: 'eos', wikiId: 'eos-token' },
   { coingeckoId: 'crypto-com-chain', wikiId: 'cronos-cro' },
   { coingeckoId: 'leo-token', wikiId: 'leo-token-leo' },
   { coingeckoId: 'staked-ether', wikiId: 'lido-staked-ethereum-steth' },
@@ -60,9 +68,9 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'binancecoin', wikiId: 'binance-coin' },
   { coingeckoId: 'binance-usd', wikiId: 'busd' },
   { coingeckoId: 'usd-coin', wikiId: 'usdc' },
-  { coingeckoId: 'cardano', wikiId: 'cardano-ada' },
+  { coingeckoId: 'cardano', wikiId: 'ada-cardano' },
   { coingeckoId: 'matic-network', wikiId: 'matic' },
-  { coingeckoId: 'avalanche-2', wikiId: 'avalanche' },
+  { coingeckoId: 'avalanche-2', wikiId: 'avalanche-avax' },
   { coingeckoId: 'the-open-network', wikiId: 'the-open-network-toncoin' },
   { coingeckoId: 'internet-computer', wikiId: 'internet-computer-icp' },
   { coingeckoId: 'hedera-hashgraph', wikiId: 'hedera' },
