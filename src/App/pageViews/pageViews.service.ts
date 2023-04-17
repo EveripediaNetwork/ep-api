@@ -1,8 +1,10 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { DataSource } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
+import PaginationArgs from '../pagination.args'
+import { WikiViews } from './pageviews.dto'
 
 interface WikiViewed {
   ip: string
@@ -16,23 +18,30 @@ class PageViewsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  async repository(): Promise<Repository<PageviewsPerDay>> {
+    return this.dataSource.getRepository(PageviewsPerDay)
+  }
+
   private async updatePageViewPerDay(id: string) {
-    const repository = this.dataSource.getRepository(PageviewsPerDay)
     const date = new Date()
-    const perDayWikiPageView = await repository.findOne({
+    const perDayWikiPageView = await (
+      await this.repository()
+    ).findOne({
       where: { wikiId: id, day: date },
     })
 
     if (!perDayWikiPageView) {
-      const newPageView = repository.create({
+      const newPageView = (await this.repository()).create({
         wikiId: id,
         day: date,
         visits: 1,
       })
-      await repository.save(newPageView)
+      await (await this.repository()).save(newPageView)
       return 1
     }
-    await repository.query(
+    await (
+      await this.repository()
+    ).query(
       `UPDATE pageviews_per_day SET visits = visits + $1 where "wikiId" = $2 AND day = $3`,
       [1, id, date],
     )
@@ -58,6 +67,18 @@ class PageViewsService {
       console.error(err)
       return 0
     }
+  }
+
+  async getWikiViews(args: PaginationArgs): Promise<WikiViews[]> {
+    return (await this.repository())
+      .createQueryBuilder('pageviews_per_day')
+      .select('day')
+      .addSelect('Sum(visits)', 'visits')
+      .limit(args.limit)
+      .offset(args.offset)
+      .groupBy('day')
+      .orderBy('day', 'DESC')
+      .getRawMany()
   }
 }
 export default PageViewsService
