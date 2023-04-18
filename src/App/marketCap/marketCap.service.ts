@@ -52,7 +52,7 @@ class MarketCapService {
           },
         )
         .where(`wiki.id = '${id}' AND wiki.hidden = false`)
-        .getOne()) 
+        .getOne())
 
     return wiki
   }
