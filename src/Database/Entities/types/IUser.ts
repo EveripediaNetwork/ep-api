@@ -21,6 +21,7 @@ export class Author {
 
 @ObjectType()
 export class Links {
+  // TODO: add validations for links
   @Field({ nullable: true })
   @Max(255)
   instagram?: string
@@ -28,6 +29,10 @@ export class Links {
   @Field({ nullable: true })
   @Max(255)
   twitter?: string
+
+  @Field({ nullable: true })
+  @Max(255)
+  lens?: string
 
   @Field({ nullable: true })
   @Max(255)
