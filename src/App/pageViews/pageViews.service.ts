@@ -3,13 +3,18 @@ import { Cache } from 'cache-manager'
 import { DataSource, Repository } from 'typeorm'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import PaginationArgs from '../pagination.args'
+import { OrderArgs } from '../pagination.args'
 import { WikiViews } from './pageviews.dto'
 
 interface WikiViewed {
   ip: string
   wiki_id: string
 }
+
+const presentDate = new Date()
+const oneYearAgo = new Date(
+  presentDate.getTime() - 365 * 24 * 60 * 60 * 1000,
+)
 
 @Injectable()
 class PageViewsService {
@@ -23,17 +28,16 @@ class PageViewsService {
   }
 
   private async updatePageViewPerDay(id: string) {
-    const date = new Date()
     const perDayWikiPageView = await (
       await this.repository()
     ).findOne({
-      where: { wikiId: id, day: date },
+      where: { wikiId: id, day: presentDate },
     })
 
     if (!perDayWikiPageView) {
       const newPageView = (await this.repository()).create({
         wikiId: id,
-        day: date,
+        day: presentDate,
         visits: 1,
       })
       await (await this.repository()).save(newPageView)
@@ -43,7 +47,7 @@ class PageViewsService {
       await this.repository()
     ).query(
       `UPDATE pageviews_per_day SET visits = visits + $1 where "wikiId" = $2 AND day = $3`,
-      [1, id, date],
+      [1, id, presentDate],
     )
     return 1
   }
@@ -69,15 +73,16 @@ class PageViewsService {
     }
   }
 
-  async getWikiViews(args: PaginationArgs): Promise<WikiViews[]> {
+  async getWikiViews(args: OrderArgs): Promise<WikiViews[]> {
     return (await this.repository())
       .createQueryBuilder('pageviews_per_day')
       .select('day')
       .addSelect('Sum(visits)', 'visits')
-      .limit(args.limit)
+      .where('day >= :start', { start: oneYearAgo })
+      .andWhere('day <= :end', { end: presentDate })
       .offset(args.offset)
       .groupBy('day')
-      .orderBy('day', 'DESC')
+      .orderBy(args.order, args.direction)
       .getRawMany()
   }
 }

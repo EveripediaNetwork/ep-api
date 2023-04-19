@@ -4,8 +4,8 @@ import PageViewsService from './pageViews.service'
 import { ArgsById } from '../utils/queryHelpers'
 import AuthGuard from '../utils/admin.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
-import PaginationArgs from '../pagination.args'
 import { WikiViews } from './pageviews.dto'
+import { OrderArgs } from '../pagination.args'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Number)
@@ -19,7 +19,7 @@ class PageViewsResolver {
 
   @Query(() => [WikiViews])
   @UseGuards(AuthGuard)
-  async wikiViews(@Args() args: PaginationArgs) {
+  async wikiViews(@Args() args: OrderArgs)  {
     return this.pageViewsService.getWikiViews(args)
   }
 }
