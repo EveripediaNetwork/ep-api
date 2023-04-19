@@ -31,6 +31,10 @@ export class Links {
 
   @Field({ nullable: true })
   @Max(255)
+  lens?: string
+
+  @Field({ nullable: true })
+  @Max(255)
   website?: string
 }
 
