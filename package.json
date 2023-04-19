@@ -9,6 +9,7 @@
     "prebuild": "rimraf dist",
     "build": "nest build && yarn run copy:templates",
     "format": "yarn rome format --write ./src",
+    "check": "yarn rome check ./src --apply",
     "start": "nest start",
     "dev": "nest start --watch",
     "build:swc": "npx swc --copy-files --out-dir dist/src src",
