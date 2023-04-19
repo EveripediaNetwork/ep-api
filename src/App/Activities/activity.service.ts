@@ -20,8 +20,9 @@ class ActivityService {
     userId: string,
     intervalInHours: number,
   ): Promise<number> {
-    const repository = this.dataSource.getRepository(Activity)
-    const cr = await repository
+    const cr = await (
+      await this.repository()
+    )
       .createQueryBuilder('activity')
       .select('COUNT(*)')
       .where(
@@ -39,7 +40,9 @@ class ActivityService {
       .createQueryBuilder('activity')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
-      .where(`activity.language = '${args.lang}' AND w."hidden" = false`)
+      .where('activity.language = :lang AND w."hidden" = false', {
+        lang: args.lang,
+      })
       .cache(
         `activities_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}`,
         60000,
