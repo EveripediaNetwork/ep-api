@@ -10,7 +10,7 @@ export enum OrderBy {
   BLOCK = 'block',
   CREATED = 'created',
   UPDATED = 'updated',
-  DAY ='day'
+  DAY = 'day',
 }
 
 export enum ActivityType {

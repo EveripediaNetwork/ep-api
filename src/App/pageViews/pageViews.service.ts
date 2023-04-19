@@ -3,8 +3,7 @@ import { Cache } from 'cache-manager'
 import { DataSource, Repository } from 'typeorm'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { OrderArgs } from '../pagination.args'
-import { WikiViews } from './pageviews.dto'
+import { WikiViewArgs, WikiViews } from './pageviews.dto'
 
 interface WikiViewed {
   ip: string
@@ -12,9 +11,9 @@ interface WikiViewed {
 }
 
 const presentDate = new Date()
-const oneYearAgo = new Date(
-  presentDate.getTime() - 365 * 24 * 60 * 60 * 1000,
-)
+
+const timePeriod = (days: number): Date =>
+  new Date(presentDate.getTime() - days * 24 * 60 * 60 * 1000)
 
 @Injectable()
 class PageViewsService {
@@ -73,12 +72,12 @@ class PageViewsService {
     }
   }
 
-  async getWikiViews(args: OrderArgs): Promise<WikiViews[]> {
+  async getWikiViews(args: WikiViewArgs): Promise<WikiViews[]> {
     return (await this.repository())
       .createQueryBuilder('pageviews_per_day')
       .select('day')
       .addSelect('Sum(visits)', 'visits')
-      .where('day >= :start', { start: oneYearAgo })
+      .where('day >= :start', { start: timePeriod(args.days) })
       .andWhere('day <= :end', { end: presentDate })
       .offset(args.offset)
       .groupBy('day')
