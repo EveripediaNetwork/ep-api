@@ -123,7 +123,10 @@ class WikiService {
           lang: 'en',
           status: false,
         })
-        .andWhere(`p.day >= '${args.startDay}' AND p.day <= '${args.endDay}'`)
+        .andWhere('p.day >= :start AND p.day <= :end', {
+          start: args.startDay,
+          end: args.endDay,
+        })
         .limit(args.amount)
         .groupBy('wiki.id')
         .orderBy('Sum(p.visits)', 'DESC')
@@ -141,7 +144,10 @@ class WikiService {
           lang: 'en',
           status: false,
         })
-        .andWhere(`p.day >= '${args.startDay}' AND p.day <= '${args.endDay}'`)
+        .andWhere('p.day >= :start AND p.day <= :end', {
+          start: args.startDay,
+          end: args.endDay,
+        })
         .limit(args.amount)
         .groupBy('wiki.id')
         .orderBy('Sum(p.visits)', 'DESC')
@@ -183,15 +189,17 @@ class WikiService {
   async getAddressTowiki(address: string): Promise<WikiUrl[]> {
     const ids = await (
       await this.repository()
-    ).query(`
-        SELECT id FROM 
+    ).query(
+      ` SELECT id FROM 
             (
-                SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
+                SELECT id, json_array_elements(metadata)->>'value' AS value FROM wiki 
                 WHERE hidden = false
-            ) "addy"
-        WHERE LOWER("addy"."value") = LOWER('https://etherscan.io/token/${address}') or LOWER("addy"."value") = LOWER('https://etherscan.io/address/${address}')
+            ) addy
+        WHERE addy.value LIKE $1
         GROUP BY id
-    `)
+    `,
+      [`%${address}%`],
+    )
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
@@ -240,10 +248,13 @@ class WikiService {
   async resolveAuthor(id: string): Promise<Author> {
     const res = await (
       await this.repository()
-    ).query(`SELECT "userId", u.* 
+    ).query(
+      `SELECT "userId", u.* 
         FROM activity
         LEFT JOIN "user_profile" u ON u."id" = "userId"
-        WHERE "wikiId" = '${id}' AND "type" = '0'`)
+        WHERE "wikiId" = $1 AND "type" = '0'`,
+      [id],
+    )
     return { id: res[0]?.userId, profile: { ...res[0] } || null }
   }
 }
