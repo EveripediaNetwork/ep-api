@@ -112,47 +112,28 @@ class WikiService {
   }
 
   async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
-    let response
-    if (!args.category) {
-      response = await (
-        await this.repository()
-      )
-        .createQueryBuilder('wiki')
-        .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
-        .where('wiki.language = :lang AND hidden = :status', {
-          lang: 'en',
-          status: false,
-        })
-        .andWhere('p.day >= :start AND p.day <= :end', {
-          start: args.startDay,
-          end: args.endDay,
-        })
-        .limit(args.amount)
-        .groupBy('wiki.id')
-        .orderBy('Sum(p.visits)', 'DESC')
-        .getMany()
-    } else {
-      response = await (
-        await this.repository()
-      )
-        .createQueryBuilder('wiki')
-        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-          categoryId: args.category,
-        })
-        .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
-        .where('wiki.language = :lang AND hidden = :status', {
-          lang: 'en',
-          status: false,
-        })
-        .andWhere('p.day >= :start AND p.day <= :end', {
-          start: args.startDay,
-          end: args.endDay,
-        })
-        .limit(args.amount)
-        .groupBy('wiki.id')
-        .orderBy('Sum(p.visits)', 'DESC')
-        .getMany()
+    const qb = (await this.repository())
+      .createQueryBuilder('wiki')
+      .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
+      .where('wiki.language = :lang AND hidden = :status', {
+        lang: 'en',
+        status: false,
+      })
+      .andWhere('p.day >= :start AND p.day <= :end', {
+        start: args.startDay,
+        end: args.endDay,
+      })
+      .limit(args.amount)
+      .groupBy('wiki.id')
+      .orderBy('Sum(p.visits)', 'DESC')
+
+    if (args.category) {
+      qb.innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+        categoryId: args.category,
+      })
     }
+
+    const response = await qb.getMany()
 
     return response
   }

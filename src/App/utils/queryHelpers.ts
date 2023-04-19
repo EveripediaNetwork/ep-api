@@ -72,9 +72,9 @@ export const queryWikisCreated = async (
   repo
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .where(
-      `LOWER(activity.userId) = '${id?.toLowerCase()}' AND w."hidden" = false`,
-    )
+    .where('LOWER(activity.userId) = :id AND w."hidden" = false', {
+      id: id?.toLowerCase(),
+    })
     .andWhere("activity.type = '0'")
     .groupBy('activity.wikiId, activity.id')
     .limit(limit)
@@ -88,12 +88,13 @@ export const queryWikisEdited = async (
   offset: number,
   repo: Repository<Activity>,
 ): Promise<Activity[] | undefined> =>
-  repo.query(`
+  repo.query(
+    `
     SELECT d."wikiId", d."ipfs", d."type", d."content", d."userId", d."id", d."datetime" FROM
         (
             SELECT "wikiId", Max(datetime) as MaxDate  
             FROM activity
-            WHERE type = '1' AND "activity"."userId" = '${id}'
+            WHERE type = '1' AND "activity"."userId" = $1
             GROUP BY "activity"."wikiId"
         ) r
         INNER JOIN "activity" d
@@ -102,6 +103,8 @@ export const queryWikisEdited = async (
         ON w."id" = d."wikiId"
         WHERE w."hidden" = false
         ORDER BY d."datetime" DESC
-        LIMIT ${limit}
-        OFFSET ${offset}
-    `)
+        LIMIT $2
+        OFFSET $3
+    `,
+    [id, limit, offset],
+  )
