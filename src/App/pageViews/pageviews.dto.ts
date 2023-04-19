@@ -1,4 +1,10 @@
-import { ArgsType, Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql'
+import {
+  ArgsType,
+  Field,
+  GraphQLISODateTime,
+  Int,
+  ObjectType,
+} from '@nestjs/graphql'
 import { Min, Max } from 'class-validator'
 import { OrderArgs } from '../pagination.args'
 
