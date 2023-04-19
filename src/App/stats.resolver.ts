@@ -76,12 +76,14 @@ class StatsResolver {
       .select('Count(*)', 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
-      .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
+      .addSelect('date_trunc(:t, datetime) AS interval')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '0'`)
       .andWhere(
-        `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+        'activity.datetime >= to_timestamp(:start) AND activity.datetime <= to_timestamp(:end)',
+        { start: args.startDate, end: args.endDate },
       )
+      .setParameter('t', args.interval)
       .groupBy('interval')
       .orderBy('Min(datetime)', 'ASC')
       .getRawMany()
@@ -96,12 +98,14 @@ class StatsResolver {
       .select('Count(*)', 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
-      .addSelect(`date_trunc('${args.interval}', datetime) AS interval`)
+      .addSelect('date_trunc(:t, datetime) AS interval')
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .where(`w."hidden" = false AND type = '1'`)
       .andWhere(
-        `activity.datetime >= to_timestamp(${args.startDate}) AND activity.datetime <= to_timestamp(${args.endDate})`,
+        'activity.datetime >= to_timestamp(:start) AND activity.datetime <= to_timestamp(:end)',
+        { start: args.startDate, end: args.endDate },
       )
+      .setParameter('t', args.interval)
       .groupBy('interval')
       .orderBy('Min(datetime)', 'ASC')
       .getRawMany()
