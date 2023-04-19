@@ -139,15 +139,15 @@ class UserService {
 
   async getUser(id: string): Promise<User | null> {
     return (await this.userRepository())
-      .createQueryBuilder('user')
-      .where(`LOWER(user.id) = LOWER('${id.toLowerCase()}')`)
+      .createQueryBuilder()
+      .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
 
   async getUserProfile(id: string): Promise<UserProfile | null> {
     return (await this.profileRepository())
-      .createQueryBuilder('user_profile')
-      .where(`LOWER(id) = LOWER('${id.toLowerCase()}')`)
+      .createQueryBuilder()
+      .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
 

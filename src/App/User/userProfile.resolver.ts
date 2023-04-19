@@ -44,9 +44,9 @@ class UserProfileResolver {
       await this.userService.profileRepository()
     )
       .createQueryBuilder('user')
-      .where(
-        `LOWER(id) = '${args.id?.toLowerCase()}' OR LOWER(username) = '${args.username?.toLowerCase()}'`,
-      )
+      .where('LOWER(id) = :id OR LOWER(username) = :id', {
+        id: args.id?.toLowerCase(),
+      })
       .getOne()
     return profile || null
   }
@@ -116,10 +116,13 @@ class UserProfileResolver {
     const { id } = user
     const a = await (
       await this.userService.userRepository()
-    ).query(`SELECT u."active" 
+    ).query(
+      `SELECT u."active" 
         FROM "user_profile"
         LEFT JOIN "user" u on u."id" = "user_profile"."id"
-        WHERE "user_profile"."id" = '${id}'`)
+        WHERE "user_profile"."id" = $1`,
+      [id],
+    )
     return a[0].active
   }
 
@@ -128,11 +131,14 @@ class UserProfileResolver {
   async wikiSubscriptions(@Parent() user: GetProfileArgs) {
     const wikiRepo = this.dataSource.getRepository(Wiki)
     const { id } = user
-    const subs = await wikiRepo.query(`
+    const subs = await wikiRepo.query(
+      `
         SELECT wiki.* FROM wiki
         LEFT JOIN "subscription" s on s."auxiliaryId" = wiki.id
-        WHERE LOWER(s."userId") = '${id?.toLowerCase()}' AND s."notificationType" = 'wiki' 
-    `)
+        WHERE LOWER(s."userId") = $1 AND s."notificationType" = 'wiki' 
+    `,
+      [id?.toLowerCase()],
+    )
     return subs
   }
 }

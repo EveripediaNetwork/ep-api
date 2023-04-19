@@ -51,7 +51,7 @@ class MarketCapService {
             categoryId: category,
           },
         )
-        .where(`wiki.id = '${id}' AND wiki.hidden = false`)
+        .where('wiki.id = :id AND wiki.hidden = false', { id })
         .getOne())
 
     return wiki

@@ -51,7 +51,7 @@ export default class WebhookHandler {
     if (actionType === ActionTypes.ADMIN_ACTION) {
       const user = await userProfileRepo
         .createQueryBuilder('user_profile')
-        .where(`LOWER(id) = LOWER('${payload?.user?.toLowerCase()}')`)
+        .where('LOWER(id) = :id', { id: payload?.user?.toLowerCase() })
         .getOne()
 
       let adminUser
