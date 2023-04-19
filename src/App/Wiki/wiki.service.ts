@@ -183,15 +183,17 @@ class WikiService {
   async getAddressTowiki(address: string): Promise<WikiUrl[]> {
     const ids = await (
       await this.repository()
-    ).query(`
-        SELECT id FROM 
+    ).query(
+      ` SELECT id FROM 
             (
-                SELECT id, json_array_elements(metadata)->>'value' AS "value" FROM wiki 
+                SELECT id, json_array_elements(metadata)->>'value' AS value FROM wiki 
                 WHERE hidden = false
-            ) "addy"
-        WHERE LOWER("addy"."value") = LOWER('https://etherscan.io/token/${address}') or LOWER("addy"."value") = LOWER('https://etherscan.io/address/${address}')
+            ) addy
+        WHERE addy.value LIKE $1
         GROUP BY id
-    `)
+    `,
+      [`%${address}%`],
+    )
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
