@@ -28,7 +28,7 @@ import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './User/userProfile.resolver'
 import UserService from './User/user.service'
-import StatsResolver from './stats.resolver'
+import StatsResolver from './WikiStats/wikiStats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews/pageViews.resolver'
@@ -55,6 +55,7 @@ import ActivityService from './Activities/activity.service'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
 import SentryMod from '../sentry/sentry.module'
+import WikiStatService from './WikiStats/wikiStats.service'
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import SentryMod from '../sentry/sentry.module'
     ActivityService,
     UserProfileResolver,
     StatsResolver,
+    WikiStatService,
     ValidSlug,
     PageViewsResolver,
     PageViewsService,

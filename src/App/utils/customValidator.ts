@@ -16,3 +16,4 @@ export default class ValidStringParams implements ValidatorConstraintInterface {
     return 'Invalid parameters'
   }
 }
+
