@@ -123,7 +123,9 @@ class WikiStatService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (await this.wikiService.repository())
+    const response = await (
+      await this.wikiService.repository()
+    )
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
