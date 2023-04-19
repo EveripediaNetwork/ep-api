@@ -20,7 +20,8 @@ export class Author {
 }
 
 @ObjectType()
-export class Links {// TODO: add validations for links
+export class Links {
+  // TODO: add validations for links
   @Field({ nullable: true })
   @Max(255)
   instagram?: string
