@@ -9,7 +9,7 @@ import {
   IntervalArgs,
   UserArgs,
   DateArgs,
-} from './stats.dto'
+} from './wikiStats.dto'
 import WikiStatService from './wikiStats.service'
 
 @Resolver(() => Activity)

@@ -9,7 +9,7 @@ import {
   UserArgs,
   WikiStats,
   WikiUserStats,
-} from './stats.dto'
+} from './wikiStats.dto'
 import WikiService from '../Wiki/wiki.service'
 import Tag from '../../Database/Entities/tag.entity'
 import { CategoryArgs } from '../Wiki/wiki.dto'
