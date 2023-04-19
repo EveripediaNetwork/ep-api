@@ -68,9 +68,7 @@ class UserService {
     ).findOneBy({
       id: data.id,
     })
-    const existsUser = await (
-      await this.userRepository()
-    )
+    const existsUser = await (await this.userRepository())
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
@@ -116,9 +114,7 @@ class UserService {
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
 
-      await (
-        await this.userRepository()
-      )
+      await (await this.userRepository())
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
@@ -137,22 +133,18 @@ class UserService {
     return newProfile
   }
 
-  async queryUserOrProfile(
-    table: string,
-    id: string,
-  ): Promise<User | UserProfile | null> {
+  async getUser(id: string): Promise<User | null> {
     return (await this.userRepository())
-      .createQueryBuilder(table)
-      .where('LOWER(id) = LOWER(:id)', { id: id.toLowerCase() })
+      .createQueryBuilder()
+      .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
 
-  async getUser(id: string): Promise<User | null> {
-    return this.queryUserOrProfile('user', id) as unknown as User
-  }
-
   async getUserProfile(id: string): Promise<UserProfile | null> {
-    return this.queryUserOrProfile('user_profile', id) as unknown as UserProfile
+    return (await this.profileRepository())
+      .createQueryBuilder()
+      .where('LOWER(id) = :id', { id: id.toLowerCase() })
+      .getOne()
   }
 
   async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {
