@@ -37,6 +37,12 @@ class MarketCapService {
     const wiki =
       (await repository
         .createQueryBuilder('wiki')
+        .where('wiki.id = :id AND wiki.hidden = false', {
+          id: mapId,
+        })
+        .getOne()) ||
+      (await repository
+        .createQueryBuilder('wiki')
         .innerJoinAndSelect(
           'wiki.categories',
           'category',
@@ -46,12 +52,6 @@ class MarketCapService {
           },
         )
         .where(`wiki.id = '${id}' AND wiki.hidden = false`)
-        .getOne()) ||
-      (await repository
-        .createQueryBuilder('wiki')
-        .where('wiki.id = :id AND wiki.hidden = false', {
-          id: mapId,
-        })
         .getOne())
 
     return wiki
@@ -126,7 +126,6 @@ class MarketCapService {
 
     const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds, 'nfts')
-      // console.log(wiki?.id)
       if (!wiki) {
         return null
       }
@@ -152,7 +151,6 @@ class MarketCapService {
   async ranks(
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
-    console.log(args.kind)
     const key = `finalResult/${args.kind}/${args.limit}/${args.offset}`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
