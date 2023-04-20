@@ -176,7 +176,7 @@ class WikiService {
                 SELECT id, json_array_elements(metadata)->>'value' AS value FROM wiki 
                 WHERE hidden = false
             ) addy
-        WHERE addy.value LIKE $1
+        WHERE addy.value ILIKE $1
         GROUP BY id
     `,
       [`%${address}%`],
