@@ -68,7 +68,9 @@ class UserService {
     ).findOneBy({
       id: data.id,
     })
-    const existsUser = await (await this.userRepository())
+    const existsUser = await (
+      await this.userRepository()
+    )
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
@@ -114,7 +116,9 @@ class UserService {
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
 
-      await (await this.userRepository())
+      await (
+        await this.userRepository()
+      )
         .createQueryBuilder()
         .update(User)
         .set({ profile: newProfile })
@@ -146,7 +150,7 @@ class UserService {
     username?: string,
     users = false,
   ): Promise<UserProfile | UserProfile[] | null> {
-    const fieldsWithPrefix = fields.map(field => `user_profile.${field}`)
+    const fieldsWithPrefix = fields.map((field) => `user_profile.${field}`)
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])

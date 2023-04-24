@@ -134,9 +134,9 @@ class UserResolver {
     )
 
     if (!cached) {
-    //   const a = await this.userService.getUserProfile(id)
-    //   await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
-    //   return a
+      //   const a = await this.userService.getUserProfile(id)
+      //   await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
+      //   return a
     }
     return cached
   }
