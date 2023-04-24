@@ -5,6 +5,7 @@ import {
   Context,
   Directive,
   Field,
+  Info,
   Mutation,
   Parent,
   Query,
@@ -39,13 +40,34 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile, { nullable: true })
-  async getProfile(@Args() args: GetProfileArgs) {
-    return this.userService.getUserProfile(args.id, args.username)
+  async getProfile(@Args() args: GetProfileArgs, @Info() info: any) {
+    // return this.userService.getUserProfile(args.id, args.username)
+    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
+      (selection: { name: { value: any } }) => selection.name.value,
+    )
+    // console.log(selectedFields)
+    return this.userService.getUserProfile(
+      selectedFields,
+      args.id,
+      args.username,
+    )
   }
 
   @Query(() => [UserProfile])
-  async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    return this.userService.getUserProfile(args.id, args.username, true)
+  async getProfileLikeUsername(
+    @Args() args: GetProfileArgs,
+    @Info() info: any,
+  ) {
+    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
+      (selection: { name: { value: any } }) => selection.name.value,
+    )
+    // console.log(selectedFields)
+    return this.userService.getUserProfile(
+      selectedFields,
+      args.id,
+      args.username,
+      true,
+    )
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
