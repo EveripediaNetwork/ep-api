@@ -45,15 +45,7 @@ class UserProfileResolver {
 
   @Query(() => [UserProfile])
   async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    return (await this.userService.profileRepository())
-      .createQueryBuilder('user_profile')
-      .where('LOWER(username) LIKE :username', {
-        username: `%${args.username?.toLowerCase()}%`,
-      })
-      .orWhere('LOWER(id) LIKE :id', {
-        id: `%${args.id?.toLowerCase()}%`,
-      })
-      .getMany()
+    return this.userService.getUserProfile(args.id, args.username, true)
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
