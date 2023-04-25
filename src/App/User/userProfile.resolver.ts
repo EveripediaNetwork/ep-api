@@ -41,11 +41,9 @@ class UserProfileResolver {
 
   @Query(() => UserProfile, { nullable: true })
   async getProfile(@Args() args: GetProfileArgs, @Info() info: any) {
-    // return this.userService.getUserProfile(args.id, args.username)
     const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
       (selection: { name: { value: any } }) => selection.name.value,
     )
-    // console.log(selectedFields)
     return this.userService.getUserProfile(
       selectedFields,
       args.id,
@@ -61,7 +59,6 @@ class UserProfileResolver {
     const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
       (selection: { name: { value: any } }) => selection.name.value,
     )
-    // console.log(selectedFields)
     return this.userService.getUserProfile(
       selectedFields,
       args.id,
