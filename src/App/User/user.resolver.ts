@@ -1,6 +1,7 @@
 import {
   Args,
   Context,
+  Info,
   Mutation,
   Parent,
   Query,
@@ -16,6 +17,7 @@ import {
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Cache } from 'cache-manager'
+import { GraphQLResolveInfo } from 'graphql'
 import User from '../../Database/Entities/user.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -61,8 +63,12 @@ class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
-  async userById(@Args() args: ArgsById) {
-    return this.userService.getUser(args.id)
+  async userById(@Args() args: ArgsById, @Info() info: any) {
+    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
+      (selection: { name: { value: any } }) => selection.name.value,
+    )
+
+    return this.userService.getUser(args.id, selectedFields)
   }
 
   @Query(() => Boolean)
@@ -73,14 +79,19 @@ class UserResolver {
 
   @Mutation(() => User, { nullable: true })
   @UseGuards(AuthGuard)
-  async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
+  async toggleUserStateById(
+    @Args() args: UserStateArgs,
+    @Context() ctx: any,
+    @Info() info: any,
+  ) {
+    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
+      (selection: { name: { value: any } }) => selection.name.value,
+    )
     const cacheId = ctx.req.ip + args.id
 
-    const user = await this.userService.getUser(args.id)
+    const user = await this.userService.getUser(args.id, selectedFields)
 
-    await (
-      await this.userService.userRepository()
-    )
+    await (await this.userService.userRepository())
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
@@ -126,7 +137,12 @@ class UserResolver {
   }
 
   @ResolveField(() => UserProfile)
-  async profile(@Parent() user: IUser) {
+  async profile(@Parent() user: IUser, @Info() info: GraphQLResolveInfo) {
+    const fields =
+      info.fieldNodes[0].selectionSet?.selections.map(
+        (selection: any) => selection.name.value,
+      ) ?? []
+
     const { id } = user
     const key = id.toLowerCase()
     const cached: UserProfile | undefined = await this.cacheManager.get(
@@ -134,9 +150,9 @@ class UserResolver {
     )
 
     if (!cached) {
-      //   const a = await this.userService.getUserProfile(id)
-      //   await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
-      //   return a
+      const a = await this.userService.getUserProfile(fields, id)
+      await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
+      return a
     }
     return cached
   }
