@@ -27,7 +27,7 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
 import { ArgsById } from '../utils/queryHelpers'
-import { SelectedFields } from '../utils/getFields'
+import SelectedFields from '../utils/getFields'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)

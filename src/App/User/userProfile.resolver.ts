@@ -19,7 +19,7 @@ import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
 import ValidStringParams from '../utils/customValidator'
 import IsActiveGuard from '../utils/isActive.guard'
-import { SelectedFields } from '../utils/getFields'
+import SelectedFields from '../utils/getFields'
 
 @ArgsType()
 class GetProfileArgs {
