@@ -1,7 +1,6 @@
 import {
   Args,
   Context,
-  Info,
   Mutation,
   Parent,
   Query,
@@ -17,7 +16,6 @@ import {
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Cache } from 'cache-manager'
-import { GraphQLResolveInfo } from 'graphql'
 import User from '../../Database/Entities/user.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -29,6 +27,7 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
 import { ArgsById } from '../utils/queryHelpers'
+import { SelectedFields } from '../utils/getFields'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -63,12 +62,8 @@ class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
-  async userById(@Args() args: ArgsById, @Info() info: any) {
-    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
-      (selection: { name: { value: any } }) => selection.name.value,
-    )
-
-    return this.userService.getUser(args.id, selectedFields)
+  async userById(@Args() args: ArgsById, @SelectedFields() fields: string[]) {
+    return this.userService.getUser(args.id, fields)
   }
 
   @Query(() => Boolean)
@@ -82,14 +77,11 @@ class UserResolver {
   async toggleUserStateById(
     @Args() args: UserStateArgs,
     @Context() ctx: any,
-    @Info() info: any,
+    @SelectedFields() fields: string[],
   ) {
-    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
-      (selection: { name: { value: any } }) => selection.name.value,
-    )
     const cacheId = ctx.req.ip + args.id
 
-    const user = await this.userService.getUser(args.id, selectedFields)
+    const user = await this.userService.getUser(args.id, fields)
 
     await (
       await this.userService.userRepository()
@@ -139,12 +131,7 @@ class UserResolver {
   }
 
   @ResolveField(() => UserProfile)
-  async profile(@Parent() user: IUser, @Info() info: GraphQLResolveInfo) {
-    const fields =
-      info.fieldNodes[0].selectionSet?.selections.map(
-        (selection: any) => selection.name.value,
-      ) ?? []
-
+  async profile(@Parent() user: IUser, @SelectedFields() fields: string[]) {
     const { id } = user
     const key = id.toLowerCase()
     const cached: UserProfile | undefined = await this.cacheManager.get(

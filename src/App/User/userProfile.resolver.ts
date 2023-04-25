@@ -5,7 +5,6 @@ import {
   Context,
   Directive,
   Field,
-  Info,
   Mutation,
   Parent,
   Query,
@@ -20,6 +19,7 @@ import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
 import ValidStringParams from '../utils/customValidator'
 import IsActiveGuard from '../utils/isActive.guard'
+import { SelectedFields } from '../utils/getFields'
 
 @ArgsType()
 class GetProfileArgs {
@@ -40,31 +40,19 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile, { nullable: true })
-  async getProfile(@Args() args: GetProfileArgs, @Info() info: any) {
-    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
-      (selection: { name: { value: any } }) => selection.name.value,
-    )
-    return this.userService.getUserProfile(
-      selectedFields,
-      args.id,
-      args.username,
-    )
+  async getProfile(
+    @Args() args: GetProfileArgs,
+    @SelectedFields() fields: string[],
+  ) {
+    return this.userService.getUserProfile(fields, args.id, args.username)
   }
 
   @Query(() => [UserProfile])
   async getProfileLikeUsername(
     @Args() args: GetProfileArgs,
-    @Info() info: any,
+    @SelectedFields() fields: string[],
   ) {
-    const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
-      (selection: { name: { value: any } }) => selection.name.value,
-    )
-    return this.userService.getUserProfile(
-      selectedFields,
-      args.id,
-      args.username,
-      true,
-    )
+    return this.userService.getUserProfile(fields, args.id, args.username, true)
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
