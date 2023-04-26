@@ -137,33 +137,18 @@ class UserService {
     return newProfile
   }
 
-  async getUser(id: string, fields: string[]): Promise<User | null> {
-    const fieldsWithPrefix = fields.map((field) => `user.${field}`)
+  async getUser(id: string): Promise<User | null> {
     return (await this.userRepository())
-      .createQueryBuilder('user')
-      .select([...fieldsWithPrefix])
+      .createQueryBuilder()
       .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
 
-  async getUserProfile(
-    fields: string[],
-    id?: string,
-    username?: string,
-    users = false,
-  ): Promise<UserProfile | UserProfile[] | null> {
-    const fieldsWithPrefix = fields.map((field) => `user_profile.${field}`)
-    const profile = (await this.profileRepository())
-      .createQueryBuilder('user_profile')
-      .select([...fieldsWithPrefix])
-      .where('LOWER(id) = :id', { id: id?.toLowerCase() })
-
-    if (!id) {
-      profile.orWhere('LOWER(username) LIKE :username', {
-        username: `%${username?.toLowerCase()}%`,
-      })
-    }
-    return users ? profile.getMany() : profile.getOne()
+  async getUserProfile(id: string): Promise<UserProfile | null> {
+    return (await this.profileRepository())
+      .createQueryBuilder()
+      .where('LOWER(id) = :id', { id: id.toLowerCase() })
+      .getOne()
   }
 
   async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {

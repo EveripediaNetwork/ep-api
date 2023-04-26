@@ -27,7 +27,6 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
 import { ArgsById } from '../utils/queryHelpers'
-import SelectedFields from '../utils/getFields'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -62,8 +61,8 @@ class UserResolver {
 
   @Query(() => User, { nullable: true })
   @UseGuards(IsActiveGuard)
-  async userById(@Args() args: ArgsById, @SelectedFields() fields: string[]) {
-    return this.userService.getUser(args.id, fields)
+  async userById(@Args() args: ArgsById) {
+    return this.userService.getUser(args.id)
   }
 
   @Query(() => Boolean)
@@ -74,14 +73,10 @@ class UserResolver {
 
   @Mutation(() => User, { nullable: true })
   @UseGuards(AuthGuard)
-  async toggleUserStateById(
-    @Args() args: UserStateArgs,
-    @Context() ctx: any,
-    @SelectedFields() fields: string[],
-  ) {
+  async toggleUserStateById(@Args() args: UserStateArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-    const user = await this.userService.getUser(args.id, fields)
+    const user = await this.userService.getUser(args.id)
 
     await (
       await this.userService.userRepository()
@@ -131,7 +126,7 @@ class UserResolver {
   }
 
   @ResolveField(() => UserProfile)
-  async profile(@Parent() user: IUser, @SelectedFields() fields: string[]) {
+  async profile(@Parent() user: IUser) {
     const { id } = user
     const key = id.toLowerCase()
     const cached: UserProfile | undefined = await this.cacheManager.get(
@@ -139,7 +134,7 @@ class UserResolver {
     )
 
     if (!cached) {
-      const a = await this.userService.getUserProfile(fields, id)
+      const a = await this.userService.getUserProfile(id)
       await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
       return a
     }
