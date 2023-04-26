@@ -32,45 +32,41 @@ const SelectedFields = createParamDecorator(
   (sel: Sel | undefined, context: ExecutionContext) => {
     const gqlContext = GqlExecutionContext.create(context)
     const info = gqlContext.getInfo()
+    const querySelections = info.fieldNodes[0].selectionSet.selections
 
     if (!sel) {
-      const selectedFields = info.fieldNodes[0].selectionSet.selections.map(
+      return querySelections.map(
         (selection: { name: { value: string } }) => selection.name.value,
       )
-      return selectedFields
     }
     if (sel.nested && sel.path) {
-      const data = info.fieldNodes[0].selectionSet.selections.findIndex(
+      const data = querySelections.findIndex(
         (obj: any) => obj.name.value === sel.path,
       )
-      const onlySel = info.fieldNodes[0].selectionSet.selections[data]
-      return info.fieldNodes[0].selectionSet.selections.map(
-        (selection: any) => {
-          if (selection.name.value === sel.path) {
-            return {
-              name: onlySel.name.value,
-              selections: getSelectedFields(onlySel.selectionSet, true),
-            }
+      const onlySel = querySelections[data]
+      return querySelections.map((selection: any) => {
+        if (selection.name.value === sel.path) {
+          return {
+            name: onlySel.name.value,
+            selections: getSelectedFields(onlySel.selectionSet, true),
           }
-          return selection.name.value
-        },
-      )
+        }
+        return selection.name.value
+      })
     }
     if (sel.nested && !sel.path) {
-      return info.fieldNodes[0].selectionSet.selections.map(
-        (selection: any) => {
-          if (selection.selectionSet) {
-            if (sel.nested) {
-              return {
-                name: selection.name.value,
-                selections: getSelectedFields(selection.selectionSet, true),
-              }
+      return querySelections.map((selection: any) => {
+        if (selection.selectionSet) {
+          if (sel.nested) {
+            return {
+              name: selection.name.value,
+              selections: getSelectedFields(selection.selectionSet, true),
             }
-            return selection.name.value
           }
           return selection.name.value
-        },
-      )
+        }
+        return selection.name.value
+      })
     }
     return []
   },
