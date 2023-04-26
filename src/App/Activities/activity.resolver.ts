@@ -31,7 +31,9 @@ class ActivityResolver {
   }
 
   @Query(() => [Activity])
-  async activitiesByUser(@Args() args: ActivityArgsByUser) {
+  async activitiesByUser(
+    @Args() args: ActivityArgsByUser,
+  ) {
     return this.activityService.getActivitiesByUser(args)
   }
 
@@ -51,7 +53,9 @@ class ActivityResolver {
   }
 
   @ResolveField(() => [Wiki])
-  async content(@Root() activity: Activity) {
+  async content(
+    @Root() activity: Activity,
+  ) {
     const { content } = activity
     const updatedContent = content.map((wiki) => ({
       ...wiki,

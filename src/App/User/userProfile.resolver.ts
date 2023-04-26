@@ -19,6 +19,7 @@ import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
 import ValidStringParams from '../utils/customValidator'
 import IsActiveGuard from '../utils/isActive.guard'
+import SelectedFields from '../utils/getFields'
 
 @ArgsType()
 class GetProfileArgs {
@@ -39,29 +40,19 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile, { nullable: true })
-  async getProfile(@Args() args: GetProfileArgs) {
-    const profile = await (
-      await this.userService.profileRepository()
-    )
-      .createQueryBuilder('user')
-      .where('LOWER(id) = :id OR LOWER(username) = :id', {
-        id: args.id?.toLowerCase(),
-      })
-      .getOne()
-    return profile || null
+  async getProfile(
+    @Args() args: GetProfileArgs,
+    @SelectedFields() fields: string[],
+  ) {
+    return this.userService.getUserProfile(fields, args.id, args.username)
   }
 
   @Query(() => [UserProfile])
-  async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    return (await this.userService.profileRepository())
-      .createQueryBuilder('user_profile')
-      .where('LOWER(username) LIKE :username', {
-        username: `%${args.username?.toLowerCase()}%`,
-      })
-      .orWhere('LOWER(id) LIKE :id', {
-        id: `%${args.id?.toLowerCase()}%`,
-      })
-      .getMany()
+  async getProfileLikeUsername(
+    @Args() args: GetProfileArgs,
+    @SelectedFields() fields: string[],
+  ) {
+    return this.userService.getUserProfile(fields, args.id, args.username, true)
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
