@@ -41,7 +41,7 @@ import Feedback from './Entities/feedback.entity'
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        logging: true,
+        // logging: true,
       }),
       inject: [ConfigService],
     }),

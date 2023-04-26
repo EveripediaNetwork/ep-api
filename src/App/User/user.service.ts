@@ -187,7 +187,6 @@ class UserService {
       fields,
       'user_profile',
     )
-    console.log(fieldsWithPrefix)
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])
