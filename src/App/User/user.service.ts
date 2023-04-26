@@ -165,8 +165,7 @@ class UserService {
   async getUser(id: string, fields: string[]): Promise<User | null> {
     const fieldsWithPrefix = await this.getAllColumnNames(User, fields, 'user')
     return (await this.userRepository())
-      .createQueryBuilder('user')
-      .select([...fieldsWithPrefix])
+      .createQueryBuilder()
       .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
