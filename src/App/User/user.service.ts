@@ -2,7 +2,14 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
-import { DataSource, Repository } from 'typeorm'
+import {
+  DataSource,
+  Entity,
+  EntityTarget,
+  Repository,
+  getMetadataArgsStorage,
+} from 'typeorm'
+import { ColumnMetadataArgs } from 'typeorm/metadata-args/ColumnMetadataArgs'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
@@ -137,8 +144,31 @@ class UserService {
     return newProfile
   }
 
+  async getAllColumnNames(
+    entity: EntityTarget<any>,
+    fields: string[],
+    tableName: string,
+  ): Promise<string[]> {
+    const userTable = this.dataSource.getMetadata(entity)
+
+    if (!userTable || !userTable.columns.length) {
+      return []
+    }
+
+    const columnNames = userTable.columns.map((column) => column.propertyName)
+    const columns = columnNames.filter((e) => fields.includes(e))
+    const fieldsWithPrefix = columns.map((field) => {
+      if (!columns.includes('id')) {
+        return `${tableName}.id`
+      }
+      return `${tableName}.${field}`
+    })
+
+    return fieldsWithPrefix
+  }
+
   async getUser(id: string, fields: string[]): Promise<User | null> {
-    const fieldsWithPrefix = fields.map((field) => `user.${field}`)
+    const fieldsWithPrefix = await this.getAllColumnNames(User, fields, 'user')
     return (await this.userRepository())
       .createQueryBuilder('user')
       .select([...fieldsWithPrefix])
@@ -152,7 +182,11 @@ class UserService {
     username?: string,
     users = false,
   ): Promise<UserProfile | UserProfile[] | null> {
-    const fieldsWithPrefix = fields.map((field) => `user_profile.${field}`)
+    const fieldsWithPrefix = await this.getAllColumnNames(
+      UserProfile,
+      fields,
+      'user_profile',
+    )
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])
