@@ -6,7 +6,7 @@ import { DataSource, EntityTarget, Repository } from 'typeorm'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
-import { UsersByEditArgs, UsersByIdArgs } from './user.dto'
+import { GetProfileArgs, UsersByEditArgs, UsersByIdArgs } from './user.dto'
 import PaginationArgs from '../pagination.args'
 import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
@@ -167,8 +167,7 @@ class UserService {
 
   async getUserProfile(
     fields: string[],
-    id?: string,
-    username?: string,
+    args: GetProfileArgs,
     users = false,
   ): Promise<UserProfile | UserProfile[] | null> {
     const fieldsWithPrefix = await this.getAllColumnNames(
@@ -179,11 +178,11 @@ class UserService {
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])
-      .where('LOWER(id) = :id', { id: id?.toLowerCase() })
+      .where('LOWER(id) = :id', { id: args.id?.toLowerCase() })
 
-    if (!id) {
+    if (!args.id) {
       profile.orWhere('LOWER(username) LIKE :username', {
-        username: `%${username?.toLowerCase()}%`,
+        username: `%${args.username?.toLowerCase()}%`,
       })
     }
     return users ? profile.getMany() : profile.getOne()

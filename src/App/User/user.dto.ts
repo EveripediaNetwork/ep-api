@@ -26,3 +26,14 @@ export class UsersByEditArgs extends PaginationArgs {
   @Field(() => Boolean, { nullable: true })
   edits!: boolean
 }
+
+@ArgsType()
+export class GetProfileArgs {
+  @Field({ nullable: true })
+    @Validate(ValidStringParams)
+  id?: string
+
+  @Field({ nullable: true })
+    @Validate(ValidStringParams)
+  username?: string
+}
