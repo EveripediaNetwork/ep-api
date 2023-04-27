@@ -2,14 +2,7 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
-import {
-  DataSource,
-  Entity,
-  EntityTarget,
-  Repository,
-  getMetadataArgsStorage,
-} from 'typeorm'
-import { ColumnMetadataArgs } from 'typeorm/metadata-args/ColumnMetadataArgs'
+import { DataSource, EntityTarget, Repository } from 'typeorm'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
@@ -157,14 +150,10 @@ class UserService {
 
     const columnNames = userTable.columns.map((column) => column.propertyName)
     const columns = columnNames.filter((e) => fields.includes(e))
-    const fieldsWithPrefix = columns.map((field) => {
-      if (!columns.includes('id')) {
-        return `${tableName}.id`
-      }
-      return `${tableName}.${field}`
-    })
-
-    return fieldsWithPrefix
+    const fieldsWithPrefix = columns.map((field) => `${tableName}.${field}`)
+    return !columns.includes('id')
+      ? [`${tableName}.id`, ...fieldsWithPrefix]
+      : fieldsWithPrefix
   }
 
   async getUser(id: string, fields: string[]): Promise<User | null> {
