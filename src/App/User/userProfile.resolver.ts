@@ -1,35 +1,22 @@
 import { UseGuards } from '@nestjs/common'
 import {
   Args,
-  ArgsType,
   Context,
   Directive,
-  Field,
   Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
-import { Validate } from 'class-validator'
 import { DataSource } from 'typeorm'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import UserService from './user.service'
-import ValidStringParams from '../utils/customValidator'
 import IsActiveGuard from '../utils/isActive.guard'
-
-@ArgsType()
-class GetProfileArgs {
-  @Field({ nullable: true })
-  @Validate(ValidStringParams)
-  id?: string
-
-  @Field({ nullable: true })
-  @Validate(ValidStringParams)
-  username?: string
-}
+import SelectedFields from '../utils/getFields'
+import { GetProfileArgs } from './user.dto'
 
 @Resolver(() => UserProfile)
 class UserProfileResolver {
@@ -39,29 +26,19 @@ class UserProfileResolver {
   ) {}
 
   @Query(() => UserProfile, { nullable: true })
-  async getProfile(@Args() args: GetProfileArgs) {
-    const profile = await (
-      await this.userService.profileRepository()
-    )
-      .createQueryBuilder('user')
-      .where('LOWER(id) = :id OR LOWER(username) = :id', {
-        id: args.id?.toLowerCase(),
-      })
-      .getOne()
-    return profile || null
+  async getProfile(
+    @Args() args: GetProfileArgs,
+    @SelectedFields() fields: string[],
+  ) {
+    return this.userService.getUserProfile(fields, args)
   }
 
   @Query(() => [UserProfile])
-  async getProfileLikeUsername(@Args() args: GetProfileArgs) {
-    return (await this.userService.profileRepository())
-      .createQueryBuilder('user_profile')
-      .where('LOWER(username) LIKE :username', {
-        username: `%${args.username?.toLowerCase()}%`,
-      })
-      .orWhere('LOWER(id) LIKE :id', {
-        id: `%${args.id?.toLowerCase()}%`,
-      })
-      .getMany()
+  async getProfileLikeUsername(
+    @Args() args: GetProfileArgs,
+    @SelectedFields() fields: string[],
+  ) {
+    return this.userService.getUserProfile(fields, args, true)
   }
 
   @Mutation(() => UserProfile, { name: 'createProfile' })
