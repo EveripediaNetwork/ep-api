@@ -56,7 +56,7 @@ import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
 import SentryMod from '../sentry/sentry.module'
 import WikiStatService from './WikiStats/wikiStats.service'
-import { SecurityTestingService } from './utils/securityTester'
+import SecurityTestingService from './utils/securityTester'
 
 @Module({
   imports: [

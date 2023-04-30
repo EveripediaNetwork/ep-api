@@ -10,10 +10,14 @@ import {
 import { ArgsById } from '../utils/queryHelpers'
 import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
+import SecurityTestingService from '../utils/securityTester'
 
 @Resolver(() => Activity)
 class ActivityResolver {
-  constructor(private activityService: ActivityService) {}
+  constructor(
+    private activityService: ActivityService,
+    private test: SecurityTestingService,
+  ) {}
 
   @Query(() => [Activity])
   async activities(@Args() args: ActivityArgs) {
@@ -53,7 +57,7 @@ class ActivityResolver {
   @ResolveField(() => [Wiki])
   async content(@Root() activity: Activity) {
     const { content } = activity
-    const updatedContent = content.map((wiki) => ({
+    const updatedContent = content.map(wiki => ({
       ...wiki,
       created: activity.created_timestamp,
       updated: activity.updated_timestamp,
