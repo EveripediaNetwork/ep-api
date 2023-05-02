@@ -11,6 +11,7 @@ import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import ActivityService from '../Activities/activity.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
+import SecurityTestingService from '../utils/securityTester'
 
 @Injectable()
 class PinService {
@@ -18,6 +19,7 @@ class PinService {
     private configService: ConfigService,
     private activityService: ActivityService,
     private validator: IPFSValidatorService,
+    private testSecurity: SecurityTestingService,
     private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: WebhookHandler,
   ) {}
@@ -60,18 +62,24 @@ class PinService {
 
     const isDataValid = await this.validator.validate(data, true)
 
-    if (!isDataValid.status) {
-      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-        title: isDataValid.message,
-        content: data,
-      } as unknown as WebhookPayload)
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: isDataValid.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+    const isContentSecure = await this.testSecurity.checkContent(data.content)
+
+    if (!isDataValid.status || !isContentSecure.status) {
+      const errorMessage = !isDataValid.status
+        ? isDataValid.message
+        : isContentSecure.message
+
+        this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
+          title: errorMessage,
+          content: data,
+        } as unknown as WebhookPayload)
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: errorMessage,
+          },
+          HttpStatus.BAD_REQUEST,
+        )
     }
 
     const activityResult = await this.activityService.countUserActivity(

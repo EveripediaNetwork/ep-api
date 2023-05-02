@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import createDOMPurify from 'dompurify'
 import { JSDOM } from 'jsdom'
 
@@ -12,6 +13,12 @@ export type TestResult = {
 
 @Injectable()
 export default class SecurityTestingService {
+  constructor(private configService: ConfigService){}
+
+  private serviceEnabled(): string {
+    return this.configService.get<string>('TEST_SECURITY') ||''
+  }
+
   private async sanitizeInput(input: string): Promise<string> {
     return DOMPurify.sanitize(input, { FORBID_ATTR: ['style'] })
   }
@@ -43,14 +50,18 @@ export default class SecurityTestingService {
   }
 
   public async checkContent(input: string): Promise<TestResult> {
+    const secure = { status: true, message: 'Content secure' }
+    if(this.serviceEnabled() === 'OFF') {
+        return secure
+    }
     const purifiedSring = await this.sanitizeInput(input)
 
-    if (!(await this.findJSNotPurified(purifiedSring))) {
+    if (!(await this.findJSNotPurified(purifiedSring))) { 
       return { status: false, message: 'Malicious Javascript detected' }
     }
     if (!(await this.findCSSNotPurified(purifiedSring))) {
       return { status: false, message: 'Malicious CSS detected' }
     }
-    return { status: true, message: 'Valid Content' }
+    return secure
   }
 }
