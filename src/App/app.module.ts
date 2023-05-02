@@ -67,6 +67,7 @@ import WikiStatService from './WikiStats/wikiStats.service'
       driver: ApolloDriver,
       debug: true,
       playground: true,
+      introspection: process.env.NODE_ENV !== 'production',
       cors: true,
       cache: new InMemoryLRUCache(),
       autoSchemaFile: true,
