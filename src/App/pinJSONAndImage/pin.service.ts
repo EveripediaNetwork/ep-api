@@ -69,17 +69,17 @@ class PinService {
         ? isDataValid.message
         : isContentSecure.message
 
-        this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-          title: errorMessage,
-          content: data,
-        } as unknown as WebhookPayload)
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            error: errorMessage,
-          },
-          HttpStatus.BAD_REQUEST,
-        )
+      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
+        title: errorMessage,
+        content: data,
+      } as unknown as WebhookPayload)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: errorMessage,
+        },
+        HttpStatus.BAD_REQUEST,
+      )
     }
 
     const activityResult = await this.activityService.countUserActivity(
