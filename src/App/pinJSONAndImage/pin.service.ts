@@ -62,7 +62,7 @@ class PinService {
 
     const isDataValid = await this.validator.validate(data, true)
 
-    const isContentSecure = await this.testSecurity.checkContent(data.content)
+    const isContentSecure = await this.testSecurity.checkContent(data)
 
     if (!isDataValid.status || !isContentSecure.status) {
       const errorMessage = !isDataValid.status

@@ -1,3 +1,4 @@
+import { Wiki } from '@everipedia/iq-utils'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import createDOMPurify from 'dompurify'
@@ -49,18 +50,29 @@ export default class SecurityTestingService {
     return !styleTags.test(input) && !styleRegex.test(input)
   }
 
-  public async checkContent(input: string): Promise<TestResult> {
+  public async checkContent(input: string | Wiki): Promise<TestResult> {
     const secure = { status: true, message: 'Content secure' }
     if (this.serviceEnabled() === 'OFF') {
       return secure
     }
-    const purifiedSring = await this.sanitizeInput(input)
+    if (typeof input === 'object') {
+      const contents = Object.values(input)
 
-    if (!(await this.findJSNotPurified(purifiedSring))) {
-      return { status: false, message: 'Malicious Javascript detected' }
-    }
-    if (!(await this.findCSSNotPurified(purifiedSring))) {
-      return { status: false, message: 'Malicious CSS detected' }
+      for (let index = 0; index < contents.length; index += 1) {
+        const contentResult = await this.checkContent(contents[index])
+        if (!contentResult.status) {
+          return contentResult
+        }
+      }
+    } else {
+      const purifiedSring = await this.sanitizeInput(input)
+
+      if (!(await this.findJSNotPurified(purifiedSring))) {
+        return { status: false, message: 'Malicious Javascript detected' }
+      }
+      if (!(await this.findCSSNotPurified(purifiedSring))) {
+        return { status: false, message: 'Malicious CSS detected' }
+      }
     }
     return secure
   }
