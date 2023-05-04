@@ -51,29 +51,28 @@ export default class SecurityTestingService {
   }
 
   public async checkContent(input: string | Wiki): Promise<TestResult> {
-    const secure = { status: true, message: 'Content secure' }
     if (this.serviceEnabled() === 'OFF') {
-      return secure
+      return { status: true, message: 'Content secure' }
     }
     if (typeof input === 'object') {
       const contents = Object.values(input)
-
-      for (let index = 0; index < contents.length; index += 1) {
-        const contentResult = await this.checkContent(contents[index])
-        if (!contentResult.status) {
-          return contentResult
-        }
-      }
-    } else {
-      const purifiedSring = await this.sanitizeInput(input)
-
-      if (!(await this.findJSNotPurified(purifiedSring))) {
-        return { status: false, message: 'Malicious Javascript detected' }
-      }
-      if (!(await this.findCSSNotPurified(purifiedSring))) {
-        return { status: false, message: 'Malicious CSS detected' }
-      }
+      const results = await Promise.all(
+        contents.map(this.checkContent.bind(this)),
+      )
+      const failedResult = results.find((result) => !result.status)
+      return failedResult || { status: true, message: 'Content secure' }
     }
-    return secure
+
+    const purifiedString = await this.sanitizeInput(input)
+    const isJSMalicious = await this.findJSNotPurified(purifiedString)
+    const isCSSMalicious = await this.findCSSNotPurified(purifiedString)
+
+    if (isJSMalicious) {
+      return { status: false, message: 'Malicious Javascript detected' }
+    }
+    if (isCSSMalicious) {
+      return { status: false, message: 'Malicious CSS detected' }
+    }
+    return { status: true, message: 'Content secure' }
   }
 }
