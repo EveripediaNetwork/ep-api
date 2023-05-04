@@ -2,11 +2,11 @@
 import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, EntityTarget, Repository } from 'typeorm'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
-import { UsersByEditArgs, UsersByIdArgs } from './user.dto'
+import { GetProfileArgs, UsersByEditArgs, UsersByIdArgs } from './user.dto'
 import PaginationArgs from '../pagination.args'
 import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
@@ -137,18 +137,55 @@ class UserService {
     return newProfile
   }
 
-  async getUser(id: string): Promise<User | null> {
+  async getAllColumnNames(
+    entity: EntityTarget<any>,
+    fields: string[],
+    tableName: string,
+  ): Promise<string[]> {
+    const userTable = this.dataSource.getMetadata(entity)
+
+    if (!userTable || !userTable.columns.length) {
+      return []
+    }
+
+    const columnNames = userTable.columns.map((column) => column.propertyName)
+    const columns = columnNames.filter((e) => fields.includes(e))
+    const fieldsWithPrefix = columns.map((field) => `${tableName}.${field}`)
+    return !columns.includes('id')
+      ? [`${tableName}.id`, ...fieldsWithPrefix]
+      : fieldsWithPrefix
+  }
+
+  async getUser(id: string, fields: string[]): Promise<User | null> {
+    const fieldsWithPrefix = await this.getAllColumnNames(User, fields, 'user')
     return (await this.userRepository())
-      .createQueryBuilder()
+      .createQueryBuilder('user')
+      .select([...fieldsWithPrefix])
       .where('LOWER(id) = :id', { id: id.toLowerCase() })
       .getOne()
   }
 
-  async getUserProfile(id: string): Promise<UserProfile | null> {
-    return (await this.profileRepository())
-      .createQueryBuilder()
-      .where('LOWER(id) = :id', { id: id.toLowerCase() })
-      .getOne()
+  async getUserProfile(
+    fields: string[],
+    args: GetProfileArgs,
+    users = false,
+  ): Promise<UserProfile | UserProfile[] | null> {
+    const fieldsWithPrefix = await this.getAllColumnNames(
+      UserProfile,
+      fields,
+      'user_profile',
+    )
+    const profile = (await this.profileRepository())
+      .createQueryBuilder('user_profile')
+      .select([...fieldsWithPrefix])
+      .where('LOWER(id) = :id', { id: args.id?.toLowerCase() })
+
+    if (!args.id) {
+      profile.orWhere('LOWER(username) LIKE :username', {
+        username: `%${args.username?.toLowerCase()}%`,
+      })
+    }
+    return users ? profile.getMany() : profile.getOne()
   }
 
   async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {
