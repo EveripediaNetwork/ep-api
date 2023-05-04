@@ -6,6 +6,7 @@ import ActivityService from '../Activities/activity.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import PinResolver from './pin.resolver'
 import PinService from './pin.service'
+import SecurityTestingService from '../utils/securityTester'
 
 @Module({
   imports: [HttpModule],
@@ -14,6 +15,7 @@ import PinService from './pin.service'
     PinService,
     ActivityService,
     IPFSValidatorService,
+    SecurityTestingService,
     MetadataChangesService,
     WebhookHandler,
   ],

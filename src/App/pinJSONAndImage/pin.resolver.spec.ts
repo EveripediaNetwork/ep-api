@@ -11,10 +11,10 @@ import { HttpModule } from '@nestjs/axios'
 import PinService from './pin.service'
 import PinResolver from './pin.resolver'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
-// import PinJSONErrorWebhook from './webhookHandler/pinJSONErrorWebhook'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import ActivityService from '../Activities/activity.service'
+import SecurityTestingService from '../utils/securityTester'
 
 jest.mock('fs')
 
@@ -52,6 +52,7 @@ describe('PinResolver', () => {
           },
         },
         IPFSValidatorService,
+        SecurityTestingService,
         {
           provide: DataSource,
           useValue: {
