@@ -1,14 +1,14 @@
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql'
 
-const enumWare: FieldMiddleware = async (
+const dateMiddleware: FieldMiddleware = async (
   ctx: MiddlewareContext,
   next: NextFn,
 ) => {
   const value = await next()
-  if (value === '1') {
-    return 1
+  if (value === undefined) {
+    return null
   }
-  return 0
+  return new Date(value)
 }
 
-export default enumWare
+export default dateMiddleware

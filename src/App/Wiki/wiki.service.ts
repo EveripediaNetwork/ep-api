@@ -230,10 +230,10 @@ class WikiService {
     const res = await (
       await this.repository()
     ).query(
-      `SELECT "userId", u.*
-          FROM activity
-          LEFT JOIN "user_profile" u ON u."id" = "userId"
-          WHERE "wikiId" = $1 AND "type" = '0'`,
+      `SELECT "userId", u.* 
+        FROM activity
+        LEFT JOIN "user_profile" u ON u."id" = "userId"
+        WHERE "wikiId" = $1 AND "type" = '0'`,
       [id],
     )
     return { id: res[0]?.userId, profile: { ...res[0] } || null }
