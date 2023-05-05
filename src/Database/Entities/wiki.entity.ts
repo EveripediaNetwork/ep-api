@@ -98,7 +98,7 @@ class Wiki {
   user!: Relation<User>
 
   @Field(() => Author, { nullable: true })
-  author?: Author
+  author?: Relation<Author>
 
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
