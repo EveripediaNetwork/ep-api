@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import {
   Args,
   Context,
@@ -35,11 +36,13 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import WikiService from './wiki.service'
+import ActivityService from '../Activities/activity.service'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
+    private activityService: ActivityService,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
@@ -147,6 +150,7 @@ class WikiResolver {
   @ResolveField(() => Author)
   async author(@Parent() wiki: IWiki) {
     const { id } = wiki
+
     const cached: Author | undefined = await this.cacheManager.get(
       id as unknown as string,
     )
