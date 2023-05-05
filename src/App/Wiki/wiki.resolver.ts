@@ -1,7 +1,23 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
-import { UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+  Args,
+  Context,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
+import {
+  CACHE_MANAGER,
+  Inject,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { IWiki } from '../../Database/Entities/types/IWiki'
+import { Author } from '../../Database/Entities/types/IUser'
 import AuthGuard from '../utils/admin.guard'
 import { SlugResult } from '../utils/validSlug'
 import {
@@ -27,6 +43,7 @@ class WikiResolver {
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Query(() => Wiki, { nullable: true })
@@ -125,6 +142,21 @@ class WikiResolver {
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
     return wiki
+  }
+
+  @ResolveField(() => Author)
+  async author(@Parent() wiki: IWiki) {
+    const { id } = wiki
+    const cached: Author | undefined = await this.cacheManager.get(
+      id as unknown as string,
+    )
+
+    if (!cached) {
+      const a = await this.wikiService.resolveAuthor(id)
+      await this.cacheManager.set(id as unknown as string, a, { ttl: 180 })
+      return a
+    }
+    return cached
   }
 }
 
