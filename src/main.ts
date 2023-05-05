@@ -34,7 +34,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
-    tracesSampleRate: 0.3,
+    tracesSampleRate: 1,
     beforeSend: (e) => {
       if (e.exception?.values && e.exception.values[0].type === 'RangeError') {
         console.error(e)

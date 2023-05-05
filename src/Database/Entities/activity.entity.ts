@@ -21,6 +21,7 @@ import {
 import Wiki from './wiki.entity'
 import User from './user.entity'
 import Language from './language.entity'
+import enumWare from './middlewares/activityMiddleware'
 
 export enum Status {
   CREATED = 0,
@@ -61,7 +62,7 @@ class Activity {
   @Column('integer', { nullable: true })
   block!: number
 
-  @Field(() => Status)
+  @Field(() => Status, { middleware: [enumWare] })
   @Column('enum', { enum: Status })
   type!: Status
 
