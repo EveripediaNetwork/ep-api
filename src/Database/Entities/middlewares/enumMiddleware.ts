@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql'
 
 const enumMiddleWare: FieldMiddleware = async (
@@ -8,7 +9,9 @@ const enumMiddleWare: FieldMiddleware = async (
   if (value === '1') {
     return 1
   }
-  return 0
+  if (value === '0') {
+    return 0
+  }
 }
 
 export default enumMiddleWare
