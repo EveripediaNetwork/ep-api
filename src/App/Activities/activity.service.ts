@@ -120,12 +120,11 @@ class ActivityService {
     )
 
     const contentFields = contentSelectionObjects
-      .filter((c: any) => c.name !== 'author')
       .map((e: any) => {
         const nestedSelect = e.selections
           .map((n: string) => `'${n}', ${e.name}al->>'${n}'`)
           .join(', ')
-        return e.name === 'user'
+        return e.name === 'user' || e.name === 'author'
           ? `'${e.name}', jsonb_build_object('id', elem->'${e.name}'->>'id')`
           : `
                       '${e.name}', COALESCE((
@@ -174,6 +173,7 @@ class ActivityService {
       args.limit,
     )
     return (await this.repository()).query(query)
+
   }
 
   async getActivitiesById(id: string): Promise<Activity | null> {
