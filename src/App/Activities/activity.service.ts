@@ -119,21 +119,20 @@ class ActivityService {
       (e: string) => typeof e === 'object',
     )
 
-    const contentFields = contentSelectionObjects
-      .map((e: any) => {
-        const nestedSelect = e.selections
-          .map((n: string) => `'${n}', ${e.name}al->>'${n}'`)
-          .join(', ')
-        return e.name === 'user' || e.name === 'author'
-          ? `'${e.name}', jsonb_build_object('id', elem->'${e.name}'->>'id')`
-          : `
+    const contentFields = contentSelectionObjects.map((e: any) => {
+      const nestedSelect = e.selections
+        .map((n: string) => `'${n}', ${e.name}al->>'${n}'`)
+        .join(', ')
+      return e.name === 'user' || e.name === 'author'
+        ? `'${e.name}', jsonb_build_object('id', elem->'${e.name}'->>'id')`
+        : `
                       '${e.name}', COALESCE((
                       SELECT jsonb_agg(
                           jsonb_build_object(${nestedSelect})
                       )
                       FROM jsonb_array_elements(elem->'${e.name}') ${e.name}al
                       ), '[]'::jsonb)`
-      })
+    })
 
     const finalQuery = `
           SELECT
@@ -173,7 +172,6 @@ class ActivityService {
       args.limit,
     )
     return (await this.repository()).query(query)
-
   }
 
   async getActivitiesById(id: string): Promise<Activity | null> {

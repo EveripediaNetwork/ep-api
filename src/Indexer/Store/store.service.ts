@@ -34,7 +34,9 @@ class DBStoreService {
     const notificationRepository = this.dataSource.getRepository(Notification)
 
     let user = await userRepository.findOneBy({ id: wiki.user.id })
-    const author = await userRepository.findOneBy({ id: wiki.author.id as string })
+    const author = await userRepository.findOneBy({
+      id: wiki.author.id as string,
+    })
 
     if (!user) {
       user = userRepository.create({
