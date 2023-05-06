@@ -20,7 +20,7 @@ import UserProfile from './userProfile.entity'
 @ObjectType()
 @Entity()
 class User implements IUser {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @PrimaryColumn('varchar', {
     length: 255,
   })

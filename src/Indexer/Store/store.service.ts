@@ -34,6 +34,10 @@ class DBStoreService {
     const notificationRepository = this.dataSource.getRepository(Notification)
 
     let user = await userRepository.findOneBy({ id: wiki.user.id })
+    const author = await userRepository.findOneBy({
+      id: wiki.author.id as string,
+    })
+
     if (!user) {
       user = userRepository.create({
         id: wiki?.user.id,
@@ -96,6 +100,7 @@ class DBStoreService {
           language,
           user,
           tags,
+          author,
           created: existWiki?.created || new Date(Date.now()),
           updated: new Date(Date.now()),
           categories,
@@ -174,6 +179,7 @@ class DBStoreService {
       summary: wiki.summary,
       user,
       tags,
+      author: user,
       media: wiki.media || [],
       linkedWikis: wiki.linkedWikis,
       events: wiki.events,

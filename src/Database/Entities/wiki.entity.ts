@@ -23,7 +23,6 @@ import Language from './language.entity'
 import Metadata from './metadata.entity'
 import Media from './types/IMedia'
 import Image from './image.entity'
-import { Author } from './types/IUser'
 import LinkedWikis from './types/ILinkedWikis'
 import Events from './types/IEvents'
 
@@ -97,8 +96,9 @@ class Wiki {
   @ManyToOne('User', 'user', { lazy: true })
   user!: Relation<User>
 
-  @Field(() => Author, { nullable: true })
-  author?: Author
+  @Field(() => User, { nullable: true })
+  @ManyToOne('User', 'user', { lazy: true })
+  author?: Relation<User>
 
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
