@@ -10,7 +10,6 @@ import {
 import { ArgsById } from '../utils/queryHelpers'
 import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import SelectedFields from '../utils/getFields'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -32,11 +31,8 @@ class ActivityResolver {
   }
 
   @Query(() => [Activity])
-  async activitiesByUser(
-    @Args() args: ActivityArgsByUser,
-    @SelectedFields({ nested: true, path: 'content' }) fields: string[],
-  ) {
-    return this.activityService.getActivitiesByUser(args, fields)
+  async activitiesByUser(@Args() args: ActivityArgsByUser) {
+    return this.activityService.getActivitiesByUser(args)
   }
 
   @Query(() => Activity)

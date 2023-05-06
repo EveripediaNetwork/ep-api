@@ -1,3 +1,4 @@
+
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -19,11 +20,13 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import WikiService from './wiki.service'
+import ActivityService from '../Activities/activity.service'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
+    private activityService: ActivityService,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
