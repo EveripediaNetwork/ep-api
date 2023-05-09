@@ -57,12 +57,11 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const wiki: WikiType = JSON.parse(body)
-    const data = await this.metadataChanges.removeEditMetadata(wiki)
+    const wikiObject: WikiType = JSON.parse(body)
+    const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
-    const isDataValid = await this.validator.validate(data, true)
-
-    const isContentSecure = await this.testSecurity.checkContent(data)
+    const isDataValid = await this.validator.validate(wikiData, true)
+    const isContentSecure = await this.testSecurity.checkContent(wikiData)
 
     if (!isDataValid.status || !isContentSecure.status) {
       const errorMessage = !isDataValid.status
@@ -71,8 +70,10 @@ class PinService {
 
       this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
         title: errorMessage,
-        content: data,
+        description: isContentSecure?.match,
+        content: !isContentSecure.status ? isContentSecure.data : wikiData,
       } as unknown as WebhookPayload)
+
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -83,7 +84,7 @@ class PinService {
     }
 
     const activityResult = await this.activityService.countUserActivity(
-      data.user.id,
+      wikiData.user.id,
       72,
     )
 
@@ -96,13 +97,13 @@ class PinService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-
+    const c: WikiType = isContentSecure.data
     const payload = {
       pinataMetadata: {
-        name: data.content !== undefined ? data.title : 'image',
+        name: c.content !== undefined ? isContentSecure.data.title : 'image',
       },
       pinataContent: {
-        ...data,
+        ...isContentSecure.data,
       },
     }
     const pinToPinata = async (wikiContent: typeof payload) =>

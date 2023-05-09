@@ -144,12 +144,22 @@ export default class WebhookHandler {
       )
       const readText = await fss.readFile('./uploads/message.json')
 
+      let embedText = ''
+      if (payload?.description) {
+        const descriptionJSON = JSON.stringify(payload.description, null, 2)
+        embedText += '```json\n'
+        embedText += `${descriptionJSON}\n`
+        embedText += '```'
+        embedText += '\n\n'
+      }
+
       const jsonContent = JSON.stringify({
         username: 'EP Alarm',
         embeds: [
           {
             color: 0xcf2323,
-            title: `${payload?.title} on Wiki, ID: - ${payload?.content?.id}`,
+            title: `${payload?.title} on Wiki, ID: - ${payload?.content?.id}\n\n`,
+            description: embedText,
           },
         ],
         attachments: [
