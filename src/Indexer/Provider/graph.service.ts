@@ -40,7 +40,6 @@ class GraphProviderService {
     return (
       response.ipfshashs?.filter((hash: Hash) => hash.id.length === 46) || []
     )
-
   }
 }
 
