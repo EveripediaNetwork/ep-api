@@ -37,7 +37,7 @@ class GraphProviderService {
     } catch (err: any) {
       console.error('GRAPH ERROR', JSON.stringify(err, null, 2))
     }
-    if (response && response.ipfshashs) {
+    if (response?.ipfshashs) {
       return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
     }
     return []
