@@ -29,7 +29,7 @@ const query = gql`
 class GraphProviderService {
   constructor(private configService: ConfigService) {}
 
-  async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash]> {
+  async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash] | []> {
     const reqUrl = this.configService.get('graphUrl')
     let response
     try {
@@ -37,9 +37,10 @@ class GraphProviderService {
     } catch (err: any) {
       console.error('GRAPH ERROR', JSON.stringify(err, null, 2))
     }
-    return (
-      response.ipfshashs?.filter((hash: Hash) => hash.id.length === 46) || []
-    )
+    if (response && response.ipfshashs) {
+      return response.ipfshashs.filter((hash: Hash) => hash.id.length === 46)
+    }
+    return []
   }
 }
 
