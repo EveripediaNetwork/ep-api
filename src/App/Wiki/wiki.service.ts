@@ -138,7 +138,7 @@ class WikiService {
   }
 
   async getValidWikiSlug(args: ByIdArgs): Promise<Slug | Valid> {
-    const slug = await (
+    const slugs = await (
       await this.repository()
     ).query(
       `
@@ -149,7 +149,7 @@ class WikiService {
   `,
       [`^${args.id}(-[0-9]+)?$`, `${args.id}%`],
     )
-    return this.validSlug.validateSlug(slug[0]?.id)
+    return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
   async getWikisHidden(args: LangArgs): Promise<Wiki[] | []> {
