@@ -30,7 +30,6 @@ export const SlugResult = createUnionType({
   },
 })
 
-
 @Injectable()
 export class ValidSlug {
   async validateSlug(id?: string): Promise<Slug | Valid> {

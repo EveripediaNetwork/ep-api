@@ -47,7 +47,7 @@ describe('ValidSlug', () => {
 })
 
 describe('SlugResult', () => {
-  const mockedResolveType = jest.fn().mockImplementation(value => {
+  const mockedResolveType = jest.fn().mockImplementation((value) => {
     if (value.id) {
       return 'Slug'
     }
