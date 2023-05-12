@@ -9,7 +9,7 @@ describe('GraphProviderService', () => {
   const mockConfigService = {
     get: jest.fn().mockReturnValue('http://example.com/graphql'),
   }
-   const unixtime = 1620828486
+  const unixtime = 1620828486
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -43,11 +43,9 @@ describe('GraphProviderService', () => {
         contentId: 'content123',
       },
     ]
-  
+
     const result = await service.getIPFSHashesFromBlock(unixtime)
-    const isValidIds = result.every(
-      (val: Hash) => val.id.length === 46,
-    )
+    const isValidIds = result.every((val: Hash) => val.id.length === 46)
 
     expect(request).toHaveBeenCalledWith('http://example.com/graphql', query, {
       unixtime,
@@ -60,7 +58,7 @@ describe('GraphProviderService', () => {
     const emptyHashes: Hash[] = []
     ;(request as jest.Mock).mockResolvedValue(emptyHashes)
     const result = await service.getIPFSHashesFromBlock(unixtime)
-    
+
     expect(request).toHaveBeenCalledWith('http://example.com/graphql', query, {
       unixtime,
     })
