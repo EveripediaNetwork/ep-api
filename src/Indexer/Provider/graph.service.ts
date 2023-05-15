@@ -12,7 +12,7 @@ export type Hash = {
   contentId: string
 }
 
-const query = gql`
+export const query = gql`
   query ($unixtime: Int) {
     ipfshashs(where: { createdAt_gt: $unixtime }) {
       id
