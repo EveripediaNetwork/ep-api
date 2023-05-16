@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import createDOMPurify from 'dompurify'
 import { JSDOM } from 'jsdom'
-// import Wiki from '../../Database/Entities/wiki.entity'
 
 const { window } = new JSDOM('')
 const DOMPurify = createDOMPurify(window)
