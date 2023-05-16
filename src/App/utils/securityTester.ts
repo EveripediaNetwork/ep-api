@@ -39,30 +39,30 @@ export default class SecurityTestingService {
     return DOMPurify.sanitize(input, purifyConfig)
   }
 
-  private async sanitizeObject(
-    input: Record<string, any>,
-  ): Promise<Record<string, any>> {
-    const output: Record<string, any> = {}
-
-    for (const [key, value] of Object.entries(input)) {
-      if (value !== null && typeof value === 'object') {
-        if (Array.isArray(value)) {
-          output[key] = []
-          for (const elem of value) {
-            const sanitizedElem = await this.sanitizeObject(elem)
-            output[key].push(sanitizedElem)
-          }
-        } else {
-          output[key] = await this.sanitizeObject(value)
-        }
+  private async sanitizeObject(obj: any): Promise<any> {
+    const sanitizedObj: any = {}
+    for (const [key, value] of Object.entries(obj)) {
+      if (Array.isArray(value)) {
+        sanitizedObj[key] = await Promise.all(
+          value.map(async (item) => {
+            if (typeof item === 'string') {
+              return this.sanitizeString(item)
+            }
+            if (typeof item === 'object' && item !== null) {
+              return this.sanitizeObject(item)
+            }
+            return item
+          }),
+        )
+      } else if (typeof value === 'string') {
+        sanitizedObj[key] = await this.sanitizeString(value)
+      } else if (typeof value === 'object' && value !== null) {
+        sanitizedObj[key] = await this.sanitizeObject(value)
       } else {
-        output[key] =
-          typeof value === 'string'
-            ? DOMPurify.sanitize(value, purifyConfig)
-            : value
+        sanitizedObj[key] = value
       }
     }
-    return output
+    return sanitizedObj
   }
 
   private async RegexMatcher(patterns: RegExp[], input: any): Promise<Match[]> {
@@ -111,56 +111,71 @@ export default class SecurityTestingService {
     return this.RegexMatcher(patterns, input)
   }
 
-  public async checkContent(
-    input: string | Wiki,
-    location?: string,
+  private async checkContentRecursive(
+    input: any,
+    objectKey?: string,
   ): Promise<CheckContentResult> {
-    if (this.serviceEnabled() === 'OFF') {
-      return { status: true, message: 'Content secure', data: input }
+    if (typeof input === 'string') {
+      const sanitizedString = await this.sanitizeString(input)
+      const jsMatches = await this.findJSNotPurified(sanitizedString)
+      const cssMatches = await this.findCSSNotPurified(sanitizedString)
+
+      if (jsMatches.length !== 0) {
+        return {
+          status: false,
+          message: `Malicious JavaScript found in ${objectKey || 'input'}`,
+          match: jsMatches,
+          data: sanitizedString,
+        }
+      }
+
+      if (cssMatches.length !== 0) {
+        return {
+          status: false,
+          message: `Malicious CSS found in ${objectKey || 'input'}`,
+          match: cssMatches,
+          data: sanitizedString,
+        }
+      }
+
+      return {
+        status: true,
+        message: 'Content secure',
+        data: sanitizedString,
+      }
     }
 
-    const purifiedString =
-      typeof input === 'object'
-        ? await this.sanitizeObject(input)
-        : await this.sanitizeString(input)
-
-    if (typeof purifiedString === 'object') {
-      for (const [key, value] of Object.entries(input)) {
-        if (value !== null) {
-          const match = await this.checkContent(value, key)
-          if (match && !match.status) {
-            return {
-              ...match,
-              data: purifiedString,
-            }
+    if (typeof input === 'object' && input !== null) {
+      const sanitizedObject = await this.sanitizeObject(input)
+      for (const [key, value] of Object.entries(sanitizedObject)) {
+        const match = await this.checkContentRecursive(value, key)
+        if (match && !match.status) {
+          return {
+            ...match,
+            data: sanitizedObject,
           }
         }
       }
-    }
-
-    const isJSMalicious = await this.findJSNotPurified(purifiedString)
-    const isCSSMalicious = await this.findCSSNotPurified(purifiedString)
-
-    if (isJSMalicious.length !== 0) {
       return {
-        status: false,
-        message: `Malicious JavaScript found in ${location}`,
-        match: isJSMalicious,
-        data: purifiedString as Wiki,
-      }
-    }
-    if (isCSSMalicious.length !== 0) {
-      return {
-        status: false,
-        message: `Malicious CSS found in ${location}`,
-        match: isCSSMalicious,
-        data: purifiedString,
+        status: true,
+        message: 'Content secure',
+        data: sanitizedObject,
       }
     }
     return {
       status: true,
       message: 'Content secure',
-      data: purifiedString as Wiki,
+      data: input,
     }
+  }
+
+  public async checkContent(
+    input: string | Partial<Wiki>,
+  ): Promise<CheckContentResult> {
+    if (this.serviceEnabled() === 'OFF') {
+      return { status: true, message: 'Content secure', data: input }
+    }
+
+    return this.checkContentRecursive(input)
   }
 }
