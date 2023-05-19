@@ -188,6 +188,27 @@ class WikiService {
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
+
+    const promotedWiki =
+      args.level > 0
+        ? await (
+            await this.repository()
+          ).findOneBy({
+            promoted: args.level,
+          })
+        : null
+
+    if (promotedWiki) {
+      await (
+        await this.repository()
+      )
+        .createQueryBuilder()
+        .update(Wiki)
+        .set({ promoted: 0 })
+        .where('id = :id', { id: promotedWiki.id })
+        .execute()
+    }
+
     await (
       await this.repository()
     )

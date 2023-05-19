@@ -88,7 +88,7 @@ class DBStoreService {
     const existSub = await iqSubscriptionRepository.findOneBy({
       auxiliaryId: wiki.id,
     })
-
+    const newDate = new Date(Date.now())
     const incomingActivity = {
       wikiId: wiki.id,
       user,
@@ -104,8 +104,8 @@ class DBStoreService {
           user,
           tags,
           author,
-          created: existWiki?.created || new Date(Date.now()),
-          updated: new Date(Date.now()),
+          created: existWiki?.created || newDate,
+          updated: newDate,
           categories,
           images: wiki.images,
           media: wiki.media || [],
@@ -115,11 +115,11 @@ class DBStoreService {
         },
       ],
       userAddress: user.id,
-      created_timestamp: existWiki?.created,
-      updated_timestamp: existWiki?.updated,
+      created_timestamp: existWiki?.created || newDate,
+      updated_timestamp: existWiki?.updated || newDate,
       block: hash.block,
       language,
-      datetime: new Date(Date.now()),
+      datetime: newDate,
       ipfs: hash.id,
     }
 
