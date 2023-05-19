@@ -189,16 +189,16 @@ class WikiService {
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
 
-    const promotedWiki =
+    const promotedWikis =
       args.level > 0
         ? await (
             await this.repository()
-          ).findOneBy({
-            promoted: args.level,
+          ).find({
+            where: { promoted: args.level },
           })
-        : null
+        : []
 
-    if (promotedWiki) {
+    for (const promotedWiki of promotedWikis) {
       await (
         await this.repository()
       )
