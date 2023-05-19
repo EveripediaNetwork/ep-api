@@ -188,36 +188,38 @@ class WikiService {
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
+    if (args.level <= 10) {
+      const promotedWikis =
+        args.level > 0
+          ? await (
+              await this.repository()
+            ).find({
+              where: { promoted: args.level },
+            })
+          : []
 
-    const promotedWikis =
-      args.level > 0
-        ? await (
-            await this.repository()
-          ).find({
-            where: { promoted: args.level },
-          })
-        : []
+      for (const promotedWiki of promotedWikis) {
+        await (
+          await this.repository()
+        )
+          .createQueryBuilder()
+          .update(Wiki)
+          .set({ promoted: 0 })
+          .where('id = :id', { id: promotedWiki.id })
+          .execute()
+      }
 
-    for (const promotedWiki of promotedWikis) {
       await (
         await this.repository()
       )
         .createQueryBuilder()
         .update(Wiki)
-        .set({ promoted: 0 })
-        .where('id = :id', { id: promotedWiki.id })
+        .set({ promoted: args.level })
+        .where('id = :id', { id: args.id })
         .execute()
+      return wiki
     }
-
-    await (
-      await this.repository()
-    )
-      .createQueryBuilder()
-      .update(Wiki)
-      .set({ promoted: args.level })
-      .where('id = :id', { id: args.id })
-      .execute()
-    return wiki
+    return null
   }
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
