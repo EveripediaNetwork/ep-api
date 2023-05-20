@@ -13,7 +13,8 @@ describe('ValidStringParams', () => {
   it('should fail validation for invalid string parameters', async () => {
     const validator = new ValidStringParams()
     const isValid = await validator.validate(
-      'Invalid String $pecial[] {Characters', null as any
+      'Invalid String $pecial[] {Characters',
+      null as any,
     )
     expect(isValid).toBe(false)
   })
