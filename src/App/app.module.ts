@@ -57,6 +57,7 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
 import SentryMod from '../sentry/sentry.module'
 import WikiStatService from './WikiStats/wikiStats.service'
 import SecurityTestingService from './utils/securityTester'
+import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import SecurityTestingService from './utils/securityTester'
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    IndexerWebhookModule,
   ],
   controllers: [],
   providers: [
