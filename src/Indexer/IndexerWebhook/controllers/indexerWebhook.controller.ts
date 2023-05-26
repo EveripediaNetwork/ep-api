@@ -48,7 +48,7 @@ class IndexerWebhookController {
       signature,
       key,
     )
-    
+
     if (validateRequest) {
       const { logs } = value.event.data.block
       await this.decodeLogs(logs)
@@ -76,8 +76,10 @@ class IndexerWebhookController {
       return false
     }
 
-    logs.forEach(log => {
-      log.logs.forEach((e: { topics: string[]; data: string }) => iface.parseLog(e))
+    logs.forEach((log) => {
+      log.logs.forEach((e: { topics: string[]; data: string }) =>
+        iface.parseLog(e),
+      )
     })
     return true
   }
