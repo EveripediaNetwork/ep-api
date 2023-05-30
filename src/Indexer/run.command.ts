@@ -53,7 +53,7 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
@@ -66,34 +66,7 @@ class RunCommand implements CommandRunner {
     }
 
     for (const hash of hashes) {
-      try {
-        const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
-        const computedMetadata = await this.metaChanges.appendMetadata(content)
-        const addedSummary = await getWikiSummary(computedMetadata)
-
-        const completeWiki = {
-          ...computedMetadata,
-          summary: addedSummary,
-        }
-
-        const stat = await this.validator.validate(
-          completeWiki,
-          false,
-          hash.userId,
-        )
-        if (stat.status) {
-          console.log('✅ Validated Wiki content! IPFS going through...')
-          await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
-          console.log(`🚀 Storing IPFS: ${hash.id}`)
-        } else {
-          console.log(stat)
-          console.error(`🔥 Invalid IPFS: ${hash.id}`)
-        }
-        await new Promise((r) => setTimeout(r, SLEEP_TIME))
-      } catch (ex) {
-        console.error(`🛑 Invalid IPFS: ${hash.id}`)
-        console.error(ex)
-      }
+      await this.indexHash(hash, false)
     }
 
     if (loop) {
@@ -122,6 +95,39 @@ class RunCommand implements CommandRunner {
     await this.initiateIndexer(hashes, unixtime)
 
     process.exit()
+  }
+
+  async indexHash(hash: Hash, webhook: boolean): Promise<void> {
+    try {
+      const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
+      const computedMetadata = await this.metaChanges.appendMetadata(content)
+      const addedSummary = await getWikiSummary(computedMetadata)
+
+      const completeWiki = {
+        ...computedMetadata,
+        summary: addedSummary,
+      }
+
+      const stat = await this.validator.validate(
+        completeWiki,
+        false,
+        hash.userId,
+      )
+      if (stat.status) {
+        console.log('✅ Validated Wiki content! IPFS going through...')
+        await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
+        console.log(`🚀 Storing IPFS: ${hash.id}`)
+      } else {
+        console.log(stat)
+        console.error(`🔥 Invalid IPFS: ${hash.id}`)
+      }
+      if (!webhook) {
+        await new Promise(r => setTimeout(r, SLEEP_TIME))
+      }
+    } catch (ex) {
+      console.error(`🛑 Invalid IPFS: ${hash.id}`)
+      console.error(ex)
+    }
   }
 
   @Option({
