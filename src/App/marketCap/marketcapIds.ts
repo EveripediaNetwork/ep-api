@@ -170,7 +170,6 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'theta-token', wikiId: 'theta-network' },
   { coingeckoId: 'blockstack', wikiId: 'stx-token' },
   { coingeckoId: 'tezos', wikiId: 'tezos-xtz' },
-  { coingeckoId: 'polkadot', wikiId: 'polkadot-new' },
   { coingeckoId: 'flow', wikiId: 'flow-token' },
   { coingeckoId: 'havven', wikiId: 'synthetix' },
   { coingeckoId: 'rocket-pool-eth', wikiId: 'reth' },
