@@ -177,5 +177,4 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'whitebit', wikiId: 'whitebit-1' },
   { coingeckoId: 'pepe', wikiId: 'pepe-cryptocurrency' },
   { coingeckoId: 'huobi-token', wikiId: 'huobi' },
-  
 ]
