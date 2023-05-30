@@ -34,11 +34,13 @@ class MarketCapService {
   ) {
     const repository = this.dataSource.getRepository(Wiki)
     const mapId = exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId
+
+    const noCategoryId = mapId || id
     const wiki =
       (await repository
         .createQueryBuilder('wiki')
         .where('wiki.id = :id AND wiki.hidden = false', {
-          id: mapId,
+          id: noCategoryId,
         })
         .getOne()) ||
       (await repository
