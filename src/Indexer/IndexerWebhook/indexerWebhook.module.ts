@@ -7,17 +7,21 @@ import GraphProviderService from '../Provider/graph.service'
 import MetadataChangesService from '../Store/metadataChanges.service'
 import DBStoreService from '../Store/store.service'
 import IPFSValidatorService from '../Validator/validator.service'
+import RunCommand from '../run.command'
+import IndexerWebhookService from './services/indexerWebhook.service'
 
 @Module({
   imports: [httpModule(10000), CacheModule.register({ ttl: 3600 })],
   controllers: [IndexerWebhookController],
   providers: [
+    IndexerWebhookService,
     GraphProviderService,
     DBStoreService,
     IPFSValidatorService,
     MetadataChangesService,
     IPFSGetterService,
     RevalidatePageService,
+    RunCommand,
   ],
 })
 class IndexerWebhookModule {}
