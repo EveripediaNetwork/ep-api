@@ -17,7 +17,7 @@ class IndexerWebhookService {
   ) {}
 
   private signingKey() {
-    return this.configService.get<string>('WEBHOOK_SIGNING_KEY')
+    return this.configService.get<string>('ALCHEMY_WEBHOOK_SIGNING_KEY')
   }
 
   async indexWebhook(eventData: BlockData): Promise<boolean> {
