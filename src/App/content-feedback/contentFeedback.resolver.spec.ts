@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import ContentFeedbackService from './contentFeedback.service'
 import ContentFeedbackResolver from './contentFeedback.resolver'
-import { getProviders, ProviderEnum } from '../utils/testHelpers'
+import { getProviders, ProviderEnum } from '../utils/test-helpers/testHelpers'
 import { ContentFeedbackArgs } from './contentFeedback.dto'
 import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
 

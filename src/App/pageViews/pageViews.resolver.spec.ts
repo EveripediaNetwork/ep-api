@@ -6,7 +6,7 @@ import { HttpModule } from '@nestjs/axios'
 import PageViewsService from './pageViews.service'
 import PageViewsResolver from './pageViews.resolver'
 import { ArgsById } from '../utils/queryHelpers'
-import { ProviderEnum, getProviders } from '../utils/testHelpers'
+import { ProviderEnum, getProviders } from '../utils/test-helpers/testHelpers'
 
 jest.mock('fs')
 
