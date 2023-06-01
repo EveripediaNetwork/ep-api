@@ -10,7 +10,10 @@ import {
   dummyWiki as result,
   mockCacheStore,
 } from '../../../App/utils/test-helpers/reuseableTestObjects'
-import { getProviders, ProviderEnum } from '../../../App/utils/test-helpers/testHelpers'
+import {
+  getProviders,
+  ProviderEnum,
+} from '../../../App/utils/test-helpers/testHelpers'
 
 describe('IndexerWebhookController', () => {
   let controller: IndexerWebhookController
