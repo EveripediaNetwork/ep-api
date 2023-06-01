@@ -12,7 +12,7 @@ import {
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
-import { getProviders, ProviderEnum } from '../utils/testHelpers'
+import { getProviders, ProviderEnum } from '../utils/test-helpers/testHelpers'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
