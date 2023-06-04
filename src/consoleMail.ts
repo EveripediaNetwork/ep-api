@@ -1,7 +1,7 @@
 import { CommandFactory } from 'nest-commander'
 import NotificationsModule from './App/notifications/notifications.module'
 
-async function bootstrap() {
+async function bootstrapConsoleMail() {
   try {
     await CommandFactory.run(NotificationsModule)
   } catch (err) {
@@ -9,4 +9,8 @@ async function bootstrap() {
   }
 }
 
-bootstrap()
+if (require.main === module) {
+  bootstrapConsoleMail()
+}
+
+export default bootstrapConsoleMail
