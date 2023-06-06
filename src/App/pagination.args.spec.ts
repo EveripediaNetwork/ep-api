@@ -16,13 +16,13 @@ describe('PaginationArgs', () => {
     const errors = validateSync(args)
     expect(errors.length).toBeGreaterThan(0)
 
-    args.limit = 100 
+    args.limit = 100
     const errors2 = validateSync(args)
     expect(errors2.length).toBeGreaterThan(0)
 
-    args.limit = 25 
+    args.limit = 25
     const errors3 = validateSync(args)
-    expect(errors3.length).toBe(0) 
+    expect(errors3.length).toBe(0)
   })
 })
 
