@@ -15,32 +15,32 @@ import {
 } from './marketcap.dto'
 
 const noContentWiki = {
-    id: 'no-content',
-    title: 'No content',
-    ipfs: 'QmQoTh6ahpNe4jUqrfBKMRLuku7tUA3HaEFvrxtmJXEj3T',
-    created: '2022-09-21T02:34:32.748Z',
-    media: [
-        {
-            thumbnail: null,
-        },
-    ],
-    images: [
-        {
-            id: 'QmXgCqnmuco38Vuyauh1m4nnJ3L7XYEaekG6yN6A2LccKa',
-        },
-    ],
-
-    linkedWikis: {
-        founders: ['no-content'],
-        blockchains: ['no-content'],
+  id: 'no-content',
+  title: 'No content',
+  ipfs: 'QmQoTh6ahpNe4jUqrfBKMRLuku7tUA3HaEFvrxtmJXEj3T',
+  created: '2022-09-21T02:34:32.748Z',
+  media: [
+    {
+      thumbnail: null,
     },
+  ],
+  images: [
+    {
+      id: 'QmXgCqnmuco38Vuyauh1m4nnJ3L7XYEaekG6yN6A2LccKa',
+    },
+  ],
 
-    events: [
-        {
-            date: '1900-01',
-            type: 'CREATED',
-        },
-    ],
+  linkedWikis: {
+    founders: ['no-content'],
+    blockchains: ['no-content'],
+  },
+
+  events: [
+    {
+      date: '1900-01',
+      type: 'CREATED',
+    },
+  ],
 } as unknown as Partial<Wiki>
 
 @Injectable()
@@ -115,14 +115,14 @@ class MarketCapService {
       )
 
       const tokenData = {
-        image: element.image,
-        name: element.name,
-        alias: element.symbol,
-        current_price: element.current_price,
-        market_cap: element.market_cap,
-        market_cap_rank: element.market_cap_rank,
-        price_change_24h: element.price_change_percentage_24h,
-        market_cap_change_24h: element.market_cap_change_24h,
+        image: element.image || '',
+        name: element.name || '',
+        alias: element.symbol || '',
+        current_price: element.current_price || 0,
+        market_cap: element.market_cap || 0,
+        market_cap_rank: element.market_cap_rank || 0,
+        price_change_24h: element.price_change_percentage_24h || 0,
+        market_cap_change_24h: element.market_cap_change_24h || 0,
       }
 
       if (!wiki) {
@@ -136,7 +136,7 @@ class MarketCapService {
       const wikiAndCryptoMarketData = {
         ...wiki,
         tokenMarketData: {
-          ...tokenData
+          ...tokenData,
         },
       }
       return wikiAndCryptoMarketData
@@ -168,13 +168,13 @@ class MarketCapService {
       const wiki = await this.findWiki(element.id, nftIds, 'nfts')
       const nftData = {
         alias: null,
-        name: element.name,
-        image: element.image.small,
-        floor_price_eth: element.floor_price.native_currency,
-        floor_price_usd: element.floor_price.usd,
-        market_cap_usd: element.market_cap.usd,
+        name: element.name || '',
+        image: element.image.small || '',
+        floor_price_eth: element.floor_price.native_currency || 0,
+        floor_price_usd: element.floor_price.usd || 0,
+        market_cap_usd: element.market_cap.usd || 0,
         floor_price_in_usd_24h_percentage_change:
-          element.floor_price_in_usd_24h_percentage_change,
+          element.floor_price_in_usd_24h_percentage_change || 0,
       }
       if (!wiki) {
         return {
@@ -187,7 +187,7 @@ class MarketCapService {
       const wikiAndNftMarketData = {
         ...wiki,
         nftMarketData: {
-          ...nftData
+          ...nftData,
         },
       }
       return wikiAndNftMarketData
