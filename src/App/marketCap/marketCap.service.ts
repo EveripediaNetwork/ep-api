@@ -129,6 +129,7 @@ class MarketCapService {
         return {
           ...noContentWiki,
           id: tokenData.name,
+          title: tokenData.name,
           tokenMarketData: {
             ...tokenData,
           },
@@ -181,6 +182,7 @@ class MarketCapService {
         return {
           ...noContentWiki,
           id: nftData.name,
+          title: nftData.name,
           nftMarketData: {
             ...nftData,
           },
