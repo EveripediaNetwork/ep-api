@@ -128,6 +128,7 @@ class MarketCapService {
       if (!wiki) {
         return {
           ...noContentWiki,
+          id: tokenData.name,
           tokenMarketData: {
             ...tokenData,
           },
@@ -179,6 +180,7 @@ class MarketCapService {
       if (!wiki) {
         return {
           ...noContentWiki,
+          id: nftData.name,
           nftMarketData: {
             ...nftData,
           },
