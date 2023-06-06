@@ -18,7 +18,7 @@ const noContentWiki = {
   id: 'no-content',
   title: 'No content',
   ipfs: 'QmQoTh6ahpNe4jUqrfBKMRLuku7tUA3HaEFvrxtmJXEj3T',
-  created: '2022-09-21T02:34:32.748Z',
+  created: new Date(),
   media: [
     {
       thumbnail: null,
