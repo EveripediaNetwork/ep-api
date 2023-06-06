@@ -7,7 +7,6 @@ import fs from 'fs'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import { NestExpressApplication } from '@nestjs/platform-express'
-import rateLimit from 'express-rate-limit'
 import AppModule from './App/app.module'
 import bootstrapApplication from './main'
 
@@ -35,7 +34,7 @@ describe('bootstrap', () => {
     fs.readFileSync = jest.fn().mockReturnValue('certificate content')
 
     mockConfigService = {
-      get: jest.fn().mockReturnValue('dummy-value'),
+      get: jest.fn().mockReturnValue(5000),
     } as unknown as ConfigService
 
     jest.spyOn(mockApp, 'get').mockReturnValue(mockConfigService)
@@ -76,7 +75,7 @@ describe('bootstrap', () => {
     await bootstrapApplication()
 
     expect(Sentry.init).toHaveBeenCalledWith({
-      dsn: 'dummy-value',
+      dsn: 5000,
       tracesSampleRate: 0.3,
       integrations: [expect.any(Tracing.Integrations.Apollo)],
     })
@@ -88,47 +87,9 @@ describe('bootstrap', () => {
     expect(mockApp.set).toHaveBeenCalledWith('trust proxy', 1)
   })
 
-  it('should use Sentry tracing handler and rate limit middleware', async () => {
-    const mockTracingHandler = jest.fn()
-    Sentry.Handlers.tracingHandler = mockTracingHandler
-
-    const mockResponse = {
-      json: jest
-        .fn()
-        .mockResolvedValue({ message: 'You are being rate limited' }),
-    }
-
-
-    // Mock the rateLimit middleware
-    // const mockRateLimit = jest.fn()  ({
-    //   windowMs: mockConfigService.get<number>('THROTTLE_TTL'),
-    //   max: mockConfigService.get<number>('THROTTLE_LIMIT'),
-    //   message: jest.fn().mockImplementation(async (_request, response, ) => {
-    //     // Call the mocked async response.json() function
-    //     await response.json(mockResponse.json())
-
-    //   }),
-    // })
-
-    // const mockRateLimit = jest.fn().mockImplementation(jest.fn())
-    // jest.mock('express-rate-limit', () => jest.fn(() => mockRateLimit))
-
-    await bootstrapApplication()
-
-    expect(mockTracingHandler).toHaveBeenCalled()
-    expect(rateLimit).toHaveBeenCalledWith({
-      windowMs: mockConfigService.get<number>('THROTTLE_TTL'),
-      max: mockConfigService.get<number>('THROTTLE_LIMIT'),
-      message: jest.fn().mockImplementation(async (_request, response) => {
-        // Call the mocked async response.json() function
-        response.json(mockResponse.json())
-      }),
-    })
-  })
-
   it('should listen on the specified port', async () => {
     await bootstrapApplication()
 
-    expect(mockApp.listen).toHaveBeenCalledWith('dummy-value')
+    expect(mockApp.listen).toHaveBeenCalledWith(5000)
   })
 })

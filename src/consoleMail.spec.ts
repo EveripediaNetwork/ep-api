@@ -3,7 +3,10 @@ import NotificationsModule from './App/notifications/notifications.module'
 import bootstrapConsoleMail from './consoleMail'
 
 describe('bootstrapConsoleMail', () => {
-  let consoleErrorSpy: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>
+  let consoleErrorSpy: jest.SpyInstance<
+    void,
+    [message?: any, ...optionalParams: any[]]
+  >
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})

@@ -3,7 +3,10 @@ import IndexerModule from './Indexer/indexer.module'
 import bootstrapConsole from './console'
 
 describe('bootstrapConsole', () => {
-  let consoleErrorSpy: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]]>
+  let consoleErrorSpy: jest.SpyInstance<
+    void,
+    [message?: any, ...optionalParams: any[]]
+  >
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})

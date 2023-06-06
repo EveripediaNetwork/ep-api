@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
-import IqSubscription from '../Database/Entities/IqSubscription'
-import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
-import TokenValidator from './utils/validateToken'
+import IqSubscription from '../../Database/Entities/IqSubscription'
+import { WikiSubscriptionArgs } from '../../Database/Entities/types/IWiki'
+import TokenValidator from '../utils/validateToken'
 
 @Injectable()
 class WikiSubscriptionService {

@@ -30,7 +30,7 @@ class WikiService {
     return this.dataSource.getRepository(Wiki)
   }
 
-  async wikisIds() {
+  async getWikiIds() {
     return (await this.repository()).find({
       select: ['id', 'updated'],
       where: {

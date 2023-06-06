@@ -9,12 +9,12 @@ import {
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
 import { Validate } from 'class-validator'
-import Tag from '../Database/Entities/tag.entity'
-import PaginationArgs from './pagination.args'
-import Wiki from '../Database/Entities/wiki.entity'
-import { ITag } from '../Database/Entities/types/ITag'
-import ValidStringParams from './utils/customValidator'
-import { ArgsById } from './utils/queryHelpers'
+import Tag from '../../Database/Entities/tag.entity'
+import PaginationArgs from '../pagination.args'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { ITag } from '../../Database/Entities/types/ITag'
+import ValidStringParams from '../utils/customValidator'
+import { ArgsById } from '../utils/queryHelpers'
 
 @ArgsType()
 class TagIDArgs extends PaginationArgs {
