@@ -3,15 +3,15 @@ import PaginationArgs, { OrderArgs } from './pagination.args'
 import { Direction, OrderBy } from './utils/queryHelpers'
 
 describe('PaginationArgs', () => {
-  it('should have default values for offset and limit', () => {
     const args = new PaginationArgs()
+  it('should have default values for offset and limit', () => {
 
+    expect(args).toBeTruthy()
     expect(args.offset).toBe(0)
-    expect(args.limit).toBe(30)
+    expect(args.limit).toEqual(30)
   })
 
   it('should validate the limit to be within the range of 1 to 50', () => {
-    const args = new PaginationArgs()
     args.limit = 0
     const errors = validateSync(args)
     expect(errors.length).toBeGreaterThan(0)

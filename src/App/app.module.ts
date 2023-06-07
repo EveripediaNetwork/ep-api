@@ -58,7 +58,9 @@ import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
 import CategoryService from './Category/category.service'
 import WikiSubscriptionService from './Subscriptions/subscriptions.service'
+import TagService from './Tag/tag.service'
 
+// instannul ignore next
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -105,6 +107,7 @@ import WikiSubscriptionService from './Subscriptions/subscriptions.service'
     CategoryResolver,
     CategoryService,
     TagResolver,
+    TagService,
     UserResolver,
     UserService,
     ActivityResolver,

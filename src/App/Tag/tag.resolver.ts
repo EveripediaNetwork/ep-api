@@ -1,60 +1,36 @@
 import {
   Args,
-  ArgsType,
-  Field,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
-import { Validate } from 'class-validator'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { ITag } from '../../Database/Entities/types/ITag'
-import ValidStringParams from '../utils/customValidator'
 import { ArgsById } from '../utils/queryHelpers'
-
-@ArgsType()
-class TagIDArgs extends PaginationArgs {
-  @Field(() => String)
-  @Validate(ValidStringParams)
-  id!: string
-}
+import TagService from './tag.service'
+import TagIDArgs from './tag.dto'
 
 @Resolver(() => Tag)
 class TagResolver {
-  constructor(private dataSource: DataSource) {}
+  constructor(private dataSource: DataSource, private service: TagService) {}
 
   @Query(() => [Tag])
   async tags(@Args() args: PaginationArgs) {
-    const repository = this.dataSource.getRepository(Tag)
-    return repository.find({
-      take: args.limit,
-      skip: args.offset,
-    })
+    return this.service.getTags(args)
   }
 
   @Query(() => Tag, { nullable: true })
   async tagById(@Args() args: ArgsById) {
-    const repository = this.dataSource.getRepository(Tag)
-    const tagId = await repository.findOneBy({ id: args.id })
-    return tagId
+    return this.service.getTagById(args)
   }
 
   @Query(() => [Tag])
   async tagsById(@Args() args: TagIDArgs) {
-    const repository = this.dataSource.getRepository(Tag)
-    return repository
-      .createQueryBuilder('tag')
-      .where('LOWER(tag.id) LIKE :id', {
-        id: `%${args.id.toLowerCase()}%`,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('tag.id', 'DESC')
-      .getMany()
+    return this.service.getTagsById(args)
   }
 
   @ResolveField()

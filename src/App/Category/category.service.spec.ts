@@ -1,4 +1,4 @@
-import { DataSource, EntityManager } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 import { dummyWiki } from '../utils/test-helpers/reuseableTestObjects'
 
@@ -9,7 +9,6 @@ import { TitleArgs } from '../Wiki/wiki.dto'
 describe('CategoryService', () => {
   let service: CategoryService
   let moduleRef: TestingModule
-  let mockEntityManager: EntityManager
 
   let dataSource: {
     createEntityManager: jest.Mock
@@ -29,18 +28,6 @@ describe('CategoryService', () => {
     }).compile()
 
     service = moduleRef.get<CategoryService>(CategoryService)
-
-    mockEntityManager = {
-      createQueryBuilder: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: jest.fn(),
-    } as Partial<EntityManager> as EntityManager
-
-    dataSource = {
-      createEntityManager: jest.fn().mockReturnValue(mockEntityManager),
-    }
   })
 
   describe('getCategoryIds', () => {
@@ -88,25 +75,7 @@ describe('CategoryService', () => {
 
   describe('getCategories', () => {
     it('should return an array of Category objects', async () => {
-      const mockResult: Category[] = [
-        {
-          id: 'organizations',
-          title: 'Organizations',
-          description:
-            'The Organizatons category covers companies and other organizations that develop, implement, or utilize blockchain technology.',
-          cardImage: 'https://iq.wiki/images/categories/organizations-card.png',
-          heroImage:
-            'https://lh3.googleusercontent.com/53VvMqm3sJn1rFjmo3irSeahA9mGuuwkHwWJhtE9f5xX3RvTC6bpIhxOkamv8SDZH96t9UqjeYbheqcQ3jkAGydPlzbwSTNonojCGg=h600',
-          icon: 'BsFillPeopleFill',
-          weight: 8,
-          wikis: [
-            {
-              id: dummyWiki.id,
-              title: dummyWiki.title,
-            },
-          ],
-        },
-      ]
+      const mockResult = [new Category()]
 
       jest.spyOn(service, 'find').mockResolvedValue(mockResult)
 
@@ -121,25 +90,7 @@ describe('CategoryService', () => {
 
   describe('getCategoryByTitle', () => {
     it('should return an array of partial category objects with only "id" field', async () => {
-      const mockResult = [
-        {
-          id: 'organizations',
-          title: 'Organizations',
-          description:
-            'The Organizatons category covers companies and other organizations that develop, implement, or utilize blockchain technology.',
-          cardImage: 'https://iq.wiki/images/categories/organizations-card.png',
-          heroImage:
-            'https://lh3.googleusercontent.com/53VvMqm3sJn1rFjmo3irSeahA9mGuuwkHwWJhtE9f5xX3RvTC6bpIhxOkamv8SDZH96t9UqjeYbheqcQ3jkAGydPlzbwSTNonojCGg=h600',
-          icon: 'BsFillPeopleFill',
-          weight: 8,
-          wikis: [
-            {
-              id: dummyWiki.id,
-              title: dummyWiki.title,
-            },
-          ],
-        },
-      ]
+      const mockResult = new Category()
 
       const createQueryBuilder: any = {
         where: () => createQueryBuilder,
