@@ -20,6 +20,9 @@ class MarketDataGenerals {
   alias?: string
 
   @Field()
+  hasWiki!: boolean
+
+  @Field()
   image!: string
 }
 
