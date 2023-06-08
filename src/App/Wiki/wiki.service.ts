@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
+import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
@@ -13,6 +14,7 @@ import {
   TitleArgs,
   WikiUrl,
 } from './wiki.dto'
+import { DateArgs, Count } from './wikiStats.dto'
 
 @Injectable()
 class WikiService {
@@ -20,6 +22,7 @@ class WikiService {
     private configService: ConfigService,
     private validSlug: ValidSlug,
     private dataSource: DataSource,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private getWebpageUrl() {
@@ -199,9 +202,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -209,9 +210,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -224,9 +223,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -237,15 +234,46 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
       .where('id = :id', { id: args.id })
       .execute()
     return wiki
+  }
+
+  async getPageViewsCount(args: DateArgs): Promise<Count | undefined> {
+    return (await this.repository())
+      .createQueryBuilder('wiki')
+      .select(`Sum("views")`, 'amount')
+      .where(
+        'wiki.updated >= to_timestamp(start) AND wiki.updated <= to_timestamp(end)',
+      )
+      .setParameters({
+        start: args.startDate,
+        end: args.endDate,
+      })
+      .getRawOne()
+  }
+
+  async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
+    const count: any | undefined = await this.cacheManager.get(args.category)
+    if (count) return count
+    const response = await (await this.repository())
+      .createQueryBuilder('wiki')
+      .select('Count(wiki.id)', 'amount')
+      .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
+      .innerJoin(
+        'category',
+        'c',
+        'c.id = wc."categoryId" AND c.id = :category ',
+        { category: args.category },
+      )
+      .where('wiki.hidden = false')
+      .getRawOne()
+    await this.cacheManager.set(args.category, response, { ttl: 3600 })
+    return response
   }
 }
 

@@ -28,7 +28,6 @@ import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './User/userProfile.resolver'
 import UserService from './User/user.service'
-import StatsResolver from './WikiStats/wikiStats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews/pageViews.resolver'
@@ -48,17 +47,15 @@ import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './Wiki/wiki.service'
 import logger from './utils/logger'
-import ActivityResolver from './Activities/activity.resolver'
-import ActivityService from './Activities/activity.service'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
 import SentryMod from '../sentry/sentry.module'
-import WikiStatService from './WikiStats/wikiStats.service'
 import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
 import CategoryService from './Category/category.service'
 import WikiSubscriptionService from './Subscriptions/subscriptions.service'
 import TagService from './Tag/tag.service'
+import ActivityModule from './Activities/activity.module'
 
 // instannul ignore next
 @Module({
@@ -95,6 +92,7 @@ import TagService from './Tag/tag.service'
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    ActivityModule,
     IndexerWebhookModule,
   ],
   controllers: [],
@@ -110,11 +108,7 @@ import TagService from './Tag/tag.service'
     TagService,
     UserResolver,
     UserService,
-    ActivityResolver,
-    ActivityService,
     UserProfileResolver,
-    StatsResolver,
-    WikiStatService,
     ValidSlug,
     PageViewsResolver,
     PageViewsService,

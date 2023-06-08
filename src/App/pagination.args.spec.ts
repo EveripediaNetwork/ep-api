@@ -3,9 +3,8 @@ import PaginationArgs, { OrderArgs } from './pagination.args'
 import { Direction, OrderBy } from './utils/queryHelpers'
 
 describe('PaginationArgs', () => {
-    const args = new PaginationArgs()
+  const args = new PaginationArgs()
   it('should have default values for offset and limit', () => {
-
     expect(args).toBeTruthy()
     expect(args.offset).toBe(0)
     expect(args.limit).toEqual(30)

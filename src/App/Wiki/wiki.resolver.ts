@@ -19,6 +19,7 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import WikiService from './wiki.service'
+import { Count, DateArgs } from './wikiStats.dto'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -75,6 +76,16 @@ class WikiResolver {
     @Args('address', { type: () => String }) address: string,
   ) {
     return this.wikiService.getAddressTowiki(address)
+  }
+
+  @Query(() => Count)
+  async pageViewsCount(@Args() args: DateArgs) {
+    return this.wikiService.getPageViewsCount(args)
+  }
+
+  @Query(() => Count)
+  async categoryTotal(@Args() args: CategoryArgs) {
+    return this.wikiService.getCategoryTotal(args)
   }
 
   @Mutation(() => Wiki, { nullable: true })

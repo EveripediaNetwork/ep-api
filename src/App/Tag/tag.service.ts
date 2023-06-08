@@ -4,6 +4,7 @@ import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
 import { ArgsById } from '../utils/queryHelpers'
 import TagIDArgs from './tag.dto'
+import { DateArgs } from '../Wiki/wikiStats.dto'
 
 @Injectable()
 class TagService extends Repository<Tag> {
@@ -31,6 +32,21 @@ class TagService extends Repository<Tag> {
       .offset(args.offset)
       .orderBy('tag.id', 'DESC')
       .getMany()
+  }
+
+  async getTagsPopular(args: DateArgs): Promise<Tag | undefined> {
+    return this.query(
+      `
+        SELECT "tagId" as id, COUNT(*) AS amount
+        FROM public.wiki_tags_tag tags
+        INNER JOIN wiki w ON w.id  = tags."wikiId"
+        WHERE w.updated >= to_timestamp($1) AND w.updated <= to_timestamp($2)
+        GROUP BY "tagId" 
+        ORDER BY amount DESC 
+        LIMIT 15       
+        `,
+      [args.startDate, args.endDate],
+    )
   }
 }
 

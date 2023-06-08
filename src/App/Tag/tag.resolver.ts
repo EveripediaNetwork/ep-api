@@ -1,10 +1,4 @@
-import {
-  Args,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
@@ -13,6 +7,7 @@ import { ITag } from '../../Database/Entities/types/ITag'
 import { ArgsById } from '../utils/queryHelpers'
 import TagService from './tag.service'
 import TagIDArgs from './tag.dto'
+import { DateArgs } from '../Wiki/wikiStats.dto'
 
 @Resolver(() => Tag)
 class TagResolver {
@@ -31,6 +26,11 @@ class TagResolver {
   @Query(() => [Tag])
   async tagsById(@Args() args: TagIDArgs) {
     return this.service.getTagsById(args)
+  }
+
+  @Query(() => [Tag])
+  async tagsPopular(@Args() args: DateArgs) {
+    return this.service.getTagsPopular(args)
   }
 
   @ResolveField()

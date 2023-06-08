@@ -1,5 +1,10 @@
 import PaginationArgs from '../../pagination.args'
-import { ActivityArgs, ActivityArgsByUser, ActivityByCategoryArgs, ByIdAndBlockArgs } from './activity.dto'
+import {
+  ActivityArgs,
+  ActivityArgsByUser,
+  ActivityByCategoryArgs,
+  ByIdAndBlockArgs,
+} from './activity.dto'
 
 describe('ActivityArgs', () => {
   it('should have the correct field types and decorators', () => {

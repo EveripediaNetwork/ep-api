@@ -6,7 +6,6 @@ import { ArgsById } from '../utils/queryHelpers'
 import TagIDArgs from './tag.dto'
 import Tag from '../../Database/Entities/tag.entity'
 
-
 describe('TagService', () => {
   let service: TagService
 
@@ -95,9 +94,7 @@ describe('TagService', () => {
         'LOWER(tag.id) LIKE :id',
         { id: `%${args.id.toLowerCase()}%` },
       )
-      expect(service.createQueryBuilder).toHaveBeenCalledWith(
-        'tag',
-      )
+      expect(service.createQueryBuilder).toHaveBeenCalledWith('tag')
       expect(service.createQueryBuilder().orderBy).toHaveBeenCalledWith(
         'tag.id',
         'DESC',

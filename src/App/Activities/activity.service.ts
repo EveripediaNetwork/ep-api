@@ -1,98 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, Repository } from 'typeorm'
-import Activity from '../../Database/Entities/activity.entity'
-import {
-  ActivityArgs,
-  ActivityArgsByUser,
-  ActivityByCategoryArgs,
-  ByIdAndBlockArgs,
-} from './dto/activity.dto'
 
 @Injectable()
 class ActivityService {
-  constructor(private dataSource: DataSource) {}
-
-  async repository(): Promise<Repository<Activity>> {
-    return this.dataSource.getRepository(Activity)
-  }
-
-  async countUserActivity(
-    userId: string,
-    intervalInHours: number,
-  ): Promise<number> {
-    const cr = await (
-      await this.repository()
-    )
-      .createQueryBuilder('activity')
-      .select('COUNT(*)')
-      .where(
-        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${intervalInHours} HOURS'`,
-        {
-          id: userId,
-        },
-      )
-      .getRawOne()
-    return parseInt(cr.count, 10)
-  }
-
-  async getActivities(args: ActivityArgs): Promise<Activity[]> {
-    return (await this.repository())
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .leftJoinAndSelect('activity.user', 'user')
-      .where('activity.language = :lang AND w."hidden" = false', {
-        lang: args.lang,
-      })
-      .cache(
-        `activities_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}`,
-        60000,
-      )
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
-  }
-
-  async getActivitiesByWikId(args: ActivityArgs): Promise<Activity[]> {
-    return (await this.repository())
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
-        wikiId: args.wikiId,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
-  }
-
-  async getActivitiesByCategory(
-    args: ActivityByCategoryArgs,
-  ): Promise<Activity[]> {
-    return (await this.repository())
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .leftJoin(
-        'wiki_categories_category',
-        'c',
-        'c."categoryId" = :categoryId',
-        {
-          categoryId: args.category,
-        },
-      )
-      .where(
-        'c."wikiId" = activity.wikiId AND  w."hidden" = false AND type = :type',
-        {
-          type: args.type,
-        },
-      )
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
-  }
-
-  async getDBQuery(
+  async createCustomQuery(
     selections: any[],
     user: string,
     offset: number,
@@ -159,43 +69,6 @@ class ActivityService {
           LIMIT ${limit}
        `
     return finalQuery
-  }
-
-  async getActivitiesByUser(
-    args: ActivityArgsByUser,
-    fields: string[],
-  ): Promise<Activity[]> {
-    const query = await this.getDBQuery(
-      fields,
-      args.userId,
-      args.offset,
-      args.limit,
-    )
-    return (await this.repository()).query(query)
-  }
-
-  async getActivitiesById(id: string): Promise<Activity | null> {
-    return (await this.repository())
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.id = :id AND w."hidden" = false', { id })
-      .getOne()
-  }
-
-  async getActivitiesByWikiIdAndBlock(
-    args: ByIdAndBlockArgs,
-  ): Promise<Activity | null> {
-    return (await this.repository())
-      .createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
-        wikiId: args.wikiId,
-      })
-      .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang,
-        block: args.block,
-      })
-      .getOne()
   }
 }
 

@@ -15,7 +15,6 @@ import PageViewsResolver from '../../pageViews/pageViews.resolver'
 import PageViewsService from '../../pageViews/pageViews.service'
 import RevalidatePageResolver from '../../revalidatePage/revalidatePage.resolver'
 import { RevalidatePageService } from '../../revalidatePage/revalidatePage.service'
-import StatsResolver from '../../WikiStats/wikiStats.resolver'
 import WikiSubscriptionResolver from '../../Subscriptions/subscriptions.resolver'
 import TagResolver from '../../Tag/tag.resolver'
 import UserResolver from '../../User/user.resolver'
@@ -47,7 +46,6 @@ export const providerObjects = {
   sentryPlugin: SentryPlugin,
   wikiResolver: WikiResolver,
   eventEmitter2: EventEmitter2,
-  statsResolver: StatsResolver,
   configService: ConfigService,
   tokenValidator: TokenValidator,
   dbStoreService: DBStoreService,
@@ -88,7 +86,6 @@ export enum ProviderEnum {
   sentryPlugin = 'sentryPlugin',
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
-  statsResolver = 'statsResolver',
   configService = 'configService',
   tokenValidator = 'tokenValidator',
   dbStoreService = 'dbStoreService',

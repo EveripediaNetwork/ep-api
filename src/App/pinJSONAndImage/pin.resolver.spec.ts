@@ -13,8 +13,9 @@ import PinResolver from './pin.resolver'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
-import ActivityService from '../Activities/activity.service'
 import SecurityTestingService from '../utils/securityTester'
+import ActivityRepository from '../Activities/activity.repository'
+import ActivityService from '../Activities/activity.service'
 
 jest.mock('fs')
 
@@ -34,16 +35,19 @@ describe('PinResolver', () => {
         PinResolver,
         PinService,
         {
+          provide: ActivityRepository,
+          useValue: jest.fn(),
+        },
+        ActivityService,
+        {
           provide: ConfigService,
           useValue: {
             key: '',
             secret: '',
           },
         },
-        // PinJSONErrorWebhook,
         WebhookHandler,
         MetadataChangesService,
-        ActivityService,
         {
           provide: DataSource,
           useValue: {
