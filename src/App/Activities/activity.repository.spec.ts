@@ -29,7 +29,7 @@ describe('CategoryService', () => {
   //   const getOne = jest.fn().mockResolvedValue({})
   //   const query = jest.fn().mockResolvedValue({})
   //   const getRawOne = jest.fn().mockResolvedValue({})
-//   const getRawMany = jest.fn().mockResolvedValue([])
+  //   const getRawMany = jest.fn().mockResolvedValue([])
   let getMany = jest.fn().mockResolvedValue([])
 
   const args = {
@@ -321,7 +321,10 @@ describe('CategoryService', () => {
         orderBy,
         getRawMany: jest.fn().mockResolvedValue(expectedWikiStats),
       })
-      const result = await repository.queryWikisByActivityType(intervalArgs, type)
+      const result = await repository.queryWikisByActivityType(
+        intervalArgs,
+        type,
+      )
 
       expect(result).toEqual(expectedWikiStats)
 
@@ -351,9 +354,9 @@ describe('CategoryService', () => {
   describe('getWikisCreatedByUser', () => {
     it('should return wikis created by a a user', async () => {
       const userArgs: UserArgs = {
-          userId: '0x',
-          startDate: 0,
-          endDate: 0
+        userId: '0x',
+        startDate: 0,
+        endDate: 0,
       }
       const type = 0
 
@@ -396,8 +399,8 @@ describe('CategoryService', () => {
   describe('getEditorCount', () => {
     it('should return of active editors', async () => {
       const dateArgs = {
-          startDate: 0,
-          endDate: 0
+        startDate: 0,
+        endDate: 0,
       }
 
       const expectedCount = new Count()

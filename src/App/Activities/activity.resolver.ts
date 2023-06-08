@@ -11,7 +11,14 @@ import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import SelectedFields from '../utils/getFields'
 import ActivityRepository from './activity.repository'
-import { WikiStats, IntervalArgs, WikiUserStats, UserArgs, Count, DateArgs } from '../Wiki/wikiStats.dto'
+import {
+  WikiStats,
+  IntervalArgs,
+  WikiUserStats,
+  UserArgs,
+  Count,
+  DateArgs,
+} from '../Wiki/wikiStats.dto'
 
 @Resolver(() => Activity)
 class ActivityResolver {
@@ -83,7 +90,7 @@ class ActivityResolver {
   @ResolveField(() => [Wiki])
   async content(@Root() activity: Activity) {
     const { content } = activity
-    const updatedContent = content.map(wiki => ({
+    const updatedContent = content.map((wiki) => ({
       ...wiki,
       created: activity.created_timestamp,
       updated: activity.updated_timestamp,
