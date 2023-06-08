@@ -17,30 +17,10 @@ import {
 const noContentWiki = {
   id: 'no-content',
   title: 'No content',
-  ipfs: 'QmQoTh6ahpNe4jUqrfBKMRLuku7tUA3HaEFvrxtmJXEj3T',
+  ipfs: 'no-content',
   created: new Date(),
-  media: [
-    {
-      thumbnail: null,
-    },
-  ],
-  images: [
-    {
-      id: 'QmXgCqnmuco38Vuyauh1m4nnJ3L7XYEaekG6yN6A2LccKa',
-    },
-  ],
-
-  linkedWikis: {
-    founders: ['no-content'],
-    blockchains: ['no-content'],
-  },
-
-  events: [
-    {
-      date: '1900-01',
-      type: 'CREATED',
-    },
-  ],
+  media: [],
+  images: [],
 } as unknown as Partial<Wiki>
 
 @Injectable()
@@ -131,6 +111,7 @@ class MarketCapService {
           id: tokenData.name,
           title: tokenData.name,
           tokenMarketData: {
+            hasWiki: false,
             ...tokenData,
           },
         }
@@ -138,6 +119,7 @@ class MarketCapService {
       const wikiAndCryptoMarketData = {
         ...wiki,
         tokenMarketData: {
+          hasWiki: true,
           ...tokenData,
         },
       }
@@ -184,6 +166,7 @@ class MarketCapService {
           id: nftData.name,
           title: nftData.name,
           nftMarketData: {
+            hasWiki: false,
             ...nftData,
           },
         }
@@ -191,6 +174,7 @@ class MarketCapService {
       const wikiAndNftMarketData = {
         ...wiki,
         nftMarketData: {
+          hasWiki: true,
           ...nftData,
         },
       }
