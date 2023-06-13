@@ -178,5 +178,5 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'huobi-token', wikiId: 'huobi' },
   { coingeckoId: 'render-token', wikiId: 'rndr-token' },
   { coingeckoId: 'bitcoin-cash-sv', wikiId: 'bitcoin-sv' },
-  { coingeckoId: 'frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth'},
+  { coingeckoId: 'frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
 ]
