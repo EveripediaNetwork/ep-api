@@ -179,4 +179,5 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'render-token', wikiId: 'rndr-token' },
   { coingeckoId: 'bitcoin-cash-sv', wikiId: 'bitcoin-sv' },
   { coingeckoId: 'frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
+  { coingeckoId: 'fantom', wikiId: 'ftm-token' },
 ]
