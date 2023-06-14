@@ -1,9 +1,9 @@
-import { Controller } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import BrainPass from '../../Database/Entities/brainPass.entity'
 import BrainPassDto from './brainPass.dto'
 
-@Controller('relayer')
+@Injectable()
 class BrainPassRepository extends Repository<BrainPass> {
   constructor(private dataSource: DataSource) {
     super(BrainPass, dataSource.createEntityManager())
