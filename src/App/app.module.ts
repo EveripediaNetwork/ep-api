@@ -58,6 +58,7 @@ import SentryMod from '../sentry/sentry.module'
 import WikiStatService from './WikiStats/wikiStats.service'
 import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
+import BrainPassModule from './BrainPass/brainPass.module'
 
 @Module({
   imports: [
@@ -93,6 +94,7 @@ import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.modul
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    BrainPassModule,
     IndexerWebhookModule,
   ],
   controllers: [],
