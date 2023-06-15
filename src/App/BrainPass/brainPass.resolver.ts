@@ -13,15 +13,6 @@ class BrainPassResolver {
   ) {
     return this.brainPassRepository.getBrainPassByAddress(address)
   }
-
-//   @Mutation(() => BrainPass, { name: 'storeBrainPass' })
-//   async storeBrainPass(
-//     @Args({ name: 'data', type: () => String })
-//     data: string,
-//   ) {
-//     const mintData = JSON.parse(data)
-//     return this.brainPassRepository.createBrainPass(mintData)
-//   }
 }
 
 export default BrainPassResolver
