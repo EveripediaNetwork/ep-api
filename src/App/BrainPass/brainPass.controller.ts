@@ -1,4 +1,13 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Req, Res } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common'
 import { Response } from 'express'
 import BrainPassRepository from './brainPass.repository'
 import BrainPassService from './brainPass.service'
@@ -30,10 +39,11 @@ class BrainPassController {
     @Body() value: any,
   ) {
     const signature = request.headers['x-alchemy-signature']
-    const checkSignature = await this.brainPassService.isValidSignatureForStringBody(
-      JSON.stringify(value),
-      signature,
-    )
+    const checkSignature =
+      await this.brainPassService.isValidSignatureForStringBody(
+        JSON.stringify(value),
+        signature,
+      )
     if (!checkSignature) {
       return res
         .status(HttpStatus.BAD_REQUEST)

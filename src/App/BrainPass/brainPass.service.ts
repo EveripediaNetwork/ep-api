@@ -9,7 +9,6 @@ import BrainPassDto, { brainPassAbi } from './brainPass.dto'
 import BrainPassRepository from './brainPass.repository'
 import { TxData } from '../../Indexer/IndexerWebhook/indexerWehhook.dto'
 
-
 @Injectable()
 class BrainPassService {
   constructor(
