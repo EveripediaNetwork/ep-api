@@ -33,6 +33,13 @@ class BrainPass {
   @Field(() => String, { nullable: true })
   @Column('varchar', {
     length: 255,
+    nullable: true
+  })
+  metadataHash?: string
+
+  @Field(() => String, { nullable: true })
+  @Column('varchar', {
+    length: 255,
   })
   transactionHash!: string
 
@@ -47,12 +54,6 @@ class BrainPass {
     length: 255,
   })
   name!: string
-
-  @Field(() => String, { nullable: true })
-  @Column('varchar', {
-    length: 255,
-  })
-  externalUrl!: string
 
   @Field(() => Int, { nullable: true })
   @Column('integer')
