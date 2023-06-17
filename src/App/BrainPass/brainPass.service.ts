@@ -19,10 +19,7 @@ class BrainPassService {
   ) {}
 
   async decodeNFTEvent(log: TxData) {
-    const data = await this.alchemyNotifyService.decodeLog(
-      log,
-      brainPassAbi,
-    )
+    const data = await this.alchemyNotifyService.decodeLog(log, brainPassAbi)
 
     const owner = data?.args[0]
     const passName = data?.args[1]
