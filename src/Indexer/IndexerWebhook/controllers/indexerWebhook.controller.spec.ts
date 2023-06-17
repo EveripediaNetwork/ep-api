@@ -95,12 +95,18 @@ describe('IndexerWebhookController', () => {
       .spyOn(alchemyNotifyService, 'isValidSignatureForStringBody')
       .mockResolvedValue(false)
     expect(
-      await controller.initiateWikiWebhookEvent(req, failedResponse as any, value),
+      await controller.initiateWikiWebhookEvent(
+        req,
+        failedResponse as any,
+        value,
+      ),
     ).toStrictEqual({ status: 400, indexing: false })
   })
 
   it('should return 200 if the signature is valid', async () => {
-    jest.spyOn(alchemyNotifyService, 'isValidSignatureForStringBody').mockResolvedValue(true)
+    jest
+      .spyOn(alchemyNotifyService, 'isValidSignatureForStringBody')
+      .mockResolvedValue(true)
     expect(
       await controller.initiateWikiWebhookEvent(
         req,

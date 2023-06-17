@@ -23,7 +23,6 @@ class PinService {
     private readonly pinJSONErrorWebhook: WebhookHandler,
   ) {}
 
-
   async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
 

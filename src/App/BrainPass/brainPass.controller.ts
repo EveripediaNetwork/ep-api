@@ -11,14 +11,16 @@ import {
 import { Response } from 'express'
 import BrainPassRepository from './brainPass.repository'
 import BrainPassService from './brainPass.service'
-import AlchemyNotifyService, { WebhookType } from '../../ExternalServices/alchemyNotify.service'
+import AlchemyNotifyService, {
+  WebhookType,
+} from '../../ExternalServices/alchemyNotify.service'
 
 @Controller('brainpass')
 class BrainPassController {
   constructor(
     private brainPassRepository: BrainPassRepository,
     private brainPassService: BrainPassService,
-    private alchemyNotifyService: AlchemyNotifyService
+    private alchemyNotifyService: AlchemyNotifyService,
   ) {}
 
   @Get(':id.json')
@@ -40,8 +42,8 @@ class BrainPassController {
     @Res() res: Response,
     @Body() value: any,
   ) {
-     if (value.event.data.block.logs.length !== 0) {
-        return true
+    if (value.event.data.block.logs.length !== 0) {
+      return true
     }
     const signature = request.headers['x-alchemy-signature']
     const checkSignature =

@@ -2,7 +2,9 @@ import { Controller, HttpStatus, Post, Req, Body, Res } from '@nestjs/common'
 import { Response } from 'express'
 import IndexerWebhookService from '../services/indexerWebhook.service'
 import { EventData } from '../indexerWehhook.dto'
-import AlchemyNotifyService, { WebhookType } from '../../../ExternalServices/alchemyNotify.service'
+import AlchemyNotifyService, {
+  WebhookType,
+} from '../../../ExternalServices/alchemyNotify.service'
 
 @Controller('indexer')
 class IndexerWebhookController {
@@ -22,7 +24,7 @@ class IndexerWebhookController {
       await this.alchemyNotifyService.isValidSignatureForStringBody(
         JSON.stringify(value),
         signature,
-        WebhookType.WIKI
+        WebhookType.WIKI,
       )
     if (!checkSignature) {
       return res

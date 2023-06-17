@@ -101,7 +101,7 @@ export class RevalidatePageService {
         ])
       }
     } catch (e: any) {
-        console.error('Failed to revalidate page')
+      console.error('Failed to revalidate page')
     }
   }
 

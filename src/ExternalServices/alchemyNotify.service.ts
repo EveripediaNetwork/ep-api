@@ -3,17 +3,17 @@ import { ConfigService } from '@nestjs/config'
 import * as crypto from 'crypto'
 import { ethers } from 'ethers'
 
-export type ABIdecodeType = Array<{
+export type ABIdecodeType = {
   anonymous: boolean
-  inputs: Array<{
+  inputs: {
     indexed: boolean
     internalType: string
     name: string
     type: string
-  }>
+  }[]
   name: string
   type: string
-}>
+}[]
 
 export type TxData = {
   account: { address: string }
