@@ -1,4 +1,5 @@
 import { CacheModule, Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import httpModule from '../../httpModule'
 import IndexerWebhookController from './controllers/indexerWebhook.controller'
 import { RevalidatePageService } from '../../App/revalidatePage/revalidatePage.service'
@@ -9,6 +10,7 @@ import DBStoreService from '../Store/store.service'
 import IPFSValidatorService from '../Validator/validator.service'
 import RunCommand from '../run.command'
 import IndexerWebhookService from './services/indexerWebhook.service'
+import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
 
 @Module({
   imports: [httpModule(10000), CacheModule.register({ ttl: 3600 })],
@@ -22,6 +24,7 @@ import IndexerWebhookService from './services/indexerWebhook.service'
     IPFSGetterService,
     RevalidatePageService,
     RunCommand,
+    AlchemyNotifyService,
   ],
 })
 class IndexerWebhookModule {}

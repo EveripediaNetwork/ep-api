@@ -15,6 +15,7 @@ import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import ActivityService from '../Activities/activity.service'
 import SecurityTestingService from '../utils/securityTester'
+import PinataService from '../../ExternalServices/pinata.service'
 
 jest.mock('fs')
 
@@ -31,6 +32,7 @@ describe('PinResolver', () => {
     moduleRef = await Test.createTestingModule({
       imports: [HttpModule],
       providers: [
+        PinataService,
         PinResolver,
         PinService,
         {
@@ -40,7 +42,6 @@ describe('PinResolver', () => {
             secret: '',
           },
         },
-        // PinJSONErrorWebhook,
         WebhookHandler,
         MetadataChangesService,
         ActivityService,
