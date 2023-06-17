@@ -10,7 +10,7 @@ class BrainPassRepository extends Repository<BrainPass> {
   }
 
   async findBrainPass(id: number) {
-    return this.findOneBy({ nftId: id })
+    return this.findOneBy({ tokenId: id })
   }
 
   async createBrainPass(data: BrainPassDto) {
@@ -18,8 +18,8 @@ class BrainPassRepository extends Repository<BrainPass> {
     return this.save(newBrainPass)
   }
 
-  async getBrainPassByAddress(address: string): Promise<BrainPass[] | null> {
-    const brainPass = this.find({ where: { address } })
+  async getBrainPassByAddress(owner: string): Promise<BrainPass[] | null> {
+    const brainPass = this.find({ where: { owner } })
     return brainPass
   }
 }

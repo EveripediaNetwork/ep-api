@@ -15,14 +15,18 @@ class BrainPass {
   id!: number
 
   @Field(() => ID)
-  @Column('integer', { unique: true })
-  nftId!: number
+  @Column('integer')
+  tokenId!: number
+
+  @Field(() => ID)
+  @Column('integer')
+  passId!: number
 
   @Field(() => String, { nullable: true })
   @Column('varchar', {
     length: 255,
   })
-  address!: string
+  owner!: string
 
   @Field(() => String, { nullable: true })
   @Column('varchar', {
@@ -33,7 +37,7 @@ class BrainPass {
   @Field(() => String, { nullable: true })
   @Column('varchar', {
     length: 255,
-    nullable: true
+    nullable: true,
   })
   metadataHash?: string
 
@@ -53,11 +57,11 @@ class BrainPass {
   @Column('varchar', {
     length: 255,
   })
-  name!: string
+  passName!: string
 
   @Field(() => Int, { nullable: true })
-  @Column('integer')
-  amount!: number
+  @Column('varchar')
+  price!: string
 
   @Field(() => GraphQLISODateTime, {
     nullable: true,

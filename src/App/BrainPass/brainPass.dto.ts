@@ -2,16 +2,19 @@ import { IsNumber, IsString } from 'class-validator'
 
 class BrainPassDto {
   @IsNumber()
-  nftId!: number
+  tokenId!: number
 
   @IsString()
-  address!: string
+  owner!: string
 
   @IsString()
   image!: string
 
   @IsString()
-  name!: string
+  passName!: string
+
+  @IsNumber()
+  passId!: number
 
   @IsString()
   description!: string
@@ -19,8 +22,8 @@ class BrainPassDto {
   @IsString()
   metadataHash?: string
 
-  @IsNumber()
-  amount!: number
+  @IsString()
+  price!: string
 
   @IsString()
   transactionHash!: string

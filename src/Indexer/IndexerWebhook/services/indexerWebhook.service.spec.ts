@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { TestingModule, Test } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import IndexerWebhookService from './indexerWebhook.service'
-import { BlockData } from '../indexerWehhook.dto'
+import { BlockData, decodeABI } from '../indexerWehhook.dto'
 import {
   dummyWiki as result,
   mockCacheStore,
@@ -13,9 +13,11 @@ import {
   getProviders,
   ProviderEnum,
 } from '../../../App/utils/test-helpers/testHelpers'
+import AlchemyNotifyService from '../../../ExternalServices/alchemyNotify.service'
 
 describe('IndexerWebhookService', () => {
   let service: IndexerWebhookService
+  let alchemyNotifyService: AlchemyNotifyService
   let moduleRef: TestingModule
 
   const mockQuery = () => ({
@@ -103,10 +105,17 @@ describe('IndexerWebhookService', () => {
           provide: DataSource,
           useFactory: mockConnection,
         },
+        AlchemyNotifyService,
+        {
+          provide: ConfigService,
+          useValue: '',
+        },
       ],
     }).compile()
 
     service = moduleRef.get<IndexerWebhookService>(IndexerWebhookService)
+    alchemyNotifyService =
+      moduleRef.get<AlchemyNotifyService>(AlchemyNotifyService)
   })
 
   describe('indexWebhook', () => {
@@ -129,7 +138,7 @@ describe('IndexerWebhookService', () => {
     it('should return null for empty log data', async () => {
       const log: any = {}
 
-      const decoded = await service.decodeLog(log)
+      const decoded = await alchemyNotifyService.decodeLog(log, decodeABI)
 
       expect(decoded).toBe(null)
     })
@@ -142,7 +151,7 @@ describe('IndexerWebhookService', () => {
         'Qmec5MYHzixVTc1V7cmsdjGZpcVoMUN2ksCAD6cqKL1zD7',
       ]
 
-      const decodeLog = await service.decodeLog(log)
+      const decodeLog = await alchemyNotifyService.decodeLog(log, decodeABI)
 
       expect(decodeLog).toEqual(
         expect.objectContaining({ args: expect.arrayContaining(expectedArgs) }),

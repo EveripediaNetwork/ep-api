@@ -1,9 +1,4 @@
-export type TxData = {
-  account: { address: string }
-  data: string
-  topics: string[]
-  index: number
-}
+import { TxData } from '../../ExternalServices/alchemyNotify.service'
 
 export type EventData = {
   webhookId: string

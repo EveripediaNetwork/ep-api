@@ -2,22 +2,21 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import { HttpModule } from '@nestjs/axios'
-import { CacheModule, HttpStatus } from '@nestjs/common'
+import { HttpStatus, CacheModule } from '@nestjs/common'
 import IndexerWebhookService from '../services/indexerWebhook.service'
 import IndexerWebhookController from './indexerWebhook.controller'
 import { EventData } from '../indexerWehhook.dto'
 import {
-  dummyWiki as result,
-  mockCacheStore,
-} from '../../../App/utils/test-helpers/reuseableTestObjects'
-import {
   getProviders,
   ProviderEnum,
 } from '../../../App/utils/test-helpers/testHelpers'
+import AlchemyNotifyService from '../../../ExternalServices/alchemyNotify.service'
+import { mockCacheStore } from '../../../App/utils/test-helpers/reuseableTestObjects'
 
 describe('IndexerWebhookController', () => {
   let controller: IndexerWebhookController
   let service: IndexerWebhookService
+  let alchemyNotifyService: AlchemyNotifyService
   let moduleRef: TestingModule
   let req: any
   const failedResponse = {
@@ -70,6 +69,11 @@ describe('IndexerWebhookController', () => {
             findOneBy: jest.fn(() => result),
           }),
         },
+        AlchemyNotifyService,
+        {
+          provide: ConfigService,
+          useValue: '',
+        },
       ],
     }).compile()
 
@@ -77,6 +81,8 @@ describe('IndexerWebhookController', () => {
       IndexerWebhookController,
     )
     service = moduleRef.get<IndexerWebhookService>(IndexerWebhookService)
+    alchemyNotifyService =
+      moduleRef.get<AlchemyNotifyService>(AlchemyNotifyService)
     req = {
       headers: {
         'x-alchemy-signature': 'validSignature',
@@ -86,17 +92,17 @@ describe('IndexerWebhookController', () => {
 
   it('should return 400 if the signature is invalid', async () => {
     jest
-      .spyOn(service, 'isValidSignatureForStringBody')
+      .spyOn(alchemyNotifyService, 'isValidSignatureForStringBody')
       .mockResolvedValue(false)
     expect(
-      await controller.initiateWebhookStore(req, failedResponse as any, value),
+      await controller.initiateWikiWebhookEvent(req, failedResponse as any, value),
     ).toStrictEqual({ status: 400, indexing: false })
   })
 
   it('should return 200 if the signature is valid', async () => {
-    jest.spyOn(service, 'isValidSignatureForStringBody').mockResolvedValue(true)
+    jest.spyOn(alchemyNotifyService, 'isValidSignatureForStringBody').mockResolvedValue(true)
     expect(
-      await controller.initiateWebhookStore(
+      await controller.initiateWikiWebhookEvent(
         req,
         successfulResponse as any,
         value,
