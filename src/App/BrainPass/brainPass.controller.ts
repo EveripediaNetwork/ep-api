@@ -42,8 +42,10 @@ class BrainPassController {
     @Res() res: Response,
     @Body() value: any,
   ) {
-    if (value.event.data.block.logs.length !== 0) {
-      return true
+    if (!value.event || !value?.event.data.block.logs.length) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ status: HttpStatus.NOT_FOUND, message: 'No data' })
     }
     const signature = request.headers['x-alchemy-signature']
     const checkSignature =
