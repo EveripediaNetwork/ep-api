@@ -42,7 +42,7 @@ class BrainPassController {
     @Res() res: Response,
     @Body() value: any,
   ) {
-    if (!value.event || value?.event.data.block.logs.length !== 0) {
+    if (!value.event || !value?.event.data.block.logs.length) {
       return res
         .status(HttpStatus.NOT_FOUND)
         .json({ status: HttpStatus.NOT_FOUND, message: 'No data' })
