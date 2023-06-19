@@ -2,12 +2,21 @@
 import { CommandFactory } from 'nest-commander'
 import IndexerModule from './Indexer/indexer.module'
 
-async function bootstrap() {
-  await CommandFactory.run(IndexerModule, {
-    errorHandler: (err) => {
-      console.error(err)
-    },
-  })
+async function bootstrapConsole() {
+  try {
+    await CommandFactory.run(IndexerModule)
+  } catch (err) {
+    console.error(err)
+  }
+  //   await CommandFactory.run(IndexerModule, {
+  //     errorHandler: (err) => {
+  //       console.error(err)
+  //     },
+  //   })
 }
 
-bootstrap()
+if (require.main === module) {
+  bootstrapConsole()
+}
+
+export default bootstrapConsole

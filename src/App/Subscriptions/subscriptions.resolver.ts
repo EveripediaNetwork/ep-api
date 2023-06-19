@@ -9,9 +9,9 @@ import {
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
 import WikiSubscriptionService from './subscriptions.service'
-import { WikiSubscriptionArgs } from '../Database/Entities/types/IWiki'
-import IqSubscription from '../Database/Entities/IqSubscription'
-import Wiki from '../Database/Entities/wiki.entity'
+import { WikiSubscriptionArgs } from '../../Database/Entities/types/IWiki'
+import IqSubscription from '../../Database/Entities/IqSubscription'
+import Wiki from '../../Database/Entities/wiki.entity'
 
 @Resolver(() => IqSubscription)
 class WikiSubscriptionResolver {

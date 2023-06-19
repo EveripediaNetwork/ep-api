@@ -3,23 +3,20 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import SentryPlugin from '../../../sentry/sentryPlugin'
 import ActivityResolver from '../../Activities/activity.resolver'
 import ActivityService from '../../Activities/activity.service'
-import CategoryResolver from '../../category.resolver'
-import CategoryService from '../../category.service'
+import CategoryResolver from '../../Category/category.resolver'
 import ContentFeedbackResolver from '../../content-feedback/contentFeedback.resolver'
 import ContentFeedbackService from '../../content-feedback/contentFeedback.service'
 import FlagWikiResolver from '../../flaggingSystem/flagWiki.resolver'
 import FlagWikiService from '../../flaggingSystem/flagWiki.service'
-import LanguageResolver from '../../language.resolver'
+import LanguageResolver from '../../Language/language.resolver'
 import MarketCapResolver from '../../marketCap/marketCap.resolver'
 import MarketCapService from '../../marketCap/marketCap.service'
 import PageViewsResolver from '../../pageViews/pageViews.resolver'
 import PageViewsService from '../../pageViews/pageViews.service'
 import RevalidatePageResolver from '../../revalidatePage/revalidatePage.resolver'
 import { RevalidatePageService } from '../../revalidatePage/revalidatePage.service'
-import StatsResolver from '../../WikiStats/wikiStats.resolver'
-import WikiSubscriptionResolver from '../../subscriptions.resolver'
-import WikiSubscriptionService from '../../subscriptions.service'
-import TagResolver from '../../tag.resolver'
+import WikiSubscriptionResolver from '../../Subscriptions/subscriptions.resolver'
+import TagResolver from '../../Tag/tag.resolver'
 import UserResolver from '../../User/user.resolver'
 import UserService from '../../User/user.service'
 import UserProfileResolver from '../../User/userProfile.resolver'
@@ -36,6 +33,8 @@ import GraphProviderService from '../../../Indexer/Provider/graph.service'
 import MetadataChangesService from '../../../Indexer/Store/metadataChanges.service'
 import DBStoreService from '../../../Indexer/Store/store.service'
 import IPFSValidatorService from '../../../Indexer/Validator/validator.service'
+import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
+import CategoryService from '../../Category/category.service'
 
 export const providerObjects = {
   validSlug: ValidSlug,
@@ -47,7 +46,6 @@ export const providerObjects = {
   sentryPlugin: SentryPlugin,
   wikiResolver: WikiResolver,
   eventEmitter2: EventEmitter2,
-  statsResolver: StatsResolver,
   configService: ConfigService,
   tokenValidator: TokenValidator,
   dbStoreService: DBStoreService,
@@ -88,7 +86,6 @@ export enum ProviderEnum {
   sentryPlugin = 'sentryPlugin',
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
-  statsResolver = 'statsResolver',
   configService = 'configService',
   tokenValidator = 'tokenValidator',
   dbStoreService = 'dbStoreService',

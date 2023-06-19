@@ -7,7 +7,7 @@ import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
-import ActivityService from '../../App/Activities/activity.service'
+import ActivityRepository from '../../App/Activities/activity.repository'
 
 @Injectable()
 class RelayerService {
@@ -17,7 +17,7 @@ class RelayerService {
 
   constructor(
     private configService: ConfigService,
-    private activityService: ActivityService,
+    private activityRepository: ActivityRepository,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
@@ -52,7 +52,7 @@ class RelayerService {
     r: string,
     s: string,
   ) {
-    const activityCount = await this.activityService.countUserActivity(
+    const activityCount = await this.activityRepository.countUserActivity(
       userAddr,
       72,
     )

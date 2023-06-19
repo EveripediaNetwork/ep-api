@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
-import Language from '../Database/Entities/language.entity'
-import PaginationArgs from './pagination.args'
+import Language from '../../Database/Entities/language.entity'
+import PaginationArgs from '../pagination.args'
 
 @Resolver(() => Language)
 class LanguageResolver {

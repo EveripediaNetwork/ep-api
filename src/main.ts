@@ -11,7 +11,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 
 import AppModule from './App/app.module'
 
-async function bootstrap() {
+async function bootstrapApplication() {
   let app = await NestFactory.create<NestExpressApplication>(AppModule, {
     abortOnError: false,
   })
@@ -35,13 +35,6 @@ async function bootstrap() {
   Sentry.init({
     dsn: configService.get<string>('SENTRY_DSN'),
     tracesSampleRate: 0.3,
-    beforeSend: (e) => {
-      if (e.exception?.values && e.exception.values[0].type === 'RangeError') {
-        console.error(e)
-      }
-      return e
-    },
-
     integrations: [new Tracing.Integrations.Apollo()],
   })
   app.set('trust proxy', 1)
@@ -59,4 +52,9 @@ async function bootstrap() {
   await app.listen(port || 5000)
 }
 
-bootstrap()
+if (require.main === module) {
+  // istanbul ignore next
+  bootstrapApplication()
+}
+
+export default bootstrapApplication

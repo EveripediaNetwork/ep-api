@@ -4,12 +4,12 @@ import RelayerService from './services/relayer.service'
 import RelayerController from './controllers/relayer.controller'
 import RelayerResolver from './resolvers/relayer.resolver'
 import httpModule from '../httpModule'
-import ActivityService from '../App/Activities/activity.service'
+import ActivityModule from '../App/Activities/activity.module'
 
 @Module({
-  imports: [httpModule(10000)],
+  imports: [httpModule(10000), ActivityModule],
   controllers: [RelayerController],
-  providers: [RelayerService, RelayerResolver, ActivityService],
+  providers: [RelayerService, RelayerResolver],
 })
 class RelayerModule {}
 

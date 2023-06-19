@@ -6,17 +6,17 @@ import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
-import ActivityService from '../Activities/activity.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import SecurityTestingService from '../utils/securityTester'
+import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
 
 @Injectable()
 class PinService {
   constructor(
+    private activityRepository: ActivityRepository,
     private pinateService: PinataService,
-    private activityService: ActivityService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private metadataChanges: MetadataChangesService,
@@ -72,7 +72,7 @@ class PinService {
       )
     }
 
-    const activityResult = await this.activityService.countUserActivity(
+    const activityResult = await this.activityRepository.countUserActivity(
       wikiData.user.id,
       72,
     )

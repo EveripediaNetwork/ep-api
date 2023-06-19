@@ -1,13 +1,13 @@
 import { Controller, Get, Response } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { SitemapStream, streamToPromise } from 'sitemap'
-import CategoryService from '../../App/category.service'
 import WikiService from '../../App/Wiki/wiki.service'
 import staticPagesData from '../data/staticPagesData'
+import CategoryService from '../../App/Category/category.service'
 
 @Controller()
 export default class SitemapController {
-  sitemapXmlCache!: Buffer | null
+  public sitemapXmlCache!: Buffer | null
 
   sitemapTimeoutMs = 1000 * 60 * 60
 
@@ -30,6 +30,7 @@ export default class SitemapController {
       hostname: this.configService.get('WEBSITE_URL'),
       lastmodDateOnly: true,
     })
+
     staticPagesData.map((data) =>
       smStream.write({
         url: data.url,
@@ -38,9 +39,10 @@ export default class SitemapController {
         lastmod: this.lastmod,
       }),
     )
+
     const [wikisIds, categoriesId] = await Promise.all([
-      this.wikiService.wikisIds(),
-      this.categoryService.categoriesIds(),
+      this.wikiService.getWikiIds(),
+      this.categoryService.getCategoryIds(),
     ])
     wikisIds.map((wiki) =>
       smStream.write({
@@ -58,6 +60,7 @@ export default class SitemapController {
         lastmod: this.lastmod,
       }),
     )
+
     smStream.end()
     streamToPromise(smStream).then((xml: Buffer) => {
       this.sitemapXmlCache = xml

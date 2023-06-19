@@ -15,20 +15,16 @@ import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import WikiResolver from './Wiki/wiki.resolver'
-import LanguageResolver from './language.resolver'
-import CategoryResolver from './category.resolver'
-import TagResolver from './tag.resolver'
+import LanguageResolver from './Language/language.resolver'
+import CategoryResolver from './Category/category.resolver'
+import TagResolver from './Tag/tag.resolver'
 import UserResolver from './User/user.resolver'
-
-import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
-
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './User/userProfile.resolver'
 import UserService from './User/user.service'
-import StatsResolver from './WikiStats/wikiStats.resolver'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
 import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews/pageViews.resolver'
@@ -40,26 +36,27 @@ import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
 import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
-import WikiSubscriptionResolver from './subscriptions.resolver'
-import WikiSubscriptionService from './subscriptions.service'
+import WikiSubscriptionResolver from './Subscriptions/subscriptions.resolver'
 import TokenValidator from './utils/validateToken'
 import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
 import WikiService from './Wiki/wiki.service'
-import CategoryService from './category.service'
 import logger from './utils/logger'
-import ActivityResolver from './Activities/activity.resolver'
-import ActivityService from './Activities/activity.service'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
 import SentryMod from '../sentry/sentry.module'
-import WikiStatService from './WikiStats/wikiStats.service'
 import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
+import WikiSubscriptionService from './Subscriptions/subscriptions.service'
+import CategoryService from './Category/category.service'
+import TagService from './Tag/tag.service'
+import PinModule from './pinJSONAndImage/pin.module'
 import BrainPassModule from './BrainPass/brainPass.module'
+import ActivityModule from './Activities/activity.module'
 
+// instannul ignore next
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -95,6 +92,7 @@ import BrainPassModule from './BrainPass/brainPass.module'
     RelayerModule,
     TokenStatsModule,
     BrainPassModule,
+    ActivityModule,
     IndexerWebhookModule,
   ],
   controllers: [],
@@ -107,13 +105,10 @@ import BrainPassModule from './BrainPass/brainPass.module'
     CategoryResolver,
     CategoryService,
     TagResolver,
+    TagService,
     UserResolver,
     UserService,
-    ActivityResolver,
-    ActivityService,
     UserProfileResolver,
-    StatsResolver,
-    WikiStatService,
     ValidSlug,
     PageViewsResolver,
     PageViewsService,
