@@ -108,7 +108,7 @@ class BrainPassService {
     if (!existTransaction) {
       const brainPassBought: BrainPassDto = {
         tokenId: data.tokenId,
-        passName: data.passName,
+        passName: `${data.passName}-${data.tokenId}`,
         passId: data.passId,
         owner: data.owner,
         image,
