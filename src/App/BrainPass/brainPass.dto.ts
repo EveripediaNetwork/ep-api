@@ -34,6 +34,18 @@ export enum BrainPassContractMethods {
   SUBSCRIBE = 'PassTimeIncreased',
 }
 
+enum PassTypes {
+  BrainPass = 1,
+}
+
+interface PassMapping {
+  [key: number]: string
+}
+
+export const passNames: PassMapping = {
+  [PassTypes.BrainPass]: 'BrainPass',
+}
+
 export const brainPassAbi = [
   {
     anonymous: false,

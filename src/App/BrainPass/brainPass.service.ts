@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config'
 import BrainPassDto, {
   BrainPassContractMethods,
   brainPassAbi,
+  passNames,
 } from './brainPass.dto'
 import BrainPassRepository from './brainPass.repository'
 import PinataService from '../../ExternalServices/pinata.service'
@@ -108,7 +109,7 @@ class BrainPassService {
     if (!existTransaction) {
       const brainPassBought: BrainPassDto = {
         tokenId: data.tokenId,
-        passName: `${data.passName}-${data.tokenId}`,
+        passName: `${passNames[data.passId]}-${data.tokenId}`,
         passId: data.passId,
         owner: data.owner,
         image,
