@@ -95,12 +95,12 @@ class BrainPassService {
         .pinJSONToIPFS(nftMetadata)
 
       ipfshash = IpfsHash
-    //   await this.updateHashMetadata({
-    //     hash: IpfsHash,
-    //     name: data.passName,
-    //     tokenId: data.tokenId,
-    //     passId: data.passId,
-    //   })
+      //   await this.updateHashMetadata({
+      //     hash: IpfsHash,
+      //     name: data.passName,
+      //     tokenId: data.tokenId,
+      //     passId: data.passId,
+      //   })
     }
     const existTransaction = await this.repo.getBrainPassByTxHash(
       eventLog.transaction.hash,
