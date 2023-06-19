@@ -6,6 +6,7 @@ import WebhookHandler from '../utils/discordWebhookHandler'
 import PinResolver from './pin.resolver'
 import PinService from './pin.service'
 import SecurityTestingService from '../utils/securityTester'
+import PinataService from '../../ExternalServices/pinata.service'
 import ActivityModule from '../Activities/activity.module'
 
 @Module({
@@ -20,6 +21,7 @@ import ActivityModule from '../Activities/activity.module'
     SecurityTestingService,
     MetadataChangesService,
     WebhookHandler,
+    PinataService,
   ],
 })
 export default class PinModule {}

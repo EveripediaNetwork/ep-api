@@ -16,6 +16,7 @@ import WebhookHandler from '../utils/discordWebhookHandler'
 import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import ActivityService from '../Activities/activity.service'
+import PinataService from '../../ExternalServices/pinata.service'
 
 jest.mock('fs')
 
@@ -32,6 +33,7 @@ describe('PinResolver', () => {
     moduleRef = await Test.createTestingModule({
       imports: [HttpModule],
       providers: [
+        PinataService,
         PinResolver,
         PinService,
         {

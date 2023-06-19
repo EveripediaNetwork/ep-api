@@ -176,4 +176,8 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'whitebit', wikiId: 'whitebit-1' },
   { coingeckoId: 'pepe', wikiId: 'pepe-cryptocurrency' },
   { coingeckoId: 'huobi-token', wikiId: 'huobi' },
+  { coingeckoId: 'render-token', wikiId: 'rndr-token' },
+  { coingeckoId: 'bitcoin-cash-sv', wikiId: 'bitcoin-sv' },
+  { coingeckoId: 'frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
+  { coingeckoId: 'fantom', wikiId: 'ftm-token' },
 ]

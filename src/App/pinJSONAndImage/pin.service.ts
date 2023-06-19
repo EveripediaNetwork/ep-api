@@ -1,9 +1,8 @@
 /* eslint-disable new-cap */
-import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
-import pinataSDK, { PinataMetadata } from '@pinata/sdk'
+import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -12,24 +11,21 @@ import WebhookHandler from '../utils/discordWebhookHandler'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
+import PinataService from '../../ExternalServices/pinata.service'
+import ActivityService from '../Activities/activity.service'
 
 @Injectable()
 class PinService {
   constructor(
     private configService: ConfigService,
     private activityRepository: ActivityRepository,
+    private pinateService: PinataService,
+    private activityService: ActivityService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: WebhookHandler,
   ) {}
-
-  private pinata() {
-    const key = this.configService.get<string>('IPFS_PINATA_KEY')
-    const secret = this.configService.get<string>('IPFS_PINATA_SECRET')
-    const sdk = new pinataSDK(key, secret)
-    return sdk
-  }
 
   async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
@@ -38,15 +34,12 @@ class PinService {
       pinataMetadata: {
         name: 'wiki-image',
       },
-      pinataOptions: {
-        cidVersion: 0,
-      },
     }
 
     const pinImageToPinata = async (
       data: typeof readableStreamForFile,
       option: typeof options,
-    ) => this.pinata().pinFileToIPFS(data, option as unknown as PinataMetadata)
+    ) => this.pinateService.getPinataInstance().pinFileToIPFS(data, option)
 
     try {
       const res = await pinImageToPinata(readableStreamForFile, options)
@@ -107,7 +100,7 @@ class PinService {
       },
     }
     const pinToPinata = async (wikiContent: typeof payload) =>
-      this.pinata().pinJSONToIPFS(wikiContent)
+      this.pinateService.getPinataInstance().pinJSONToIPFS(wikiContent)
 
     try {
       const res = await pinToPinata(payload)

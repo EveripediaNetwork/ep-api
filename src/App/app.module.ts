@@ -19,10 +19,7 @@ import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
 import TagResolver from './Tag/tag.resolver'
 import UserResolver from './User/user.resolver'
-
-import PinModule from './pinJSONAndImage/pin.module'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
-
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
 import TokenStatsModule from './tokenStats/tokenStats.module'
@@ -52,9 +49,11 @@ import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver
 import SentryMod from '../sentry/sentry.module'
 import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
-import CategoryService from './Category/category.service'
 import WikiSubscriptionService from './Subscriptions/subscriptions.service'
+import CategoryService from './Category/category.service'
 import TagService from './Tag/tag.service'
+import PinModule from './pinJSONAndImage/pin.module'
+import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
 
 // instannul ignore next
@@ -92,6 +91,7 @@ import ActivityModule from './Activities/activity.module'
     DatabaseModule,
     RelayerModule,
     TokenStatsModule,
+    BrainPassModule,
     ActivityModule,
     IndexerWebhookModule,
   ],
