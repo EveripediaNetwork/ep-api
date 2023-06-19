@@ -2,7 +2,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
-import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -12,15 +11,12 @@ import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
-import ActivityService from '../Activities/activity.service'
 
 @Injectable()
 class PinService {
   constructor(
-    private configService: ConfigService,
     private activityRepository: ActivityRepository,
     private pinateService: PinataService,
-    private activityService: ActivityService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private metadataChanges: MetadataChangesService,
