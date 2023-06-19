@@ -29,6 +29,11 @@ class BrainPassDto {
   transactionHash!: string
 }
 
+export enum BrainPassContractMethods {
+  MINT = 'BrainPassBought',
+  SUBSCRIBE = 'PassTimeIncreased',
+}
+
 export const brainPassAbi = [
   {
     anonymous: false,

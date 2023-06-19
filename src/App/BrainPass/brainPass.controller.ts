@@ -59,6 +59,7 @@ class BrainPassController {
         .status(HttpStatus.BAD_REQUEST)
         .json({ status: HttpStatus.BAD_REQUEST, signature: 'invalid' })
     }
+
     await this.brainPassService.storeMintData(value.event.data.block.logs[0])
     return res.json({ status: HttpStatus.OK, signature: 'valid' })
   }

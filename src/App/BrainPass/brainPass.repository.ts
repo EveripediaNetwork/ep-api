@@ -22,6 +22,13 @@ class BrainPassRepository extends Repository<BrainPass> {
     const brainPass = this.find({ where: { owner } })
     return brainPass
   }
+
+  async getBrainPassByTxHash(
+    transactionHash: string,
+  ): Promise<BrainPass | null> {
+    const brainPass = this.findOneBy({ transactionHash })
+    return brainPass
+  }
 }
 
 export default BrainPassRepository
