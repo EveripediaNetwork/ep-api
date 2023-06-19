@@ -1,8 +1,13 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable new-cap */
 import { Injectable } from '@nestjs/common'
 import { BigNumber, ethers } from 'ethers'
 import { HttpService } from '@nestjs/axios'
-import BrainPassDto, { brainPassAbi } from './brainPass.dto'
+import { ConfigService } from '@nestjs/config'
+import BrainPassDto, {
+  BrainPassContractMethods,
+  brainPassAbi,
+} from './brainPass.dto'
 import BrainPassRepository from './brainPass.repository'
 import PinataService from '../../ExternalServices/pinata.service'
 import AlchemyNotifyService, {
@@ -12,33 +17,33 @@ import AlchemyNotifyService, {
 @Injectable()
 class BrainPassService {
   constructor(
+    private configService: ConfigService,
     private alchemyNotifyService: AlchemyNotifyService,
     private httpService: HttpService,
     private pinataService: PinataService,
     private repo: BrainPassRepository,
   ) {}
 
+  async getDefaultData() {
+    const image = this.configService.get('BRAINPASS_DEFAULT_IMAGE')
+    const description = this.configService.get('BRAINPASS_DEFAULT_DESCRIPTION')
+    return { image, description }
+  }
+
   async decodeNFTEvent(log: TxData) {
     const data = await this.alchemyNotifyService.decodeLog(log, brainPassAbi)
-
-    const owner = data?.args[0]
-    const passName = data?.args[1]
-    const price = ethers.utils.formatEther(
-      BigNumber.from(Number(data?.args[2]).toString()),
-    )
-    const passId = BigNumber.from(data?.args[3]).toNumber()
-    const tokenId = BigNumber.from(data?.args[4]).toNumber()
     const decoded = {
-      tokenId,
-      owner,
-      passId,
-      price,
-      passName,
+      tokenId: BigNumber.from(data?.args._tokenId).toNumber(),
+      owner: data?.args._owner,
+      passId: BigNumber.from(data?.args._passId).toNumber(),
+      price: ethers.utils.formatEther(
+        BigNumber.from(Number(data?.args._price).toString()),
+      ),
+      passName: data?.args._passName,
       transactionName: data?.name,
-      image:
-        'https://gateway.pinata.cloud/ipfs/Qmb86L8mUphw3GzLPWXNTRIK1S4scBdj9cc2Sev3s8uLiB/0.png',
       attributes: [],
     }
+
     return decoded
   }
 
@@ -69,15 +74,19 @@ class BrainPassService {
     }
   }
 
-  async storeMintData(eventLog: any) {
-    const data = await this.decodeNFTEvent(eventLog.transaction.logs[3])
+  async storeMintData(eventLog: any): Promise<any> {
+    const { image, description } = await this.getDefaultData()
 
-    let hash
+    const { logs, hash } = eventLog.transaction
+    const data = await this.decodeNFTEvent(logs[logs.length - 2])
 
-    if (data.transactionName === 'BrainPassBought') {
+    let ipfshash
+
+    if (data.transactionName === BrainPassContractMethods.MINT) {
       const nftMetadata = {
-        name: data.passName,
-        description: 'brainpass nft',
+        name: `${data.passName}-${data.tokenId}`,
+        description,
+        image,
         id: data.tokenId,
         attributes: [],
       }
@@ -85,42 +94,41 @@ class BrainPassService {
         .getPinataInstance()
         .pinJSONToIPFS(nftMetadata)
 
-      hash = IpfsHash
-      //   await this.updateHashMetadata({
-      //     hash: IpfsHash,
-      //     name: data.passName,
-      //     tokenId: data.tokenId,
-      //     passId: data.passId,
-      //   })
+      ipfshash = IpfsHash
+    //   await this.updateHashMetadata({
+    //     hash: IpfsHash,
+    //     name: data.passName,
+    //     tokenId: data.tokenId,
+    //     passId: data.passId,
+    //   })
     }
-    const brainPassBought: BrainPassDto = {
-      tokenId: data.tokenId,
-      passName: data.passName,
-      passId: data.passId,
-      owner: data.owner,
-      image: data.image,
-      description: '',
-      price: data.price,
-      transactionHash: eventLog.transaction.hash,
-      metadataHash: hash,
+    const existTransaction = await this.repo.getBrainPassByTxHash(
+      eventLog.transaction.hash,
+    )
+    if (!existTransaction) {
+      const brainPassBought: BrainPassDto = {
+        tokenId: data.tokenId,
+        passName: data.passName,
+        passId: data.passId,
+        owner: data.owner,
+        image,
+        description,
+        price: data.price,
+        transactionHash: hash,
+        metadataHash: ipfshash,
+      }
+      await this.repo.createBrainPass(brainPassBought)
     }
-    await this.repo.createBrainPass(brainPassBought)
   }
 
   async getPinataData(hash: string): Promise<any> {
     const pinataUrl = `https://gateway.pinata.cloud/ipfs/${hash}`
+    const { image, description } = await this.getDefaultData()
     let dat = {
-      description: 'Brainpass for wiki edits',
-      image:
-        'https://ipfs.io/ipfs/QmQqHUeQJXVA2x88Se7g1ZcbtEvWKRiMbhdSE6FggMK1Kf',
-      name: 'GeneralBrainPass-1',
-      attributes: [
-        {
-          display_type: 'boost_percentage',
-          trait_type: 'Subscription Days',
-          value: 30,
-        },
-      ],
+      description,
+      image,
+      name: 'BrainPass',
+      attributes: [],
     }
     try {
       const response = await this.httpService.get(pinataUrl).toPromise()
