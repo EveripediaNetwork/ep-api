@@ -50,6 +50,13 @@ class BrainPass {
   @Field(() => String, { nullable: true })
   @Column('varchar', {
     length: 255,
+    nullable: true
+  })
+  transactionType?: string
+
+  @Field(() => String, { nullable: true })
+  @Column('varchar', {
+    length: 255,
   })
   transactionType?: string
 
