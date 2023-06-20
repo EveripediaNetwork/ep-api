@@ -41,7 +41,7 @@ class BrainPassService {
         BigNumber.from(Number(data?.args._price).toString()),
       ),
       passName: data?.args._passName,
-      transactionName: data?.name,
+      transactionName: data?.name as string,
       attributes: [],
     }
 
@@ -112,6 +112,7 @@ class BrainPassService {
         passName: `${passNames[data.passId]}-${data.tokenId}`,
         passId: data.passId,
         owner: data.owner,
+        transactionType: data?.transactionName,
         image,
         description,
         price: data.price,
