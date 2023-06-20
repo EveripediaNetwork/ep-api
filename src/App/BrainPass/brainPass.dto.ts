@@ -27,6 +27,9 @@ class BrainPassDto {
 
   @IsString()
   transactionHash!: string
+
+  @IsString()
+  transactionType!: string
 }
 
 export enum BrainPassContractMethods {
