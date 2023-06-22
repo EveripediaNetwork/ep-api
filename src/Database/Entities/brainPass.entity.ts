@@ -58,12 +58,6 @@ class BrainPass {
   @Column('varchar', {
     length: 255,
   })
-  transactionType?: string
-
-  @Field(() => String, { nullable: true })
-  @Column('varchar', {
-    length: 255,
-  })
   image!: string
 
   @Field(() => String, { nullable: true })
