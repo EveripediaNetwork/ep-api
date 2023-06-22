@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import BrainPass from '../../Database/Entities/brainPass.entity'
-import BrainPassDto from './brainPass.dto'
+import BrainPassDto, { BrainPassArgs } from './brainPass.dto'
 
 @Injectable()
 class BrainPassRepository extends Repository<BrainPass> {
@@ -18,8 +18,17 @@ class BrainPassRepository extends Repository<BrainPass> {
     return this.save(newBrainPass)
   }
 
-  async getBrainPassByAddress(owner: string): Promise<BrainPass[] | null> {
-    const brainPass = this.find({ where: { owner } })
+  async getBrainPassByAddress(
+    args: BrainPassArgs,
+  ): Promise<BrainPass[] | null> {
+    const brainPass = this.find({
+      where: { owner: args.address },
+      take: args.limit,
+      skip: args.offset,
+      order: {
+        created: 'DESC',
+      },
+    })
     return brainPass
   }
 
