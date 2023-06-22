@@ -112,13 +112,23 @@ class StatsGetterService {
             cgVolumeData.total_volumes[0][1]) *
           100
 
+    let marketCap
+
+    if (cgMarketData.market_cap !== 0 && cmcData.market_cap !== 0) {
+      marketCap = cgMarketData.market_cap
+    } else if (cgMarketData.market_cap === 0) {
+      marketCap = cmcData.market_cap
+    } else {
+      marketCap = cgMarketData.market_cap
+    }
+
     const tokenStats: TokenData = {
       id: res[0].slug,
       symbol: res[0].symbol,
       name: res[0].name,
       token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
-      market_cap: cmcData.market_cap,
+      market_cap: marketCap,
       market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
       diluted_market_cap: cmcData.fully_diluted_market_cap,
