@@ -149,7 +149,6 @@ export const brainPassAbi = [
 
 export default BrainPassDto
 
-
 @ArgsType()
 export class BrainPassArgs extends PaginationArgs {
   @Field(() => String)

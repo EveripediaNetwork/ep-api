@@ -18,7 +18,9 @@ class BrainPassRepository extends Repository<BrainPass> {
     return this.save(newBrainPass)
   }
 
-  async getBrainPassByAddress(args: BrainPassArgs): Promise<BrainPass[] | null> {
+  async getBrainPassByAddress(
+    args: BrainPassArgs,
+  ): Promise<BrainPass[] | null> {
     const brainPass = this.find({
       where: { owner: args.address },
       take: args.limit,
