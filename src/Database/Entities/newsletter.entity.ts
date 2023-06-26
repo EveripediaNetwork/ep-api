@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm'
 import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ description: 'IQ Social newsletter' })

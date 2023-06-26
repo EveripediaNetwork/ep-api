@@ -4,9 +4,7 @@ import Newsletter from '../../Database/Entities/newsletter.entity'
 
 @Injectable()
 class NewsletterRepository extends Repository<Newsletter> {
-  constructor(
-    private dataSource: DataSource
-  ) {
+  constructor(private dataSource: DataSource) {
     super(Newsletter, dataSource.createEntityManager())
   }
 

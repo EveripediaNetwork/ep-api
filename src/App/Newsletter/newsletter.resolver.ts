@@ -1,13 +1,13 @@
-import {  IsEmail } from 'class-validator'
+import { IsEmail } from 'class-validator'
 import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
 import Newsletter from '../../Database/Entities/newsletter.entity'
 import NewsletterRepository from './newsletter.repository'
 
 @ArgsType()
 export class NewsletterArgs {
-    @IsEmail()
+  @IsEmail()
     @Field(() => String)
-    email!: string
+  email!: string
 }
 
 @Resolver(() => Newsletter)
