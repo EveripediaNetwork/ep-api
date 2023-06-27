@@ -14,6 +14,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 import WikiResolver from './Wiki/wiki.resolver'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
@@ -55,7 +56,6 @@ import TagService from './Tag/tag.service'
 import PinModule from './pinJSONAndImage/pin.module'
 import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
-
 // instannul ignore next
 @Module({
   imports: [
@@ -82,6 +82,7 @@ import ActivityModule from './Activities/activity.module'
         ],
       },
     }),
+    ScheduleModule.forRoot(),
     SitemapModule,
     SentryMod,
     MailerModule,
@@ -126,6 +127,7 @@ import ActivityModule from './Activities/activity.module'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    CronService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>
