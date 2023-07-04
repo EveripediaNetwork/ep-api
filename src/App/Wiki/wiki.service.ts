@@ -256,7 +256,7 @@ class WikiService {
       .createQueryBuilder('wiki')
       .select(`Sum("views")`, 'amount')
       .where(
-        'wiki.updated >= to_timestamp(start) AND wiki.updated <= to_timestamp(end)',
+        'wiki.updated >= to_timestamp(:start) AND wiki.updated <= to_timestamp(:end)',
       )
       .setParameters({
         start: args.startDate,
