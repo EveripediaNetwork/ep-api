@@ -1,4 +1,4 @@
-import { Field, GraphQLISODateTime } from '@nestjs/graphql'
+import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
 import {
   Entity,
   Column,
@@ -7,11 +7,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 
+@ObjectType()
 @Entity()
 class Treasury {
+  @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Field(() => String)
   @Column('varchar')
   totalValue!: string
 
