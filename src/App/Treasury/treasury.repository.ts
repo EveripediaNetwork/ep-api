@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Between, DataSource, Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import Treasury from '../../Database/Entities/treasury.entity'
-
-const startDate = new Date('2023-01-01')
-const endDate = new Date('2023-12-31')
+import { DateArgs } from '../Wiki/wikiStats.dto'
 
 @Injectable()
 class TreasuryRepository extends Repository<Treasury> {
@@ -16,12 +14,16 @@ class TreasuryRepository extends Repository<Treasury> {
     return this.save(newTreasuryValue)
   }
 
-  async getDailyTreasuryValue(): Promise<Treasury[]> {
-    return this.find({
-      where: {
-        created: Between(startDate, endDate),
-      },
-    })
+  async getDailyTreasuryValue(date: DateArgs): Promise<Treasury[]> {
+    return this.createQueryBuilder('treasury')
+      .where(
+        'treasury.created >= to_timestamp(:start) AND treasury.created <= to_timestamp(:end)',
+      )
+      .setParameters({
+        start: date.startDate,
+        end: date.endDate,
+      })
+      .getMany()
   }
 }
 

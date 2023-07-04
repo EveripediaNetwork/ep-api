@@ -19,8 +19,6 @@ class TreasuryService {
     private httpService: HttpService,
   ) {}
 
-  private counter = 0
-
   private getTreasuryENVs() {
     return {
       debank: this.configService.get<string>('DEBANK_API_KEY'),
@@ -28,16 +26,10 @@ class TreasuryService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  //   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
-    this.counter += 1
-    console.log(`Done ${this.counter}`)
     const value = await this.main()
     await this.repo.saveData(`${value}`)
-    // const c = await this.repo.getDailyTreasuryValue()
-    // console.log(c)
-    console.log(value)
   }
 
   async requestToDebank(query: string): Promise<any> {
@@ -100,7 +92,7 @@ class TreasuryService {
     return filteredResult
   }
 
-  async main() {
+  async main(): Promise<number> {
     const address = this.getTreasuryENVs().treasury as string
     const treasury = await this.treasuryTokens(address, Protocols.ETH)
     const contractProtocoldetails = await this.contractProtocoldetails(
