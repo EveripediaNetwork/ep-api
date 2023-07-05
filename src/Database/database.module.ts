@@ -14,6 +14,7 @@ import PageviewsPerDay from './Entities/pageviewsPerPage.entity'
 import ContentFeedback from './Entities/contentFeedback.entity'
 import Feedback from './Entities/feedback.entity'
 import BrainPass from './Entities/brainPass.entity'
+import Treasury from './Entities/treasury.entity'
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import BrainPass from './Entities/brainPass.entity'
           ContentFeedback,
           Feedback,
           BrainPass,
+          Treasury
         ],
         synchronize: true,
         keepConnectionAlive: true,

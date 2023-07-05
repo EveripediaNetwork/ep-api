@@ -55,7 +55,7 @@ import TagService from './Tag/tag.service'
 import PinModule from './pinJSONAndImage/pin.module'
 import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
-
+import TreasuryModule from './Treasury/treasury.module'
 // instannul ignore next
 @Module({
   imports: [
@@ -94,6 +94,7 @@ import ActivityModule from './Activities/activity.module'
     BrainPassModule,
     ActivityModule,
     IndexerWebhookModule,
+    TreasuryModule
   ],
   controllers: [],
   providers: [

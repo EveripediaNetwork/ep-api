@@ -50,6 +50,7 @@
     "@nestjs/graphql": "^10.0.21",
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/platform-fastify": "^8.4.5",
+    "@nestjs/schedule": "^3.0.1",
     "@nestjs/typeorm": "^9.0.1",
     "@ntegral/nestjs-sentry": "^4.0.0",
     "@pinata/sdk": "^2.1.0",

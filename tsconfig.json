@@ -4,8 +4,13 @@
     "rootDir": ".",
     "outDir": "dist",
     "types": ["jest", "node", "@types/jest"],
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
   },
-  "include": ["src/", "test/"],
+  "include": [
+    "src/",
+    "test/",
+    "coverage/Newsletter",
+    "coverage/lcov-report/newsletter.entity.ts"
+  ],
   "exclude": ["node_modules", "uploads"]
 }
