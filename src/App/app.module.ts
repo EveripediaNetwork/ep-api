@@ -56,6 +56,7 @@ import PinModule from './pinJSONAndImage/pin.module'
 import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
 import TreasuryModule from './Treasury/treasury.module'
+import StakedIQModule from './StakedIQ/stakedIQ.module'
 // instannul ignore next
 @Module({
   imports: [
@@ -94,7 +95,8 @@ import TreasuryModule from './Treasury/treasury.module'
     BrainPassModule,
     ActivityModule,
     IndexerWebhookModule,
-    TreasuryModule
+    TreasuryModule, 
+    StakedIQModule
   ],
   controllers: [],
   providers: [

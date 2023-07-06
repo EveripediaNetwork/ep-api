@@ -15,6 +15,7 @@ import ContentFeedback from './Entities/contentFeedback.entity'
 import Feedback from './Entities/feedback.entity'
 import BrainPass from './Entities/brainPass.entity'
 import Treasury from './Entities/treasury.entity'
+import StakedIQ from './Entities/stakedIQ.entity'
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import Treasury from './Entities/treasury.entity'
           ContentFeedback,
           Feedback,
           BrainPass,
-          Treasury
+          Treasury,
+          StakedIQ,
         ],
         synchronize: true,
         keepConnectionAlive: true,
