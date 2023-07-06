@@ -7,7 +7,6 @@ import StakedIQRepository from './stakedIQ.repository'
 import StakedIQResolver from './stakedIQ.resolver'
 import StakedIQService from './stakedIQ.service'
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([StakedIQ]),
@@ -17,4 +16,4 @@ import StakedIQService from './stakedIQ.service'
   providers: [StakedIQResolver, StakedIQService, StakedIQRepository],
   exports: [StakedIQResolver, StakedIQService, StakedIQRepository],
 })
-export default class TreasuryModule {}
+export default class StakedIQModule {}
