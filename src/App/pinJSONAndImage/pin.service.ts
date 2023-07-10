@@ -86,13 +86,13 @@ class PinService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-    const c: WikiType = isContentSecure.data
+    
     const payload = {
       pinataMetadata: {
-        name: c.content !== undefined ? isContentSecure.data.title : 'image',
+        name: wikiData.content !== undefined ? wikiData.title : 'image',
       },
       pinataContent: {
-        ...isContentSecure.data,
+        ...wikiData,
       },
     }
     const pinToPinata = async (wikiContent: typeof payload) =>
