@@ -86,7 +86,7 @@ class PinService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-    
+
     const payload = {
       pinataMetadata: {
         name: wikiData.content !== undefined ? wikiData.title : 'image',
