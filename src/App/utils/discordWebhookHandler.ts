@@ -253,10 +253,11 @@ export default class WebhookHandler {
       const desc = payload?.urlId
         ? `
             Wiki page not found, but token name detected
-            name: ${payload.user}
-            symbol: ${payload.username}
+            
+            name: ***${payload.user}***
+            symbol: ***${payload.username}***
         `
-        : `Wiki page not found for ${payload.user}`
+        : `Wiki page not found for ***${payload.user}***`
       const jsonContent = JSON.stringify({
         username: 'Eth address ➡️ Wiki Page',
         embeds: [
