@@ -182,7 +182,7 @@ export default class WebhookHandler {
           complete: async () => {
             await fss.unlink('./uploads/message.json')
           },
-          error: async (err) => {
+          error: async err => {
             await fss.unlink('./uploads/message.json')
             console.log(err.response)
           },
@@ -250,65 +250,32 @@ export default class WebhookHandler {
       }
     }
     if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
-      let jsonContent
-      let user
-      if (payload && !payload.user && payload.ip) {
-        const a = payload.ip.split('.')
-        user = `${a[0]}.${a[1]}.${a[2]}.*`
-      } else {
-        const userProfile = await userProfileRepo.findOneBy({
-          id: payload?.user,
-        })
-        user = userProfile?.username || 'anonymous'
-      }
-
-      if (payload.title === ContentFeedbackSite.IQWIKI) {
-        const wiki = await wikiRepo.find({
-          select: ['title'],
-          where: {
-            id: payload?.urlId,
-            hidden: false,
+      const desc = payload?.urlId
+        ? `
+            Wiki page not found, but token name detected
+            name: ${payload.user}
+            symbol: ${payload.username}
+        `
+        : `Wiki page not found for ${payload.user}`
+      const jsonContent = JSON.stringify({
+        username: 'Eth address ➡️ Wiki Page',
+        embeds: [
+          {
+            color: payload?.urlId ? 0xb400ce : 0xffa500,
+            url: payload?.urlId
+              ? payload?.urlId
+              : `https://etherscan.io/token/${payload.user}`,
+            title: 'Wiki page not found ❌',
+            description: desc,
+            footer: {
+              text: payload?.urlId
+                ? 'Source - Blockscout'
+                : 'Source - Etherscan',
+            },
           },
-        })
-        jsonContent = JSON.stringify({
-          username: 'IQ Wiki - Eth address ➡️ Wiki Page',
-          embeds: [
-            {
-              color:
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 0x6beb34
-                  : 0xb400ce,
-              title: `${
-                payload?.type === ContentFeedbackType.POSITIVE ? '👍' : '👎'
-              }  ${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
-              url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
-              description: `${user} ${
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 'finds'
-                  : 'does not find'
-              } this wiki interesting`,
-              footer: {
-                text: 'Source - Blockscout',
-              },
-            },
-          ],
-        })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
-      }
-
-      if (payload.title === ContentFeedbackSite.IQSOCIAL) {
-        jsonContent = JSON.stringify({
-          username: 'IQ Social feedback',
-          embeds: [
-            {
-              color: 0xbe185d,
-              title: payload?.reportSubject,
-              description: `_${payload?.description}_ \n\n ID: ${payload?.urlId}  \n\n _Reported by_ 🎤 ***${user}*** `,
-            },
-          ],
-        })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
-      }
+        ],
+      })
+      await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
 
     return true

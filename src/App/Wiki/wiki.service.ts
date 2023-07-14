@@ -211,17 +211,19 @@ class WikiService {
     // const b = `
 
     //   `
-    // let addressData
-    // try {
-    //   const response = await this.httpService
-    //     .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
-    //     .toPromise()
-    //   addressData = response?.data
-    //   console.log('response', response?.data)
-    // } catch (error: any) {
-    //   console.error('error', error?.response.data.message)
-    //   console.error('error', error.response.status)
-    // }
+    let addressData
+    try {
+      const response = await this.httpService
+        .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
+        .toPromise()
+      addressData = response?.data
+      console.log('response', response?.data)
+    } catch (error: any) {
+      console.error('error', error?.response.data.message)
+      console.error('error', error.response.status)
+    }
+    const symbol = addressData?.token?.symbol
+    const name = addressData?.token?.name
 
     // const { token } = addressData
     // const { name, symbol } = token
@@ -229,13 +231,15 @@ class WikiService {
     //   console.log(name)
     //   console.log(symbol)
     // }
-
-    // check blockscout `https://eth.blockscout.com/api/v2/addresses/${address}`
-    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
-      urlId: `https://eth.blockscout.com/api/v2/addresses/${address}`,
-      title: 'WIKI ETH ADDRESS ',
-      description: `Wiki page not found for ${address}`,
-    })
+// ;`https://eth.blockscout.com/address/${address}`,
+  // check blockscout `https://eth.blockscout.com/api/v2/addresses/${address}`
+  await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
+    urlId: name
+      ? `https://eth.blockscout.com/address/${address}`
+      : undefined,
+    username: symbol || 'Unknown symbol',
+    user: name || address,
+  })
     // await this.cacheManager.set(address, '')
   }
 
