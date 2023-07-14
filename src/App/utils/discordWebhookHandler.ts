@@ -249,6 +249,67 @@ export default class WebhookHandler {
         await this.sendToChannel(boundary, jsonContent, internalActivity)
       }
     }
+    if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
+      let jsonContent
+      let user
+      if (payload && !payload.user && payload.ip) {
+        const a = payload.ip.split('.')
+        user = `${a[0]}.${a[1]}.${a[2]}.*`
+      } else {
+        const userProfile = await userProfileRepo.findOneBy({
+          id: payload?.user,
+        })
+        user = userProfile?.username || 'anonymous'
+      }
+
+      if (payload.title === ContentFeedbackSite.IQWIKI) {
+        const wiki = await wikiRepo.find({
+          select: ['title'],
+          where: {
+            id: payload?.urlId,
+            hidden: false,
+          },
+        })
+        jsonContent = JSON.stringify({
+          username: 'IQ Wiki - Eth address ➡️ Wiki Page',
+          embeds: [
+            {
+              color:
+                payload?.type === ContentFeedbackType.POSITIVE
+                  ? 0x6beb34
+                  : 0xb400ce,
+              title: `${
+                payload?.type === ContentFeedbackType.POSITIVE ? '👍' : '👎'
+              }  ${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
+              url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
+              description: `${user} ${
+                payload?.type === ContentFeedbackType.POSITIVE
+                  ? 'finds'
+                  : 'does not find'
+              } this wiki interesting`,
+              footer: {
+                text: 'Source - Blockscout',
+              },
+            },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
+
+      if (payload.title === ContentFeedbackSite.IQSOCIAL) {
+        jsonContent = JSON.stringify({
+          username: 'IQ Social feedback',
+          embeds: [
+            {
+              color: 0xbe185d,
+              title: payload?.reportSubject,
+              description: `_${payload?.description}_ \n\n ID: ${payload?.urlId}  \n\n _Reported by_ 🎤 ***${user}*** `,
+            },
+          ],
+        })
+        await this.sendToChannel(boundary, jsonContent, internalActivity)
+      }
+    }
 
     return true
   }

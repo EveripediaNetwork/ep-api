@@ -25,7 +25,7 @@ class WikiService {
     private configService: ConfigService,
     private validSlug: ValidSlug,
     private dataSource: DataSource,
-    // private webhookHandler: WebhookHandler,
+    private webhookHandler: WebhookHandler,
     private httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
@@ -211,31 +211,31 @@ class WikiService {
     // const b = `
 
     //   `
-    let addressData
-    try {
-      const response = await this.httpService
-        .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
-        .toPromise()
-      addressData = response?.data
-      console.log('response', response?.data)
-    } catch (error: any) {
-      console.error('error', error?.response.data.message)
-      console.error('error', error.response.status)
-    }
+    // let addressData
+    // try {
+    //   const response = await this.httpService
+    //     .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
+    //     .toPromise()
+    //   addressData = response?.data
+    //   console.log('response', response?.data)
+    // } catch (error: any) {
+    //   console.error('error', error?.response.data.message)
+    //   console.error('error', error.response.status)
+    // }
 
-    const { token } = addressData
-    const { name, symbol } = token
-    if (name && symbol) {
-        console.log(name)
-        console.log(symbol)
-    }
+    // const { token } = addressData
+    // const { name, symbol } = token
+    // if (name && symbol) {
+    //   console.log(name)
+    //   console.log(symbol)
+    // }
 
     // check blockscout `https://eth.blockscout.com/api/v2/addresses/${address}`
-    // await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
-    //   urlId: `https://eth.blockscout.com/api/v2/addresses/${address}`,
-    //   title: 'WIKI ETH ADDRESS ',
-    //   description: `Wiki page not found for ${address}`,
-    // })
+    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
+      urlId: `https://eth.blockscout.com/api/v2/addresses/${address}`,
+      title: 'WIKI ETH ADDRESS ',
+      description: `Wiki page not found for ${address}`,
+    })
     // await this.cacheManager.set(address, '')
   }
 
@@ -252,7 +252,9 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (await this.repository())
+        await (
+          await this.repository()
+        )
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -260,7 +262,9 @@ class WikiService {
           .execute()
       }
 
-      await (await this.repository())
+      await (
+        await this.repository()
+      )
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -273,7 +277,9 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -284,7 +290,9 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -310,7 +318,9 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (await this.repository())
+    const response = await (
+      await this.repository()
+    )
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')

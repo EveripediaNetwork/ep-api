@@ -5,7 +5,7 @@ export enum ActionTypes {
   PINJSON_ERROR = 'pinJSON',
   ADMIN_ACTION = 'adminAction',
   CONTENT_FEEDBACK = 'contentFeedback',
-  WIKI_ETH_ADDRESS = 'wikiEthAddress'
+  WIKI_ETH_ADDRESS = 'wikiEthAddress',
 }
 
 export enum AdminMutations {
