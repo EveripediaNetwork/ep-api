@@ -2,7 +2,6 @@ import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
@@ -16,8 +15,6 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
-import WebhookHandler from '../utils/discordWebhookHandler'
-import { ActionTypes } from '../utils/utilTypes'
 
 @Injectable()
 class WikiService {
@@ -25,8 +22,6 @@ class WikiService {
     private configService: ConfigService,
     private validSlug: ValidSlug,
     private dataSource: DataSource,
-    private webhookHandler: WebhookHandler,
-    private httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -191,32 +186,7 @@ class WikiService {
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
-    if (!links) {
-      await this.checkEthAddress(address)
-    }
     return links
-  }
-
-  async checkEthAddress(address: string): Promise<void> {
-    let addressData
-    try {
-      const response = await this.httpService
-        .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
-        .toPromise()
-      addressData = response?.data
-      console.log('response', response?.data)
-    } catch (error: any) {
-      console.error('blockscout error', error?.response.data.message)
-      console.error('blockscout error', error.response.status)
-    }
-    const symbol = addressData?.token?.symbol
-    const name = addressData?.token?.name
-
-    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
-      urlId: name ? `https://eth.blockscout.com/address/${address}` : undefined,
-      username: symbol || 'Unknown symbol',
-      user: name || address,
-    })
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {

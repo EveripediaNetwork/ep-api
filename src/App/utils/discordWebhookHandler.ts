@@ -249,35 +249,6 @@ export default class WebhookHandler {
         await this.sendToChannel(boundary, jsonContent, internalActivity)
       }
     }
-    if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
-      const desc = payload?.urlId
-        ? `
-            Wiki page not found, but token name detected
-            
-            name: ***${payload.user}***
-            symbol: ***${payload.username}***
-        `
-        : `Wiki page not found for ***${payload.user}***`
-      const jsonContent = JSON.stringify({
-        username: 'Eth address ➡️ Wiki Page',
-        embeds: [
-          {
-            color: payload?.urlId ? 0xb400ce : 0xffa500,
-            url: payload?.urlId
-              ? payload?.urlId
-              : `https://etherscan.io/token/${payload.user}`,
-            title: 'Wiki page not found ❌',
-            description: desc,
-            footer: {
-              text: payload?.urlId
-                ? 'Source - Blockscout'
-                : 'Source - Etherscan',
-            },
-          },
-        ],
-      })
-      await this.sendToChannel(boundary, jsonContent, internalActivity)
-    }
 
     return true
   }
