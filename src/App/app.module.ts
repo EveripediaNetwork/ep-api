@@ -10,9 +10,11 @@ import {
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
+import WikiResolver from './Wiki/wiki.resolver'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
 import TagResolver from './Tag/tag.resolver'
@@ -24,6 +26,7 @@ import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './User/userProfile.resolver'
 import UserService from './User/user.service'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
+import { ValidSlug } from './utils/validSlug'
 import PageViewsResolver from './pageViews/pageViews.resolver'
 import PageViewsService from './pageViews/pageViews.service'
 import { RevalidatePageService } from './revalidatePage/revalidatePage.service'
@@ -39,6 +42,7 @@ import SentryPlugin from '../sentry/sentryPlugin'
 import MarketCapResolver from './marketCap/marketCap.resolver'
 import MarketCapService from './marketCap/marketCap.service'
 import SitemapModule from '../Sitemap/sitemap.module'
+import WikiService from './Wiki/wiki.service'
 import logger from './utils/logger'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
@@ -53,7 +57,6 @@ import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
 import TreasuryModule from './Treasury/treasury.module'
 import StakedIQModule from './StakedIQ/stakedIQ.module'
-import WikiModule from './Wiki/wiki.module'
 // instannul ignore next
 @Module({
   imports: [
@@ -84,6 +87,7 @@ import WikiModule from './Wiki/wiki.module'
     SentryMod,
     MailerModule,
     httpModule(20000),
+    EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
     PinModule,
     DatabaseModule,
     RelayerModule,
@@ -92,13 +96,14 @@ import WikiModule from './Wiki/wiki.module'
     ActivityModule,
     IndexerWebhookModule,
     TreasuryModule, 
-    StakedIQModule,
-    WikiModule
+    StakedIQModule
   ],
   controllers: [],
   providers: [
     SecurityTestingService,
     ConfigService,
+    WikiResolver,
+    WikiService,
     LanguageResolver,
     CategoryResolver,
     CategoryService,
@@ -107,6 +112,7 @@ import WikiModule from './Wiki/wiki.module'
     UserResolver,
     UserService,
     UserProfileResolver,
+    ValidSlug,
     PageViewsResolver,
     PageViewsService,
     RevalidatePageService,
