@@ -65,13 +65,13 @@ class StakedIQService {
         // console.log(contract.queryFilter(eventFilter))
         return contract.queryFilter(eventFilter)
       })
-      .then(pastEvents => {
-        pastEvents.forEach(event => {
+      .then((pastEvents) => {
+        pastEvents.forEach((event) => {
           console.log('Past event:', event)
           // Process the past event data as needed
         })
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error:', error)
       })
 
