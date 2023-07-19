@@ -111,12 +111,12 @@ class StakedIQService {
         : unixTimestampSeconds,
     )
     const blockNumberForQuery = await this.retrieveBlockNumber(oneDayBack)
-    if (blockNumberForQuery === null) return
+    if (blockNumberForQuery === null) return undefined
     const previousLockedBalance = await this.getLockBalance(blockNumberForQuery)
-    if (previousLockedBalance === null) return
+    if (previousLockedBalance === null) return undefined
 
     if (leastRecordByDate.length > 0) {
-      return
+      return undefined
     }
 
     const previousDate = oneDayBack * 1000
