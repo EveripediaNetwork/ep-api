@@ -121,7 +121,7 @@ class StakedIQService {
 
     const previousDate = oneDayBack * 1000
     const incomingDate = new Date(previousDate)
-    return
+    return undefined
     // before store check that the incoming date has not been inserted then store value(insert record, use the date as created and updated) otherwise return
     const existingRecord = await this.repo
       .createQueryBuilder('staked_iq')
