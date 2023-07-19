@@ -67,8 +67,8 @@ class StakedIQService {
   }
 
   getLockBalance = async (blockNumber: number) => {
-    try{
-       const provider = new ethers.providers.JsonRpcProvider(this.provider())
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(this.provider())
       const iface = new ethers.utils.Interface(erc20Abi)
       const iq = new ethers.Contract(this.address().iq, iface, provider)
       const balanceWei = await iq.balanceOf(this.address().hiIQ, {
@@ -80,19 +80,17 @@ class StakedIQService {
           this.address().hiIQ
         } at date ${blockNumber}: ${balanceIQ} IQ`,
       )
-    }
-    catch(e: any){
+    } catch (e: any) {
       console.log(e)
       return null
     }
   }
 
-
   @Cron(CronExpression.EVERY_10_SECONDS, {
     // disabled: this.enablePreviousDataCron(),
   })
   async test(): Promise<void> {
-    const leastRecordByDate = await this.getLeastRecordByDate() 
+    const leastRecordByDate = await this.getLeastRecordByDate()
     let unixTimestampSeconds = Math.floor(
       leastRecordByDate.length > 0
         ? leastRecordByDate[0].created.getTime() / 1000
@@ -113,14 +111,14 @@ class StakedIQService {
         : unixTimestampSeconds,
     )
     const blockNumberForQuery = await this.retrieveBlockNumber(oneDayBack)
-    if(blockNumberForQuery === null) return 
+    if (blockNumberForQuery === null) return
     const previousLockedBalance = await this.getLockBalance(blockNumberForQuery)
-    if(previousLockedBalance === null) return
+    if (previousLockedBalance === null) return
 
-    if(leastRecordByDate.length > 0){
+    if (leastRecordByDate.length > 0) {
       return
     }
-    
+
     const previousDate = oneDayBack * 1000
     const incomingDate = new Date(previousDate)
     return
