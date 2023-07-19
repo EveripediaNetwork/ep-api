@@ -111,9 +111,10 @@ class StakedIQService {
         : unixTimestampSeconds,
     )
     const blockNumberForQuery = await this.retrieveBlockNumber(oneDayBack)
-    if (blockNumberForQuery === null) console.log("block number is null")
+    if (blockNumberForQuery === null) console.log('block number is null')
     const previousLockedBalance = await this.getLockBalance(blockNumberForQuery)
-    if (previousLockedBalance === null) console.log("previous locked balance is null")
+    if (previousLockedBalance === null)
+      console.log('previous locked balance is null')
 
     if (leastRecordByDate.length > 0) {
       console.log("I'm here")
