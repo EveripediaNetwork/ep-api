@@ -6,6 +6,7 @@ import StakedIQ from '../../Database/Entities/stakedIQ.entity'
 import StakedIQRepository from './stakedIQ.repository'
 import StakedIQResolver from './stakedIQ.resolver'
 import StakedIQService from './stakedIQ.service'
+import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import StakedIQService from './stakedIQ.service'
     ScheduleModule.forRoot(),
     HttpModule,
   ],
-  providers: [StakedIQResolver, StakedIQService, StakedIQRepository],
+  providers: [StakedIQResolver, StakedIQService, StakedIQRepository, AlchemyNotifyService],
   exports: [StakedIQResolver, StakedIQService, StakedIQRepository],
 })
 export default class StakedIQModule {}

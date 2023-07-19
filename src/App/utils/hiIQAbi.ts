@@ -281,8 +281,9 @@ const hiIQAbi = [
       },
     ],
     stateMutability: 'nonpayable',
-    type: 'function',
+    // type: 'function',
     gas: 92415425,
+    type: 'event',
   },
   {
     name: 'increase_amount',
