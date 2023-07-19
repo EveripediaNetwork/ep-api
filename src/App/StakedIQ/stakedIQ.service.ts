@@ -54,24 +54,24 @@ class StakedIQService {
     const eventName = 'create_lock'
 
     // Get the block number of the latest block
-    const latestBlockNumber = await provider.getBlockNumber();
+    const latestBlockNumber = await provider.getBlockNumber()
 
     // Set the starting and ending blocks for querying events
-    const fromBlock = 0; // Start from the genesis block (or any desired block number)
-    const toBlock = latestBlockNumber;
+    const fromBlock = 0 // Start from the genesis block (or any desired block number)
+    const toBlock = latestBlockNumber
 
     // Create the event filter
-    const eventFilter = contract.filters[eventName]();
+    const eventFilter = contract.filters[eventName]()
 
     // Get the events using the event filter and block range
-    const events = await contract.queryFilter(eventFilter, fromBlock, toBlock);
+    const events = await contract.queryFilter(eventFilter, fromBlock, toBlock)
 
     events.forEach(async (event) => {
       console.log(event)
       // const decoded = await this.alchemyNotifyService.decodeLog(event.data, hiIQAbi)
       // console.log('Event:', event);
       // Process the event data as needed
-    });
+    })
 
     // const eventFilter = {
     //   address: this.address().hiIQ,
