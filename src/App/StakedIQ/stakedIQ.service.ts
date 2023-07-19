@@ -111,37 +111,36 @@ class StakedIQService {
         : unixTimestampSeconds,
     )
     const blockNumberForQuery = await this.retrieveBlockNumber(oneDayBack)
-    if (blockNumberForQuery === null) return undefined
+    if (blockNumberForQuery === null) console.log("block number is null")
     const previousLockedBalance = await this.getLockBalance(blockNumberForQuery)
-    if (previousLockedBalance === null) return undefined
+    if (previousLockedBalance === null) console.log("previous locked balance is null")
 
     if (leastRecordByDate.length > 0) {
-      return undefined
+      console.log("I'm here")
     }
 
     const previousDate = oneDayBack * 1000
     const incomingDate = new Date(previousDate)
-    return undefined
     // before store check that the incoming date has not been inserted then store value(insert record, use the date as created and updated) otherwise return
-    const existingRecord = await this.repo
-      .createQueryBuilder('staked_iq')
-      .where('staked_iq.created >= to_timestamp(:previousDate)', {
-        previousDate,
-      })
-      .getOne()
-    if (limtReached) {
-      return
-    }
-    console.log(existingRecord)
-    return
-    if (!existingRecord) {
-      const oldStackedValue = this.repo.create({
-        amount: `${previousLockedBalance}`,
-        created: incomingDate,
-        updated: incomingDate,
-      })
-      await this.repo.save(oldStackedValue)
-    }
+    // const existingRecord = await this.repo
+    //   .createQueryBuilder('staked_iq')
+    //   .where('staked_iq.created >= to_timestamp(:previousDate)', {
+    //     previousDate,
+    //   })
+    //   .getOne()
+    // if (limtReached) {
+    //   return
+    // }
+    // console.log(existingRecord)
+    // return
+    // if (!existingRecord) {
+    //   const oldStackedValue = this.repo.create({
+    //     amount: `${previousLockedBalance}`,
+    //     created: incomingDate,
+    //     updated: incomingDate,
+    //   })
+    //   await this.repo.save(oldStackedValue)
+    // }
   }
 }
 export default StakedIQService
