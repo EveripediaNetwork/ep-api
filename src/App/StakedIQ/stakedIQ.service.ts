@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
 import erc20Abi from '../utils/erc20Abi'
 import StakedIQRepository from './stakedIQ.repository'
-import hiIQAbi from '../utils/hiIQAbi'
 
 @Injectable()
 class StakedIQService {
@@ -18,6 +17,10 @@ class StakedIQService {
       hiIQ: this.configService.get<string>('HIIQ_ADDRESS') as string,
       iq: this.configService.get<string>('IQ_ADDRESS') as string,
     }
+  }
+
+  private etherScanApiKey(): string {
+    return this.configService.get<string>('etherScanApiKey') as string
   }
 
   private provider(): string {
@@ -44,38 +47,86 @@ class StakedIQService {
   @Cron(CronExpression.EVERY_10_SECONDS, {
     // disabled: this.enablePreviousDataCron(),
   })
-  async prevDataPoints() {
-    // get initial date from first inserted in DB, convert to unix and use as timestamp
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
-    const iface = new ethers.utils.Interface(hiIQAbi as any)
-    const contract = new ethers.Contract(this.address().hiIQ, iface, provider)
-    const increaseAmount = 'increase_amount'
-    // const createLock = 'create_lock'
-    // const methods = [increaseAmount, createLock]
-    // const timestamp = 1689246000 // Replace with your desired timestamp
-    // contract.
-    const startBlock = provider.getBlock(0)
-    const currentBlock = provider.getBlock('latest')
+  async test(): Promise<void> {
+    // Check db by date desc, get 1 if null, initiate get block for present date at 12am
 
-    Promise.all([startBlock, currentBlock])
-      .then(([fromBlock, toBlock]) => {
-        const eventFilter = contract.filters[increaseAmount]()
-        // eventFilter.fromBlock  = fromBlock
-        // eventFilter.toBlock = toBlock
-        // console.log(contract.queryFilter(eventFilter))
-        return contract.queryFilter(eventFilter)
-      })
-      .then((pastEvents) => {
-        pastEvents.forEach((event) => {
-          console.log('Past event:', event)
-          // Process the past event data as needed
-        })
-      })
-      .catch((error) => {
-        console.error('Error:', error)
+    const leastRecordByDate = await this.repo.find({
+      order: {
+        updated: 'DESC',
+      },
+      take: 1,
+    })
+
+    const dateObject = new Date(leastRecordByDate[0].created)
+    let unixTimestampSeconds = Math.floor(dateObject.getTime() / 1000)
+    // console.log(leastRecordByDate)
+    // console.log(unixTimestampSeconds)
+    const limtReached =
+      new Date(unixTimestampSeconds / 1000).getTime() ===
+      new Date(1658188800000).getTime()
+    if (!leastRecordByDate) {
+      unixTimestampSeconds = new Date().setHours(0, 0, 0, 0)
+      return
+    }
+    const oneDayInSeconds = 86400
+    // if value, substract 1 day and get block number
+    const oneDayBack = unixTimestampSeconds - oneDayInSeconds
+    const url = `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${oneDayBack}&closest=before&apikey=${this.etherScanApiKey()}`
+    let blockNumberForQuery
+    try {
+      const response = await fetch(url)
+      const data = await response.json()
+      console.log(data)
+      blockNumberForQuery = data.result
+    } catch (e: any) {
+      console.log(e)
+    }
+    console.log(blockNumberForQuery)
+    // use block number to query for balance
+    let previousLockedBalance
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(this.provider())
+      //   const blockNumber = await provider.getBlockNumber(17695109)
+      const iface = new ethers.utils.Interface(erc20Abi)
+      const iq = new ethers.Contract(this.address().iq, iface, provider)
+      const balanceWei = await iq.balanceOf(this.address().hiIQ, {
+        blockTag: Number(blockNumberForQuery),
       })
 
-    // insert received value in DB using the the previous date from the initial insert record as the created and updated, repeat the process to a specific day
+      // Convert the balance from wei to IQ tokens
+      //   const balanceIQ = ethers.utils.formatUnits(balanceWei, 17) // Assuming 18 decimal places for IQ tokens
+      const balanceIQ = Number(balanceWei.toString()) / 10e17
+
+      console.log(
+        `IQ Token balance of ${
+          this.address().hiIQ
+        } at date ${blockNumberForQuery}: ${balanceIQ} IQ`,
+      )
+      previousLockedBalance = balanceIQ
+    } catch (error) {
+      console.error('Error:', error)
+    }
+    const previousDate = oneDayBack * 1000
+    const incomingDate = new Date(previousDate)
+    // before store check that the incoming date has not been inserted then store value(insert record, use the date as created and updated) otherwise return
+    const existingRecord = await this.repo
+      .createQueryBuilder('staked_iq')
+      .where('staked_iq.created >= to_timestamp(:previousDate)', {
+        previousDate,
+      })
+      .getOne()
+    if (limtReached) {
+      return
+    }
+    console.log(existingRecord)
+    if (!existingRecord) {
+      const oldStackedValue = this.repo.create({
+        amount: `${previousLockedBalance}`,
+        created: incomingDate,
+        updated: incomingDate,
+      })
+      await this.repo.save(oldStackedValue)
+    }
   }
 }
 export default StakedIQService
