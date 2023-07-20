@@ -82,15 +82,17 @@ class StakedIQService {
     }
 
     const key = this.etherScanApiKey()
-    const url = `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
+    const url = `https://api${
+      this.provider().includes('mainnet') ? '' : '-goerli'
+    }.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
+
     let blockNumberForQuery
     try {
       const response = await this.httpService.get(url).toPromise()
       blockNumberForQuery = response?.data.result
     } catch (e: any) {
-      console.error('Error requesting block number', e)
+      console.error('Error requesting block number', e.data)
     }
-
     let previousLockedBalance
     try {
       const balanceIQ = (await this.getTVL(
@@ -100,7 +102,7 @@ class StakedIQService {
       console.log(
         `IQ Token balance of ${
           this.address().hiIQ
-        } at date ${blockNumberForQuery}: ${balanceIQ} IQ`,
+        } at block ${blockNumberForQuery}: ${balanceIQ} IQ`,
       )
       previousLockedBalance = balanceIQ
     } catch (error) {
