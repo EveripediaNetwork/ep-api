@@ -30,20 +30,28 @@ class StakedIQService {
     return this.configService.get<string>('PROVIDER_NETWORK') as string
   }
 
+  public checkProcess() {
+    return parseInt(process.env.NODE_APP_INSTANCE as string, 10) === 0
+  }
+
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeIQStacked(): Promise<void> {
-    const tvl = await this.getTVL()
-    const presentData = await this.existRecord(new Date())
-    if (!presentData) {
-      await this.repo.saveData(`${tvl}`)
+    if (this.checkProcess()) {
+      const tvl = await this.getTVL()
+      const presentData = await this.existRecord(new Date())
+      if (!presentData) {
+        await this.repo.saveData(`${tvl}`)
+      }
     }
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async indexOldStakedBalance(): Promise<void> {
-    const presentData = await this.existRecord(new Date())
-    if (!presentData) {
-      await this.previousStakedIQ()
+    if (this.checkProcess()) {
+      const presentData = await this.existRecord(new Date())
+      if (!presentData) {
+        await this.previousStakedIQ()
+      }
     }
   }
 
