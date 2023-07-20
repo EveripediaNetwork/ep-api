@@ -3,7 +3,6 @@
   "display": "NestJS API",
   "extends": "./base.json",
   "compilerOptions": {
-    "types": ["jest", "node"],
     "module": "commonjs",
     "removeComments": true,
     "emitDecoratorMetadata": true,

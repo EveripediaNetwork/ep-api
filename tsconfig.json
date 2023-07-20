@@ -3,14 +3,11 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist",
-    "types": ["jest", "node", "@types/jest"],
     "experimentalDecorators": true
   },
   "include": [
     "src/",
-    "test/",
-    "coverage/Newsletter",
-    "coverage/lcov-report/newsletter.entity.ts"
+    "test/"
   ],
   "exclude": ["node_modules", "uploads"]
 }
