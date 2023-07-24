@@ -9,6 +9,7 @@ import {
   TreasuryTokenType,
   SUPPORTED_LP_TOKENS_ADDRESSES,
   Protocols,
+  firstLevelNodeProcess,
 } from './treasury.dto'
 
 @Injectable()
@@ -28,12 +29,16 @@ class TreasuryService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
-    const value = await this.main()
-    await this.repo.saveData(`${value}`)
+    if (firstLevelNodeProcess()) {
+      const value = await this.main()
+      await this.repo.saveData(`${value}`)
+    }
   }
 
-  async requestToDebank(query: string): Promise<any> {
-    const url = `https://pro-openapi.debank.com/v1/user/${query}`
+  async requestToDebank(query: string, date?: Date): Promise<any> {
+    const url = date
+      ? `https://pro-openapi.debank.com/v1/token/history_price?id=eth&chain_id=eth&date_at=${date}`
+      : `https://pro-openapi.debank.com/v1/user/${query}`
 
     try {
       const res = await this.httpService
