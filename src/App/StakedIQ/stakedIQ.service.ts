@@ -6,6 +6,12 @@ import { HttpService } from '@nestjs/axios'
 import erc20Abi from '../utils/erc20Abi'
 import StakedIQRepository from './stakedIQ.repository'
 import StakedIQ from '../../Database/Entities/stakedIQ.entity'
+import {
+  dateOnly,
+  firstLevelNodeProcess,
+  oneYearAgo,
+  todayMidnightDate,
+} from '../Treasury/treasury.dto'
 
 @Injectable()
 class StakedIQService {
@@ -13,7 +19,7 @@ class StakedIQService {
     private repo: StakedIQRepository,
     private configService: ConfigService,
     private httpService: HttpService,
-    private schedulerRegistry: SchedulerRegistry
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   private address(): { hiIQ: string; iq: string } {
@@ -31,13 +37,9 @@ class StakedIQService {
     return this.configService.get<string>('PROVIDER_NETWORK') as string
   }
 
-  public checkProcess() {
-    return parseInt(process.env.NODE_APP_INSTANCE as string, 10) === 0
-  }
-
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeIQStacked(): Promise<void> {
-    if (this.checkProcess()) {
+    if (firstLevelNodeProcess()) {
       const tvl = await this.getTVL()
       const presentData = await this.existRecord(new Date())
       if (!presentData) {
@@ -47,23 +49,22 @@ class StakedIQService {
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
-    disabled: false,
     name: 'IndexOldStakedIQ',
   })
   async indexOldStakedBalance(): Promise<void> {
     const job = this.schedulerRegistry.getCronJob('IndexOldStakedIQ')
-    // const present
-    console.log('running')
+    const oldRecord = await this.leastRecordByDate()
+    const oldDate = dateOnly(oldRecord[0]?.created)
+    const presentDate = dateOnly(todayMidnightDate)
+
+    if (oldDate === presentDate) {
+      job.stop()
+    }
     const presentData = await this.existRecord(new Date())
-    if (this.checkProcess()) {
+    if (firstLevelNodeProcess()) {
       if (!presentData) {
         await this.previousStakedIQ()
       }
-    }
-
-    if (true) {
-      console.log('not running')
-      job.stop()
     }
   }
 
@@ -98,7 +99,7 @@ class StakedIQService {
       const record = oldRecord[0].created
       time = Math.floor(new Date(record).getTime() / 1000) + oneDayInSeconds
     } else {
-      time = 1658275200 // 1yr back 2022-07-20
+      time = oneYearAgo
     }
 
     const key = this.etherScanApiKey()
@@ -134,13 +135,7 @@ class StakedIQService {
   }
 
   async existRecord(date: Date): Promise<StakedIQ | null> {
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-
-    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day
-      .toString()
-      .padStart(2, '0')}`
+    const formattedDate = dateOnly(date)
     return this.repo
       .createQueryBuilder('staked_iq')
       .where('staked_iq.created::DATE = :formattedDate', {
