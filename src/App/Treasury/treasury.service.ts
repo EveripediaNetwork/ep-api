@@ -9,6 +9,7 @@ import {
   TreasuryTokenType,
   SUPPORTED_LP_TOKENS_ADDRESSES,
   Protocols,
+  firstLevelNodeProcess,
 } from './treasury.dto'
 
 @Injectable()
@@ -28,8 +29,10 @@ class TreasuryService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
-    const value = await this.main()
-    await this.repo.saveData(`${value}`)
+    if (firstLevelNodeProcess()) {
+      const value = await this.main()
+      await this.repo.saveData(`${value}`)
+    }
   }
 
   async requestToDebank(query: string): Promise<any> {
