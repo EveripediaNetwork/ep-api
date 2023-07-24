@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
 import { HttpService } from '@nestjs/axios'
@@ -13,6 +13,7 @@ class StakedIQService {
     private repo: StakedIQRepository,
     private configService: ConfigService,
     private httpService: HttpService,
+    private schedulerRegistry: SchedulerRegistry
   ) {}
 
   private address(): { hiIQ: string; iq: string } {
@@ -45,13 +46,24 @@ class StakedIQService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    disabled: false,
+    name: 'IndexOldStakedIQ',
+  })
   async indexOldStakedBalance(): Promise<void> {
+    const job = this.schedulerRegistry.getCronJob('IndexOldStakedIQ')
+    // const present
+    console.log('running')
+    const presentData = await this.existRecord(new Date())
     if (this.checkProcess()) {
-      const presentData = await this.existRecord(new Date())
       if (!presentData) {
         await this.previousStakedIQ()
       }
+    }
+
+    if (true) {
+      console.log('not running')
+      job.stop()
     }
   }
 

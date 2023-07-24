@@ -43,3 +43,5 @@ export const TOKENS = [
   '0x3835a58ca93cdb5f912519ad366826ac9a752510',
   '0x49b4d1df40442f0c31b1bbaea3ede7c38e37e31a',
 ]
+
+export const todayMidnightDate = new Date(new Date().setHours(0, 0, 0, 0))
