@@ -46,7 +46,7 @@ export const TOKENS = [
 
 export const todayMidnightDate = new Date(new Date().setHours(0, 0, 0, 0))
 
-export const oneYearAgo = 1658275200 // 2022 June 20
+export const oneYearAgo = 1658275200 // 2022 July 20
 
 export const dateOnly = (date: Date) => {
   const year = date.getFullYear()
