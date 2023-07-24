@@ -35,6 +35,15 @@ class TreasuryService {
     }
   }
 
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: 'indexOldTreasuryBalance',
+  })
+  async indexOldTreasuryBalance() {
+     if (oldDate === presentDate) {
+       job.stop()
+     }
+  }
+
   async requestToDebank(query: string, date?: Date): Promise<any> {
     const url = date
       ? `https://pro-openapi.debank.com/v1/token/history_price?id=eth&chain_id=eth&date_at=${date}`
