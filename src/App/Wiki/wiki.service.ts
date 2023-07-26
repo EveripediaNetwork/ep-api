@@ -2,6 +2,7 @@ import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
@@ -15,6 +16,8 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
+import { ActionTypes } from '../utils/utilTypes'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 @Injectable()
 class WikiService {
@@ -22,6 +25,8 @@ class WikiService {
     private configService: ConfigService,
     private validSlug: ValidSlug,
     private dataSource: DataSource,
+    private httpService: HttpService,
+    private webhookHandler: WebhookHandler,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -186,7 +191,32 @@ class WikiService {
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
+    if (!links) {
+      await this.checkEthAddress(address)
+    }
     return links
+  }
+
+  async checkEthAddress(address: string): Promise<void> {
+    let addressData
+    try {
+      const response = await this.httpService
+        .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
+        .toPromise()
+      addressData = response?.data
+      console.log('response', response?.data)
+    } catch (error: any) {
+      console.error('blockscout error', error?.response.data.message)
+      console.error('blockscout error', error.response.status)
+    }
+    const symbol = addressData?.token?.symbol
+    const name = addressData?.token?.name
+
+    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
+      urlId: name ? `https://eth.blockscout.com/address/${address}` : undefined,
+      username: symbol || 'Unknown symbol',
+      user: name || address,
+    })
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
@@ -202,9 +232,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -212,9 +240,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -227,9 +253,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -240,9 +264,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -268,9 +290,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
