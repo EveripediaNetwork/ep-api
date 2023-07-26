@@ -191,7 +191,7 @@ class WikiService {
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
-    if (!links) {
+    if (links.length < 1) {
       await this.checkEthAddress(address)
     }
     return links
