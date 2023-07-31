@@ -5,7 +5,6 @@ export enum AlchemyWebhookType {
   NFT = 'ALCHEMY_NOTIFY_NFT_SIGNING_KEY',
 }
 
-
 export type ABIdecodeType = {
   anonymous: boolean
   inputs: {
