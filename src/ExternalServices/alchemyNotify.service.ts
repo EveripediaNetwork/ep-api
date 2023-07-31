@@ -1,31 +1,13 @@
-import { Injectable } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as crypto from 'crypto'
 import { ethers } from 'ethers'
-
-export type ABIdecodeType = {
-  anonymous: boolean
-  inputs: {
-    indexed: boolean
-    internalType: string
-    name: string
-    type: string
-  }[]
-  name: string
-  type: string
-}[]
-
-export type TxData = {
-  account: { address: string }
-  data: string
-  topics: string[]
-  index: number
-}
-
-export enum WebhookType {
-  WIKI = 'ALCHEMY_NOTIFY_WIKI_SIGNING_KEY',
-  NFT = 'ALCHEMY_NOTIFY_NFT_SIGNING_KEY',
-}
+import {
+  AlchemyWebhookType,
+  TxData,
+  ABIdecodeType,
+  EventRequestData,
+} from './alchemyNotify.dto'
 
 @Injectable()
 class AlchemyNotifyService {
@@ -38,7 +20,7 @@ class AlchemyNotifyService {
   async isValidSignatureForStringBody(
     body: string,
     signature: string,
-    type: WebhookType,
+    type: AlchemyWebhookType,
   ): Promise<boolean> {
     const key = this.getSigningKey(type) as string
     let validation = false
@@ -66,6 +48,36 @@ class AlchemyNotifyService {
       console.error('Error decoding log', e)
     }
     return decoded
+  }
+
+  async initiateWebhookEvent(
+    requestData: EventRequestData,
+    type: AlchemyWebhookType,
+    callback: () => Promise<void>,
+  ) {
+    const { request, res, value } = requestData
+    if (!value.event) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ status: HttpStatus.NOT_FOUND, message: 'No data' })
+    }
+
+    const signature = request.headers['x-alchemy-signature']
+    const checkSignature = await this.isValidSignatureForStringBody(
+      JSON.stringify(value),
+      signature,
+      type,
+    )
+
+    if (!checkSignature) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ status: HttpStatus.BAD_REQUEST, signature: 'invalid' })
+    }
+
+    await callback()
+
+    return res.json({ status: HttpStatus.OK, signature: 'valid' })
   }
 }
 

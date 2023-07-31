@@ -11,9 +11,8 @@ import BrainPassDto, {
 } from './brainPass.dto'
 import BrainPassRepository from './brainPass.repository'
 import PinataService from '../../ExternalServices/pinata.service'
-import AlchemyNotifyService, {
-  TxData,
-} from '../../ExternalServices/alchemyNotify.service'
+import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
+import { TxData } from '../../ExternalServices/alchemyNotify.dto'
 
 @Injectable()
 class BrainPassService {
@@ -75,7 +74,8 @@ class BrainPassService {
     }
   }
 
-  async storeMintData(eventLog: any): Promise<any> {
+  async storeMintData(eventLog: any): Promise<void> {
+    console.log('Signature verified 🎟️ for NFT')
     const { image, description } = await this.getDefaultData()
 
     const { logs, hash } = eventLog.transaction
@@ -120,6 +120,7 @@ class BrainPassService {
         metadataHash: ipfshash,
       }
       await this.repo.createBrainPass(brainPassBought)
+      console.log('Storing webhook NFT event 📇')
     }
   }
 
