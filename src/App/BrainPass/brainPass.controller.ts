@@ -42,6 +42,7 @@ class BrainPassController {
     @Res() res: Response,
     @Body() value: any,
   ) {
+    console.log('event')
     if (!value.event || !value?.event.data.block.logs.length) {
       return res
         .status(HttpStatus.NOT_FOUND)
