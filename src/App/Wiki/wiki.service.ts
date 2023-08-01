@@ -204,7 +204,6 @@ class WikiService {
         .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
         .toPromise()
       addressData = response?.data
-      console.log('response', response?.data)
     } catch (error: any) {
       console.error('blockscout error', error?.response.data.message)
       console.error('blockscout error', error.response.status)

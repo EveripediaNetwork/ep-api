@@ -24,6 +24,11 @@ class AlchemyNotifyService {
   ): Promise<boolean> {
     const key = this.getSigningKey(type) as string
     let validation = false
+
+    if (!key) {
+      return validation
+    }
+
     try {
       const hmac = crypto.createHmac('sha256', key)
       hmac.update(body, 'utf8')
@@ -70,6 +75,7 @@ class AlchemyNotifyService {
     )
 
     if (!checkSignature) {
+      console.error('Signature failed for', type)
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ status: HttpStatus.BAD_REQUEST, signature: 'invalid' })
