@@ -79,7 +79,7 @@ class BrainPassService {
 
       await this.pinataService
         .getPinataInstance()
-        .hashMetadata('yourHashHere', metadata)
+        .hashMetadata(ipfshash, metadata)
     }
     const existTransaction = await this.repo.getBrainPassByTxHash(
       eventLog.transaction.hash,
