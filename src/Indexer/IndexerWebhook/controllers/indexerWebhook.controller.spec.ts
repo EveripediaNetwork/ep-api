@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import { HttpModule } from '@nestjs/axios'
 import { HttpStatus, CacheModule } from '@nestjs/common'
-import IndexerWebhookService from '../services/indexerWebhook.service'
 import IndexerWebhookController from './indexerWebhook.controller'
 import { EventData } from '../indexerWehhook.dto'
 import {
@@ -15,7 +14,6 @@ import { mockCacheStore } from '../../../App/utils/test-helpers/reuseableTestObj
 
 describe('IndexerWebhookController', () => {
   let controller: IndexerWebhookController
-  let service: IndexerWebhookService
   let alchemyNotifyService: AlchemyNotifyService
   let moduleRef: TestingModule
   let req: any
@@ -66,7 +64,7 @@ describe('IndexerWebhookController', () => {
         {
           provide: DataSource,
           useFactory: () => ({
-            findOneBy: jest.fn(() => result),
+            findOneBy: jest.fn(() => ''),
           }),
         },
         AlchemyNotifyService,
@@ -80,7 +78,6 @@ describe('IndexerWebhookController', () => {
     controller = moduleRef.get<IndexerWebhookController>(
       IndexerWebhookController,
     )
-    service = moduleRef.get<IndexerWebhookService>(IndexerWebhookService)
     alchemyNotifyService =
       moduleRef.get<AlchemyNotifyService>(AlchemyNotifyService)
     req = {

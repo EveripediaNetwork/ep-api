@@ -1,19 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpStatus,
-  Param,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common'
 import { Response } from 'express'
 import BrainPassRepository from './brainPass.repository'
 import BrainPassService from './brainPass.service'
-import AlchemyNotifyService, {
-  WebhookType,
-} from '../../ExternalServices/alchemyNotify.service'
+import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
+import { AlchemyWebhookType } from '../../ExternalServices/alchemyNotify.dto'
 
 @Controller('brainpass')
 class BrainPassController {
@@ -42,27 +32,15 @@ class BrainPassController {
     @Res() res: Response,
     @Body() value: any,
   ) {
-    console.log('event')
-    if (!value.event || !value?.event.data.block.logs.length) {
-      return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ status: HttpStatus.NOT_FOUND, message: 'No data' })
-    }
-    const signature = request.headers['x-alchemy-signature']
-    const checkSignature =
-      await this.alchemyNotifyService.isValidSignatureForStringBody(
-        JSON.stringify(value),
-        signature,
-        WebhookType.NFT,
-      )
-    if (!checkSignature) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ status: HttpStatus.BAD_REQUEST, signature: 'invalid' })
-    }
-
-    await this.brainPassService.storeMintData(value.event.data.block.logs[0])
-    return res.json({ status: HttpStatus.OK, signature: 'valid' })
+    return this.alchemyNotifyService.initiateWebhookEvent(
+      { request, res, value },
+      AlchemyWebhookType.NFT,
+      async () => {
+        await this.brainPassService.storeMintData(
+          value.event.data.block.logs[0],
+        )
+      },
+    )
   }
 }
 export default BrainPassController

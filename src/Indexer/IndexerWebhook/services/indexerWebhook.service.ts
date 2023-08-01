@@ -3,8 +3,11 @@ import { DataSource } from 'typeorm'
 import Wiki from '../../../Database/Entities/wiki.entity'
 import RunCommand from '../../run.command'
 import { Hash } from '../../Provider/graph.service'
-import { BlockData, decodeABI } from '../indexerWehhook.dto'
 import AlchemyNotifyService from '../../../ExternalServices/alchemyNotify.service'
+import {
+  BlockData,
+  decodeABI,
+} from '../../../ExternalServices/alchemyNotify.dto'
 
 @Injectable()
 class IndexerWebhookService {
@@ -14,16 +17,12 @@ class IndexerWebhookService {
     private indexerCommand: RunCommand,
   ) {}
 
-  async indexWebhook(eventData: BlockData): Promise<boolean> {
+  async indexWebhook(eventData: BlockData): Promise<void> {
     console.log('Signature verified 🎟️ for Wiki')
 
     const { logs } = eventData
 
-    if (logs.length === 0) {
-      console.log('no event at this moment ♻️')
-      return false
-    }
-    if (logs[0].transaction.status === 1) {
+    if (logs.length > 0 && logs[0].transaction.status === 1) {
       const { transaction } = logs[0]
       const decodedLog = await this.alchemyNotifyService.decodeLog(
         transaction.logs[0],
@@ -43,10 +42,9 @@ class IndexerWebhookService {
         }
 
         await this.indexerCommand.indexHash(newHash as Hash, true)
-        console.log('Indexing webhook event 📇')
+        console.log('Indexing webhook Wiki event 📇')
       }
     }
-    return true
   }
 
   async isIpfsInserted(ipfs: string): Promise<boolean> {
