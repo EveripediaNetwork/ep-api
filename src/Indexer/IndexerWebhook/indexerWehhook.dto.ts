@@ -1,4 +1,4 @@
-import { TxData } from '../../ExternalServices/alchemyNotify.service'
+import { TxData } from '../../ExternalServices/alchemyNotify.dto'
 
 export type EventData = {
   webhookId: string

@@ -47,33 +47,6 @@ class BrainPassService {
     return decoded
   }
 
-  async updateHashMetadata(hash: any) {
-    const data = JSON.stringify({
-      ipfsPinHash: hash,
-      name: 'passName',
-      keyvalues: {
-        tokeId: 'tokenId',
-        passId: 'passId',
-      },
-    })
-
-    const config = {
-      headers: {
-        Authorization: this.pinataService.pinataBearerAuth() as string,
-        'Content-Type': 'application/json',
-      },
-    }
-
-    try {
-      const response = await this.httpService
-        .put('https://api.pinata.cloud/pinning/hashMetadata', data, config)
-        .toPromise()
-      console.log(response?.data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
   async storeMintData(eventLog: any): Promise<void> {
     console.log('Signature verified 🎟️ for NFT')
     const { image, description } = await this.getDefaultData()
@@ -96,12 +69,17 @@ class BrainPassService {
         .pinJSONToIPFS(nftMetadata)
 
       ipfshash = IpfsHash
-      //   await this.updateHashMetadata({
-      //     hash: IpfsHash,
-      //     name: data.passName,
-      //     tokenId: data.tokenId,
-      //     passId: data.passId,
-      //   })
+
+      const metadata = {
+        hash: IpfsHash,
+        name: data.passName,
+        tokenId: data.tokenId,
+        passId: data.passId,
+      }
+
+      await this.pinataService
+        .getPinataInstance()
+        .hashMetadata('yourHashHere', metadata)
     }
     const existTransaction = await this.repo.getBrainPassByTxHash(
       eventLog.transaction.hash,
@@ -127,7 +105,7 @@ class BrainPassService {
   async getPinataData(hash: string): Promise<any> {
     const pinataUrl = `https://gateway.pinata.cloud/ipfs/${hash}`
     const { image, description } = await this.getDefaultData()
-    let dat = {
+    let metadata = {
       description,
       image,
       name: 'BrainPass',
@@ -135,11 +113,11 @@ class BrainPassService {
     }
     try {
       const response = await this.httpService.get(pinataUrl).toPromise()
-      dat = response?.data
+      metadata = response?.data
     } catch (error: any) {
       console.error(error.message, '-- Error retrieving Pinata data')
     }
-    return dat
+    return metadata
   }
 }
 export default BrainPassService
