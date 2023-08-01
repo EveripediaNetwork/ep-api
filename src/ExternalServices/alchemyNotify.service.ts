@@ -56,7 +56,7 @@ class AlchemyNotifyService {
     callback: () => Promise<void>,
   ) {
     const { request, res, value } = requestData
-    if (!value.event) {
+    if (!value || !value.event) {
       return res
         .status(HttpStatus.NOT_FOUND)
         .json({ status: HttpStatus.NOT_FOUND, message: 'No data' })
