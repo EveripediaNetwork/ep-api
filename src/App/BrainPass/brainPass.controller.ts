@@ -26,7 +26,7 @@ class BrainPassController {
     res.send(JSON.stringify(metadata))
   }
 
-  @Post('/events')
+  @Post('/nft-events')
   async initiateNFTWebhookEvent(
     @Req() request: any,
     @Res() res: Response,
