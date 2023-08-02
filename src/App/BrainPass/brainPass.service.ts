@@ -49,7 +49,7 @@ class BrainPassService {
 
   async storeMintData(eventLog: any): Promise<void> {
     console.log('Signature verified 🎟️ for NFT')
-    
+
     const { image, description } = await this.getDefaultData()
     if (!eventLog || !eventLog.transaction) return
 
