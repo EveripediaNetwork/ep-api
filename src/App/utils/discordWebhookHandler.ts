@@ -135,7 +135,7 @@ export default class WebhookHandler {
           },
         ],
       })
-      await this.sendToChannel(boundary, jsonContent, internalActivity)
+      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.PINJSON_ERROR) {
       await fss.writeFile(
@@ -246,7 +246,7 @@ export default class WebhookHandler {
             },
           ],
         })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
+        await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
       }
     }
     if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
