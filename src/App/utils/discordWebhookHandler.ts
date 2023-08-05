@@ -232,7 +232,7 @@ export default class WebhookHandler {
             },
           ],
         })
-        await this.sendToChannel(boundary, jsonContent, internalActivity)
+        await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
       }
 
       if (payload.title === ContentFeedbackSite.IQSOCIAL) {
