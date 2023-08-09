@@ -9,7 +9,7 @@ import PaginationArgs from '../pagination.args'
 import CategoryResolver from './category.resolver'
 import CategoryService from './category.service'
 
-describe('TagResolver', () => {
+describe('CategoryResolver', () => {
   let resolver: CategoryResolver
   let service: CategoryService
   let moduleRef: TestingModule
