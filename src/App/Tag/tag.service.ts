@@ -20,7 +20,7 @@ class TagService extends Repository<Tag> {
   }
 
   async getTagById(args: ArgsById): Promise<Tag | null> {
-    return this.findOneBy({ id: args.id })
+    return this.findOneBy({ id: args.id.toLowerCase() })
   }
 
   async getTagsById(args: TagIDArgs): Promise<Tag[]> {

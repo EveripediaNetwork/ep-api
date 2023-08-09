@@ -8,6 +8,7 @@ import { ArgsById } from '../utils/queryHelpers'
 import CategoryService from './category.service'
 import { TitleArgs } from '../Wiki/wiki.dto'
 
+// TODO: test Categories resolver
 @Resolver(() => Category)
 class CategoryResolver {
   constructor(
