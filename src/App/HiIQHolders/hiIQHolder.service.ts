@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression, } from '@nestjs/schedule'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { createPublicClient, http, parseAbiItem, parseUnits } from 'viem'
 import { mainnet } from 'viem/chains'
