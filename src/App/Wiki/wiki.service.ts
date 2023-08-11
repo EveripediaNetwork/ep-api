@@ -174,7 +174,7 @@ class WikiService {
     })
   }
 
-  async getAddressTowiki(address: string): Promise<WikiUrl[]> {
+  async getAddressToWiki(address: string): Promise<WikiUrl[]> {
     const ids = await (
       await this.repository()
     ).query(

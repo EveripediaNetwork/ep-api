@@ -9,6 +9,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
+  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
@@ -302,6 +303,49 @@ describe('WikiResolver', () => {
     },
   })
 
+  const wikisPerVisits = [
+    {
+      id: 'pepe-cryptocurrency',
+      views: 36,
+    },
+    {
+      id: 'developer-dao',
+      views: 22,
+    },
+    {
+      id: 'cgej',
+      views: 20,
+    },
+    {
+      id: 'totally-handy',
+      views: 86,
+    },
+    {
+      id: 'future-solutions-developer',
+      views: 15,
+    },
+    {
+      id: 'mina-token',
+      views: 12,
+    },
+    {
+      id: 'wojak-token-cryptocurrency',
+      views: 12,
+    },
+    {
+      id: 'tezos-xtz',
+      views: 10,
+    },
+    {
+      id: 'lope',
+      views: 13,
+    },
+    {
+      id: 'global-paradigm-strategist',
+      views: 11,
+    },
+  ] as unknown as Wiki[]
+
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [
@@ -402,6 +446,19 @@ describe('WikiResolver', () => {
     expect(byTitle).toBe(true)
   })
 
+  it('should return wiki/wikis with views greater than 0', async () => {
+    jest.spyOn(service, 'getWikisPerVisits').mockResolvedValue(wikisPerVisits)
+    expect(
+      await resolver.wikisPerVisits({
+        amount: 10,
+        startDay: '2023/05/01',
+        endDay: '2023/08/01',
+      } as PageViewArgs),
+    ).toBe(wikisPerVisits)
+    const perVisits = wikisPerVisits.every((val: Wiki) => val.views > 0)
+    expect(perVisits).toBe(true)
+  })
+
   it('should search for hidden wikis and create a new id by appending consecutive series of numbers', async () => {
     jest.spyOn(service, 'getValidWikiSlug').mockResolvedValue(validSlug)
     expect(await resolver.validWikiSlug({ id: 'flywheel' } as ByIdArgs)).toBe(
@@ -418,6 +475,39 @@ describe('WikiResolver', () => {
     )
     const hidden = wikisHidden.res.data.wikisHidden.every((e: Wiki) => e.hidden)
     expect(hidden).toBe(true)
+  })
+
+  it('should return an array of wikis if found with with hidden field set to true', async () => {
+    const links: any = getMockRes({
+      data: {
+        addressToWiki: ['https://iq.wiki/wiki/loot'],
+      },
+    })
+    jest.spyOn(service, 'getAddressToWiki').mockResolvedValue(links)
+    expect(
+      await resolver.addressToWiki(
+        '0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7',
+      ),
+    ).toBe(links)
+    const hidden = links.res.data.addressToWiki.every((e: string) =>
+      e.startsWith('https://iq.wiki/wiki/'),
+    )
+    expect(hidden).toBe(true)
+  })
+
+  it('should return an total number of wikis in a category', async () => {
+    const total: any = getMockRes({
+      data: {
+        categoryTotal: {
+          amount: 363,
+        },
+      },
+    })
+    jest.spyOn(service, 'getCategoryTotal').mockResolvedValue(total)
+    expect(
+      await resolver.categoryTotal({ category: 'nfts' } as CategoryArgs),
+    ).toBe(total)
+    expect(typeof total.res.data.categoryTotal.amount).toBe('number')
   })
 
   it('should promote a wiki to set level and return the initial state because typeorm update returns nothing', async () => {

@@ -35,10 +35,12 @@ import DBStoreService from '../../../Indexer/Store/store.service'
 import IPFSValidatorService from '../../../Indexer/Validator/validator.service'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import CategoryService from '../../Category/category.service'
+import TagService from '../../Tag/tag.service'
 
 export const providerObjects = {
   validSlug: ValidSlug,
   runCommand: RunCommand,
+  tagService: TagService,
   tagResolver: TagResolver,
   wikiService: WikiService,
   userService: UserService,
@@ -79,6 +81,7 @@ export const providerObjects = {
 export enum ProviderEnum {
   validSlug = 'validSlug',
   runCommand = 'runCommand',
+  tagService = 'tagService',
   tagResolver = 'tagResolver',
   wikiService = 'wikiService',
   userService = 'userService',

@@ -75,7 +75,7 @@ class WikiResolver {
   async addressToWiki(
     @Args('address', { type: () => String }) address: string,
   ) {
-    return this.wikiService.getAddressTowiki(address)
+    return this.wikiService.getAddressToWiki(address)
   }
 
   @Query(() => Count)
