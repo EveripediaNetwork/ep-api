@@ -1,4 +1,3 @@
-
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { Cron, CronExpression } from '@nestjs/schedule'
@@ -6,9 +5,9 @@ import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
 
+export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
-const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
-const enum HiIQMethods {
+export enum HiIQMethods {
   CREATE_LOCK = '0x65fc3873',
   WITHDRAW = '0x3ccfd60b',
 }
@@ -52,23 +51,22 @@ class HiIQHolderService {
 
     const provider = new ethers.providers.JsonRpcProvider(this.provider())
 
-
     logs.forEach(async (log: any) => {
       try {
         const dp = await provider.getTransaction(log.transactionHash)
 
         if (dp.data.startsWith(HiIQMethods.CREATE_LOCK)) {
-            const existHolder = await this.checExistingHolders(dp.from)
-            if(!existHolder) {
-                // insert record in list of holders table
-            }
+          const existHolder = await this.checExistingHolders(dp.from)
+          if (!existHolder) {
+            // insert record in list of holders table
+          }
           console.log(dp)
         }
         if (dp.data.startsWith(HiIQMethods.WITHDRAW)) {
-            const existHolder = await this.checExistingHolders(dp.from)
-            if(existHolder) {
-                // remove address from db
-            }
+          const existHolder = await this.checExistingHolders(dp.from)
+          if (existHolder) {
+            // remove address from db
+          }
           console.log(dp)
         }
       } catch (e) {
