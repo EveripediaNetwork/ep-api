@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
@@ -9,11 +9,9 @@ import HiIQHolderService from './hiIQHolder.service'
   imports: [
     ScheduleModule.forRoot(),
     HttpModule,
+    CacheModule.register({ ttl: 3600 }),
   ],
-  providers: [
-    HiIQHolderService,
-    AlchemyNotifyService,
-  ],
-  exports: [ HiIQHolderService],
+  providers: [HiIQHolderService, AlchemyNotifyService],
+  exports: [HiIQHolderService],
 })
 export default class HiIQHolderModule {}
