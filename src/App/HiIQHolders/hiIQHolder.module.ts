@@ -1,9 +1,8 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
-import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
 import HiIQHolderService from './hiIQHolder.service'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
@@ -20,7 +19,6 @@ import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
     HiIQHolderService,
     HiIQHolderRepository,
     HiIQHolderAddressRepository,
-    AlchemyNotifyService,
   ],
   exports: [
     HiIQHolderService,
