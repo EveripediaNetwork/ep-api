@@ -25,16 +25,17 @@ class HiIQHolderRepository extends Repository<HiIQHolder> {
             WHERE (row_num - 1) % $1 = 0
             ORDER BY day
             OFFSET $2
-            LIMIT $2;
+            LIMIT $3;
         `,
         [args.interval, args.offset, args.limit],
       )
     }
-    return this.find({
-      select: ['amount', 'day'],
-      take: args.limit,
-      skip: args.offset,
-    })
+    return this.createQueryBuilder('hi_iq_holder')
+      .select('amount')
+      .addSelect('day')
+      .offset(args.offset)
+      .limit(args.limit)
+      .getRawMany()
   }
 }
 

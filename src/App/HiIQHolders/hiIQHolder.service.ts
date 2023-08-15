@@ -113,13 +113,15 @@ class HiIQHolderService {
     const count = await this.iqHolders.createQueryBuilder().getCount()
     const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
     const existCount = await this.repo.findOneBy({
-      day: newDay,
+      day: new Date(newDay),
     })
 
     if (!existCount) {
       const totalHolders = this.repo.create({
         amount: count,
         day: newDay,
+        created: newDay,
+        updated: newDay,
       })
       await this.repo.save(totalHolders)
       console.log(`hiIQ holder Count for day ${newDay} saved 📈`)

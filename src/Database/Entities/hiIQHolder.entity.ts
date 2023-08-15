@@ -20,7 +20,7 @@ class HiIQHolder {
 
   @Field(() => GraphQLISODateTime)
   @Column('date')
-  day!: string
+  day!: Date
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()

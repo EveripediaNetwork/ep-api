@@ -8,6 +8,7 @@ import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
+import HiIQHoldersResolver from './hiIQHolder.resolver'
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
   ],
   providers: [
     HiIQHolderService,
+    HiIQHoldersResolver,
     HiIQHolderRepository,
     HiIQHolderAddressRepository,
   ],

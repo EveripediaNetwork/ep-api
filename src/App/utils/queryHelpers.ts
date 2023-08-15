@@ -41,6 +41,7 @@ export class ArgsById {
 registerEnumType(OrderBy, { name: 'OrderBy' })
 registerEnumType(Direction, { name: 'Direction' })
 registerEnumType(ActivityType, { name: 'ActivityType' })
+registerEnumType(IntervalByDays, { name: 'IntervalByDays' })
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
