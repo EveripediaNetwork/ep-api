@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
@@ -8,6 +8,7 @@ import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import { stopJob } from '../StakedIQ/stakedIQ.utils'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
@@ -23,6 +24,7 @@ class HiIQHolderService {
     private httpService: HttpService,
     private repo: HiIQHolderRepository,
     private iqHolders: HiIQHolderAddressRepository,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   private provider(): string {
@@ -54,9 +56,12 @@ class HiIQHolderService {
     name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
-    if (firstLevelNodeProcess()) {
+    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    await stopJob(this.repo, job)
+
+    // if (firstLevelNodeProcess()) {
       await this.indexHIIQHolders()
-    }
+    // }
   }
 
   async indexHIIQHolders() {
@@ -136,8 +141,11 @@ class HiIQHolderService {
     let blockNumberForQuery1
     let blockNumberForQuery2
     try {
-      const response1 = await this.httpService.get(url1).toPromise()
-      const response2 = await this.httpService.get(url2).toPromise()
+      const [response1, response2] = await Promise.all([
+        this.httpService.get(url1).toPromise(),
+        this.httpService.get(url2).toPromise(),
+      ])
+
       blockNumberForQuery1 = response1?.data.result
       blockNumberForQuery2 = response2?.data.result
     } catch (e: any) {
