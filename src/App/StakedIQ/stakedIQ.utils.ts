@@ -22,16 +22,6 @@ export const existRecord = async (
     .getOne()
 }
 
-// export const leastRecordByDate = async (
-//   repo: Repository<StakedIQ | Treasury>,
-// ): Promise<Partial<StakedIQ>[] | Partial<Treasury>[] | []> =>
-//   repo.find({
-//     order: {
-//       updated: 'DESC',
-//     },
-//     take: 1,
-//   })
-
 export const leastRecordByDate = async <T extends ObjectLiteral>(
   repo: Repository<T>,
 ): Promise<Partial<T>[]> =>
@@ -62,21 +52,6 @@ export const insertOldData = async (
   await entity.save(previousData)
   console.log(`Previous ${entity.metadata.targetName} data saved`)
 }
-
-// export const stopJob = async (
-//   repo: Repository<StakedIQ | Treasury>,
-//   job: CronJob,
-// ) => {
-//   const oldRecord = await leastRecordByDate(repo)
-
-//   if (oldRecord.length > 0) {
-//     const oldDate = dateOnly(oldRecord[0]?.created as Date)
-//     const presentDate = dateOnly(todayMidnightDate)
-//     if (oldDate === presentDate) {
-//       job.stop()
-//     }
-//   }
-// }
 
 interface EntityWithCreated {
   created?: Date
