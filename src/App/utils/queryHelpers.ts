@@ -23,6 +23,14 @@ export enum Direction {
   DESC = 'DESC',
 }
 
+export enum IntervalByDays {
+    DAY = 1,
+    WEEK = 7,
+    MONTH = 30,
+    NINETY_DAYS = 90,
+    YEAR = 365
+}
+
 @ArgsType()
 export class ArgsById {
   @Field(() => String)
