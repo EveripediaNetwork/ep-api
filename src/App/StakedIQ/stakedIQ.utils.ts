@@ -27,7 +27,7 @@ export const leastRecordByDate = async <T extends ObjectLiteral>(
 ): Promise<Partial<T>[]> =>
   repo.find({
     order: {
-      updated: 'ASC',
+      updated: 'DESC',
     } as any,
     take: 1,
   })
