@@ -1,5 +1,4 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
-import { Cache } from 'cache-manager'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -8,6 +7,7 @@ import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
@@ -23,7 +23,6 @@ class HiIQHolderService {
     private httpService: HttpService,
     private repo: HiIQHolderRepository,
     private iqHolders: HiIQHolderAddressRepository,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private provider(): string {
@@ -52,8 +51,14 @@ class HiIQHolderService {
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
-    name: 'IndexOldHiIQHolders',
+    name: 'storeHiIQHolderCount',
   })
+  async storeHiIQHolderCount() {
+    if (firstLevelNodeProcess()) {
+      await this.indexHIIQHolders()
+    }
+  }
+
   async indexHIIQHolders() {
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
@@ -69,25 +74,29 @@ class HiIQHolderService {
 
     logs.forEach(async (log: any) => {
       try {
-        const dp = await provider.getTransaction(log.transactionHash)
+        const txData = await provider.getTransaction(log.transactionHash)
 
-        if (dp.data.startsWith(HiIQMethods.CREATE_LOCK)) {
-          const existHolder = await this.checkExistingHolders(dp.from)
+        if (txData.data.startsWith(HiIQMethods.CREATE_LOCK)) {
+          const existHolder = await this.checkExistingHolders(txData.from)
           if (!existHolder) {
-            const newHolder = this.iqHolders.create({
-              address: dp.from,
-            })
-            await this.iqHolders.save(newHolder)
+            try {
+              const newHolder = this.iqHolders.create({
+                address: txData.from,
+              })
+              await this.iqHolders.save(newHolder)
+            } catch (e: any) {
+              console.error(e.message)
+            }
           }
         }
-        if (dp.data.startsWith(HiIQMethods.WITHDRAW)) {
-          const existHolder = await this.checkExistingHolders(dp.from)
+        if (txData.data.startsWith(HiIQMethods.WITHDRAW)) {
+          const existHolder = await this.checkExistingHolders(txData.from)
           if (existHolder) {
             await this.iqHolders
               .createQueryBuilder()
               .delete()
               .from(HiIQHolderAddress)
-              .where('address = :address', { address: dp.from })
+              .where('address = :address', { address: txData.from })
               .execute()
           }
         }
@@ -97,7 +106,7 @@ class HiIQHolderService {
     })
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
-    const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01'
+    const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
     const existCount = await this.repo.findOneBy({
       day: newDay,
     })
@@ -108,6 +117,7 @@ class HiIQHolderService {
         day: newDay,
       })
       await this.repo.save(totalHolders)
+      console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
     }
   }
 
@@ -133,7 +143,6 @@ class HiIQHolderService {
     } catch (e: any) {
       console.error('Error requesting block number', e.data)
     }
-    console.log('blocknumber', blockNumberForQuery1, blockNumberForQuery2)
 
     const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
 

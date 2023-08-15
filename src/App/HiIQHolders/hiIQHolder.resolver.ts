@@ -3,8 +3,6 @@ import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolderArgs from './hiIQHolders.dto'
 
-
-
 @Resolver(() => HiIQHolder)
 class HiIQHoldersResolver {
   constructor(private hiIQHoldersRepository: HiIQHolderRepository) {}
