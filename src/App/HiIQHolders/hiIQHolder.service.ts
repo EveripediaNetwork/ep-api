@@ -60,7 +60,7 @@ class HiIQHolderService {
     await stopJob(this.repo, job)
 
     // if (firstLevelNodeProcess()) {
-      await this.indexHIIQHolders()
+    await this.indexHIIQHolders()
     // }
   }
 

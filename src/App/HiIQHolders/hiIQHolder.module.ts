@@ -15,7 +15,6 @@ import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
     TypeOrmModule.forFeature([HiIQHolderAddress, HiIQHolder]),
     ScheduleModule.forRoot(),
     HttpModule,
-    CacheModule.register({ ttl: 3600 }),
   ],
   providers: [
     HiIQHolderService,
