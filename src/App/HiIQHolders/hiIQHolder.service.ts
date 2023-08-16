@@ -133,19 +133,20 @@ class HiIQHolderService {
     const startTimestamp = 1622505600
     const endTimestamp = startTimestamp + oneDayInSeconds
     const key = this.etherScanApiKey()
-    const url1 = `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
-      previous || startTimestamp
-    }&closest=before&apikey=${key}`
-    const url2 = `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
-      next || endTimestamp
-    }&closest=before&apikey=${key}`
+    const rootUrl = `https://api${
+      this.provider().includes('mainnet') ? '' : '-goerli'
+    }`
+    const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
+      `${rootUrl}.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
+        timestamp || fallbackTimestamp
+      }&closest=before&apikey=${key}`
 
     let blockNumberForQuery1
     let blockNumberForQuery2
     try {
       const [response1, response2] = await Promise.all([
-        this.httpService.get(url1).toPromise(),
-        this.httpService.get(url2).toPromise(),
+        this.httpService.get(buildUrl(startTimestamp, previous)).toPromise(),
+        this.httpService.get(buildUrl(endTimestamp, next)).toPromise(),
       ])
 
       blockNumberForQuery1 = response1?.data.result
@@ -154,7 +155,7 @@ class HiIQHolderService {
       console.error('Error requesting block number', e.data)
     }
 
-    const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
+    const logsFor1Day = `${rootUrl}.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
 
     let logs
     try {
