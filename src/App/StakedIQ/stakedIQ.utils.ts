@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm'
+import { ObjectLiteral, Repository } from 'typeorm'
 import { CronJob } from 'cron'
 import StakedIQ from '../../Database/Entities/stakedIQ.entity'
 import Treasury from '../../Database/Entities/treasury.entity'
@@ -22,13 +22,13 @@ export const existRecord = async (
     .getOne()
 }
 
-export const leastRecordByDate = async (
-  repo: Repository<StakedIQ | Treasury>,
-): Promise<Partial<StakedIQ>[] | Partial<Treasury>[] | []> =>
+export const leastRecordByDate = async <T extends ObjectLiteral>(
+  repo: Repository<T>,
+): Promise<Partial<T>[]> =>
   repo.find({
     order: {
       updated: 'DESC',
-    },
+    } as any,
     take: 1,
   })
 
@@ -53,14 +53,18 @@ export const insertOldData = async (
   console.log(`Previous ${entity.metadata.targetName} data saved`)
 }
 
-export const stopJob = async (
-  repo: Repository<StakedIQ | Treasury>,
+interface EntityWithCreated {
+  created?: Date
+}
+
+export const stopJob = async <T extends EntityWithCreated>(
+  repo: Repository<T>,
   job: CronJob,
 ) => {
   const oldRecord = await leastRecordByDate(repo)
 
-  if (oldRecord.length > 0) {
-    const oldDate = dateOnly(oldRecord[0]?.created as Date)
+  if (oldRecord.length > 0 && oldRecord[0].created) {
+    const oldDate = dateOnly(oldRecord[0].created)
     const presentDate = dateOnly(todayMidnightDate)
     if (oldDate === presentDate) {
       job.stop()

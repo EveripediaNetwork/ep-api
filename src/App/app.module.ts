@@ -57,6 +57,7 @@ import BrainPassModule from './BrainPass/brainPass.module'
 import ActivityModule from './Activities/activity.module'
 import TreasuryModule from './Treasury/treasury.module'
 import StakedIQModule from './StakedIQ/stakedIQ.module'
+import HiIQHolderModule from './HiIQHolders/hiIQHolder.module'
 // instannul ignore next
 @Module({
   imports: [
@@ -96,7 +97,8 @@ import StakedIQModule from './StakedIQ/stakedIQ.module'
     ActivityModule,
     IndexerWebhookModule,
     TreasuryModule, 
-    StakedIQModule
+    StakedIQModule,
+    HiIQHolderModule,
   ],
   controllers: [],
   providers: [
