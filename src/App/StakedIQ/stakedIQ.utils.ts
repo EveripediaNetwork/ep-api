@@ -66,8 +66,7 @@ export const stopJob = async <T extends EntityWithCreated>(
 
   if (oldRecord.length > 0 && oldRecord[0].created) {
     const oldDate = dateOnly(oldRecord[0].created)
-    const presentDate = dateOnly(todayMidnightDate)
-    const stopDate = date ? dateOnly(date) : presentDate
+    const stopDate = date ? dateOnly(date) : dateOnly(todayMidnightDate)
 
     if (oldDate === stopDate) {
       job.stop()
