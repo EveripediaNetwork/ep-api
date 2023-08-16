@@ -52,12 +52,23 @@ class HiIQHolderService {
     })
   }
 
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async checkForNewHolders() {
+    if (firstLevelNodeProcess()) {
+      await this.indexHIIQHolders()
+    }
+  }
+
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
+    const today = new Date()
+    const oneDayBack = new Date(today)
+    oneDayBack.setDate(oneDayBack.getDate() - 1)
+
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
-    await stopJob(this.repo, job)
+    await stopJob(this.repo, job, oneDayBack)
 
     if (firstLevelNodeProcess()) {
       await this.indexHIIQHolders()
