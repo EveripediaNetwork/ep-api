@@ -101,7 +101,6 @@
     "sitemap": "^7.1.1",
     "slugify": "^1.6.5",
     "typeorm": "^0.3.12",
-    "viem": "^1.6.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
