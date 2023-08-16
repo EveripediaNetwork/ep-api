@@ -60,14 +60,13 @@ interface EntityWithCreated {
 export const stopJob = async <T extends EntityWithCreated>(
   repo: Repository<T>,
   job: CronJob,
-  date?: Date,
 ) => {
   const oldRecord = await leastRecordByDate(repo)
 
   if (oldRecord.length > 0 && oldRecord[0].created) {
     const oldDate = dateOnly(oldRecord[0].created)
     const presentDate = dateOnly(todayMidnightDate)
-    if (oldDate === (date || presentDate)) {
+    if (oldDate === presentDate) {
       job.stop()
     }
   }
