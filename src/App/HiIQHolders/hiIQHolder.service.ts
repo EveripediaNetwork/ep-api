@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Cache } from 'cache-manager'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -25,6 +26,7 @@ class HiIQHolderService {
     private repo: HiIQHolderRepository,
     private iqHolders: HiIQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private provider(): string {
@@ -54,12 +56,13 @@ class HiIQHolderService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async checkForNewHolders() {
-    if (firstLevelNodeProcess()) {
+    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    if (firstLevelNodeProcess() && !job) {
       await this.indexHIIQHolders()
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, {
+  @Cron(CronExpression.EVERY_10_SECONDS, {
     name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
@@ -70,12 +73,20 @@ class HiIQHolderService {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
     await stopJob(this.repo, job, oneDayBack)
 
-    if (firstLevelNodeProcess()) {
-      await this.indexHIIQHolders()
-    }
+    // if (firstLevelNodeProcess()) {
+    await this.indexHIIQHolders()
+    // }
   }
 
   async indexHIIQHolders() {
+    const key = 'hiiq_holders_timeout'
+    const timeout: boolean | undefined = await this.cacheManager.get(key)
+
+    if (timeout) {
+      console.log('timeout')
+      return
+    }
+
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
     const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
@@ -116,8 +127,9 @@ class HiIQHolderService {
               .execute()
           }
         }
-      } catch (e) {
-        console.log(e)
+      } catch (e: any) {
+        console.log('Error getting transaction by hash: ', e.message)
+        await this.cacheManager.set(key, true, { ttl: 600 })
       }
     }
 
