@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
@@ -14,6 +14,7 @@ import HiIQHoldersResolver from './hiIQHolder.resolver'
   imports: [
     TypeOrmModule.forFeature([HiIQHolderAddress, HiIQHolder]),
     ScheduleModule.forRoot(),
+    CacheModule.register({ ttl: 3600 }),
     HttpModule,
   ],
   providers: [
