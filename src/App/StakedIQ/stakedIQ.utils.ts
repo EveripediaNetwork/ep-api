@@ -90,6 +90,4 @@ export const getDates = async (repo: Repository<StakedIQ | Treasury>) => {
   const incomingDate = new Date(previousDate)
 
   return { time, incomingDate }
-
-  
 }
