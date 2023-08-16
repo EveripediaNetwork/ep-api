@@ -88,7 +88,7 @@ class HiIQHolderService {
 
     const provider = new ethers.providers.JsonRpcProvider(this.provider())
 
-    logs.forEach(async (log: any) => {
+    for (const log of logs) {
       try {
         const txData = await provider.getTransaction(log.transactionHash)
 
@@ -119,7 +119,7 @@ class HiIQHolderService {
       } catch (e) {
         console.log(e)
       }
-    })
+    }
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
     const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
