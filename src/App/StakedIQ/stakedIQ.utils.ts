@@ -70,8 +70,10 @@ export const stopJob = async <T extends EntityWithCreated>(
 
     if (oldDate === stopDate) {
       job.stop()
+      return true
     }
   }
+  return false
 }
 
 export const getDates = async (repo: Repository<StakedIQ | Treasury>) => {
