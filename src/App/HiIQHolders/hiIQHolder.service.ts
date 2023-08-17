@@ -76,7 +76,7 @@ class HiIQHolderService {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
     const jobRun = await stopJob(this.repo, job, oneDayBack)
 
-    if (!jobRun || firstLevelNodeProcess()) {
+    if (firstLevelNodeProcess() && !jobRun) {
       await this.indexHIIQHolders()
     }
   }
