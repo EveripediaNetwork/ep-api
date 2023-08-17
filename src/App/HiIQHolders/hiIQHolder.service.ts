@@ -1,21 +1,25 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
-import { Cache } from 'cache-manager'
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
-import { ethers } from 'ethers'
+import { decodeEventLog } from 'viem'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { stopJob } from '../StakedIQ/stakedIQ.utils'
+import hiIQAbi from '../utils/hiIQAbi'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
-export enum HiIQMethods {
-  CREATE_LOCK = '0x65fc3873',
-  WITHDRAW = '0x3ccfd60b',
+export type MethodType = {
+  eventName: string
+  args: {
+    provider: string
+    type?: bigint
+  }
 }
 
 @Injectable()
@@ -26,7 +30,6 @@ class HiIQHolderService {
     private repo: HiIQHolderRepository,
     private iqHolders: HiIQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private provider(): string {
@@ -62,7 +65,7 @@ class HiIQHolderService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  @Cron(CronExpression.EVERY_5_SECONDS, {
     name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
@@ -71,22 +74,14 @@ class HiIQHolderService {
     oneDayBack.setDate(oneDayBack.getDate() - 1)
 
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
-    await stopJob(this.repo, job, oneDayBack)
+    const jobRun = await stopJob(this.repo, job, oneDayBack)
 
-    if (firstLevelNodeProcess()) {
+    if (!jobRun || firstLevelNodeProcess()) {
       await this.indexHIIQHolders()
     }
   }
 
   async indexHIIQHolders() {
-    const key = 'hiiq_holders_timeout'
-    const timeout: boolean | undefined = await this.cacheManager.get(key)
-
-    if (timeout) {
-      console.log('timeout')
-      return
-    }
-
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
     const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
@@ -97,18 +92,23 @@ class HiIQHolderService {
         ? await this.getOldLogs(previous, next)
         : await this.getOldLogs()
 
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
-
     for (const log of logs) {
       try {
-        const txData = await provider.getTransaction(log.transactionHash)
+        const decodelog = decodeEventLog({
+          abi: hiIQAbi,
+          data: log.data,
+          topics: log.topics,
+        }) as unknown as MethodType
 
-        if (txData.data.startsWith(HiIQMethods.CREATE_LOCK)) {
-          const existHolder = await this.checkExistingHolders(txData.from)
+        // @ts-ignore
+        if (decodelog.eventName === 'Deposit' && decodelog.args.type === 1n) {
+          const existHolder = await this.checkExistingHolders(
+            decodelog.args.provider,
+          )
           if (!existHolder) {
             try {
               const newHolder = this.iqHolders.create({
-                address: txData.from,
+                address: decodelog.args.provider,
               })
               await this.iqHolders.save(newHolder)
             } catch (e: any) {
@@ -116,24 +116,28 @@ class HiIQHolderService {
             }
           }
         }
-        if (txData.data.startsWith(HiIQMethods.WITHDRAW)) {
-          const existHolder = await this.checkExistingHolders(txData.from)
+        if (decodelog.eventName === 'Withdraw') {
+          const existHolder = await this.checkExistingHolders(
+            decodelog.args.provider,
+          )
           if (existHolder) {
             await this.iqHolders
               .createQueryBuilder()
               .delete()
               .from(HiIQHolderAddress)
-              .where('address = :address', { address: txData.from })
+              .where('address = :address', {
+                address: decodelog.args.provider,
+              })
               .execute()
           }
         }
       } catch (e: any) {
-        console.log('Error getting transaction by hash: ', e.message)
-        await this.cacheManager.set(key, true, { ttl: 600 })
+        console.log(e)
       }
     }
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
+
     const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
     const existCount = await this.repo.findOneBy({
       day: new Date(newDay),
