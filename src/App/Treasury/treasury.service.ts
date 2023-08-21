@@ -34,12 +34,7 @@ class TreasuryService {
       await this.repo.saveData(`${value}`)
     }
   }
-
-  @Cron(CronExpression.EVERY_5_SECONDS)
-  async getETHValueForToken() {
-    await provider.getBalance('ricmoo.eth')
-  }
-
+  
   async requestToDebank(query: string): Promise<any> {
     const url = `https://pro-openapi.debank.com/v1/user/${query}`
 
