@@ -34,7 +34,7 @@ class TreasuryService {
       await this.repo.saveData(`${value}`)
     }
   }
-  
+
   async requestToDebank(query: string): Promise<any> {
     const url = `https://pro-openapi.debank.com/v1/user/${query}`
 
