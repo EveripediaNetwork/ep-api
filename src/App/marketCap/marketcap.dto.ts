@@ -38,6 +38,18 @@ export class NftListData extends MarketDataGenerals {
   market_cap_usd!: number
 
   @Field()
+  native_currency!: string
+
+  @Field()
+  native_currency_symbol!: string
+
+  @Field()
+  h24_volume_usd!: number
+
+  @Field()
+  h24_volume_native_currency!: number
+
+  @Field()
   floor_price_in_usd_24h_percentage_change!: number
 }
 
