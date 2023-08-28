@@ -18,6 +18,8 @@ import Treasury from './Entities/treasury.entity'
 import StakedIQ from './Entities/stakedIQ.entity'
 import HiIQHolderAddress from './Entities/hiIQHolderAddress.entity'
 import HiIQHolder from './Entities/hiIQHolder.entity'
+import IQHolderAddress from './Entities/iqHolderAddress.entity'
+import IQHolder from './Entities/iqHolder.entity'
 
 @Module({
   imports: [
@@ -47,7 +49,9 @@ import HiIQHolder from './Entities/hiIQHolder.entity'
           Treasury,
           StakedIQ,
           HiIQHolder,
-          HiIQHolderAddress
+          HiIQHolderAddress,
+          IQHolder,
+          IQHolderAddress
         ],
         synchronize: true,
         keepConnectionAlive: true,
