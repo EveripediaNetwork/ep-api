@@ -18,7 +18,7 @@ class IQHolderRepository extends Repository<IQHolder> {
             SELECT
                 amount, day,
                 ROW_NUMBER() OVER (ORDER BY day) AS row_num
-            FROM hi_iq_holder
+            FROM iq_holder
             )
             SELECT amount, day
             FROM RankedData
@@ -30,7 +30,7 @@ class IQHolderRepository extends Repository<IQHolder> {
         [args.interval, args.offset, args.limit],
       )
     }
-    return this.createQueryBuilder('hi_iq_holder')
+    return this.createQueryBuilder('iq_holder')
       .select('amount')
       .addSelect('day')
       .offset(args.offset)
