@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
@@ -14,6 +14,7 @@ import IQHoldersResolver from './IQHolder.resolver'
   imports: [
     TypeOrmModule.forFeature([IQHolderAddress, IQHolder]),
     ScheduleModule.forRoot(),
+    CacheModule.register({ ttl: 3600 }),
     HttpModule,
   ],
   providers: [
@@ -22,10 +23,6 @@ import IQHoldersResolver from './IQHolder.resolver'
     IQHolderRepository,
     IQHolderAddressRepository,
   ],
-  exports: [
-    IQHolderService,
-    IQHolderRepository,
-    IQHolderAddressRepository,
-  ],
+  exports: [IQHolderService, IQHolderRepository, IQHolderAddressRepository],
 })
 export default class IQHolderModule {}
