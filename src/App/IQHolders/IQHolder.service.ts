@@ -41,21 +41,19 @@ class IQHolderService {
     })
   }
 
-    async checkExistingHolders(
-      address: string,
-    ): Promise<IQHolderAddress | null> {
-      return this.iqHolders.findOneBy({
-        address,
-      })
-    }
+  async checkExistingHolders(address: string): Promise<IQHolderAddress | null> {
+    return this.iqHolders.findOneBy({
+      address,
+    })
+  }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-    async checkForNewHolders() {
-      const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
-      if (firstLevelNodeProcess() && !job) {
-        await this.indexIQHolders()
-      }
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async checkForNewHolders() {
+    const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
+    if (firstLevelNodeProcess() && !job) {
+      await this.indexIQHolders()
     }
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: 'storeIQHolderCount',
@@ -69,7 +67,7 @@ class IQHolderService {
     const jobRun = await stopJob(this.repo, job, oneDayBack)
 
     if (firstLevelNodeProcess() && !jobRun) {
-    await this.indexIQHolders()
+      await this.indexIQHolders()
     }
   }
 
@@ -81,7 +79,6 @@ class IQHolderService {
     const record = await this.lastHolderRecord()
     const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
     const next = previous ? previous + oneDayInSeconds : undefined
-
 
     const transactions =
       previous && next
