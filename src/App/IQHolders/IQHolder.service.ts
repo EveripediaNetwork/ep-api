@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Cache } from 'cache-manager'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -14,6 +15,7 @@ import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 export const IQContract = '0x579CEa1889991f68aCc35Ff5c3dd0621fF29b0C9'
 
+const cronIndexerId = 'storeIQHolderCount'
 @Injectable()
 class IQHolderService {
   constructor(
@@ -22,6 +24,7 @@ class IQHolderService {
     private repo: IQHolderRepository,
     private iqHolders: IQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private provider(): string {
@@ -55,16 +58,22 @@ class IQHolderService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, {
-    name: 'storeIQHolderCount',
+  @Cron(CronExpression.EVERY_10_SECONDS, {
+    name: cronIndexerId,
   })
   async storeIQHolderCount() {
+    const tempStop: boolean | undefined = await this.cacheManager.get(
+      cronIndexerId,
+    )
+
     const today = new Date()
     const oneDayBack = new Date(today)
     oneDayBack.setDate(oneDayBack.getDate() - 1)
 
     const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
     const jobRun = await stopJob(this.repo, job, oneDayBack)
+
+    if (tempStop) return
 
     if (firstLevelNodeProcess() && !jobRun) {
       await this.indexIQHolders()
@@ -85,8 +94,8 @@ class IQHolderService {
         ? await this.getTxList(previous, next)
         : await this.getTxList()
 
-    for (const transaction of transactions) {
-      try {
+    try {
+      for (const transaction of transactions) {
         if (
           (transaction.functionName.startsWith('transfer') ||
             transaction.functionName.startsWith('approve')) &&
@@ -122,9 +131,10 @@ class IQHolderService {
               .execute()
           }
         }
-      } catch (e: any) {
-        console.log(e)
       }
+    } catch (e: any) {
+      console.log(e)
+      await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
     }
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
