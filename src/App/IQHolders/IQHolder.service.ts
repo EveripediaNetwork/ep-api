@@ -135,6 +135,7 @@ class IQHolderService {
     } catch (e: any) {
       console.log(e)
       await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
+      return
     }
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
