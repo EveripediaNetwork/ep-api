@@ -21,7 +21,7 @@ class TagService extends Repository<Tag> {
 
   async getTagById(args: ArgsById): Promise<Tag | null> {
     return this.createQueryBuilder('tag')
-      .where('tag.id ILIKE :id', { id: `%${args.id}%` })
+      .where('tag.id ILIKE :id', { id: args.id })
       .getOne()
   }
 
