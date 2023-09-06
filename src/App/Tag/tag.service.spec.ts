@@ -73,7 +73,7 @@ describe('TagService', () => {
       expect(service.createQueryBuilder).toHaveBeenCalled()
       expect(service.createQueryBuilder().where).toHaveBeenCalledWith(
         'tag.id ILIKE :id',
-        { id: `%${args.id}%` },
+        { id: args.id },
       )
     })
   })

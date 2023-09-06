@@ -40,7 +40,7 @@ class TagResolver {
 
     return repository
       .createQueryBuilder('wiki')
-      .innerJoin('wiki.tags', 'tag', 'tag.id = :tagId', {
+      .innerJoin('wiki.tags', 'tag', 'tag.id ILIKE :tagId', {
         tagId: id,
       })
       .where('wiki.hidden = false')
