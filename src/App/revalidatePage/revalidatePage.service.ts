@@ -13,7 +13,7 @@ export enum RevalidateEndpoints {
   STORE_WIKI = 'storeWiki',
   CREATE_PROFILE = 'createProfile',
 }
-
+// TODO: / has error, /blog has error, 
 export enum Routes {
   HOMEPAGE = '/',
   ACTIVITY = '/activity',
