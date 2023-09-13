@@ -99,9 +99,9 @@ class IQHolderService {
 
     const addressesToDelete: string[] = []
     const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
     try {
-      await queryRunner.connect()
-      await queryRunner.startTransaction()
       for (const transaction of transactions) {
         if (
           (transaction.functionName.startsWith('transfer') ||
@@ -120,7 +120,7 @@ class IQHolderService {
             const newHolder = this.iqHolders.create({
               address: transaction.from,
             })
-            await queryRunner.manager.save(IQHolder, newHolder)
+            await queryRunner.manager.save(newHolder)
           }
           if (readableBalance < 5 && existHolder) {
             addressesToDelete.push(transaction.from)
