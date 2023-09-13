@@ -27,14 +27,12 @@ class TreasuryService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
-//   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
-    // if (firstLevelNodeProcess()) {
+    if (firstLevelNodeProcess()) {
       const value = await this.main()
-      console.log(value)
-    //   await this.repo.saveData(`${value}`)
-    // }
+      await this.repo.saveData(`${value}`)
+    }
   }
 
   async requestToDebank(query: string): Promise<any> {
@@ -89,7 +87,7 @@ class TreasuryService {
     const excludedSymbols = ['FraxlendV1 - CRV/FRAX', 'stkCvxFxs']
 
     const filteredResult = contractBalances.filter(
-      (contractDetails) =>
+      contractDetails =>
         tokens.includes(contractDetails.id) &&
         !excludedSymbols.includes(contractDetails.symbol),
     )
@@ -122,7 +120,7 @@ class TreasuryService {
     )
 
     const filteredContracts = this.filterContracts(TOKENS, treasury)
-    const details = (await filteredContracts).map(async (token) => {
+    const details = (await filteredContracts).map(async token => {
       let value = token.amount
       if (token.protocol_id === contractProtocoldetails.protocol_id) {
         value += contractProtocoldetails.amount
@@ -143,7 +141,7 @@ class TreasuryService {
       ...convexProtocolData,
       ...fraxLendProtocolData,
     ]
-    allLpTokens.forEach((lp) => {
+    allLpTokens.forEach(lp => {
       if (SUPPORTED_LP_TOKENS_ADDRESSES.includes(lp.pool.id)) {
         additionalTreasuryData.push({
           id: lp.pool.adapter_id,
@@ -161,7 +159,7 @@ class TreasuryService {
 
     const allTreasureDetails = [...treasuryDetails, ...additionalTreasuryData]
     let totalAccountValue = 0
-    allTreasureDetails.forEach((token) => {
+    allTreasureDetails.forEach(token => {
       totalAccountValue += token.raw_dollar
     })
     return totalAccountValue

@@ -78,7 +78,7 @@ class IQHolderService {
     if (tempStop) return
 
     if (!jobRun) {
-    // if (firstLevelNodeProcess() && !jobRun) {
+      // if (firstLevelNodeProcess() && !jobRun) {
       await this.indexIQHolders()
     }
   }
