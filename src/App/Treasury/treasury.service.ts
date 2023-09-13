@@ -27,12 +27,14 @@ class TreasuryService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_5_SECONDS)
+//   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
-    if (firstLevelNodeProcess()) {
+    // if (firstLevelNodeProcess()) {
       const value = await this.main()
-      await this.repo.saveData(`${value}`)
-    }
+      console.log(value)
+    //   await this.repo.saveData(`${value}`)
+    // }
   }
 
   async requestToDebank(query: string): Promise<any> {
