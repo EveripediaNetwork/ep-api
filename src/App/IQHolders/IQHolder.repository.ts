@@ -17,13 +17,12 @@ class IQHolderRepository extends Repository<IQHolder> {
             WITH RankedData AS (
             SELECT
                 amount, day,
-                ROW_NUMBER() OVER (ORDER BY day) AS row_num
+                ROW_NUMBER() OVER (ORDER BY day DESC) AS row_num
             FROM iq_holder
             )
             SELECT amount, day
             FROM RankedData
             WHERE (row_num - 1) % $1 = 0
-            ORDER BY day
             OFFSET $2
             LIMIT $3;
         `,
@@ -34,6 +33,7 @@ class IQHolderRepository extends Repository<IQHolder> {
       .select('amount')
       .addSelect('day')
       .offset(args.offset)
+      .orderBy('day', 'DESC')
       .limit(args.limit)
       .getRawMany()
   }

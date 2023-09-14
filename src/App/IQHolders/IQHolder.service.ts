@@ -77,8 +77,7 @@ class IQHolderService {
 
     if (tempStop) return
 
-    if (!jobRun) {
-      // if (firstLevelNodeProcess() && !jobRun) {
+    if (firstLevelNodeProcess() && !jobRun) {
       await this.indexIQHolders()
     }
   }
@@ -98,14 +97,15 @@ class IQHolderService {
         : await this.getTxList()
 
     const addressesToDelete: string[] = []
+
     const queryRunner = this.dataSource.createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try {
       for (const transaction of transactions) {
         if (
-          (transaction.functionName.startsWith('transfer') ||
-            transaction.functionName.startsWith('approve')) &&
+          (transaction.functionName?.startsWith('transfer') ||
+            transaction.functionName?.startsWith('approve')) &&
           transaction.txreceipt_status === '1'
         ) {
           const balance = await iq.balanceOf(transaction.from, {
@@ -116,11 +116,14 @@ class IQHolderService {
 
           const existHolder = await this.checkExistingHolders(transaction.from)
 
-          if (readableBalance >= 5 && !existHolder) {
-            const newHolder = this.iqHolders.create({
-              address: transaction.from,
-            })
-            await queryRunner.manager.save(newHolder)
+          if (readableBalance >= 5) {
+            this.iqHolders
+              .createQueryBuilder()
+              .insert()
+              .into(IQHolderAddress)
+              .values({ address: transaction.from })
+              .orIgnore()
+              .execute()
           }
           if (readableBalance < 5 && existHolder) {
             addressesToDelete.push(transaction.from)
@@ -135,6 +138,8 @@ class IQHolderService {
       await queryRunner.release()
       return
     }
+
+    await queryRunner.release()
 
     if (addressesToDelete.length > 0) {
       for (const address of addressesToDelete) {
