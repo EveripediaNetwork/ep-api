@@ -32,7 +32,6 @@ export enum Protocols {
 
 export const TOKEN_MINIMUM_VALUE = 1000
 
-
 export const PROTOCOLS = ['frax', 'convex', 'fraxlend']
 export const TOKENS = [
   '0x579cea1889991f68acc35ff5c3dd0621ff29b0c9',
