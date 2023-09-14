@@ -52,34 +52,31 @@ class IQHolderService {
     })
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {disabled: true})
   async checkForNewHolders() {
-    const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
-    if (firstLevelNodeProcess() && !job) {
-      await this.indexIQHolders()
-    }
+    // const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
+    // if (firstLevelNodeProcess() && !job) {
+    //   await this.indexIQHolders()
+    // }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, {
+  @Cron(CronExpression.EVERY_MINUTE, {
     name: cronIndexerId,
+    disabled: true
   })
   async storeIQHolderCount() {
-    const tempStop: boolean | undefined = await this.cacheManager.get(
-      cronIndexerId,
-    )
-
-    const today = new Date()
-    const oneDayBack = new Date(today)
-    oneDayBack.setDate(oneDayBack.getDate() - 1)
-
-    const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
-    const jobRun = await stopJob(this.repo, job, oneDayBack)
-
-    if (tempStop) return
-
-    if (firstLevelNodeProcess() && !jobRun) {
-      await this.indexIQHolders()
-    }
+    // const tempStop: boolean | undefined = await this.cacheManager.get(
+    //   cronIndexerId,
+    // )
+    // const today = new Date()
+    // const oneDayBack = new Date(today)
+    // oneDayBack.setDate(oneDayBack.getDate() - 1)
+    // const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
+    // const jobRun = await stopJob(this.repo, job, oneDayBack)
+    // if (tempStop) return
+    // if (firstLevelNodeProcess() && !jobRun) {
+    //   await this.indexIQHolders()
+    // }
   }
 
   async indexIQHolders() {
