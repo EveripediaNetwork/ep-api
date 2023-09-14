@@ -5,6 +5,7 @@ import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
+import { DataSource } from 'typeorm'
 import IQHolderRepository from './IQHolder.repository'
 import IQHolder from '../../Database/Entities/iqHolder.entity'
 import IQHolderAddressRepository from './IQHolderAddress.repository'
@@ -22,6 +23,7 @@ class IQHolderService {
     private configService: ConfigService,
     private httpService: HttpService,
     private repo: IQHolderRepository,
+    private dataSource: DataSource,
     private iqHolders: IQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -58,7 +60,7 @@ class IQHolderService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  @Cron(CronExpression.EVERY_5_SECONDS, {
     name: cronIndexerId,
   })
   async storeIQHolderCount() {
@@ -94,11 +96,16 @@ class IQHolderService {
         ? await this.getTxList(previous, next)
         : await this.getTxList()
 
+    const addressesToDelete: string[] = []
+
+    const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
     try {
       for (const transaction of transactions) {
         if (
-          (transaction.functionName.startsWith('transfer') ||
-            transaction.functionName.startsWith('approve')) &&
+          (transaction.functionName?.startsWith('transfer') ||
+            transaction.functionName?.startsWith('approve')) &&
           transaction.txreceipt_status === '1'
         ) {
           const balance = await iq.balanceOf(transaction.from, {
@@ -109,33 +116,42 @@ class IQHolderService {
 
           const existHolder = await this.checkExistingHolders(transaction.from)
 
-          if (readableBalance >= 5 && !existHolder) {
-            try {
-              const newHolder = this.iqHolders.create({
-                address: transaction.from,
-              })
-              await this.iqHolders.save(newHolder)
-            } catch (e: any) {
-              console.error(e.message)
-            }
-          }
-
-          if (readableBalance < 5 && existHolder) {
-            await this.iqHolders
+          if (readableBalance >= 5) {
+            this.iqHolders
               .createQueryBuilder()
-              .delete()
-              .from(IQHolderAddress)
-              .where('address = :address', {
-                address: transaction.from,
-              })
+              .insert()
+              .into(IQHolderAddress)
+              .values({ address: transaction.from })
+              .orIgnore()
               .execute()
+          }
+          if (readableBalance < 5 && existHolder) {
+            addressesToDelete.push(transaction.from)
           }
         }
       }
+      await queryRunner.commitTransaction()
     } catch (e: any) {
       console.log(e)
+      await queryRunner.rollbackTransaction()
       await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
+      await queryRunner.release()
       return
+    }
+
+    await queryRunner.release()
+
+    if (addressesToDelete.length > 0) {
+      for (const address of addressesToDelete) {
+        await this.iqHolders
+          .createQueryBuilder()
+          .delete()
+          .from(IQHolderAddress)
+          .where('address = :address', {
+            address,
+          })
+          .execute()
+      }
     }
 
     const count = await this.iqHolders.createQueryBuilder().getCount()
