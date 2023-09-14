@@ -29,6 +29,11 @@ export enum Protocols {
   FRAXLEND = 'fraxlend',
   APESTAKE = 'apestake',
 }
+
+export const TOKEN_MINIMUM_VALUE = 1000
+
+
+export const PROTOCOLS = ['frax', 'convex', 'fraxlend']
 export const TOKENS = [
   '0x579cea1889991f68acc35ff5c3dd0621ff29b0c9',
   '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
@@ -43,3 +48,20 @@ export const TOKENS = [
   '0x3835a58ca93cdb5f912519ad366826ac9a752510',
   '0x49b4d1df40442f0c31b1bbaea3ede7c38e37e31a',
 ]
+
+export const todayMidnightDate = new Date(new Date().setHours(0, 0, 0, 0))
+
+export const oneYearAgo = 1658275200 // 2022 July 20
+
+export const dateOnly = (date: Date) => {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
+  return `${year}-${month.toString().padStart(2, '0')}-${day
+    .toString()
+    .padStart(2, '0')}`
+}
+
+export const firstLevelNodeProcess = () =>
+  parseInt(process.env.NODE_APP_INSTANCE as string, 10) === 0

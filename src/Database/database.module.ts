@@ -16,6 +16,10 @@ import Feedback from './Entities/feedback.entity'
 import BrainPass from './Entities/brainPass.entity'
 import Treasury from './Entities/treasury.entity'
 import StakedIQ from './Entities/stakedIQ.entity'
+import HiIQHolderAddress from './Entities/hiIQHolderAddress.entity'
+import HiIQHolder from './Entities/hiIQHolder.entity'
+import IQHolderAddress from './Entities/iqHolderAddress.entity'
+import IQHolder from './Entities/iqHolder.entity'
 
 @Module({
   imports: [
@@ -44,6 +48,10 @@ import StakedIQ from './Entities/stakedIQ.entity'
           BrainPass,
           Treasury,
           StakedIQ,
+          HiIQHolder,
+          HiIQHolderAddress,
+          IQHolder,
+          IQHolderAddress
         ],
         synchronize: true,
         keepConnectionAlive: true,

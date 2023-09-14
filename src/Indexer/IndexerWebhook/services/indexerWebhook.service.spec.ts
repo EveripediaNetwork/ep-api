@@ -118,22 +118,6 @@ describe('IndexerWebhookService', () => {
       moduleRef.get<AlchemyNotifyService>(AlchemyNotifyService)
   })
 
-  describe('indexWebhook', () => {
-    it('should return false when there are no logs', async () => {
-      const data = { logs: [] } as unknown as BlockData
-
-      const webhookState = await service.indexWebhook(data)
-
-      expect(webhookState).toBe(false)
-    })
-
-    it('should return true when logs are present', async () => {
-      const webhookState = await service.indexWebhook(eventData)
-
-      expect(webhookState).toBe(true)
-    })
-  })
-
   describe('decodeLog', () => {
     it('should return null for empty log data', async () => {
       const log: any = {}

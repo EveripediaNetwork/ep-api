@@ -1,15 +1,20 @@
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
+import { HttpService } from '@nestjs/axios'
 import erc20Abi from '../utils/erc20Abi'
 import StakedIQRepository from './stakedIQ.repository'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import { existRecord, stopJob, getDates, insertOldData } from './stakedIQ.utils'
 
 @Injectable()
 class StakedIQService {
   constructor(
     private repo: StakedIQRepository,
     private configService: ConfigService,
+    private httpService: HttpService,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   private address(): { hiIQ: string; iq: string } {
@@ -29,119 +34,73 @@ class StakedIQService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeIQStacked(): Promise<void> {
-    const tvl = await this.getTVL()
-    await this.repo.saveData(`${tvl}`)
+    if (firstLevelNodeProcess()) {
+      const tvl = await this.getTVL()
+      const presentData = await existRecord(new Date(), 'staked_iq', this.repo)
+      if (!presentData) {
+        await this.repo.saveData(`${tvl}`)
+      }
+    }
   }
 
-  async getTVL(): Promise<number> {
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: 'IndexOldStakedIQ',
+  })
+  async indexOldStakedBalance(): Promise<void> {
+    const job = this.schedulerRegistry.getCronJob('IndexOldStakedIQ')
+    await stopJob(this.repo, job)
+
+    const presentData = await existRecord(new Date(), 'staked_iq', this.repo)
+    if (firstLevelNodeProcess()) {
+      if (!presentData) {
+        await this.previousStakedIQ()
+      }
+    }
+  }
+
+  async getTVL(block?: string): Promise<number> {
     const provider = new ethers.providers.JsonRpcProvider(this.provider())
     const iface = new ethers.utils.Interface(erc20Abi)
     const iq = new ethers.Contract(this.address().iq, iface, provider)
 
-    const value = await iq.balanceOf(this.address().hiIQ)
+    const value = block
+      ? await iq.balanceOf(this.address().hiIQ, { blockTag: Number(block) })
+      : await iq.balanceOf(this.address().hiIQ)
 
     const tvl = Number(value.toString()) / 10e17
     return tvl
   }
 
-  getLeastRecordByDate = async () => {
-    const recordByDate = await this.repo.find({
-      order: {
-        updated: 'DESC',
-      },
-      take: 1,
-    })
-    return recordByDate
-  }
+  async previousStakedIQ(): Promise<void> {
+    const { time, incomingDate } = await getDates(this.repo)
 
-  retrieveBlockNumber = async (date: number) => {
+    const key = this.etherScanApiKey()
+    const url = `https://api${
+      this.provider().includes('mainnet') ? '' : '-goerli'
+    }.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
+
+    let blockNumberForQuery
     try {
-      const url = `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${date}&closest=before&apikey=${this.etherScanApiKey()}`
-      const response = await fetch(url)
-      const data = await response.json()
-      return data.result
+      const response = await this.httpService.get(url).toPromise()
+      blockNumberForQuery = response?.data.result
     } catch (e: any) {
-      console.log(e)
-      return null
+      console.error('Error requesting block number', e.data)
     }
-  }
-
-  getLockBalance = async (blockNumber: number) => {
+    let previousLockedBalance
     try {
-      const provider = new ethers.providers.JsonRpcProvider(this.provider())
-      const iface = new ethers.utils.Interface(erc20Abi)
-      const iq = new ethers.Contract(this.address().iq, iface, provider)
-      const balanceWei = await iq.balanceOf(this.address().hiIQ, {
-        blockTag: Number(blockNumber),
-      })
-      const balanceIQ = Number(balanceWei.toString()) / 10e17
-      console.log(
-        `IQ Token balance of ${
-          this.address().hiIQ
-        } at date ${blockNumber}: ${balanceIQ} IQ`,
-      )
-    } catch (e: any) {
-      console.log(e)
-      return null
+      const balanceIQ = (await this.getTVL(
+        blockNumberForQuery,
+      )) as unknown as number
+      previousLockedBalance = balanceIQ
+    } catch (error) {
+      console.error('Error retrieving balance:', error)
     }
-  }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
-    // disabled: this.enablePreviousDataCron(),
-  })
-  async test(): Promise<void> {
-    const leastRecordByDate = await this.getLeastRecordByDate()
-    let unixTimestampSeconds = Math.floor(
-      leastRecordByDate.length > 0
-        ? leastRecordByDate[0].created.getTime() / 1000
-        : new Date().setHours(0, 0, 0, 0) / 1000,
+    await insertOldData(
+      previousLockedBalance as number,
+      incomingDate,
+      this.repo,
     )
-    const limtReached =
-      new Date(unixTimestampSeconds / 1000).getTime() ===
-      new Date(1658188800000).getTime()
-    if (!leastRecordByDate) {
-      unixTimestampSeconds = new Date().setHours(0, 0, 0, 0)
-      return
-    }
-    const oneDayInSeconds = 86400
-    // if value, substract 1 day and get block number
-    const oneDayBack = Math.floor(
-      leastRecordByDate.length > 0
-        ? unixTimestampSeconds - oneDayInSeconds
-        : unixTimestampSeconds,
-    )
-    const blockNumberForQuery = await this.retrieveBlockNumber(oneDayBack)
-    if (blockNumberForQuery === null) console.log('block number is null')
-    const previousLockedBalance = await this.getLockBalance(blockNumberForQuery)
-    if (previousLockedBalance === null)
-      console.log('previous locked balance is null')
-
-    if (leastRecordByDate.length > 0) {
-      console.log("I'm here")
-    }
-
-    const previousDate = oneDayBack * 1000
-    const incomingDate = new Date(previousDate)
-    // before store check that the incoming date has not been inserted then store value(insert record, use the date as created and updated) otherwise return
-    // const existingRecord = await this.repo
-    //   .createQueryBuilder('staked_iq')
-    //   .where('staked_iq.created >= to_timestamp(:previousDate)', {
-    //     previousDate,
-    //   })
-    //   .getOne()
-    // if (limtReached) {
-    //   return
-    // }
-    // console.log(existingRecord)
-    // return
-    // if (!existingRecord) {
-    //   const oldStackedValue = this.repo.create({
-    //     amount: `${previousLockedBalance}`,
-    //     created: incomingDate,
-    //     updated: incomingDate,
-    //   })
-    //   await this.repo.save(oldStackedValue)
-    // }
   }
 }
 export default StakedIQService

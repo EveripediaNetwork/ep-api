@@ -134,7 +134,7 @@ class MarketCapService {
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/nfts/markets?asset_platform_id=ethereum&order=market_cap_usd_desc&per_page=${amount}&page=${
+          ` https://pro-api.coingecko.com/api/v3/nfts/markets?order=h24_volume_usd_desc&per_page=${amount}&page=${
             page === 0 ? 1 : page
           }`,
           {
@@ -154,9 +154,13 @@ class MarketCapService {
         alias: null,
         name: element.name || '',
         image: element.image.small || '',
+        native_currency: element.native_currency || '',
+        native_currency_symbol: element.native_currency_symbol || '',
         floor_price_eth: element.floor_price.native_currency || 0,
         floor_price_usd: element.floor_price.usd || 0,
         market_cap_usd: element.market_cap.usd || 0,
+        h24_volume_usd: element.volume_24h.usd || 0,
+        h24_volume_native_currency: element.volume_24h.native_currency || 0,
         floor_price_in_usd_24h_percentage_change:
           element.floor_price_in_usd_24h_percentage_change || 0,
       }

@@ -1,4 +1,34 @@
-import { TxData } from '../../ExternalServices/alchemyNotify.dto'
+import { Response } from 'express'
+
+export enum AlchemyWebhookType {
+  WIKI = 'ALCHEMY_NOTIFY_WIKI_SIGNING_KEY',
+  NFT = 'ALCHEMY_NOTIFY_NFT_SIGNING_KEY',
+}
+
+export type ABIdecodeType = {
+  anonymous: boolean
+  inputs: {
+    indexed: boolean
+    internalType: string
+    name: string
+    type: string
+  }[]
+  name: string
+  type: string
+}[]
+
+export type EventRequestData = {
+  request: any
+  res: Response
+  value: EventData
+}
+
+export type TxData = {
+  account: { address: string }
+  data: string
+  topics: string[]
+  index: number
+}
 
 export type EventData = {
   webhookId: string

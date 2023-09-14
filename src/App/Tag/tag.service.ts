@@ -20,7 +20,9 @@ class TagService extends Repository<Tag> {
   }
 
   async getTagById(args: ArgsById): Promise<Tag | null> {
-    return this.findOneBy({ id: args.id })
+    return this.createQueryBuilder('tag')
+      .where('tag.id ILIKE :id', { id: args.id })
+      .getOne()
   }
 
   async getTagsById(args: TagIDArgs): Promise<Tag[]> {

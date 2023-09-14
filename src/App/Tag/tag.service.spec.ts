@@ -54,16 +54,27 @@ describe('TagService', () => {
   })
 
   describe('getTagById', () => {
-    it('should get a tag by ID', async () => {
+    it('should get a tag by ID and wikis using the tag', async () => {
       const args: ArgsById = {
         id: '123',
       }
 
-      jest.spyOn(service, 'findOneBy').mockResolvedValue(new Tag())
+      const createQueryBuilder: any = {
+        where: jest.fn().mockImplementation(() => createQueryBuilder),
+        getOne: () => new Tag(),
+      }
+
+      jest
+        .spyOn(service, 'createQueryBuilder')
+        .mockImplementation(() => createQueryBuilder)
 
       await service.getTagById(args)
 
-      expect(service.findOneBy).toHaveBeenCalledWith({ id: args.id })
+      expect(service.createQueryBuilder).toHaveBeenCalled()
+      expect(service.createQueryBuilder().where).toHaveBeenCalledWith(
+        'tag.id ILIKE :id',
+        { id: args.id },
+      )
     })
   })
 

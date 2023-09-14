@@ -10,7 +10,9 @@ class TreasuryRepository extends Repository<Treasury> {
   }
 
   async saveData(tokenValue: string): Promise<Treasury> {
-    const newTreasuryValue = this.create({ totalValue: tokenValue })
+    const newTreasuryValue = this.create({
+      totalValue: tokenValue,
+    })
     return this.save(newTreasuryValue)
   }
 

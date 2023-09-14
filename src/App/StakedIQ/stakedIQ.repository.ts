@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import { DateArgs } from '../Wiki/wikiStats.dto'
 import StakedIQ from '../../Database/Entities/stakedIQ.entity'
+import { todayMidnightDate } from '../Treasury/treasury.dto'
 
 @Injectable()
 class StakedIQRepository extends Repository<StakedIQ> {
@@ -10,7 +11,11 @@ class StakedIQRepository extends Repository<StakedIQ> {
   }
 
   async saveData(tokenValue: string): Promise<StakedIQ> {
-    const IQStaked = this.create({ amount: tokenValue })
+    const IQStaked = this.create({
+      amount: tokenValue,
+      created: todayMidnightDate,
+      updated: todayMidnightDate,
+    })
     return this.save(IQStaked)
   }
 
