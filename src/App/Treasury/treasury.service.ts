@@ -7,7 +7,6 @@ import {
   ContractDetailsType,
   TreasuryTokenType,
   SUPPORTED_LP_TOKENS_ADDRESSES,
-  Protocols,
   firstLevelNodeProcess,
   PROTOCOLS,
   TOKEN_MINIMUM_VALUE,
@@ -53,7 +52,7 @@ class TreasuryService {
     return null
   }
 
-  async treasuryTokens(walletAddress: string, chain: string) {
+  async treasuryTokens(walletAddress: string) {
     const result = await this.requestToDebank(
       `all_token_list?id=${walletAddress}&is_all=true`,
     )
@@ -71,12 +70,12 @@ class TreasuryService {
     let totalAccountValue = 0
 
     const filteredDetails = treasuryDetails.filter(
-      (token) =>
+      token =>
         token.raw_dollar > TOKEN_MINIMUM_VALUE &&
         !excludedSymbols.includes(token.id),
     )
 
-    filteredDetails.forEach((token) => {
+    filteredDetails.forEach(token => {
       if (token.raw_dollar > TOKEN_MINIMUM_VALUE) {
         totalAccountValue += token.raw_dollar
       }
@@ -89,7 +88,7 @@ class TreasuryService {
     const result = await this.requestToDebank(
       `protocol?protocol_id=${protocolId}&id=${id}&is_all=true`,
     )
-    return result.portfolio_item_list[0].asset_token_list[0]
+    return result.portfolio_item_list[0]?.asset_token_list[0]
   }
 
   async lpProtocolDetails(lp: boolean, tokenId: string, protocolId: string) {
@@ -108,7 +107,7 @@ class TreasuryService {
     const excludedSymbols = ['FraxlendV1 - CRV/FRAX', 'stkCvxFxs']
 
     const filteredResult = contractBalances.filter(
-      (contractDetails) =>
+      contractDetails =>
         tokens.includes(contractDetails.id) &&
         !excludedSymbols.includes(contractDetails.symbol),
     )
@@ -120,7 +119,6 @@ class TreasuryService {
     const address = this.getTreasuryENVs().treasury as string
     const treasury: ContractDetailsType[] = await this.treasuryTokens(
       address,
-      Protocols.ETH,
     )
     const contractProtocoldetails = await this.contractProtocoldetails(
       address,
@@ -143,14 +141,14 @@ class TreasuryService {
     //   Protocols.FRAXLEND,
     // )
 
-    const lpTokenDetails = PROTOCOLS.map(async (protocol) => {
-      return await this.lpProtocolDetails(true, address, protocol)
-    })
+    const lpTokenDetails = PROTOCOLS.map(async protocol =>
+      this.lpProtocolDetails(true, address, protocol),
+    )
 
     // const filteredContracts = this.filterContracts(TOKENS, treasury)
-    const details = treasury.map(async (token) => {
+    const details = treasury.map(async token => {
       let value = token.amount
-      if (token.protocol_id === contractProtocoldetails.protocol_id) {
+      if (token?.protocol_id === contractProtocoldetails?.protocol_id) {
         value += contractProtocoldetails.amount
       }
       const dollarValue = token.price * value
@@ -165,7 +163,7 @@ class TreasuryService {
     const treasuryDetails = await Promise.all(details)
     const additionalTreasuryData: TreasuryTokenType[] = []
     const allLpTokens = await Promise.all(lpTokenDetails)
-    allLpTokens.flat().forEach((lp) => {
+    allLpTokens.flat().forEach(lp => {
       if (SUPPORTED_LP_TOKENS_ADDRESSES.includes(lp.pool.id)) {
         additionalTreasuryData.push({
           id: lp.pool.adapter_id,
@@ -207,7 +205,7 @@ class TreasuryService {
     // allTreasureDetails.forEach(token => {
     //   totalAccountValue += token.raw_dollar
     // })
-    return await this.sumTokenValues(allTreasureDetails)
+    return this.sumTokenValues(allTreasureDetails)
   }
 }
 export default TreasuryService
