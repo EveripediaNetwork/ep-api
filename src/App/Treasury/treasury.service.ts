@@ -83,13 +83,6 @@ class TreasuryService {
     return totalAccountValue
   }
 
-  async contractProtocoldetails(id: string, protocolId: string) {
-    const result = await this.requestToDebank(
-      `protocol?protocol_id=${protocolId}&id=${id}&is_all=true`,
-    )
-    return result.portfolio_item_list[0]?.asset_token_list[0]
-  }
-
   async lpProtocolDetails(lp: boolean, tokenId: string, protocolId: string) {
     const url = lp
       ? `protocol?id=${tokenId}&protocol_id=${protocolId}`
@@ -114,7 +107,7 @@ class TreasuryService {
     return filteredResult
   }
 
-  async main(): Promise<number | any> {
+  async main(): Promise<number> {
     const address = this.getTreasuryENVs().treasury as string
     const treasury: ContractDetailsType[] = await this.treasuryTokens(address)
 
@@ -143,7 +136,7 @@ class TreasuryService {
           contractAddress: lp.pool.controller,
           raw_dollar: Number(lp.stats.asset_usd_value),
           token: lp.detail.supply_token_list.map(
-            (supply: { amount: number; symbol: string }) => ({
+            (supply: { amount: number, symbol: string }) => ({
               amount: supply.amount,
               symbol: supply.symbol,
             }),
