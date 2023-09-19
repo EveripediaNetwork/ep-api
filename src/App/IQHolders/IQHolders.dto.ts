@@ -7,7 +7,11 @@ import PaginationArgs from '../pagination.args'
 export default class IQHolderArgs extends PaginationArgs {
   @Field(() => IntervalByDays)
   interval = IntervalByDays.DAY
+  @Field(() => Date, { nullable: true })
+  start?: Date
 
+  @Field(() => Date, { nullable: true })
+  end?: Date
   @Field(() => Int)
   @Min(1)
   @Max(365)

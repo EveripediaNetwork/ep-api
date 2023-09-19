@@ -8,8 +8,19 @@ class IQHoldersResolver {
   constructor(private iqHoldersRepository: IQHolderRepository) {}
 
   @Query(() => [IQHolder], { name: 'IQHolders' })
-  async IQHolders(@Args() args: IQHolderArgs) {
-    return this.iqHoldersRepository.getIQHoldersCount(args)
+  async IQHolders(
+    @Args('args', {
+      type: () => IQHolderArgs,
+    }) args: IQHolderArgs,
+  ): Promise<IQHolder[]> {
+    const iqHolderArgs: IQHolderArgs = {
+      interval: args.interval,
+      start: args.start,
+      end: args.end,
+      limit: args.limit,
+      offset: args.offset,
+    }
+    return this.iqHoldersRepository.getIQHoldersCount(iqHolderArgs)
   }
 }
 
