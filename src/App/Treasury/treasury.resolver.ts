@@ -1,9 +1,9 @@
 import { Args, Field, Query, Resolver } from '@nestjs/graphql'
 import Treasury from '../../Database/Entities/treasury.entity'
 import TreasuryRepository from './treasury.repository'
-import { DateArgs } from '../Wiki/wikiStats.dto';
-import { IntervalByType } from '../utils/queryHelpers';
-import { DailyTreasuryArgs } from './treasury.dto';
+import { DateArgs } from '../Wiki/wikiStats.dto'
+import { IntervalByType } from '../utils/queryHelpers'
+import { DailyTreasuryArgs } from './treasury.dto'
 
 @Resolver(() => Treasury)
 class TreasuryResolver {
@@ -23,5 +23,4 @@ class TreasuryResolver {
   }
 }
 
-
-export default TreasuryResolver;
+export default TreasuryResolver
