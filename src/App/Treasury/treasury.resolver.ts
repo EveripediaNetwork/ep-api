@@ -1,8 +1,9 @@
 import { Args, Field, Query, Resolver } from '@nestjs/graphql'
 import Treasury from '../../Database/Entities/treasury.entity'
 import TreasuryRepository from './treasury.repository'
-import { DateArgs } from '../Wiki/wikiStats.dto'
-import { IntervalByType } from '../utils/queryHelpers'
+import { DateArgs } from '../Wiki/wikiStats.dto';
+import { IntervalByType } from '../utils/queryHelpers';
+import { DailyTreasuryArgs } from './treasury.dto';
 
 @Resolver(() => Treasury)
 class TreasuryResolver {
@@ -21,13 +22,6 @@ class TreasuryResolver {
     return this.treasuryRepository.getDailyTreasuryValue(dateArgs)
   }
 }
-class DailyTreasuryArgs {
-  @Field(() => IntervalByType, { defaultValue: IntervalByType.DAY})
-  interval: IntervalByType = IntervalByType.DAY
-  @Field(() => Date, { nullable: true })
-  start?: Date
-  @Field(() => Date, { nullable: true })
-  end?: Date
-}
+
 
 export default TreasuryResolver;

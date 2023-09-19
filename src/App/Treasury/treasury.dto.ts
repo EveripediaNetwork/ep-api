@@ -1,3 +1,6 @@
+import { Field } from "@nestjs/graphql"
+import { IntervalByType } from "../utils/queryHelpers"
+
 export const SUPPORTED_LP_TOKENS_ADDRESSES = [
   '0x7af00cf8d3a8a75210a5ed74f2254e2ec43b5b5b',
   '0x41a5881c17185383e19df6fa4ec158a6f4851a69:32',
@@ -60,3 +63,13 @@ export const dateOnly = (date: Date) => {
 
 export const firstLevelNodeProcess = () =>
   parseInt(process.env.NODE_APP_INSTANCE as string, 10) === 0
+
+  
+export class DailyTreasuryArgs {
+  @Field(() => IntervalByType, { defaultValue: IntervalByType.DAY})
+  interval: IntervalByType = IntervalByType.DAY
+  @Field(() => Date, { nullable: true })
+  start?: Date
+  @Field(() => Date, { nullable: true })
+  end?: Date
+}

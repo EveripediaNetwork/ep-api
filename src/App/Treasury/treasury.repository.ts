@@ -25,8 +25,8 @@ class TreasuryRepository extends Repository<Treasury> {
         start: date.startDate,
         end: date.endDate,
       })
-    return query.getMany();
+    return query.getMany()
   }
 }
 
-export default TreasuryRepository;
+export default TreasuryRepository
