@@ -80,7 +80,6 @@ class TreasuryService {
         totalAccountValue += token.raw_dollar
       }
     })
-
     return totalAccountValue
   }
 
@@ -115,42 +114,16 @@ class TreasuryService {
     return filteredResult
   }
 
-  async main(): Promise<number> {
+  async main(): Promise<number | any> {
     const address = this.getTreasuryENVs().treasury as string
-    const treasury: ContractDetailsType[] = await this.treasuryTokens(
-      address,
-    )
-    const contractProtocoldetails = await this.contractProtocoldetails(
-      address,
-      'apestake',
-    )
-
-    // const lpTokenDetails = await this.convexProtocolAndLPTokens(
-    //   true,
-    //   address,
-    //   Protocols.FRAX,
-    // )
-    // const convexProtocolData = await this.convexProtocolAndLPTokens(
-    //   false,
-    //   address,
-    //   Protocols.CONVEX,
-    // )
-    // const fraxLendProtocolData = await this.convexProtocolAndLPTokens(
-    //   false,
-    //   address,
-    //   Protocols.FRAXLEND,
-    // )
+    const treasury: ContractDetailsType[] = await this.treasuryTokens(address)
 
     const lpTokenDetails = PROTOCOLS.map(async protocol =>
       this.lpProtocolDetails(true, address, protocol),
     )
 
-    // const filteredContracts = this.filterContracts(TOKENS, treasury)
     const details = treasury.map(async token => {
-      let value = token.amount
-      if (token?.protocol_id === contractProtocoldetails?.protocol_id) {
-        value += contractProtocoldetails.amount
-      }
+      const value = token.amount
       const dollarValue = token.price * value
       return {
         id: token.symbol,
@@ -178,33 +151,9 @@ class TreasuryService {
         })
       }
     })
-    // const allLpTokens = [
-    //   ...lpTokenDetails,
-    //   ...convexProtocolData,
-    //   ...fraxLendProtocolData,
-    // ]
-    // allLpTokens.forEach(lp => {
-    //   if (SUPPORTED_LP_TOKENS_ADDRESSES.includes(lp.pool.id)) {
-    //     additionalTreasuryData.push({
-    //       id: lp.pool.adapter_id,
-    //       contractAddress: lp.pool.controller,
-    //       raw_dollar: Number(lp.stats.asset_usd_value),
-    //       token: lp.detail.supply_token_list.map(
-    //         (supply: { amount: any; symbol: any }) => ({
-    //           amount: supply.amount,
-    //           symbol: supply.symbol,
-    //         }),
-    //       ),
-    //     })
-    //   }
-    // })
 
     const allTreasureDetails = [...treasuryDetails, ...additionalTreasuryData]
 
-    // let totalAccountValue = 0
-    // allTreasureDetails.forEach(token => {
-    //   totalAccountValue += token.raw_dollar
-    // })
     return this.sumTokenValues(allTreasureDetails)
   }
 }

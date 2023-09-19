@@ -1,8 +1,11 @@
 export const SUPPORTED_LP_TOKENS_ADDRESSES = [
   '0x7af00cf8d3a8a75210a5ed74f2254e2ec43b5b5b',
   '0x41a5881c17185383e19df6fa4ec158a6f4851a69:32',
+  '0x41a5881c17185383e19df6fa4ec158a6f4851a69:48',
   '0x3835a58ca93cdb5f912519ad366826ac9a752510',
   '0x49b4d1df40442f0c31b1bbaea3ede7c38e37e31a',
+  '0xdbe88dbac39263c47629ebba02b3ef4cf0752a72',
+  '0xfa87db3eaa93b7293021e38416650d2e666bc483',
 ]
 
 export type ContractDetailsType = {
