@@ -136,7 +136,7 @@ class TreasuryService {
           contractAddress: lp.pool.controller,
           raw_dollar: Number(lp.stats.asset_usd_value),
           token: lp.detail.supply_token_list.map(
-            (supply: { amount: number, symbol: string }) => ({
+            (supply: { amount: number; symbol: string }) => ({
               amount: supply.amount,
               symbol: supply.symbol,
             }),
