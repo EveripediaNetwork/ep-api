@@ -1,8 +1,8 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
-import IQHolder from '../../Database/Entities/iqHolder.entity';
-import IQHolderRepository from './IQHolder.repository';
-import IQHolderArgs from './IQHolders.dto';
-import IQHolderService from "./IQHolder.service";
+import { Args, Query, Resolver } from '@nestjs/graphql'
+import IQHolder from '../../Database/Entities/iqHolder.entity'
+import IQHolderRepository from './IQHolder.repository'
+import IQHolderArgs from './IQHolders.dto'
+import IQHolderService from './IQHolder.service'
 
 @Resolver(() => IQHolder)
 class IQHoldersResolver {
@@ -14,8 +14,8 @@ class IQHoldersResolver {
       type: () => IQHolderArgs,
     }) args: IQHolderArgs,
   ): Promise<IQHolder[]> {
-    return this.iqHolderService.getIQHoldersWithArgs(args);
+    return this.iqHolderService.getIQHoldersWithArgs(args)
   }
 }
 
-export default IQHoldersResolver;
+export default IQHoldersResolver
