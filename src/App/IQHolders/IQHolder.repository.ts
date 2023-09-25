@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import IQHolder from '../../Database/Entities/iqHolder.entity'
-import {  IntervalByDays, IntervalByType } from '../utils/queryHelpers'
+import { IntervalByDays, IntervalByType } from '../utils/queryHelpers'
 import IQHolderArgs from './IQHolders.dto'
 
 @Injectable()

@@ -14,7 +14,7 @@ class IQHoldersResolver {
     @Args("startDate") startDate: Date,
     @Args("endDate") endDate: Date,
   ): Promise<IQHolder[]> {
-    return this.iqHolderService.getIQHoldersByDateRange(startDate, endDate);
+    return this.iqHolderService.getIQHoldersByDateRange(startDate, endDate)
   }
   @Query(() => [IQHolder], { name: 'IQHolders' })
   async IQHolders(
