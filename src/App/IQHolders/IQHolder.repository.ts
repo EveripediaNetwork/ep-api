@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import IQHolder from '../../Database/Entities/iqHolder.entity'
-import { IntervalByDays } from '../utils/queryHelpers'
+import {  IntervalByDays, IntervalByType } from '../utils/queryHelpers'
 import IQHolderArgs from './IQHolders.dto'
 
 @Injectable()
@@ -26,7 +26,7 @@ class IQHolderRepository extends Repository<IQHolder> {
             OFFSET $2
             LIMIT $3;
         `,
-        [args.interval, args.offset, args.limit],
+        [args.interval, args.offset, args.limit, args.start, args.end],
       )
     }
     return this.createQueryBuilder('iq_holder')

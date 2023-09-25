@@ -46,7 +46,8 @@ class IQHolderService {
       limit: args.limit,
       offset: args.offset,
     }
-    const iqHolders = await this.repo.getIQHoldersCount(iqHolderArgs)
+    const iqHolders = await this.repo.getIQHoldersCount(iqHolderArgs);
+    console.log("getIQHoldersByDateRange results:", iqHolders);
     return iqHolders
   }
 
@@ -59,6 +60,7 @@ class IQHolderService {
       .where('iqHolder.updated >= :startDate', { startDate })
       .andWhere('iqHolder.updated <= :endDate', { endDate })
       .getMany()
+      console.log("getIQHoldersByDateRange results:", iqHolders);
     return iqHolders
   }
 

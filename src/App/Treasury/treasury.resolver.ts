@@ -11,9 +11,7 @@ class TreasuryResolver {
 
   @Query(() => [Treasury], { name: 'dailyTreasury' })
   async dailyTreasury(
-    @Args("args", {
-      type: () => DailyTreasuryArgs,
-    }) args: DailyTreasuryArgs,
+    @Args() args: DailyTreasuryArgs,
   ): Promise<Treasury[]> {
     const dateArgs: DateArgs = {
       startDate: args.start ? args.start.getTime() : 0,
