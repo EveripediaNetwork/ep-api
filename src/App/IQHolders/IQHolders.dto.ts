@@ -9,10 +9,10 @@ export default class IQHolderArgs extends PaginationArgs {
   interval = IntervalByDays.DAY
 
   @Field(() => Date, { nullable: true })
-  start = Date
+  startDate = Date
 
   @Field(() => Date, { nullable: true })
-  end = Date
+  endDate = Date
 
   @Field(() => Int)
   @Min(1)

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import IQHolder from '../../Database/Entities/iqHolder.entity'
-import { IntervalByDays} from '../utils/queryHelpers'
+import { IntervalByDays } from '../utils/queryHelpers'
 import IQHolderArgs from './IQHolders.dto'
 
 @Injectable()
@@ -11,32 +11,49 @@ class IQHolderRepository extends Repository<IQHolder> {
   }
 
   async getIQHoldersCount(args: IQHolderArgs): Promise<IQHolder[]> {
+    if (args.startDate && args.endDate) {
+      return this.query(
+        `
+        SELECT amount, day
+        FROM iq_holder
+        WHERE day >= $1 AND day <= $2
+        OFFSET $3
+        LIMIT $4;
+        `,
+        [args.startDate, args.endDate, args.offset, args.limit]
+      );
+    }
+  
     if (args.interval !== IntervalByDays.DAY) {
       return this.query(
         `
-            WITH RankedData AS (
-            SELECT
-                amount, day,
-                ROW_NUMBER() OVER (ORDER BY day DESC) AS row_num
-            FROM iq_holder
-            )
-            SELECT amount, day
-            FROM RankedData
-            WHERE (row_num - 1) % $1 = 0
-            OFFSET $2
-            LIMIT $3;
+        WITH RankedData AS (
+          SELECT amount, day,
+          ROW_NUMBER() OVER (ORDER BY day DESC) AS row_num
+          FROM iq_holder
+        )
+        SELECT amount, day
+        FROM RankedData
+        WHERE (row_num - 1) % $1 = 0
+        OFFSET $2
+        LIMIT $3;
         `,
-        [args.interval, args.offset, args.limit, args.start, args.end],
-      )
+        [args.interval, args.offset, args.limit]
+      );
     }
+
     return this.createQueryBuilder('iq_holder')
       .select('amount')
       .addSelect('day')
+      .where('day >= :start', { start: args.startDate })
+      .andWhere('day <= :end', { end: args.endDate })
       .offset(args.offset)
       .orderBy('day', 'DESC')
       .limit(args.limit)
-      .getRawMany()
+      .getRawMany();
   }
+  
+  
 }
 
 export default IQHolderRepository

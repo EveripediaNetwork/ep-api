@@ -41,8 +41,8 @@ class IQHolderService {
   async getIQHoldersWithArgs(args: IQHolderArgs): Promise<IQHolder[]> {
     const iqHolderArgs: IQHolderArgs = {
       interval: args.interval,
-      start: args.start,
-      end: args.end,
+      startDate: args.startDate,
+      endDate: args.endDate,
       limit: args.limit,
       offset: args.offset,
     }
@@ -61,6 +61,7 @@ class IQHolderService {
       .getMany()
     return iqHolders
   }
+  
 
   async lastHolderRecord(): Promise<IQHolder[]> {
     return this.repo.find({
