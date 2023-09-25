@@ -61,7 +61,6 @@ class IQHolderService {
       .getMany()
     return iqHolders
   }
-  
 
   async lastHolderRecord(): Promise<IQHolder[]> {
     return this.repo.find({

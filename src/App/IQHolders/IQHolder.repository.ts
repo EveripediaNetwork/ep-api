@@ -20,10 +20,10 @@ class IQHolderRepository extends Repository<IQHolder> {
         OFFSET $3
         LIMIT $4;
         `,
-        [args.startDate, args.endDate, args.offset, args.limit]
-      );
+        [args.startDate, args.endDate, args.offset, args.limit],
+      )
     }
-  
+
     if (args.interval !== IntervalByDays.DAY) {
       return this.query(
         `
@@ -38,8 +38,8 @@ class IQHolderRepository extends Repository<IQHolder> {
         OFFSET $2
         LIMIT $3;
         `,
-        [args.interval, args.offset, args.limit]
-      );
+        [args.interval, args.offset, args.limit],
+      )
     }
 
     return this.createQueryBuilder('iq_holder')
@@ -50,10 +50,8 @@ class IQHolderRepository extends Repository<IQHolder> {
       .offset(args.offset)
       .orderBy('day', 'DESC')
       .limit(args.limit)
-      .getRawMany();
+      .getRawMany()
   }
-  
-  
 }
 
 export default IQHolderRepository
