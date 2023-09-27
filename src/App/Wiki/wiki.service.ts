@@ -132,7 +132,7 @@ class WikiService {
       })
       .limit(args.amount)
       .groupBy('wiki.id')
-      .orderBy('Sum(p.visits)', 'DESC')
+      .orderBy('views', 'DESC')
 
     if (args.category) {
       qb.innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
