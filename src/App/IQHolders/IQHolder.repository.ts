@@ -48,6 +48,7 @@ class IQHolderRepository extends Repository<IQHolder> {
         [args.interval, args.offset, args.limit],
       )
     }
+
     return this.createQueryBuilder('iq_holder')
       .select('amount')
       .addSelect('day')
