@@ -11,6 +11,25 @@ class IQHolderRepository extends Repository<IQHolder> {
   }
 
   async getIQHoldersCount(args: IQHolderArgs): Promise<IQHolder[]> {
+    if (args.startDay && args.endDay) {
+      return this.query(
+        `
+            SELECT amount, day
+            FROM (
+            SELECT amount, day,
+                ROW_NUMBER() OVER (ORDER BY day DESC) AS row_num
+                FROM iq_holder
+            WHERE day >= $1 AND day <= $2
+            ) AS RankedData
+            WHERE (row_num - 1) % $3 = 0
+            OFFSET $4
+            LIMIT $5
+        `,
+
+        [args.startDay, args.endDay, args.interval, args.offset, args.limit],
+      )
+    }
+
     if (args.interval !== IntervalByDays.DAY) {
       return this.query(
         `
@@ -18,7 +37,7 @@ class IQHolderRepository extends Repository<IQHolder> {
             SELECT
                 amount, day,
                 ROW_NUMBER() OVER (ORDER BY day DESC) AS row_num
-            FROM iq_holder
+                FROM iq_holder
             )
             SELECT amount, day
             FROM RankedData

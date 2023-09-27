@@ -13,7 +13,6 @@ import erc20Abi from '../utils/erc20Abi'
 import IQHolderAddress from '../../Database/Entities/iqHolderAddress.entity'
 import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
-import IQHolderArgs from './IQHolders.dto'
 
 export const IQContract = '0x579CEa1889991f68aCc35Ff5c3dd0621fF29b0C9'
 
@@ -36,30 +35,6 @@ class IQHolderService {
 
   private etherScanApiKey(): string {
     return this.configService.get<string>('etherScanApiKey') as string
-  }
-
-  async getIQHoldersWithArgs(args: IQHolderArgs): Promise<IQHolder[]> {
-    const iqHolderArgs: IQHolderArgs = {
-      interval: args.interval,
-      start: args.start,
-      end: args.end,
-      limit: args.limit,
-      offset: args.offset,
-    }
-    const iqHolders = await this.repo.getIQHoldersCount(iqHolderArgs)
-    return iqHolders
-  }
-
-  async getIQHoldersByDateRange(
-    startDate: Date,
-    endDate: Date,
-  ): Promise<IQHolder[]> {
-    const iqHolders = await this.repo
-      .createQueryBuilder('iqHolder')
-      .where('iqHolder.updated >= :startDate', { startDate })
-      .andWhere('iqHolder.updated <= :endDate', { endDate })
-      .getMany()
-    return iqHolders
   }
 
   async lastHolderRecord(): Promise<IQHolder[]> {
@@ -86,7 +61,7 @@ class IQHolderService {
   }
 
   @Cron(CronExpression.EVERY_MINUTE, {
-    name: cronIndexerId
+    name: cronIndexerId,
   })
   async storeIQHolderCount() {
     const tempStop: boolean | undefined = await this.cacheManager.get(

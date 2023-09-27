@@ -30,13 +30,6 @@ export enum IntervalByDays {
   NINETY_DAYS = 90,
   YEAR = 365,
 }
-export enum IntervalByType {
-  DAY = 'DAY',
-  WEEK = 'WEEK',
-  MONTH = 'MONTH',
-  NINETY_DAYS = 'NINETY_DAYS',
-  YEAR = 'YEAR',
-}
 
 @ArgsType()
 export class ArgsById {
@@ -44,18 +37,11 @@ export class ArgsById {
   @Validate(ValidStringParams)
   id!: string
 }
-export class ArgsByType {
-  @Field(() => IntervalByType, {
-    defaultValue: IntervalByType.DAY
-  })
-  interval!: IntervalByType
-}
 
 registerEnumType(OrderBy, { name: 'OrderBy' })
 registerEnumType(Direction, { name: 'Direction' })
 registerEnumType(ActivityType, { name: 'ActivityType' })
 registerEnumType(IntervalByDays, { name: 'IntervalByDays' })
-registerEnumType(IntervalByType, { name: 'IntervalByType' })
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
