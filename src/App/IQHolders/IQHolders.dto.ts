@@ -15,7 +15,6 @@ export default class IQHolderArgs extends PaginationArgs {
   limit = 182
 }
 
-
 @Injectable()
 export class LockingService {
   private isRunning = false

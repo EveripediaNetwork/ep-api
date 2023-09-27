@@ -78,13 +78,11 @@ class IQHolderService {
     if (tempStop) return
 
     if (firstLevelNodeProcess() && !jobRun) {
-
       const lockAcquired = await this.lockingService.acquireLock()
       if (!lockAcquired) return
-      
+
       await this.indexIQHolders()
     }
-
   }
 
   async indexIQHolders() {
