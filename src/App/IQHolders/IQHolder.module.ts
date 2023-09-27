@@ -9,6 +9,7 @@ import IQHolder from '../../Database/Entities/hiIQHolder.entity'
 import IQHolderRepository from './IQHolder.repository'
 import IQHolderAddressRepository from './IQHolderAddress.repository'
 import IQHoldersResolver from './IQHolder.resolver'
+import { LockingService } from './IQHolders.dto'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import IQHoldersResolver from './IQHolder.resolver'
     IQHoldersResolver,
     IQHolderRepository,
     IQHolderAddressRepository,
+    LockingService
   ],
   exports: [IQHolderService, IQHolderRepository, IQHolderAddressRepository],
 })

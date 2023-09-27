@@ -13,6 +13,7 @@ import erc20Abi from '../utils/erc20Abi'
 import IQHolderAddress from '../../Database/Entities/iqHolderAddress.entity'
 import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import { LockingService } from './IQHolders.dto'
 
 export const IQContract = '0x579CEa1889991f68aCc35Ff5c3dd0621fF29b0C9'
 
@@ -26,6 +27,7 @@ class IQHolderService {
     private dataSource: DataSource,
     private iqHolders: IQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
+    private readonly lockingService: LockingService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -60,22 +62,29 @@ class IQHolderService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE, {
-    name: cronIndexerId
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: cronIndexerId,
   })
   async storeIQHolderCount() {
     const tempStop: boolean | undefined = await this.cacheManager.get(
       cronIndexerId,
     )
+
     const today = new Date()
     const oneDayBack = new Date(today)
     oneDayBack.setDate(oneDayBack.getDate() - 1)
     const job = this.schedulerRegistry.getCronJob('storeIQHolderCount')
     const jobRun = await stopJob(this.repo, job, oneDayBack)
     if (tempStop) return
+
     if (firstLevelNodeProcess() && !jobRun) {
+
+      const lockAcquired = await this.lockingService.acquireLock()
+      if (!lockAcquired) return
+      
       await this.indexIQHolders()
     }
+
   }
 
   async indexIQHolders() {
@@ -92,52 +101,63 @@ class IQHolderService {
         ? await this.getTxList(previous, next)
         : await this.getTxList()
 
-    const addressesToDelete: string[] = []
+    const addressesToDelete = new Set()
+    const addressesToAdd = new Set()
 
     const queryRunner = this.dataSource.createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction()
+
     try {
-      for (const transaction of transactions) {
-        if (
-          (transaction.functionName?.startsWith('transfer') ||
-            transaction.functionName?.startsWith('approve')) &&
-          transaction.txreceipt_status === '1'
-        ) {
-          const balance = await iq.balanceOf(transaction.from, {
-            blockTag: Number(transaction.blockNumber),
-          })
+      if (transactions.length > 0)
+        for (const transaction of transactions) {
+          if (
+            (transaction.functionName?.startsWith('transfer') ||
+              transaction.functionName?.startsWith('approve')) &&
+            transaction.txreceipt_status === '1'
+          ) {
+            const balance = await iq.balanceOf(transaction.from, {
+              blockTag: Number(transaction.blockNumber),
+            })
 
-          const readableBalance = Number(balance.toString()) / 10e17
+            const readableBalance = Number(balance.toString()) / 10e17
 
-          const existHolder = await this.checkExistingHolders(transaction.from)
+            const existHolder = await this.checkExistingHolders(
+              transaction.from,
+            )
 
-          if (readableBalance >= 5) {
-            this.iqHolders
-              .createQueryBuilder()
-              .insert()
-              .into(IQHolderAddress)
-              .values({ address: transaction.from })
-              .orIgnore()
-              .execute()
-          }
-          if (readableBalance < 5 && existHolder) {
-            addressesToDelete.push(transaction.from)
+            if (readableBalance > 0 && !existHolder) {
+              addressesToAdd.add(transaction.from)
+              if (addressesToDelete.has(transaction.from))
+                addressesToDelete.delete(transaction.from)
+            }
+            if (readableBalance < 0 && existHolder) {
+              addressesToDelete.add(transaction.from)
+            }
           }
         }
+      if (addressesToAdd.size > 0) {
+        for (const address of addressesToAdd) {
+          const newHolder = this.iqHolders.create({
+            address: address as string,
+          })
+          await queryRunner.manager.save(newHolder)
+        }
       }
+
       await queryRunner.commitTransaction()
     } catch (e: any) {
       console.log(e)
       await queryRunner.rollbackTransaction()
       await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
+      this.lockingService.releaseLock()
       await queryRunner.release()
       return
     }
 
     await queryRunner.release()
 
-    if (addressesToDelete.length > 0) {
+    if (addressesToDelete.size > 0) {
       for (const address of addressesToDelete) {
         await this.iqHolders
           .createQueryBuilder()
@@ -167,6 +187,7 @@ class IQHolderService {
       await this.repo.save(totalHolders)
       console.log(`IQ holder Count of ${count} for day ${newDay} saved 📈`)
     }
+    this.lockingService.releaseLock()
   }
 
   async getTxList(previous?: number, next?: number) {
