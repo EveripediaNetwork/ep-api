@@ -54,5 +54,4 @@ export class PageViewArgs extends VistArgs {
   category?: string
 }
 
-
 export default WikiViews

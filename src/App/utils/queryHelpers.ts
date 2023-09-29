@@ -2,7 +2,6 @@ import { Repository } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 import { OrderBy, Direction } from '../general.args'
 
-
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
   switch (order) {

@@ -2,7 +2,7 @@ import { ArgsType, Field, Int } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import PaginationArgs from '../../pagination.args'
 import ValidStringParams from '../../utils/customValidator'
-import { ActivityType } from '../../utils/queryHelpers'
+import { ActivityType } from '../../general.args'
 
 @ArgsType()
 export class ActivityArgs extends PaginationArgs {
