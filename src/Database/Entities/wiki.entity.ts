@@ -76,6 +76,12 @@ class Wiki {
   @Column('integer', { default: 0 })
   views!: number
 
+  @Field(() => Int, {
+    nullable: true,
+    defaultValue: 0,
+  })
+  visits?: number
+
   @Field(() => Int)
   @Column('smallint', { default: 0 })
   promoted = 0

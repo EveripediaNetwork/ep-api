@@ -1,6 +1,6 @@
 import { ArgsType, Field, Int } from '@nestjs/graphql'
 import { Min, Max } from 'class-validator'
-import { Direction, OrderBy } from './utils/queryHelpers'
+import { Direction, OrderBy } from './general.args'
 
 @ArgsType()
 class PaginationArgs {

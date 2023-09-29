@@ -4,13 +4,14 @@ import { DataSource, MoreThan, Repository } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { orderWikis, OrderBy, Direction } from '../utils/queryHelpers'
+import {
+  orderWikis,
+} from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
-  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
@@ -18,6 +19,8 @@ import {
 import { DateArgs, Count } from './wikiStats.dto'
 import { ActionTypes } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
+import { OrderBy, Direction, IntervalByDays } from '../general.args'
+import { VistArgs, PageViewArgs } from '../pageViews/pageviews.dto'
 
 @Injectable()
 class WikiService {
@@ -118,7 +121,33 @@ class WikiService {
       .getMany()
   }
 
+  async updateDates(args: VistArgs) {
+    const { interval } = args
+    let start
+    let end
+
+    if (interval) {
+      const range = IntervalByDays[interval]
+      const oneDay = 86400000
+      const intervalMap: { [key: string]: number } = {
+        DAY: oneDay,
+        WEEK: 7 * oneDay,
+        MONTH: 30 * oneDay,
+        NINETY_DAYS: 90 * oneDay,
+        YEAR: 365 * oneDay,
+      }
+
+      const currentDate = new Date()
+      const endDate = new Date(currentDate.getTime() - intervalMap[range])
+
+      start = endDate.toISOString().slice(0, 10).split('-').join('/')
+      end = currentDate.toISOString().slice(0, 10).split('-').join('/')
+    }
+    return { start, end }
+  }
+
   async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
+    const { start, end } = await this.updateDates(args)
     const qb = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
@@ -127,12 +156,12 @@ class WikiService {
         status: false,
       })
       .andWhere('p.day >= :start AND p.day <= :end', {
-        start: args.startDay,
-        end: args.endDay,
+        start: args.startDay || start,
+        end: args.endDay || end,
       })
       .limit(args.amount)
       .groupBy('wiki.id')
-      .orderBy('views', 'DESC')
+      .orderBy('Sum(p.visits)', 'DESC')
 
     if (args.category) {
       qb.innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
@@ -231,9 +260,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -241,9 +268,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -256,9 +281,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -269,9 +292,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -297,9 +318,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
