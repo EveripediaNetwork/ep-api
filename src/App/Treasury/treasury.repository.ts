@@ -17,7 +17,7 @@ class TreasuryRepository extends Repository<Treasury> {
   }
 
   async getDailyTreasuryValue(date: DateArgs): Promise<Treasury[]> {
-    return this.createQueryBuilder('treasury')
+    const query = this.createQueryBuilder('treasury')
       .where(
         'treasury.created >= to_timestamp(:start) AND treasury.created <= to_timestamp(:end)',
       )
@@ -25,7 +25,7 @@ class TreasuryRepository extends Repository<Treasury> {
         start: date.startDate,
         end: date.endDate,
       })
-      .getMany()
+    return query.getMany()
   }
 }
 
