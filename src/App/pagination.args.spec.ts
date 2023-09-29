@@ -1,6 +1,6 @@
 import { validateSync } from 'class-validator'
 import PaginationArgs, { OrderArgs } from './pagination.args'
-import { Direction, OrderBy } from './utils/queryHelpers'
+import { Direction, OrderBy } from './general.args'
 
 describe('PaginationArgs', () => {
   const args = new PaginationArgs()
