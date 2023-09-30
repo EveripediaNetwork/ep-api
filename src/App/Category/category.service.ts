@@ -4,7 +4,7 @@ import { DataSource, MoreThan, Repository } from 'typeorm'
 import Category from '../../Database/Entities/category.entity'
 import PaginationArgs from '../pagination.args'
 import { TitleArgs } from '../Wiki/wiki.dto'
-import { ArgsById } from '../utils/queryHelpers'
+import { ArgsById } from '../general.args'
 
 @Injectable()
 class CategoryService extends Repository<Category> {

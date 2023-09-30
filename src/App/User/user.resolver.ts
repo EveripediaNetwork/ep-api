@@ -26,8 +26,8 @@ import IsActiveGuard from '../utils/isActive.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
-import { ArgsById } from '../utils/queryHelpers'
 import SelectedFields from '../utils/getFields'
+import { ArgsById } from '../general.args'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
