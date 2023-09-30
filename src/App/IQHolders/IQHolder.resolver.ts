@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import IQHolder from '../../Database/Entities/iqHolder.entity'
-import IQHolderRepository from './IQHolder.repository'
 import IQHolderArgs from './IQHolders.dto'
+import IQHolderRepository from './IQHolder.repository'
 
 @Resolver(() => IQHolder)
 class IQHoldersResolver {
