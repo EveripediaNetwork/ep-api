@@ -13,6 +13,7 @@ import {
   RankType,
   TokenRankListData,
 } from './marketcap.dto'
+import Tag from '../../Database/Entities/tag.entity'
 
 const noContentWiki = {
   id: 'no-content',
@@ -65,7 +66,23 @@ class MarketCapService {
         .where('wiki.id = :id AND wiki.hidden = false', { id })
         .getOne())
 
-    return wiki
+    const tag = await this.getTags(noCategoryId)
+    const wikiAndTags = {
+      ...wiki,
+      tags: [
+        ...tag
+      ]
+    }
+    return wikiAndTags
+  }
+  private async getTags(id: string){
+    const ds = this.dataSource.getRepository(Tag);
+    return ds.query(
+    `
+    SELECT "tags"."id" FROM "tag" "tags" INNER JOIN "wiki_tags_tag" "wiki_tags_tag" ON "wiki_tags_tag"."wikiId" IN ($1) AND "wiki_tags_tag"."tagId"="tags"."id"
+    `,
+    [id]
+    )
   }
 
   private async cryptoMarketData(amount: number, page: number) {
