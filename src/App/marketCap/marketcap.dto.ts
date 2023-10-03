@@ -10,6 +10,7 @@ import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import ValidStringParams from '../utils/customValidator'
+import Tag from '../../Database/Entities/tag.entity'
 
 @ObjectType()
 class MarketDataGenerals {
@@ -71,13 +72,22 @@ export class TokenListData extends MarketDataGenerals {
   market_cap_change_24h!: number
 }
 
+export class WikiWithOptionalProps extends Wiki {
+  @Field(() => [Tag], { nullable: true })
+  tags = {
+    ...super.tags,
+    tags: [Tag] || [],
+  }
+}
+
 @ObjectType()
-export class TokenRankListData extends Wiki {
+export class TokenRankListData extends WikiWithOptionalProps {
   @Field(() => TokenListData, { nullable: true })
   tokenMarketData?: TokenListData
 }
+
 @ObjectType()
-export class NftRankListData extends Wiki {
+export class NftRankListData extends WikiWithOptionalProps {
   @Field(() => NftListData, { nullable: true })
   nftMarketData?: NftListData
 }

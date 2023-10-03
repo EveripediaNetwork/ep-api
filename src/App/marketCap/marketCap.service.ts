@@ -69,19 +69,23 @@ class MarketCapService {
     const tag = await this.getTags(noCategoryId)
     const wikiAndTags = {
       ...wiki,
-      tags: [
-        ...tag
-      ]
+      tags: [...tag],
     }
     return wikiAndTags
   }
-  private async getTags(id: string){
-    const ds = this.dataSource.getRepository(Tag);
+
+  private async getTags(id: string) {
+    const ds = this.dataSource.getRepository(Tag)
     return ds.query(
-    `
-    SELECT "tags"."id" FROM "tag" "tags" INNER JOIN "wiki_tags_tag" "wiki_tags_tag" ON "wiki_tags_tag"."wikiId" IN ($1) AND "wiki_tags_tag"."tagId"="tags"."id"
+      `
+        SELECT 
+        "tags"."id" 
+        FROM "tag" "tags" 
+        INNER JOIN "wiki_tags_tag" "wiki_tags_tag" 
+        ON "wiki_tags_tag"."wikiId" IN ($1) 
+        AND "wiki_tags_tag"."tagId"="tags"."id"
     `,
-    [id]
+      [id],
     )
   }
 
