@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
 
-@ObjectType({ description: 'User subscriptions' })
+@ObjectType()
 @Entity()
 class PageviewsPerDay {
   @Field(() => ID)

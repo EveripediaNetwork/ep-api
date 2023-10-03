@@ -4,10 +4,10 @@ import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { ITag } from '../../Database/Entities/types/ITag'
-import { ArgsById } from '../utils/queryHelpers'
 import TagService from './tag.service'
 import TagIDArgs from './tag.dto'
 import { DateArgs } from '../Wiki/wikiStats.dto'
+import { ArgsById } from '../general.args'
 
 @Resolver(() => Tag)
 class TagResolver {

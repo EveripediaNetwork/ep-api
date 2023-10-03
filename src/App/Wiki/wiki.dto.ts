@@ -2,7 +2,7 @@
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { MinLength, Validate } from 'class-validator'
 import ValidStringParams from '../utils/customValidator'
-import { Direction, OrderBy } from '../utils/queryHelpers'
+import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
 
 @ArgsType()
@@ -50,24 +50,6 @@ export class ByIdArgs {
 export class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
   level = 0
-}
-
-@ArgsType()
-export class PageViewArgs {
-  @Field(() => Int)
-  amount!: number
-
-  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
-  @Validate(ValidStringParams)
-  startDay!: string
-
-  @Field(() => String, { description: 'Format <YYYY/MM/DD>' })
-  @Validate(ValidStringParams)
-  endDay!: string
-
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  category?: string
 }
 
 @ObjectType()

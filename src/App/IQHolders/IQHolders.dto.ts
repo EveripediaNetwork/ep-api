@@ -1,8 +1,8 @@
 import { ArgsType, Field, Int } from '@nestjs/graphql'
 import { Min, Max } from 'class-validator'
 import { Injectable } from '@nestjs/common'
-import { IntervalByDays } from '../utils/queryHelpers'
 import PaginationArgs from '../pagination.args'
+import { IntervalByDays } from '../general.args'
 
 @ArgsType()
 export default class IQHolderArgs extends PaginationArgs {

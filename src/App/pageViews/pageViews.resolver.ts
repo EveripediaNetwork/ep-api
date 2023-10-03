@@ -1,10 +1,10 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { UseInterceptors, UseGuards } from '@nestjs/common'
 import PageViewsService from './pageViews.service'
-import { ArgsById } from '../utils/queryHelpers'
 import AuthGuard from '../utils/admin.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import { WikiViewArgs, WikiViews } from './pageviews.dto'
+import { ArgsById } from '../general.args'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Number)

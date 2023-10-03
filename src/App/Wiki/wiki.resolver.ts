@@ -1,6 +1,15 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql'
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { DataSource } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import AuthGuard from '../utils/admin.guard'
 import { SlugResult } from '../utils/validSlug'
@@ -13,18 +22,21 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
-  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
 } from './wiki.dto'
 import WikiService from './wiki.service'
 import { Count, DateArgs } from './wikiStats.dto'
+import { IWiki } from '../../Database/Entities/types/IWiki'
+import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
+import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
+    private dataSource: DataSource,
     private revalidate: RevalidatePageService,
     private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
@@ -136,6 +148,20 @@ class WikiResolver {
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
     return wiki
+  }
+
+  @ResolveField()
+  async visits(@Parent() wiki: IWiki, @Args() args: VistArgs) {
+    const { start, end } = await this.wikiService.updateDates(args)
+    const { visits } = await this.dataSource
+      .getRepository(PageviewsPerDay)
+      .createQueryBuilder('p')
+      .select('Sum(visits)', 'visits')
+      .where('day >= :start AND day <= :end', { start, end })
+      .andWhere('p."wikiId" = :id', { id: wiki.id })
+      .groupBy('p."wikiId"')
+      .getRawOne()
+    return visits
   }
 }
 

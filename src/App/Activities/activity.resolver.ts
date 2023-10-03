@@ -6,7 +6,6 @@ import {
   ActivityByCategoryArgs,
   ByIdAndBlockArgs,
 } from './dto/activity.dto'
-import { ArgsById } from '../utils/queryHelpers'
 import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import SelectedFields from '../utils/getFields'
@@ -19,6 +18,7 @@ import {
   Count,
   DateArgs,
 } from '../Wiki/wikiStats.dto'
+import { ArgsById } from '../general.args'
 
 @Resolver(() => Activity)
 class ActivityResolver {
