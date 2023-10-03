@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
-import { IntervalByDays } from '../utils/queryHelpers'
 import HiIQHolderArgs from './hiIQHolders.dto'
+import { IntervalByDays } from '../general.args'
 
 @Injectable()
 class HiIQHolderRepository extends Repository<HiIQHolder> {

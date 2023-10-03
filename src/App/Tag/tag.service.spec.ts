@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import TagService from './tag.service'
 import PaginationArgs from '../pagination.args'
-import { ArgsById } from '../utils/queryHelpers'
 import TagIDArgs from './tag.dto'
 import Tag from '../../Database/Entities/tag.entity'
+import { ArgsById } from '../general.args'
 
 describe('TagService', () => {
   let service: TagService
