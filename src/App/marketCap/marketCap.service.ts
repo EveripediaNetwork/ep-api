@@ -22,6 +22,7 @@ const noContentWiki = {
   created: new Date(),
   media: [],
   images: [],
+  tags: [{ id: 'no-content' }],
 } as unknown as Partial<Wiki>
 
 @Injectable()
