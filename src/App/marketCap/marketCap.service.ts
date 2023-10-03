@@ -72,7 +72,7 @@ class MarketCapService {
       ...wiki,
       tags: [...tag],
     }
-    return (wiki && tag) ? wikiAndTags : wiki
+    return wiki && tag ? wikiAndTags : wiki
   }
 
   private async getTags(id: string) {
