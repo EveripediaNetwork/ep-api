@@ -2,9 +2,9 @@ import { DataSource, Repository } from 'typeorm'
 import { Injectable } from '@nestjs/common'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
-import { ArgsById } from '../utils/queryHelpers'
 import TagIDArgs from './tag.dto'
 import { DateArgs } from '../Wiki/wikiStats.dto'
+import { ArgsById } from '../general.args'
 
 @Injectable()
 class TagService extends Repository<Tag> {

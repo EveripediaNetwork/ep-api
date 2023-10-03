@@ -76,6 +76,7 @@ export class TokenRankListData extends Wiki {
   @Field(() => TokenListData, { nullable: true })
   tokenMarketData?: TokenListData
 }
+
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })

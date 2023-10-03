@@ -62,6 +62,11 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'ethereum', wikiId: 'ether-eth' },
   { coingeckoId: 'solana', wikiId: 'solana-sol' },
   { coingeckoId: 'polkadot', wikiId: 'polkadot-dot' },
+  { coingeckoId: 'first-digital-usd', wikiId: 'first-digital-usd-fdusd' },
+  {
+    coingeckoId: 'coinbase-wrapped-staked-eth',
+    wikiId: 'coinbase-wrapped-staked-eth-cbeth',
+  },
   { coingeckoId: 'stellar', wikiId: 'stellar-xlm' },
   { coingeckoId: 'algorand', wikiId: 'algorand-algo' },
   { coingeckoId: 'arbitrum', wikiId: 'arbitrum-arb' },
@@ -79,7 +84,6 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'gala', wikiId: 'gala-games' },
   { coingeckoId: 'nxm', wikiId: 'nexus-mutual' },
   { coingeckoId: 'trust-wallet-token', wikiId: 'trust-wallet' },
-  { coingeckoId: 'liquity', wikiId: 'liquity' },
   { coingeckoId: 'compound-usd-coin', wikiId: 'cusdc' },
   { coingeckoId: 'pancakeswap-token', wikiId: 'pancakeswap' },
   { coingeckoId: 'sei-network', wikiId: 'sei' },
@@ -206,6 +210,6 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'huobi-token', wikiId: 'huobi' },
   { coingeckoId: 'render-token', wikiId: 'rndr-token' },
   { coingeckoId: 'bitcoin-cash-sv', wikiId: 'bitcoin-sv' },
-  { coingeckoId: 'frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
+  { coingeckoId: 'staked-frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
   { coingeckoId: 'fantom', wikiId: 'ftm-token' },
 ]
