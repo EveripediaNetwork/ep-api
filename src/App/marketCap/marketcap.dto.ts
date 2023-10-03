@@ -71,7 +71,6 @@ export class TokenListData extends MarketDataGenerals {
   market_cap_change_24h!: number
 }
 
-
 @ObjectType()
 export class TokenRankListData extends Wiki {
   @Field(() => TokenListData, { nullable: true })
