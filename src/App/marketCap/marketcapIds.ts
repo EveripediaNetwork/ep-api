@@ -61,6 +61,7 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'bitcoin', wikiId: 'bitcoin-btc' },
   { coingeckoId: 'ethereum', wikiId: 'ether-eth' },
   { coingeckoId: 'solana', wikiId: 'solana-sol' },
+  { coingeckoId: 'sui', wikiId: 'sui-token' },
   { coingeckoId: 'polkadot', wikiId: 'polkadot-dot' },
   { coingeckoId: 'first-digital-usd', wikiId: 'first-digital-usd-fdusd' },
   {
