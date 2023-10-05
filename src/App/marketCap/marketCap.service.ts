@@ -11,6 +11,7 @@ import {
   MarketCapInputs,
   NftRankListData,
   RankType,
+  TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
 import Tag from '../../Database/Entities/tag.entity'
@@ -90,12 +91,19 @@ class MarketCapService {
     )
   }
 
-  private async cryptoMarketData(amount: number, page: number) {
+  private async cryptoMarketData(
+    amount: number,
+    page: number,
+    category?: TokenCategory,
+  ) {
+    console.log(category)
+    const categoryParam = category ? `category=${category}&` : ''
     let data
+
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${
+          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${amount}&page=${
             page === 0 ? 1 : page
           }&sparkline=false`,
           {
@@ -230,6 +238,7 @@ class MarketCapService {
       result = (await this.cryptoMarketData(
         args.limit,
         args.offset,
+        args.category
       )) as unknown as TokenRankListData
     }
 
