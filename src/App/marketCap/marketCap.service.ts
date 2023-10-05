@@ -238,7 +238,7 @@ class MarketCapService {
       result = (await this.cryptoMarketData(
         args.limit,
         args.offset,
-        args.category
+        args.category,
       )) as unknown as TokenRankListData
     }
 
