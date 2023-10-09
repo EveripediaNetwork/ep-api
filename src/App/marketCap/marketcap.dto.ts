@@ -104,6 +104,7 @@ export enum RankType {
 }
 export enum TokenCategory {
   AI = 'artificial-intelligence',
+  STABLE_COINS = 'stablecoins',
 }
 
 registerEnumType(RankType, {
