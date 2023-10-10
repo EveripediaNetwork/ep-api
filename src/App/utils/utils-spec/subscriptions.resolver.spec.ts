@@ -1,17 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
+import { Test, TestingModule } from '@nestjs/testing'
+import { DataSource } from 'typeorm'
 import WikiSubscriptionResolver from '../../Subscriptions/subscriptions.resolver'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import TokenValidator from '../validateToken'
-import IqSubscription from '../../../Database/Entities/IqSubscription';
+import IqSubscription from '../../../Database/Entities/IqSubscription'
 
 describe('WikiSubscription', () => {
-  let wikiSubscriptionService: WikiSubscriptionService;
+  let wikiSubscriptionService: WikiSubscriptionService
   let wikiSubscriptionResolver: WikiSubscriptionResolver
   let dataSource: {
     createEntityManager: jest.Mock
   }
-  
+
   beforeEach(async () => {
     dataSource = {
       createEntityManager: jest.fn(),
@@ -26,10 +26,14 @@ describe('WikiSubscription', () => {
           useValue: dataSource,
         },
       ],
-    }).compile();
-    wikiSubscriptionService = module.get<WikiSubscriptionService>(WikiSubscriptionService);
-    wikiSubscriptionResolver = module.get<WikiSubscriptionResolver>(WikiSubscriptionResolver);
-  });
+    }).compile()
+    wikiSubscriptionService = module.get<WikiSubscriptionService>(
+      WikiSubscriptionService,
+    )
+    wikiSubscriptionResolver = module.get<WikiSubscriptionResolver>(
+      WikiSubscriptionResolver,
+    )
+  })
   describe('wikiSubscriptions', () => {
     it('should return an array of IqSubscription', async () => {
       const expectedData: IqSubscription[] = [
@@ -45,17 +49,22 @@ describe('WikiSubscription', () => {
           subscriptionType: 'type202',
           auxiliaryId: 'auxiliary202',
         },
-      ];
-      jest.spyOn(wikiSubscriptionService, 'getSubs').mockResolvedValue(expectedData);
+      ]
+      jest
+        .spyOn(wikiSubscriptionService, 'getSubs')
+        .mockResolvedValue(expectedData)
       const context = {
         req: {
           headers: {
             authorization: 'firsttoken',
           },
         },
-      };
-      const result = await wikiSubscriptionResolver.wikiSubscriptions(context, 'userId');
-      expect(result).toEqual(expectedData);
+      }
+      const result = await wikiSubscriptionResolver.wikiSubscriptions(
+        context,
+        'userId',
+      )
+      expect(result).toEqual(expectedData)
     })
   })
   describe('addWikiSubscription', () => {
@@ -65,21 +74,27 @@ describe('WikiSubscription', () => {
         userId: 'user202',
         subscriptionType: 'type202',
         auxiliaryId: 'auxiliary202',
-      };
-      const addSubscriptionMock = jest.spyOn(wikiSubscriptionService, 'addSub');
-      addSubscriptionMock.mockResolvedValueOnce(expectedData);
+      }
+      const addSubscriptionMock = jest.spyOn(wikiSubscriptionService, 'addSub')
+      addSubscriptionMock.mockResolvedValueOnce(expectedData)
       const context = {
         req: {
           headers: {
             authorization: 'secondtoken',
           },
         },
-      };
-      const result = wikiSubscriptionResolver.addWikiSubscription(context, expectedData);
-      expect(result).resolves.toEqual(expectedData);
-      expect(addSubscriptionMock).toHaveBeenCalledWith('secondtoken', expectedData);
+      }
+      const result = wikiSubscriptionResolver.addWikiSubscription(
+        context,
+        expectedData,
+      )
+      expect(result).resolves.toEqual(expectedData)
+      expect(addSubscriptionMock).toHaveBeenCalledWith(
+        'secondtoken',
+        expectedData,
+      )
     })
-  });
+  })
   describe('removeWikiSubscription', () => {
     it('should remove existing wiki subscription', async () => {
       const expectedData = {
@@ -87,19 +102,29 @@ describe('WikiSubscription', () => {
         userId: 'user303',
         subscriptionType: 'type303',
         auxiliaryId: 'auxiliary303',
-      };
-      const removeSubscriptionMock = jest.spyOn(wikiSubscriptionService, 'removeSub');
-      removeSubscriptionMock.mockResolvedValueOnce(true);
+      }
+      const removeSubscriptionMock = jest.spyOn(
+        wikiSubscriptionService,
+        'removeSub',
+      )
+      removeSubscriptionMock.mockResolvedValueOnce(true)
       const context = {
         req: {
           headers: {
             authorization: 'thirdtoken',
           },
         },
-      };
-      const result = wikiSubscriptionResolver.removeWikiSubscription(context, expectedData);
-      expect(result).resolves.toBe(true);
-      expect(removeSubscriptionMock).toHaveBeenCalledWith('thirdtoken', 'user303', expectedData);
-    });
+      }
+      const result = wikiSubscriptionResolver.removeWikiSubscription(
+        context,
+        expectedData,
+      )
+      expect(result).resolves.toBe(true)
+      expect(removeSubscriptionMock).toHaveBeenCalledWith(
+        'thirdtoken',
+        'user303',
+        expectedData,
+      )
+    })
   })
 })
