@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, QueryBuilder, Repository } from 'typeorm'
 import TokenValidator from '../validateToken'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import IqSubscription from '../../../Database/Entities/IqSubscription'
 import { ProviderEnum, getProviders } from '../test-helpers/testHelpers'
+import { WikiSubscriptionArgs } from '../../../Database/Entities/types/IWiki'
 
 describe('WikiSubscriptionService', () => {
   let wikiSubscriptionService: WikiSubscriptionService
@@ -62,7 +63,61 @@ describe('WikiSubscriptionService', () => {
       const result = await wikiSubscriptionService.getSubs(token, id)
       expect(result).toEqual(expectedData)
       expect(mockRepo).toHaveBeenCalledTimes(1)
-      expect(tokenValidatorMock).toHaveBeenCalledWith(token, id, false)
-    })
-  })
-})
+      expect(tokenValidatorMock).toHaveBeenCalledWith(token, id, false);
+    });
+    it('should return false when token validator fails', async () => {
+      const id = 'a_new_Id';
+      const token = 'some_random_token';
+      jest
+        .spyOn(TokenValidator.prototype, 'validateToken')
+        .mockReturnValue(false);
+      const result = await wikiSubscriptionService.getSubs(token, id);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('addSub', () => {
+    // it('should return a new subscription', async () => {
+    //   const token = 'valid_token';
+    //   const args = new WikiSubscriptionArgs();
+    //   const newSubscription = new IqSubscription();
+    //   jest
+    //     .spyOn(TokenValidator.prototype, 'validateToken')
+    //     .mockReturnValue(true);
+    //   jest
+    //     .spyOn(wikiSubscriptionService, 'findSub')
+    //     .mockResolvedValue(null);
+    //   jest
+    //     .spyOn(wikiSubscriptionService, 'repository')
+    //     .mockResolvedValue({
+    //       create: jest.fn().mockReturnValue(newSubscription),
+    //       save: jest.fn(),
+    //     });
+
+    //   const result = await wikiSubscriptionService.addSub(token, args);
+    //   expect(result).toBe(newSubscription);
+    // });
+
+    it('should return false when token validation fails', async () => {
+      const token = 'invalid_token';
+      const args = new WikiSubscriptionArgs();
+      jest
+        .spyOn(TokenValidator.prototype, 'validateToken')
+        .mockReturnValue(false);
+      const result = await wikiSubscriptionService.addSub(token, args);
+      expect(result).toBe(false);
+    });
+
+    it('should return false when token validation fails', async () => {
+      const token = 'invalid_token';
+      const id = '101';
+      const args = new WikiSubscriptionArgs();
+      jest
+        .spyOn(TokenValidator.prototype, 'validateToken')
+        .mockReturnValue(false);
+
+      const result = await wikiSubscriptionService.removeSub(token, id, args);
+      expect(result).toBe(false);
+    });
+  });
+});
