@@ -77,6 +77,7 @@ export class TokenRankListData extends Wiki {
   @Field(() => TokenListData, { nullable: true })
   tokenMarketData?: TokenListData
 }
+
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })
@@ -102,9 +103,16 @@ export enum RankType {
   NFT = 'nfts',
   TOKEN = 'cryptocurrencies',
 }
+export enum TokenCategory {
+  AI = 'artificial-intelligence',
+  STABLE_COINS = 'stablecoins',
+}
 
 registerEnumType(RankType, {
   name: 'RankType',
+})
+registerEnumType(TokenCategory, {
+  name: 'TokenCategory',
 })
 
 @ArgsType()
@@ -112,4 +120,8 @@ export class MarketCapInputs extends PaginationArgs {
   @Field(() => RankType, { defaultValue: RankType.TOKEN })
   @Validate(ValidStringParams)
   kind?: RankType
+
+  @Field(() => TokenCategory, { nullable: true })
+  @Validate(ValidStringParams)
+  category?: TokenCategory
 }

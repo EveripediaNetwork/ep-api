@@ -11,6 +11,7 @@ import {
   MarketCapInputs,
   NftRankListData,
   RankType,
+  TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
 import Tag from '../../Database/Entities/tag.entity'
@@ -22,6 +23,7 @@ const noContentWiki = {
   created: new Date(),
   media: [],
   images: [],
+  tags: [{ id: 'no-content' }],
 } as unknown as Partial<Wiki>
 
 @Injectable()
@@ -71,24 +73,37 @@ class MarketCapService {
       ...wiki,
       tags: [...tag],
     }
-    return wikiAndTags
+    return wiki && tag ? wikiAndTags : wiki
   }
+
   private async getTags(id: string) {
     const ds = this.dataSource.getRepository(Tag)
     return ds.query(
       `
-    SELECT "tags"."id" FROM "tag" "tags" INNER JOIN "wiki_tags_tag" "wiki_tags_tag" ON "wiki_tags_tag"."wikiId" IN ($1) AND "wiki_tags_tag"."tagId"="tags"."id"
+        SELECT 
+        "tags"."id" 
+        FROM "tag" "tags" 
+        INNER JOIN "wiki_tags_tag" "wiki_tags_tag" 
+        ON "wiki_tags_tag"."wikiId" IN ($1) 
+        AND "wiki_tags_tag"."tagId"="tags"."id"
     `,
       [id],
     )
   }
 
-  private async cryptoMarketData(amount: number, page: number) {
+  private async cryptoMarketData(
+    amount: number,
+    page: number,
+    category?: TokenCategory,
+  ) {
+    console.log(category)
+    const categoryParam = category ? `category=${category}&` : ''
     let data
+
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${amount}&page=${
+          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${amount}&page=${
             page === 0 ? 1 : page
           }&sparkline=false`,
           {
@@ -206,7 +221,9 @@ class MarketCapService {
   async ranks(
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
-    const key = `finalResult/${args.kind}/${args.limit}/${args.offset}`
+    const key = args.category
+      ? `finalResult/${args.kind}/${args.limit}/${args.offset}-${args.category}`
+      : `finalResult/${args.kind}/${args.limit}/${args.offset}`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
 
@@ -223,6 +240,7 @@ class MarketCapService {
       result = (await this.cryptoMarketData(
         args.limit,
         args.offset,
+        args.category,
       )) as unknown as TokenRankListData
     }
 
