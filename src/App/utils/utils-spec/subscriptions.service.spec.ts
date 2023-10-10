@@ -5,7 +5,6 @@ import TokenValidator from '../validateToken'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import IqSubscription from '../../../Database/Entities/IqSubscription'
 import { ProviderEnum, getProviders } from '../test-helpers/testHelpers'
-import { WikiSubscriptionArgs } from '../../../Database/Entities/types/IWiki'
 
 describe('WikiSubscriptionService', () => {
   let wikiSubscriptionService: WikiSubscriptionService
