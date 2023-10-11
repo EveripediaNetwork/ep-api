@@ -81,54 +81,63 @@ describe('WikiSubscriptionService', () => {
       const expectedData = {
         userId: 'userId101',
         subscriptionType: 'type101',
-        auxiliaryId: 'id101'
-      };
-    
-      const createMock = jest.fn().mockReturnValue(expectedData);
-      const saveMock = jest.fn().mockResolvedValue(expectedData);
-    
+        auxiliaryId: 'id101',
+      }
+
+      const createMock = jest.fn().mockReturnValue(expectedData)
+      const saveMock = jest.fn().mockResolvedValue(expectedData)
+
       const mockRepo: Repository<IqSubscription> = {
         create: createMock,
         save: saveMock,
-      } as unknown as Repository<IqSubscription>;
-    
-      jest.spyOn(wikiSubscriptionService, 'repository').mockResolvedValue(mockRepo);
-    
-      const result = await wikiSubscriptionService.addSub('token', expectedData);
-      expect(result).toBe(false); 
-    });
-    
+      } as unknown as Repository<IqSubscription>
+
+      jest
+        .spyOn(wikiSubscriptionService, 'repository')
+        .mockResolvedValue(mockRepo)
+
+      const result = await wikiSubscriptionService.addSub('token', expectedData)
+      expect(result).toBe(false)
+    })
+
     it('should remove an existing subscription', async () => {
-      const token = 'token';
-      const id = 'user';
-      const expectedData = new WikiSubscriptionArgs();
-      expectedData.userId = 'userId202';
-      expectedData.subscriptionType = 'type202';
-      expectedData.auxiliaryId = 'id101';
+      const token = 'token'
+      const id = 'user'
+      const expectedData = new WikiSubscriptionArgs()
+      expectedData.userId = 'userId202'
+      expectedData.subscriptionType = 'type202'
+      expectedData.auxiliaryId = 'id101'
       const createQueryBuilderMock = {
         delete: jest.fn().mockReturnThis(),
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue({ affected: 1 }),
-      };
-    
+      }
+
       const mockRepo = {
         createQueryBuilder: jest.fn().mockReturnValue(createQueryBuilderMock),
-      };
-      jest.spyOn(wikiSubscriptionService, 'repository').mockResolvedValue(mockRepo as any);
-    
-      const tokenValidatorMock = jest.spyOn(TokenValidator.prototype, 'validateToken').mockReturnValue(true);
-    
-      const result = await wikiSubscriptionService.removeSub(token, id, expectedData);
-    
-      expect(result).toBe(true);
-      expect(tokenValidatorMock).toHaveBeenCalledWith(token, id, false);
-      expect(createQueryBuilderMock.delete).toHaveBeenCalled();
-      expect(createQueryBuilderMock.from).toHaveBeenCalledWith(IqSubscription);
-      expect(createQueryBuilderMock.where).toHaveBeenCalledWith(expectedData);
-      expect(createQueryBuilderMock.execute).toHaveBeenCalled();
-    });
-    
+      }
+      jest
+        .spyOn(wikiSubscriptionService, 'repository')
+        .mockResolvedValue(mockRepo as any)
+
+      const tokenValidatorMock = jest
+        .spyOn(TokenValidator.prototype, 'validateToken')
+        .mockReturnValue(true)
+
+      const result = await wikiSubscriptionService.removeSub(
+        token,
+        id,
+        expectedData,
+      )
+
+      expect(result).toBe(true)
+      expect(tokenValidatorMock).toHaveBeenCalledWith(token, id, false)
+      expect(createQueryBuilderMock.delete).toHaveBeenCalled()
+      expect(createQueryBuilderMock.from).toHaveBeenCalledWith(IqSubscription)
+      expect(createQueryBuilderMock.where).toHaveBeenCalledWith(expectedData)
+      expect(createQueryBuilderMock.execute).toHaveBeenCalled()
+    })
 
     it('should return false when token validation fails', async () => {
       const token = 'invalid_token'
@@ -148,7 +157,11 @@ describe('WikiSubscriptionService', () => {
         .spyOn(TokenValidator.prototype, 'validateToken')
         .mockReturnValue(false)
 
-      const result = await wikiSubscriptionService.removeSub(token, id, expectedData)
+      const result = await wikiSubscriptionService.removeSub(
+        token,
+        id,
+        expectedData,
+      )
       expect(result).toBe(false)
     })
   })
