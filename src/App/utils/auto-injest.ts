@@ -24,7 +24,7 @@ class AutoInjestService {
         },
       }
 
-    await this.httpService
+      await this.httpService
         .post(
           'https://api.github.com/repos/EveripediaNetwork/iq-gpt-ingester-js/dispatches',
           payload,
