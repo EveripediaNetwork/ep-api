@@ -3,8 +3,6 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Cron, CronExpression } from '@nestjs/schedule'
 
-const watchIds = ['iqwiki']
-
 @Injectable()
 class AutoInjestService {
   constructor(
@@ -16,24 +14,30 @@ class AutoInjestService {
     return this.configService.get<string>('INDEXER_GITHUB_TOKEN') as string
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  async initiateInjest(id: string) {
-    if (!watchIds.includes(id)) return
-
-    const injestURL =
-      'https://api.github.com/repos/EveripediaNetwork/iq-gpt-ingester-js/dispatches'
-
+  @Cron(CronExpression.EVERY_MINUTE)
+  async initiateInjest() {
     try {
-      await this.httpService
-        .get(injestURL, {
-          headers: {
-            Accept: 'application/vnd.github+json',
-            Authorization: `token ${this.INJEST_KEYS()}`,
+      const payload = {
+        event_type: 'trigger-scraper',
+        client_payload: {
+          scraperName: 'IQ Wiki',
+        },
+      }
+
+    await this.httpService
+        .post(
+          'https://api.github.com/repos/EveripediaNetwork/iq-gpt-ingester-js/dispatches',
+          payload,
+          {
+            headers: {
+              Accept: 'application/vnd.github.v3+json',
+              Authorization: `token ${this.INJEST_KEYS()}`,
+            },
           },
-        })
+        )
         .toPromise()
-    } catch (e: any) {
-      console.error('Error initiating the injest action', e)
+    } catch (e) {
+      console.error(e)
     }
   }
 }
