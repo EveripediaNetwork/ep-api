@@ -1,21 +1,32 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { OnEvent } from '@nestjs/event-emitter'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
+export const injestId = 'injest.action'
 @Injectable()
 class AutoInjestService {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private INJEST_KEYS(): string {
     return this.configService.get<string>('INDEXER_GITHUB_TOKEN') as string
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @OnEvent(injestId, { async: true })
   async initiateInjest() {
+    const key = await this.cacheManager.get(injestId)
+
+    const environment = this.configService.get<string>('API_LEVEL') as string
+
+    
+    if (environment === 'dev' || !firstLevelNodeProcess() || key) return
+
     try {
       const payload = {
         event_type: 'trigger-scraper',
@@ -36,9 +47,12 @@ class AutoInjestService {
           },
         )
         .toPromise()
+      console.log('Injest action emitted! ⚙️')
     } catch (e) {
       console.error(e)
     }
+
+    await this.cacheManager.set(injestId, true, { ttl: 60 })
   }
 }
 

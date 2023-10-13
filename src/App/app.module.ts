@@ -59,7 +59,6 @@ import TreasuryModule from './Treasury/treasury.module'
 import StakedIQModule from './StakedIQ/stakedIQ.module'
 import HiIQHolderModule from './HiIQHolders/hiIQHolder.module'
 import IQHolderModule from './IQHolders/IQHolder.module'
-import AutoInjestService from './utils/auto-injest'
 // istanbul ignore next
 @Module({
   imports: [
@@ -105,7 +104,6 @@ import AutoInjestService from './utils/auto-injest'
   ],
   controllers: [],
   providers: [
-    AutoInjestService,
     SecurityTestingService,
     ConfigService,
     WikiResolver,
