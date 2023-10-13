@@ -2,6 +2,7 @@ import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor } from '@ntegral/nestjs-sentry'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
 import HistoryProviderService from './Provider/history.service'
@@ -13,6 +14,7 @@ import httpModule from '../httpModule'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { RevalidatePageService } from '../App/revalidatePage/revalidatePage.service'
 import SentryMod from '../sentry/sentry.module'
+import AutoInjestService from '../App/utils/auto-injest'
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import SentryMod from '../sentry/sentry.module'
     httpModule(20000),
     CacheModule.register({ ttl: 3600 }),
     SentryMod,
+    EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
   ],
   controllers: [],
   providers: [
@@ -34,6 +37,7 @@ import SentryMod from '../sentry/sentry.module'
     IPFSGetterService,
     RunCommand,
     RevalidatePageService,
+    AutoInjestService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => new SentryInterceptor(),
