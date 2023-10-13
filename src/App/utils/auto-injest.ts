@@ -3,7 +3,6 @@ import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { OnEvent } from '@nestjs/event-emitter'
-import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 export const injestId = 'injest.action'
 @Injectable()
@@ -24,7 +23,7 @@ class AutoInjestService {
 
     const environment = this.configService.get<string>('API_LEVEL') as string
 
-    if (environment === 'dev' || !firstLevelNodeProcess() || key) return
+    if (environment === 'dev' || key) return
 
     try {
       const payload = {
