@@ -24,7 +24,6 @@ class AutoInjestService {
 
     const environment = this.configService.get<string>('API_LEVEL') as string
 
-    
     if (environment === 'dev' || !firstLevelNodeProcess() || key) return
 
     try {
