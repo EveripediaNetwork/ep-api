@@ -53,6 +53,7 @@ describe('IndexerWebhookController', () => {
           ProviderEnum.metadataChangesService,
           ProviderEnum.indexerWebhookService,
           ProviderEnum.revalidatePageService,
+          ProviderEnum.eventEmitter2,
         ]),
         {
           provide: ConfigService,
