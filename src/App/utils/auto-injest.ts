@@ -2,7 +2,6 @@ import { HttpService } from '@nestjs/axios'
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
-import { OnEvent } from '@nestjs/event-emitter'
 
 export const injestId = 'injest.action'
 @Injectable()
@@ -17,7 +16,6 @@ class AutoInjestService {
     return this.configService.get<string>('INDEXER_GITHUB_TOKEN') as string
   }
 
-  @OnEvent(injestId, { async: true })
   async initiateInjest() {
     const key = await this.cacheManager.get(injestId)
 
@@ -45,7 +43,7 @@ class AutoInjestService {
           },
         )
         .toPromise()
-      console.log('Injest action emitted! ⚙️')
+      console.log('Injest action emitted ! ! ⚙️')
     } catch (e) {
       console.error(e)
     }

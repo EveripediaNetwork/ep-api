@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
@@ -15,14 +14,14 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import { injestId } from '../../App/utils/auto-injest'
+import AutoInjestService  from '../../App/utils/auto-injest'
 
 @Injectable()
 class DBStoreService {
   constructor(
     private dataSource: DataSource,
     private revalidate: RevalidatePageService,
-    private eventEmitter: EventEmitter2,
+    private iqInjest: AutoInjestService,
   ) {}
 
   async storeWiki(wiki: WikiType, hash: Hash): Promise<boolean> {
@@ -174,7 +173,7 @@ class DBStoreService {
         existWiki.promoted,
       )
 
-      this.eventEmitter.emit(injestId)
+      await this.iqInjest.initiateInjest()
       return true
     }
 
