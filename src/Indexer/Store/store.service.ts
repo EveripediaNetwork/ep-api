@@ -14,7 +14,7 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import AutoInjestService  from '../../App/utils/auto-injest'
+import AutoInjestService from '../../App/utils/auto-injest'
 
 @Injectable()
 class DBStoreService {
