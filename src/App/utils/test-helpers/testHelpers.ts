@@ -36,6 +36,7 @@ import IPFSValidatorService from '../../../Indexer/Validator/validator.service'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import CategoryService from '../../Category/category.service'
 import TagService from '../../Tag/tag.service'
+import AutoInjestService from '../auto-injest'
 
 export const providerObjects = {
   validSlug: ValidSlug,
@@ -64,6 +65,7 @@ export const providerObjects = {
   pageViewsResolver: PageViewsResolver,
   ipfsGetterService: IPFSGetterService,
   marketCapResolver: MarketCapResolver,
+  autoInjestService: AutoInjestService,
   userProfileResolver: UserProfileResolver,
   ipfsValidatorService: IPFSValidatorService,
   graphProviderService: GraphProviderService,
@@ -105,6 +107,7 @@ export enum ProviderEnum {
   pageViewsResolver = 'pageViewsResolver',
   ipfsGetterService = 'ipfsGetterService',
   marketCapResolver = 'marketCapResolver',
+  autoInjestService = 'autoInjestService',
   userProfileResolver = 'userProfileResolver',
   ipfsValidatorService = 'ipfsValidatorService',
   graphProviderService = 'graphProviderService',

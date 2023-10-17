@@ -2,7 +2,6 @@ import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor } from '@ntegral/nestjs-sentry'
-import { EventEmitterModule } from '@nestjs/event-emitter'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
 import HistoryProviderService from './Provider/history.service'
@@ -25,7 +24,6 @@ import AutoInjestService from '../App/utils/auto-injest'
     httpModule(20000),
     CacheModule.register({ ttl: 3600 }),
     SentryMod,
-    EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
   ],
   controllers: [],
   providers: [
