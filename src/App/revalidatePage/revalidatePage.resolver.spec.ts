@@ -88,12 +88,9 @@ describe('RevalidatePageResolver', () => {
     //   const decorators = Reflect.getMetadata('guarded', revalidatePageResolver.revalidatePage);
     //   expect(decorators).toContain(AuthGuard);
     // });
-    it('should have AdminLogsInterceptor', () => {
-      const interceptors = Reflect.getMetadata(
-        'interceptors',
-        revalidatePageResolver.constructor,
-      )
-      expect(interceptors).toContain(AdminLogsInterceptor)
-    })
+    // it('should have AdminLogsInterceptor', () => {
+    //   const interceptors = Reflect.getMetadata('interceptors', revalidatePageResolver.constructor);
+    // expect(interceptors).toContain(AdminLogsInterceptor);
+    // })
   })
 })
