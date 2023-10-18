@@ -5,6 +5,7 @@ import {
   Field,
   registerEnumType,
   ArgsType,
+  ID,
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
