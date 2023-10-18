@@ -13,6 +13,7 @@ import httpModule from '../httpModule'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { RevalidatePageService } from '../App/revalidatePage/revalidatePage.service'
 import SentryMod from '../sentry/sentry.module'
+import AutoInjestService from '../App/utils/auto-injest'
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import SentryMod from '../sentry/sentry.module'
     IPFSGetterService,
     RunCommand,
     RevalidatePageService,
+    AutoInjestService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => new SentryInterceptor(),
