@@ -64,6 +64,7 @@ class IQHolderService {
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: cronIndexerId,
+    disabled: true
   })
   async storeIQHolderCount() {
     const tempStop: boolean | undefined = await this.cacheManager.get(

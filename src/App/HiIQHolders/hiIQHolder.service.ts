@@ -67,6 +67,7 @@ class HiIQHolderService {
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: 'storeHiIQHolderCount',
+    disabled: true
   })
   async storeHiIQHolderCount() {
     const today = new Date()
