@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { SentryModule } from '@ntegral/nestjs-sentry'
 
-const ignoredEndpoints = ['/brainpass/nft-events', 'indexer']
+const ignoredEndpoints = ['/brainpass/nft-events', '/indexer']
 
 @Module({
   imports: [
