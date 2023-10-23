@@ -33,7 +33,7 @@ class StatsGetterService {
   ) {}
 
   private async cmcApiCall(name: string): Promise<any> {
-    let response = null
+    let response
     try {
       const url =
         'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
