@@ -46,7 +46,6 @@ import WikiService from './Wiki/wiki.service'
 import logger from './utils/logger'
 import ContentFeedbackService from './content-feedback/contentFeedback.service'
 import ContentFeedbackResolver from './content-feedback/contentFeedback.resolver'
-import SentryMod from '../sentry/sentry.module'
 import SecurityTestingService from './utils/securityTester'
 import IndexerWebhookModule from '../Indexer/IndexerWebhook/indexerWebhook.module'
 import WikiSubscriptionService from './Subscriptions/subscriptions.service'
@@ -59,6 +58,9 @@ import TreasuryModule from './Treasury/treasury.module'
 import StakedIQModule from './StakedIQ/stakedIQ.module'
 import HiIQHolderModule from './HiIQHolders/hiIQHolder.module'
 import IQHolderModule from './IQHolders/IQHolder.module'
+import SentryMiddleware from '../sentry/sentry.middleware'
+import SentryMod from '../sentry/sentry.module'
+
 // istanbul ignore next
 @Module({
   imports: [
@@ -86,7 +88,6 @@ import IQHolderModule from './IQHolders/IQHolder.module'
       },
     }),
     SitemapModule,
-    SentryMod,
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
@@ -97,10 +98,11 @@ import IQHolderModule from './IQHolders/IQHolder.module'
     BrainPassModule,
     ActivityModule,
     IndexerWebhookModule,
-    TreasuryModule, 
+    TreasuryModule,
     StakedIQModule,
     HiIQHolderModule,
     IQHolderModule,
+    SentryMod
   ],
   controllers: [],
   providers: [
@@ -150,6 +152,7 @@ import IQHolderModule from './IQHolders/IQHolder.module'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SentryMiddleware).exclude('graphql').forRoutes('*')
     consumer.apply(PinMiddleware, logger).forRoutes('graphql')
   }
 }
