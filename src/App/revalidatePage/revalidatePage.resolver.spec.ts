@@ -8,8 +8,6 @@ import RevalidatePageResolver from './revalidatePage.resolver'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import TokenValidator from '../utils/validateToken'
-import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
-// import AuthGuard from '../utils/admin.guard';
 
 describe('RevalidatePageResolver', () => {
   let revalidatePageResolver: RevalidatePageResolver
@@ -17,7 +15,6 @@ describe('RevalidatePageResolver', () => {
   let dataSource: {
     createEntityManager: jest.Mock
   }
-  let eventEmitter: EventEmitter2
   beforeEach(async () => {
     dataSource = {
       createEntityManager: jest.fn(),
@@ -53,7 +50,6 @@ describe('RevalidatePageResolver', () => {
     revalidatePageService = module.get<RevalidatePageService>(
       RevalidatePageService,
     )
-    eventEmitter = module.get<EventEmitter2>(EventEmitter2)
   })
   describe('revalidatePage', () => {
     it('should be defined', async () => {
@@ -84,13 +80,8 @@ describe('RevalidatePageResolver', () => {
         `${ctx.req.ip}${args.route}`,
       )
     })
-    // it('revalidatePage should be guarded by AuthGuard', () => {
-    //   const decorators = Reflect.getMetadata('guarded', revalidatePageResolver.revalidatePage);
-    //   expect(decorators).toContain(AuthGuard);
-    // });
-    // it('should have AdminLogsInterceptor', () => {
-    //   const interceptors = Reflect.getMetadata('interceptors', revalidatePageResolver.constructor);
-    // expect(interceptors).toContain(AdminLogsInterceptor);
-    // })
+    it('should instantiate RevalidatePageResolver with RevalidatePageService and EventEmitter2', () => {
+      expect(revalidatePageResolver).toBeInstanceOf(RevalidatePageResolver);
+    })
   })
 })
