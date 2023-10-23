@@ -52,7 +52,7 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
         scope.setSpan(transaction)
       })
     } catch (e) {
-      console.error('error ', e)
+      console.error(e)
     }
 
     return {
