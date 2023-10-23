@@ -171,22 +171,25 @@ export default class WebhookHandler {
       })
 
       const content = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\nContent-Type: application/json\n\n${jsonContent}\n--${boundary}\nContent-Disposition: form-data; name="files[0]"; filename="message.json"\nContent-Type: application/json\n\n${readText} \n--${boundary}--`
-
-      this.httpService
-        .post(braindaoAlarms, content, {
-          headers: {
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-        })
-        .subscribe({
-          complete: async () => {
-            await fss.unlink('./uploads/message.json')
-          },
-          error: async (err) => {
-            await fss.unlink('./uploads/message.json')
-            console.log(err.response)
-          },
-        })
+      try {
+          this.httpService
+            .post(braindaoAlarms, content, {
+              headers: {
+                'Content-Type': `multipart/form-data; boundary=${boundary}`,
+              },
+            })
+            .subscribe({
+              complete: async () => {
+                await fss.unlink('./uploads/message.json')
+              },
+              error: async err => {
+                await fss.unlink('./uploads/message.json')
+                console.log(err.response)
+              },
+            })
+      } catch (e) {
+        console.error(e)
+      }
     }
     if (actionType === ActionTypes.CONTENT_FEEDBACK) {
       let jsonContent
@@ -288,14 +291,17 @@ export default class WebhookHandler {
     wehhookChannel: string,
   ): Promise<void> {
     const payload = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\n\n${content}\n--${boundary}\nContent-Disposition: form-data; name="tts" \n\ntrue\n--${boundary}--`
-
-    this.httpService
-      .post(wehhookChannel, payload, {
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-        },
-      })
-      .toPromise()
+    try {
+      this.httpService
+        .post(wehhookChannel, payload, {
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          },
+        })
+        .toPromise()
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   async postWebhook(actionType: ActionTypes, payload: WebhookPayload) {

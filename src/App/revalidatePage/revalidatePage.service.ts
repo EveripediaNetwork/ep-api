@@ -43,31 +43,37 @@ export class RevalidatePageService {
   }
 
   async revalidate(route: string, id?: string, slug?: string): Promise<any> {
-    if (slug) {
-      return this.httpService
+    let validate
+    try {
+      if (slug) {
+        validate = await this.httpService
+          .get(
+            `${this.getSecrets().url}/api/revalidate?secret=${
+              this.getSecrets().secret
+            }&path=${route}/${slug}`,
+          )
+          .toPromise()
+      }
+      if (id) {
+        validate = await this.httpService
+          .get(
+            `${this.getSecrets().url}/api/revalidate?secret=${
+              this.getSecrets().secret
+            }&path=${route}/${id}`,
+          )
+          .toPromise()
+      }
+      validate = await this.httpService
         .get(
           `${this.getSecrets().url}/api/revalidate?secret=${
             this.getSecrets().secret
-          }&path=${route}/${slug}`,
+          }&path=${route}`,
         )
         .toPromise()
+    } catch (e) {
+      console.error(e)
     }
-    if (id) {
-      return this.httpService
-        .get(
-          `${this.getSecrets().url}/api/revalidate?secret=${
-            this.getSecrets().secret
-          }&path=${route}/${id}`,
-        )
-        .toPromise()
-    }
-    return this.httpService
-      .get(
-        `${this.getSecrets().url}/api/revalidate?secret=${
-          this.getSecrets().secret
-        }&path=${route}`,
-      )
-      .toPromise()
+    return validate
   }
 
   async revalidatePage(
