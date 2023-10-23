@@ -81,7 +81,7 @@ describe('RevalidatePageResolver', () => {
       )
     })
     it('should instantiate RevalidatePageResolver with RevalidatePageService and EventEmitter2', () => {
-      expect(revalidatePageResolver).toBeInstanceOf(RevalidatePageResolver);
+      expect(revalidatePageResolver).toBeInstanceOf(RevalidatePageResolver)
     })
   })
 })
