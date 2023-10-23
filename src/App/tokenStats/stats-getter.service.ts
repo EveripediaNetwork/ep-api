@@ -96,7 +96,6 @@ class StatsGetterService {
       : await this.cmcApiCall(name)
     const cg = await this.cgApiCall(name)
 
-
     const cgMarketData = cg?.marketChangeResult?.data[0] || {
       image: '',
       current_price: 0,

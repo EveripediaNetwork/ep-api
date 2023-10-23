@@ -172,21 +172,21 @@ export default class WebhookHandler {
 
       const content = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\nContent-Type: application/json\n\n${jsonContent}\n--${boundary}\nContent-Disposition: form-data; name="files[0]"; filename="message.json"\nContent-Type: application/json\n\n${readText} \n--${boundary}--`
       try {
-          this.httpService
-            .post(braindaoAlarms, content, {
-              headers: {
-                'Content-Type': `multipart/form-data; boundary=${boundary}`,
-              },
-            })
-            .subscribe({
-              complete: async () => {
-                await fss.unlink('./uploads/message.json')
-              },
-              error: async err => {
-                await fss.unlink('./uploads/message.json')
-                console.log(err.response)
-              },
-            })
+        this.httpService
+          .post(braindaoAlarms, content, {
+            headers: {
+              'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            },
+          })
+          .subscribe({
+            complete: async () => {
+              await fss.unlink('./uploads/message.json')
+            },
+            error: async (err) => {
+              await fss.unlink('./uploads/message.json')
+              console.log(err.response)
+            },
+          })
       } catch (e) {
         console.error(e)
       }
