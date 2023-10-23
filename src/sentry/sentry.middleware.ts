@@ -19,7 +19,7 @@ export default class SentryMiddleware implements NestMiddleware {
 
     process.setMaxListeners(0)
 
-    process.on('uncaughtException', error => {
+    process.on('uncaughtException', (error) => {
       Sentry.captureException(error)
     })
 

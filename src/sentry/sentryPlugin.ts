@@ -28,7 +28,6 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
         },
       }
     }
-    
 
     const transaction = this.sentry.instance().startTransaction({
       op: 'gql',
@@ -41,15 +40,15 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
       this.sentry
         .instance()
         .getCurrentHub()
-        .configureScope(scope => {
+        .configureScope((scope) => {
           const { headers, body: data, method, baseUrl: url } = context.req
-          scope.addEventProcessor(event => {
+          scope.addEventProcessor((event) => {
             event.request = { method, url, headers, data }
             return event
           })
         })
 
-      this.sentry.instance().configureScope(scope => {
+      this.sentry.instance().configureScope((scope) => {
         scope.setSpan(transaction)
       })
     } catch (e) {
