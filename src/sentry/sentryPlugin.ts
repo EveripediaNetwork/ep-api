@@ -20,6 +20,14 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
     const { query } = request
     const methodName = query.match(/[{]\s+(\w+)/)
     const [, name] = methodName
+    process.setMaxListeners(0)
+    if (request.operationName === 'IntrospectionQuery') {
+      return {
+        async executionDidStart() {
+          return {}
+        },
+      }
+    }
 
     const transaction = this.sentry.instance().startTransaction({
       op: 'gql',

@@ -4,8 +4,6 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
-import * as Sentry from '@sentry/node'
-import * as Tracing from '@sentry/tracing'
 import rateLimit from 'express-rate-limit'
 import { NestExpressApplication } from '@nestjs/platform-express'
 
@@ -32,15 +30,9 @@ async function bootstrapApplication() {
 
   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
-  Sentry.init({
-    dsn: configService.get<string>('SENTRY_DSN'),
-    tracesSampleRate: 0.3,
-    integrations: [new Tracing.Integrations.Apollo()],
-  })
   app.set('trust proxy', 1)
 
   app.use(
-    Sentry.Handlers.tracingHandler(),
     rateLimit({
       windowMs: configService.get<number>('THROTTLE_TTL'),
       max: configService.get<number>('THROTTLE_LIMIT'),

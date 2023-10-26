@@ -4,8 +4,6 @@
 import { NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import fs from 'fs'
-import * as Sentry from '@sentry/node'
-import * as Tracing from '@sentry/tracing'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import AppModule from './App/app.module'
 import bootstrapApplication from './main'
@@ -69,16 +67,6 @@ describe('bootstrap', () => {
         }),
       }),
     )
-  })
-
-  it('should initialize Sentry with the correct options', async () => {
-    await bootstrapApplication()
-
-    expect(Sentry.init).toHaveBeenCalledWith({
-      dsn: 5000,
-      tracesSampleRate: 0.3,
-      integrations: [expect.any(Tracing.Integrations.Apollo)],
-    })
   })
 
   it('should trust proxy', async () => {
