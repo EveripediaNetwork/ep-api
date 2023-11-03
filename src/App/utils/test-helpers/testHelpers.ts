@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { LockingService } from "../../IQHolders/IQHolders.dto";
+import { LockingService } from '../../IQHolders/IQHolders.dto'
 import SentryPlugin from '../../../sentry/sentryPlugin'
 import ActivityResolver from '../../Activities/activity.resolver'
 import ActivityService from '../../Activities/activity.service'

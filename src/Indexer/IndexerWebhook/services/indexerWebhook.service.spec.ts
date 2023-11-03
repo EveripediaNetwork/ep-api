@@ -94,7 +94,7 @@ describe('IndexerWebhookService', () => {
           ProviderEnum.indexerWebhookService,
           ProviderEnum.revalidatePageService,
           ProviderEnum.autoInjestService,
-          ProviderEnum.lockingService
+          ProviderEnum.lockingService,
         ]),
         {
           provide: ConfigService,
