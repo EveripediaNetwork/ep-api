@@ -79,7 +79,7 @@ class IQHolderService {
     if (tempStop) return
 
     if (firstLevelNodeProcess() && !jobRun) {
-      const lockAcquired = await this.lockingService.acquireLock()
+      const lockAcquired = await this.lockingService.acquireLock(cronIndexerId)
       if (!lockAcquired) return
 
       await this.indexIQHolders()
@@ -149,7 +149,7 @@ class IQHolderService {
       console.log(e)
       await queryRunner.rollbackTransaction()
       await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
-      this.lockingService.releaseLock()
+      this.lockingService.releaseLock(cronIndexerId)
       await queryRunner.release()
       return
     }
@@ -186,7 +186,7 @@ class IQHolderService {
       await this.repo.save(totalHolders)
       console.log(`IQ holder Count of ${count} for day ${newDay} saved 📈`)
     }
-    this.lockingService.releaseLock()
+    this.lockingService.releaseLock(cronIndexerId)
   }
 
   async getTxList(previous?: number, next?: number) {

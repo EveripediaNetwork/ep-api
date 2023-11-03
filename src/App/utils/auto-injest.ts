@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
-import { Cache } from 'cache-manager'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { LockingService } from '../IQHolders/IQHolders.dto'
 
 export const injestId = 'injest.action'
 @Injectable()
@@ -9,7 +9,7 @@ class AutoInjestService {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private lockingService: LockingService,
   ) {}
 
   private INJEST_KEYS(): string {
@@ -19,11 +19,11 @@ class AutoInjestService {
   async initiateInjest() {
     const status = await this.checkWorkflowStatus()
 
-    const key = await this.cacheManager.get(injestId)
-
     const environment = this.configService.get<string>('API_LEVEL') as string
 
-    if (environment === 'dev' || key || !status) return
+    const locked = await this.lockingService.acquireLock(injestId)
+
+    if (environment === 'dev' || !locked || !status ) return
 
     try {
       const payload = {
@@ -50,7 +50,9 @@ class AutoInjestService {
       console.error(e)
     }
 
-    await this.cacheManager.set(injestId, true, { ttl: 60 })
+    setTimeout(() => {
+      this.lockingService.releaseLock(injestId)
+    }, 30000)
   }
 
   async checkWorkflowStatus(): Promise<boolean> {

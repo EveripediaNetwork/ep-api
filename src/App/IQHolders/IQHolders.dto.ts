@@ -23,18 +23,20 @@ export default class IQHolderArgs extends PaginationArgs {
 
 @Injectable()
 export class LockingService {
-  private isRunning = false
+  private locks: Record<string, boolean> = {}
 
-  async acquireLock(): Promise<boolean> {
-    if (this.isRunning) {
-      return false
+  async acquireLock(lockName: string): Promise<boolean> {
+    if (this.locks[lockName]) {
+      return false 
     }
 
-    this.isRunning = true
+    this.locks[lockName] = true 
     return true
   }
 
-  releaseLock(): void {
-    this.isRunning = false
+  releaseLock(lockName: string): void {
+    if (this.locks[lockName]) {
+      this.locks[lockName] = false
+    }
   }
 }
