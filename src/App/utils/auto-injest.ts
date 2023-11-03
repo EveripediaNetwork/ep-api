@@ -23,7 +23,7 @@ class AutoInjestService {
 
     const locked = await this.lockingService.acquireLock(injestId)
 
-    if (environment === 'dev' || !locked || !status ) return
+    if (environment === 'dev' || !locked || !status) return
 
     try {
       const payload = {

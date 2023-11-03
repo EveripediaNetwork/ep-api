@@ -27,10 +27,10 @@ export class LockingService {
 
   async acquireLock(lockName: string): Promise<boolean> {
     if (this.locks[lockName]) {
-      return false 
+      return false
     }
 
-    this.locks[lockName] = true 
+    this.locks[lockName] = true
     return true
   }
 
