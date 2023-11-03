@@ -11,6 +11,7 @@ import RunCommand from '../run.command'
 import IndexerWebhookService from './services/indexerWebhook.service'
 import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
 import AutoInjestService from '../../App/utils/auto-injest'
+import { LockingService } from '../../App/IQHolders/IQHolders.dto'
 
 @Module({
   imports: [httpModule(10000), CacheModule.register({ ttl: 3600 })],
@@ -25,7 +26,8 @@ import AutoInjestService from '../../App/utils/auto-injest'
     RevalidatePageService,
     RunCommand,
     AlchemyNotifyService,
-    AutoInjestService
+    AutoInjestService,
+    LockingService
   ],
 })
 class IndexerWebhookModule {}

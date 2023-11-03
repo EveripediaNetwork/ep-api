@@ -59,7 +59,7 @@ export class RevalidatePageService {
     try {
       validate = await this.httpService.get(`${url}&path=${path}`).toPromise()
     } catch (e) {
-      console.error(e)
+      console.error('error revalidating path', url)
     }
     return validate
   }
