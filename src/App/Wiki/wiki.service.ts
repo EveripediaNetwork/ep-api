@@ -1,3 +1,4 @@
+import { Cron } from '@nestjs/schedule'
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
@@ -15,10 +16,11 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
-import { ActionTypes } from '../utils/utilTypes'
+import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { OrderBy, Direction, IntervalByDays } from '../general.args'
 import { VistArgs, PageViewArgs } from '../pageViews/pageviews.dto'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 @Injectable()
 class WikiService {
@@ -30,6 +32,42 @@ class WikiService {
     private webhookHandler: WebhookHandler,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  @Cron('0 */2 * * *')
+  async handleCron() {
+    if (firstLevelNodeProcess()) {
+      const cacheKey = 'key'
+      const cachedData = await this.cacheManager.get<any>(cacheKey)
+      if (!cachedData) {
+        return
+      }
+      const recurringAddresses: Record<string, number> = {}
+      cachedData.forEach((entry: any) => {
+        if (entry?.address) {
+          const { address } = entry.address
+          if (recurringAddresses[address]) {
+            recurringAddresses[address] += 1
+          } else {
+            recurringAddresses[address] = 1
+          }
+        }
+      })
+      const actionType = ActionTypes.WIKI_ETH_ADDRESS
+      const payload = {
+        ip: '127.0.0.1',
+      }
+      await this.sendDiscordMessage(actionType, payload)
+    }
+  }
+
+  async sendDiscordMessage(actionType: ActionTypes, payload: WebhookPayload) {
+    try {
+      await this.webhookHandler.postWebhook(actionType, payload)
+      console.log('Discord messagge sent successfully')
+    } catch (error) {
+      console.error('Error sending Discord message:', error)
+    }
+  }
 
   private getWebpageUrl() {
     return this.configService.get<string>('WEBSITE_URL') || ''
@@ -202,6 +240,11 @@ class WikiService {
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
+    const cacheKey = `address_to_wiki_cache_${address}`
+    const cachedData = await this.cacheManager.get<WikiUrl[]>(cacheKey)
+    if (cachedData) {
+      return cachedData
+    }
     const ids = await (
       await this.repository()
     ).query(
@@ -218,6 +261,10 @@ class WikiService {
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
+    if ((links.length as number) === 0) {
+      const cacheResult = links as WikiUrl[]
+      await this.cacheManager.set(cacheKey, cacheResult, { ttl: 7200 })
+    }
     if (links.length < 1) {
       await this.checkEthAddress(address)
     }
