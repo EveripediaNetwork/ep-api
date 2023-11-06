@@ -12,6 +12,7 @@ import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
 
+const contentCheckDate = 1699269216 // 6/11/23
 @Injectable()
 class PinService {
   constructor(
@@ -53,11 +54,12 @@ class PinService {
 
     let isContentSecure
 
-    if (wikiObject.created) {
-      const wikiDate = Math.floor(new Date(wikiObject.created).getTime() / 1000)
-      if (wikiDate > 1699269216) {
-        isContentSecure = await this.testSecurity.checkContent(wikiData)
-      }
+    const wikiDate = wikiObject.created
+      ? Math.floor(new Date(wikiObject.created).getTime() / 1000)
+      : null
+
+    if (!wikiObject.created || (wikiDate && wikiDate > contentCheckDate)) {
+      isContentSecure = await this.testSecurity.checkContent(wikiData)
     }
 
     if (!isDataValid.status || (isContentSecure && !isContentSecure.status)) {
