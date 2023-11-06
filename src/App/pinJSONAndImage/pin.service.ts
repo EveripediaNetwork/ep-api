@@ -58,7 +58,7 @@ class PinService {
       ? Math.floor(new Date(wikiObject.created).getTime() / 1000)
       : null
 
-    if (!wikiObject.created || (wikiDate && wikiDate > contentCheckDate)) {
+    if (!wikiObject.created) {
       isContentSecure = await this.testSecurity.checkContent(wikiData)
     }
 
@@ -72,14 +72,15 @@ class PinService {
         description: isContentSecure?.match,
         content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
       } as unknown as WebhookPayload)
-
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: errorMessage,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+      if (wikiDate && wikiDate > contentCheckDate) {
+          throw new HttpException(
+            {
+              status: HttpStatus.BAD_REQUEST,
+              error: errorMessage,
+            },
+            HttpStatus.BAD_REQUEST,
+          )
+      }
     }
 
     const activityResult = await this.activityRepository.countUserActivity(
