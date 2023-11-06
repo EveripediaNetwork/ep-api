@@ -56,7 +56,7 @@ class PinService {
     if (wikiObject.created) {
       const wikiDate = Math.floor(new Date(wikiObject.created).getTime() / 1000)
       if (wikiDate > 1699269216) {
-          isContentSecure = await this.testSecurity.checkContent(wikiData)
+        isContentSecure = await this.testSecurity.checkContent(wikiData)
       }
     }
 
@@ -65,19 +65,19 @@ class PinService {
         ? isDataValid.message
         : isContentSecure?.message
 
-        this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-          title: errorMessage,
-          description: isContentSecure?.match,
-          content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
-        } as unknown as WebhookPayload)
+      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
+        title: errorMessage,
+        description: isContentSecure?.match,
+        content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
+      } as unknown as WebhookPayload)
 
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            error: errorMessage,
-          },
-          HttpStatus.BAD_REQUEST,
-        )
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: errorMessage,
+        },
+        HttpStatus.BAD_REQUEST,
+      )
     }
 
     const activityResult = await this.activityRepository.countUserActivity(
