@@ -73,13 +73,13 @@ class PinService {
         content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
       } as unknown as WebhookPayload)
       if (wikiDate && wikiDate > contentCheckDate) {
-          throw new HttpException(
-            {
-              status: HttpStatus.BAD_REQUEST,
-              error: errorMessage,
-            },
-            HttpStatus.BAD_REQUEST,
-          )
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: errorMessage,
+          },
+          HttpStatus.BAD_REQUEST,
+        )
       }
     }
 
