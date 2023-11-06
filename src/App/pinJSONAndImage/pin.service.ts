@@ -50,26 +50,34 @@ class PinService {
     const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
     const isDataValid = await this.validator.validate(wikiData, true)
-    const isContentSecure = await this.testSecurity.checkContent(wikiData)
 
-    if (!isDataValid.status || !isContentSecure.status) {
+    let isContentSecure
+
+    if (wikiObject.created) {
+      const wikiDate = Math.floor(new Date(wikiObject.created).getTime() / 1000)
+      if (wikiDate > 1699269216) {
+          isContentSecure = await this.testSecurity.checkContent(wikiData)
+      }
+    }
+
+    if (!isDataValid.status || (isContentSecure && !isContentSecure.status)) {
       const errorMessage = !isDataValid.status
         ? isDataValid.message
-        : isContentSecure.message
+        : isContentSecure?.message
 
-      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-        title: errorMessage,
-        description: isContentSecure?.match,
-        content: !isContentSecure.status ? isContentSecure.data : wikiData,
-      } as unknown as WebhookPayload)
+        this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
+          title: errorMessage,
+          description: isContentSecure?.match,
+          content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
+        } as unknown as WebhookPayload)
 
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: errorMessage,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: errorMessage,
+          },
+          HttpStatus.BAD_REQUEST,
+        )
     }
 
     const activityResult = await this.activityRepository.countUserActivity(
@@ -100,7 +108,6 @@ class PinService {
 
     try {
       const res = await pinToPinata(payload)
-
       return res
     } catch (e) {
       return e
