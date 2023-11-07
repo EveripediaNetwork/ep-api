@@ -219,4 +219,17 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'staked-frax-ether', wikiId: 'frax-ether-frxeth-and-sfrxeth' },
   { coingeckoId: 'frax-ether', wikiId: 'frxeth-frax-ether' },
   { coingeckoId: 'fantom', wikiId: 'ftm-token' },
+  { coingeckoId: '0x0-ai-ai-smart-contract', wikiId: '0x0ai' },
+  { coingeckoId: 'humans-ai', wikiId: 'humansai' },
+  { coingeckoId: 'oraichain-token', wikiId: 'oraichain' },
+  { coingeckoId: 'stasis-eurs', wikiId: 'stasis-euro' },
+  { coingeckoId: 'terrausd', wikiId: 'terraclassicusd-ustc' },
+  { coingeckoId: 'tether-eurt', wikiId: 'euro-tether-eurt' },
+  { coingeckoId: 'liquity-usd', wikiId: 'liquity-usd-lusd' },
+  { coingeckoId: 'alchemix-usd', wikiId: 'alchemix-usd-alusd' },
+  { coingeckoId: 'paypal-usd', wikiId: 'paypal-usd-pyusd' },
+  {
+    coingeckoId: 'alethea-artificial-liquid-intelligence-token',
+    wikiId: 'alethea-ai',
+  },
 ]
