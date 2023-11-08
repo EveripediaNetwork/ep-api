@@ -5,14 +5,14 @@ import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
-import Wiki from '../../Database/Entities/wiki.entity'
-import { cryptocurrencyIds, nftIds } from './marketcapIds'
 import {
   MarketCapInputs,
   NftRankListData,
   RankType,
   TokenRankListData,
 } from './marketcap.dto'
+import Wiki from '../../Database/Entities/wiki.entity'
+import { cryptocurrencyIds, nftIds } from './marketcapIds'
 import Tag from '../../Database/Entities/tag.entity'
 import WikiService from '../Wiki/wiki.service'
 
@@ -93,26 +93,9 @@ class MarketCapService {
   }
 
   private async cryptoMarketData(args: MarketCapInputs) {
-    const { limit, offset, founders, category } = args
+    const { founders, category } = args
     const categoryParam = category ? `category=${category}&` : ''
-    let data
-
-    try {
-      data = await this.httpService
-        .get(
-          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${limit}&page=${
-            offset === 0 ? 1 : offset
-          }&sparkline=false`,
-          {
-            headers: {
-              'x-cg-pro-api-key': this.apiKey(),
-            },
-          },
-        )
-        .toPromise()
-    } catch (err: any) {
-      console.error(err.message)
-    }
+    const data = await this.cgMarketDataApiCall(args, categoryParam)
 
     const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(
@@ -165,24 +148,8 @@ class MarketCapService {
   }
 
   private async nftMarketData(args: MarketCapInputs) {
-    const { limit, offset, founders } = args
-    let data
-    try {
-      data = await this.httpService
-        .get(
-          ` https://pro-api.coingecko.com/api/v3/nfts/markets?order=h24_volume_usd_desc&per_page=${limit}&page=${
-            offset === 0 ? 1 : offset
-          }`,
-          {
-            headers: {
-              'x-cg-pro-api-key': this.apiKey(),
-            },
-          },
-        )
-        .toPromise()
-    } catch (err: any) {
-      console.error(err.message)
-    }
+    const { founders } = args
+    const data = await this.cgMarketDataApiCall(args)
 
     const result = data?.data.map(async (element: any) => {
       const wiki = await this.findWiki(element.id, nftIds, 'nfts')
@@ -232,12 +199,39 @@ class MarketCapService {
     return result
   }
 
+  async cgMarketDataApiCall(
+    args: MarketCapInputs,
+    categoryParam?: string,
+  ): Promise<Record<any, any> | undefined> {
+    const { limit, offset, kind } = args
+    let data
+    const baseUrl = `https://pro-api.coingecko.com/api/v3/`
+    const paginate = `&per_page=${limit}&page=${offset === 0 ? 1 : offset}`
+    const url =
+      kind === RankType.TOKEN
+        ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_des${paginate}`
+        : `${baseUrl}nfts/markets?order=h24_volume_usd_desc${paginate}`
+
+    try {
+      data = await this.httpService
+        .get(url, {
+          headers: {
+            'x-cg-pro-api-key': this.apiKey(),
+          },
+        })
+        .toPromise()
+    } catch (err: any) {
+      console.error(err.message)
+    }
+    return data
+  }
+
   async ranks(
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
-    const key = args.category
-      ? `finalResult/${args.kind}/${args.limit}/${args.offset}/${args.founders}-${args.category}`
-      : `finalResult/${args.kind}/${args.limit}/${args.offset}/${args.founders}`
+    const key = `finalResult/${args.kind}/${args.limit}/${args.offset}/${
+      args.founders
+    }${args.category ? `/${args.category}` : ''}`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
 

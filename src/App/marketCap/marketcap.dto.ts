@@ -119,7 +119,7 @@ registerEnumType(TokenCategory, {
 export class MarketCapInputs extends PaginationArgs {
   @Field(() => RankType, { defaultValue: RankType.TOKEN })
   @Validate(ValidStringParams)
-  kind?: RankType
+  kind!: RankType
 
   @Field(() => TokenCategory, { nullable: true })
   @Validate(ValidStringParams)
