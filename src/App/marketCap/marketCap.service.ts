@@ -205,7 +205,7 @@ class MarketCapService {
   ): Promise<Record<any, any> | undefined> {
     const { limit, offset, kind } = args
     let data
-    const baseUrl = `https://pro-api.coingecko.com/api/v3/`
+    const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
     const paginate = `&per_page=${limit}&page=${offset === 0 ? 1 : offset}`
     const url =
       kind === RankType.TOKEN
