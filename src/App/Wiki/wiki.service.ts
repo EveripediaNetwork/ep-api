@@ -1,4 +1,4 @@
-import { Cron } from '@nestjs/schedule'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
@@ -20,7 +20,6 @@ import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { OrderBy, Direction, IntervalByDays } from '../general.args'
 import { VistArgs, PageViewArgs } from '../pageViews/pageviews.dto'
-import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 @Injectable()
 class WikiService {
@@ -33,9 +32,16 @@ class WikiService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  @Cron('0 */2 * * *')
+  @Cron(CronExpression.EVERY_2_HOURS)
   async handleCron() {
-    if (firstLevelNodeProcess()) {
+    const defaultMessage: {
+      knownAddresses: Record<string, number>;
+      unknownAddresses: string[];
+    } = {
+      knownAddresses: {},
+      unknownAddresses: [],
+    };
+    
       const cacheKey = 'key'
       const cachedData = await this.cacheManager.get<any>(cacheKey)
       if (!cachedData) {
@@ -44,7 +50,16 @@ class WikiService {
       const recurringAddresses: Record<string, number> = {}
       cachedData.forEach((entry: any) => {
         if (entry?.address) {
-          const { address } = entry.address
+          const { address, name } = entry.address;
+          if(name){
+            if(defaultMessage.knownAddresses[name]){
+              defaultMessage.knownAddresses[name] += 1;
+            } else {
+              defaultMessage.knownAddresses[name] = 1;
+            }
+          } else{
+            defaultMessage.unknownAddresses.push(address);
+          }
           if (recurringAddresses[address]) {
             recurringAddresses[address] += 1
           } else {
@@ -54,10 +69,10 @@ class WikiService {
       })
       const actionType = ActionTypes.WIKI_ETH_ADDRESS
       const payload = {
-        ip: '127.0.0.1',
+        defaultMessage,
+        recurringAddresses,
       }
       await this.sendDiscordMessage(actionType, payload)
-    }
   }
 
   async sendDiscordMessage(actionType: ActionTypes, payload: WebhookPayload) {
@@ -239,7 +254,7 @@ class WikiService {
     })
   }
 
-  async getAddressToWiki(address: string): Promise<WikiUrl[]> {
+async getAddressToWiki(address: string): Promise<WikiUrl[]> {
     const cacheKey = `address_to_wiki_cache_${address}`
     const cachedData = await this.cacheManager.get<WikiUrl[]>(cacheKey)
     if (cachedData) {
@@ -270,6 +285,7 @@ class WikiService {
     }
     return links
   }
+
 
   async checkEthAddress(address: string): Promise<void> {
     let addressData
