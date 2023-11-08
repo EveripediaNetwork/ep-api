@@ -105,6 +105,7 @@ export enum RankType {
 export enum TokenCategory {
   AI = 'artificial-intelligence',
   STABLE_COINS = 'stablecoins',
+  FOUNDERS = 'founders',
 }
 
 registerEnumType(RankType, {
@@ -118,9 +119,12 @@ registerEnumType(TokenCategory, {
 export class MarketCapInputs extends PaginationArgs {
   @Field(() => RankType, { defaultValue: RankType.TOKEN })
   @Validate(ValidStringParams)
-  kind?: RankType
+  kind!: RankType
 
   @Field(() => TokenCategory, { nullable: true })
   @Validate(ValidStringParams)
   category?: TokenCategory
+
+  @Field(() => Boolean, {defaultValue: false})
+  founders!: boolean
 }

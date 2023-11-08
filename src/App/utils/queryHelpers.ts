@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
-import { OrderBy, Direction } from '../general.args'
+import { OrderBy, Direction, IntervalByDays } from '../general.args'
+import { VistArgs } from '../pageViews/pageviews.dto'
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
@@ -76,3 +77,28 @@ export const queryWikisEdited = async (
     `,
     [id, limit, offset],
   )
+
+export const updateDates = async (args: VistArgs) => {
+  const { interval } = args
+  let start
+  let end
+
+  if (interval) {
+    const range = IntervalByDays[interval]
+    const oneDay = 86400000
+    const intervalMap: { [key: string]: number } = {
+      DAY: oneDay,
+      WEEK: 7 * oneDay,
+      MONTH: 30 * oneDay,
+      NINETY_DAYS: 90 * oneDay,
+      YEAR: 365 * oneDay,
+    }
+
+    const currentDate = new Date()
+    const endDate = new Date(currentDate.getTime() - intervalMap[range])
+
+    start = endDate.toISOString().slice(0, 10).split('-').join('/')
+    end = currentDate.toISOString().slice(0, 10).split('-').join('/')
+  }
+  return { start, end }
+}

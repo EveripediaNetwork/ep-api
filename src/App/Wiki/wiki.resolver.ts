@@ -31,6 +31,7 @@ import { Count, DateArgs } from './wikiStats.dto'
 import { IWiki } from '../../Database/Entities/types/IWiki'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
+import { updateDates } from '../utils/queryHelpers'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -152,7 +153,7 @@ class WikiResolver {
 
   @ResolveField()
   async visits(@Parent() wiki: IWiki, @Args() args: VistArgs) {
-    const { start, end } = await this.wikiService.updateDates(args)
+    const { start, end } = await updateDates(args)
     const { visits } = await this.dataSource
       .getRepository(PageviewsPerDay)
       .createQueryBuilder('p')
@@ -162,6 +163,13 @@ class WikiResolver {
       .groupBy('p."wikiId"')
       .getRawOne()
     return visits
+  }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  async founderWikis(@Parent() wiki: IWiki) {
+    return this.wikiService.getFounderWikis(
+      wiki.linkedWikis.founders as string[],
+    )
   }
 }
 

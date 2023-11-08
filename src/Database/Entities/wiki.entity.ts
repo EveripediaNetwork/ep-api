@@ -82,6 +82,9 @@ class Wiki {
   })
   visits?: number
 
+  @Field(() => [Wiki], { nullable: true })
+  founderWikis?: Wiki[]
+
   @Field(() => Int)
   @Column('smallint', { default: 0 })
   promoted = 0
