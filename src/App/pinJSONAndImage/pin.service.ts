@@ -12,6 +12,7 @@ import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
 
+const contentCheckDate = 1699269216 // 6/11/23
 @Injectable()
 class PinService {
   constructor(
@@ -50,26 +51,36 @@ class PinService {
     const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
     const isDataValid = await this.validator.validate(wikiData, true)
-    const isContentSecure = await this.testSecurity.checkContent(wikiData)
 
-    if (!isDataValid.status || !isContentSecure.status) {
+    let isContentSecure
+
+    const wikiDate = wikiObject.created
+      ? Math.floor(new Date(wikiObject.created).getTime() / 1000)
+      : null
+
+    if (!wikiObject.created) {
+      isContentSecure = await this.testSecurity.checkContent(wikiData)
+    }
+
+    if (!isDataValid.status || (isContentSecure && !isContentSecure.status)) {
       const errorMessage = !isDataValid.status
         ? isDataValid.message
-        : isContentSecure.message
+        : isContentSecure?.message
 
       this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
         title: errorMessage,
         description: isContentSecure?.match,
-        content: !isContentSecure.status ? isContentSecure.data : wikiData,
+        content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
       } as unknown as WebhookPayload)
-
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: errorMessage,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+      if (wikiDate && wikiDate > contentCheckDate) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: errorMessage,
+          },
+          HttpStatus.BAD_REQUEST,
+        )
+      }
     }
 
     const activityResult = await this.activityRepository.countUserActivity(
@@ -100,7 +111,6 @@ class PinService {
 
     try {
       const res = await pinToPinata(payload)
-
       return res
     } catch (e) {
       return e

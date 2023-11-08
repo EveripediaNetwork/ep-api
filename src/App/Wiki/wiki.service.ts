@@ -5,7 +5,7 @@ import { DataSource, MoreThan, Repository } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { orderWikis } from '../utils/queryHelpers'
+import { orderWikis, updateDates } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
@@ -18,8 +18,8 @@ import {
 import { DateArgs, Count } from './wikiStats.dto'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
-import { OrderBy, Direction, IntervalByDays } from '../general.args'
-import { VistArgs, PageViewArgs } from '../pageViews/pageviews.dto'
+import { OrderBy, Direction } from '../general.args'
+import { PageViewArgs } from '../pageViews/pageviews.dto'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 @Injectable()
@@ -157,33 +157,8 @@ class WikiService {
       .getMany()
   }
 
-  async updateDates(args: VistArgs) {
-    const { interval } = args
-    let start
-    let end
-
-    if (interval) {
-      const range = IntervalByDays[interval]
-      const oneDay = 86400000
-      const intervalMap: { [key: string]: number } = {
-        DAY: oneDay,
-        WEEK: 7 * oneDay,
-        MONTH: 30 * oneDay,
-        NINETY_DAYS: 90 * oneDay,
-        YEAR: 365 * oneDay,
-      }
-
-      const currentDate = new Date()
-      const endDate = new Date(currentDate.getTime() - intervalMap[range])
-
-      start = endDate.toISOString().slice(0, 10).split('-').join('/')
-      end = currentDate.toISOString().slice(0, 10).split('-').join('/')
-    }
-    return { start, end }
-  }
-
   async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
-    const { start, end } = await this.updateDates(args)
+    const { start, end } = await updateDates(args)
     const qb = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
@@ -387,6 +362,17 @@ class WikiService {
       .getRawOne()
     await this.cacheManager.set(args.category, response, { ttl: 3600 })
     return response
+  }
+
+  async getFounderWikis(founders: string[]): Promise<(Wiki | null)[]> {
+    const foundersWiki: (Wiki | null)[] = []
+    if (founders && founders.length > 0) {
+      for (const founder of founders) {
+        const f = await this.findWiki({ id: founder } as ByIdArgs)
+        foundersWiki.push(f)
+      }
+    }
+    return foundersWiki.filter((item) => item !== null)
   }
 }
 
