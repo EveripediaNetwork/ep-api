@@ -11,10 +11,10 @@ import {
   MarketCapInputs,
   NftRankListData,
   RankType,
-  TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
 import Tag from '../../Database/Entities/tag.entity'
+import WikiService from '../Wiki/wiki.service'
 
 const noContentWiki = {
   id: 'no-content',
@@ -32,6 +32,7 @@ class MarketCapService {
     private dataSource: DataSource,
     private httpService: HttpService,
     private configService: ConfigService,
+    private wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -91,20 +92,16 @@ class MarketCapService {
     )
   }
 
-  private async cryptoMarketData(
-    amount: number,
-    page: number,
-    category?: TokenCategory,
-  ) {
-    console.log(category)
+  private async cryptoMarketData(args: MarketCapInputs) {
+    const { limit, offset, founders, category } = args
     const categoryParam = category ? `category=${category}&` : ''
     let data
 
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${amount}&page=${
-            page === 0 ? 1 : page
+          ` https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${limit}&page=${
+            offset === 0 ? 1 : offset
           }&sparkline=false`,
           {
             headers: {
@@ -146,8 +143,16 @@ class MarketCapService {
           },
         }
       }
+
+      const founderWikis = founders
+        ? await this.wikiService.getFounderWikis(
+            wiki.linkedWikis?.founders as string[],
+          )
+        : []
+
       const wikiAndCryptoMarketData = {
         ...wiki,
+        founderWikis,
         tokenMarketData: {
           hasWiki: true,
           ...tokenData,
@@ -159,13 +164,14 @@ class MarketCapService {
     return result
   }
 
-  private async nftMarketData(amount: number, page: number) {
+  private async nftMarketData(args: MarketCapInputs) {
+    const { limit, offset, founders } = args
     let data
     try {
       data = await this.httpService
         .get(
-          ` https://pro-api.coingecko.com/api/v3/nfts/markets?order=h24_volume_usd_desc&per_page=${amount}&page=${
-            page === 0 ? 1 : page
+          ` https://pro-api.coingecko.com/api/v3/nfts/markets?order=h24_volume_usd_desc&per_page=${limit}&page=${
+            offset === 0 ? 1 : offset
           }`,
           {
             headers: {
@@ -205,8 +211,16 @@ class MarketCapService {
           },
         }
       }
+
+      const founderWikis = founders
+        ? await this.wikiService.getFounderWikis(
+            wiki.linkedWikis?.founders as string[],
+          )
+        : []
+
       const wikiAndNftMarketData = {
         ...wiki,
+        founderWikis,
         nftMarketData: {
           hasWiki: true,
           ...nftData,
@@ -222,8 +236,8 @@ class MarketCapService {
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
     const key = args.category
-      ? `finalResult/${args.kind}/${args.limit}/${args.offset}-${args.category}`
-      : `finalResult/${args.kind}/${args.limit}/${args.offset}`
+      ? `finalResult/${args.kind}/${args.limit}/${args.offset}/${args.founders}-${args.category}`
+      : `finalResult/${args.kind}/${args.limit}/${args.offset}/${args.founders}`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
 
@@ -232,15 +246,10 @@ class MarketCapService {
     let result
 
     if (args.kind === RankType.NFT) {
-      result = (await this.nftMarketData(
-        args.limit,
-        args.offset,
-      )) as unknown as NftRankListData
+      result = (await this.nftMarketData(args)) as unknown as NftRankListData
     } else {
       result = (await this.cryptoMarketData(
-        args.limit,
-        args.offset,
-        args.category,
+        args,
       )) as unknown as TokenRankListData
     }
 

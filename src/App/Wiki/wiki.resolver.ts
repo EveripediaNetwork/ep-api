@@ -163,6 +163,13 @@ class WikiResolver {
       .getRawOne()
     return visits
   }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  async founderWikis(@Parent() wiki: IWiki) {
+    return this.wikiService.getFounderWikis(
+      wiki.linkedWikis.founders as string[],
+    )
+  }
 }
 
 export default WikiResolver
