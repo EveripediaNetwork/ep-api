@@ -35,44 +35,44 @@ class WikiService {
   @Cron(CronExpression.EVERY_2_HOURS)
   async handleCron() {
     const defaultMessage: {
-      knownAddresses: Record<string, number>;
-      unknownAddresses: string[];
+      knownAddresses: Record<string, number>
+      unknownAddresses: string[]
     } = {
       knownAddresses: {},
       unknownAddresses: [],
-    };
-    
-      const cacheKey = 'key'
-      const cachedData = await this.cacheManager.get<any>(cacheKey)
-      if (!cachedData) {
-        return
-      }
-      const recurringAddresses: Record<string, number> = {}
-      cachedData.forEach((entry: any) => {
-        if (entry?.address) {
-          const { address, name } = entry.address;
-          if(name){
-            if(defaultMessage.knownAddresses[name]){
-              defaultMessage.knownAddresses[name] += 1;
-            } else {
-              defaultMessage.knownAddresses[name] = 1;
-            }
-          } else{
-            defaultMessage.unknownAddresses.push(address);
-          }
-          if (recurringAddresses[address]) {
-            recurringAddresses[address] += 1
+    }
+
+    const cacheKey = 'key'
+    const cachedData = await this.cacheManager.get<any>(cacheKey)
+    if (!cachedData) {
+      return
+    }
+    const recurringAddresses: Record<string, number> = {}
+    cachedData.forEach((entry: any) => {
+      if (entry?.address) {
+        const { address, name } = entry.address
+        if (name) {
+          if (defaultMessage.knownAddresses[name]) {
+            defaultMessage.knownAddresses[name] += 1
           } else {
-            recurringAddresses[address] = 1
+            defaultMessage.knownAddresses[name] = 1
           }
+        } else {
+          defaultMessage.unknownAddresses.push(address)
         }
-      })
-      const actionType = ActionTypes.WIKI_ETH_ADDRESS
-      const payload = {
-        defaultMessage,
-        recurringAddresses,
+        if (recurringAddresses[address]) {
+          recurringAddresses[address] += 1
+        } else {
+          recurringAddresses[address] = 1
+        }
       }
-      await this.sendDiscordMessage(actionType, payload)
+    })
+    const actionType = ActionTypes.WIKI_ETH_ADDRESS
+    const payload = {
+      defaultMessage,
+      recurringAddresses,
+    }
+    await this.sendDiscordMessage(actionType, payload)
   }
 
   async sendDiscordMessage(actionType: ActionTypes, payload: WebhookPayload) {
@@ -254,7 +254,7 @@ class WikiService {
     })
   }
 
-async getAddressToWiki(address: string): Promise<WikiUrl[]> {
+  async getAddressToWiki(address: string): Promise<WikiUrl[]> {
     const cacheKey = `address_to_wiki_cache_${address}`
     const cachedData = await this.cacheManager.get<WikiUrl[]>(cacheKey)
     if (cachedData) {
@@ -285,7 +285,6 @@ async getAddressToWiki(address: string): Promise<WikiUrl[]> {
     }
     return links
   }
-
 
   async checkEthAddress(address: string): Promise<void> {
     let addressData
