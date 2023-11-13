@@ -108,18 +108,18 @@ export default class WebhookHandler {
         username: 'EP Admin 🔐',
         embeds: [
           {
-            title: "Address Request Frequency",
+            title: 'Address Request Frequency',
             description: message,
             color: 16777215,
             fields: [
               {
-                name: "Address",
-                value: payload?.urlId ||"0x1234567890",
+                name: 'Address',
+                value: payload?.urlId || '0x1234567890',
                 inline: true,
               },
               {
-                name:  payload?.urlId ? `${payload.urlId} times` : "Frequency",
-                value: "5 times",
+                name: payload?.urlId ? `${payload.urlId} times` : 'Frequency',
+                value: '5 times',
                 inline: true,
               },
             ],
