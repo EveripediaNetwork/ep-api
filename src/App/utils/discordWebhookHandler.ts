@@ -108,9 +108,24 @@ export default class WebhookHandler {
         username: 'EP Admin 🔐',
         embeds: [
           {
-            color: 0x0c71e0,
-            title: '🚧  Admin activity  🚧',
+            title: 'Address Request Frequency',
             description: message,
+            color: 16777215,
+            fields: [
+              {
+                name: 'Address',
+                value: payload?.urlId || '0x1234567890',
+                inline: true,
+              },
+              {
+                name: payload?.urlId ? `${payload.urlId} times` : 'Frequency',
+                value: '5 times',
+                inline: true,
+              },
+            ],
+            footer: {
+              text: `Requested on ${new Date().toLocaleDateString()}`,
+            },
           },
         ],
       })
@@ -292,12 +307,12 @@ export default class WebhookHandler {
   private async sendToChannel(
     boundary: string,
     content: string,
-    wehhookChannel: string,
+    webhookChannel: string,
   ): Promise<void> {
     const payload = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\n\n${content}\n--${boundary}\nContent-Disposition: form-data; name="tts" \n\ntrue\n--${boundary}--`
     try {
       this.httpService
-        .post(wehhookChannel, payload, {
+        .post(webhookChannel, payload, {
           headers: {
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
           },
