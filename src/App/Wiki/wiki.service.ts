@@ -15,10 +15,9 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
-import { ActionTypes } from '../utils/utilTypes'
-import WebhookHandler from '../utils/discordWebhookHandler'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
+import DiscordWebhookService from '../utils/discordWebhookService'
 
 @Injectable()
 class WikiService {
@@ -27,7 +26,7 @@ class WikiService {
     private validSlug: ValidSlug,
     private dataSource: DataSource,
     private httpService: HttpService,
-    private webhookHandler: WebhookHandler,
+    private discordService: DiscordWebhookService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -200,24 +199,17 @@ class WikiService {
   }
 
   async checkEthAddress(address: string): Promise<void> {
-    let addressData
     try {
       const response = await this.httpService
         .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
         .toPromise()
-      addressData = response?.data
+      if (response?.data) {
+        await this.discordService.updateAddressToWikiCache(response.data)
+      }
     } catch (error: any) {
       console.error('blockscout error', error?.response.data.message)
       console.error('blockscout error', error.response.status)
     }
-    const symbol = addressData?.token?.symbol
-    const name = addressData?.token?.name
-
-    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
-      urlId: name ? `https://eth.blockscout.com/address/${address}` : undefined,
-      username: symbol || 'Unknown symbol',
-      user: name || address,
-    })
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {

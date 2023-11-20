@@ -108,9 +108,24 @@ export default class WebhookHandler {
         username: 'EP Admin 🔐',
         embeds: [
           {
-            color: 0x0c71e0,
-            title: '🚧  Admin activity  🚧',
+            title: 'Address Request Frequency',
             description: message,
+            color: 16777215,
+            fields: [
+              {
+                name: 'Address',
+                value: payload?.urlId || '0x1234567890',
+                inline: true,
+              },
+              {
+                name: payload?.urlId ? `${payload.urlId} times` : 'Frequency',
+                value: '5 times',
+                inline: true,
+              },
+            ],
+            footer: {
+              text: `Requested on ${new Date().toLocaleDateString()}`,
+            },
           },
         ],
       })
@@ -253,47 +268,51 @@ export default class WebhookHandler {
       }
     }
     if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
-      const desc = payload?.urlId
-        ? `
-            Wiki page not found, but token name detected
-            
-            name: ***${payload.user}***
-            symbol: ***${payload.username}***
+      let desc = ''
+      let knownAddressesInfo = ''
+      let unknownAddressesCount = 0
+      if (payload) {
+        const { knownAddresses, unknownAddresses } = payload
+        unknownAddressesCount = unknownAddresses?.length || 0
+        if (knownAddresses && Object.keys(knownAddresses).length > 0) {
+          knownAddressesInfo = ''
+          for (const [name, count] of Object.entries(knownAddresses)) {
+            knownAddressesInfo += `\nName: ***${name}***, requests: ***${count}***`
+          }
+        }
+      }
+      desc = `
+          ${knownAddressesInfo}
+          ${
+            unknownAddressesCount > 0
+              ? `\nUnknown Addresses requests: ***${unknownAddressesCount}***`
+              : ''
+          }
         `
-        : `Wiki page not found for ***${payload.user}***`
       const jsonContent = JSON.stringify({
         username: 'Eth address ➡️ Wiki Page',
         embeds: [
           {
-            color: payload?.urlId ? 0xb400ce : 0xffa500,
-            url: payload?.urlId
-              ? payload?.urlId
-              : `https://etherscan.io/token/${payload.user}`,
-            title: 'Wiki page not found ❌',
+            color: 0xe60dac,
+            title: 'Requested wiki pages not found',
             description: desc,
-            footer: {
-              text: payload?.urlId
-                ? 'Source - Blockscout'
-                : 'Source - Etherscan',
-            },
           },
         ],
       })
       await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
-
     return true
   }
 
   private async sendToChannel(
     boundary: string,
     content: string,
-    wehhookChannel: string,
+    webhookChannel: string,
   ): Promise<void> {
     const payload = `--${boundary}\nContent-Disposition: form-data; name="payload_json"\n\n${content}\n--${boundary}\nContent-Disposition: form-data; name="tts" \n\ntrue\n--${boundary}--`
     try {
       this.httpService
-        .post(wehhookChannel, payload, {
+        .post(webhookChannel, payload, {
           headers: {
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
           },

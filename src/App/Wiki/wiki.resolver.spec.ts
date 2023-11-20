@@ -9,7 +9,6 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
-  PageViewArgs,
   PromoteWikiArgs,
   TitleArgs,
 } from './wiki.dto'
@@ -17,6 +16,7 @@ import { getProviders, ProviderEnum } from '../utils/test-helpers/testHelpers'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { PageViewArgs } from '../pageViews/pageviews.dto'
 
 jest.mock('fs')
 
@@ -366,6 +366,7 @@ describe('WikiResolver', () => {
           ProviderEnum.tokenValidator,
           ProviderEnum.webhookHandler,
           ProviderEnum.revalidatePageService,
+          ProviderEnum.discordWebhookService,
         ]),
         {
           provide: DataSource,

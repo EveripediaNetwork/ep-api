@@ -38,6 +38,7 @@ import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import CategoryService from '../../Category/category.service'
 import TagService from '../../Tag/tag.service'
 import AutoInjestService from '../auto-injest'
+import DiscordWebhookService from '../discordWebhookService'
 
 export const providerObjects = {
   validSlug: ValidSlug,
@@ -72,6 +73,7 @@ export const providerObjects = {
   ipfsValidatorService: IPFSValidatorService,
   graphProviderService: GraphProviderService,
   adminLogsInterceptor: AdminLogsInterceptor,
+  discordWebhookService: DiscordWebhookService,
   indexerWebhookService: IndexerWebhookService,
   revalidatePageService: RevalidatePageService,
   revalidatePageResolver: RevalidatePageResolver,
@@ -115,6 +117,7 @@ export enum ProviderEnum {
   ipfsValidatorService = 'ipfsValidatorService',
   graphProviderService = 'graphProviderService',
   adminLogsInterceptor = 'adminLogsInterceptor',
+  discordWebhookService = 'discordWebhookService',
   indexerWebhookService = 'indexerWebhookService',
   revalidatePageService = 'revalidatePageService',
   revalidatePageResolver = 'evalidatePageResolver',

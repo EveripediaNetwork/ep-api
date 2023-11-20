@@ -48,4 +48,6 @@ export interface WebhookPayload {
   adminAction?: AdminMutations
   type?: ContentFeedbackType
   content?: Record<string, unknown>
+  knownAddresses?: Record<string, number>
+  unknownAddresses?: string[]
 }
