@@ -366,7 +366,7 @@ describe('WikiResolver', () => {
           ProviderEnum.tokenValidator,
           ProviderEnum.webhookHandler,
           ProviderEnum.revalidatePageService,
-          ProviderEnum.discordWebhookService
+          ProviderEnum.discordWebhookService,
         ]),
         {
           provide: DataSource,
