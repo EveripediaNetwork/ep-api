@@ -4,12 +4,12 @@ import httpModule from '../httpModule'
 import WikiService from '../App/Wiki/wiki.service'
 import { ValidSlug } from '../App/utils/validSlug'
 import CategoryService from '../App/Category/category.service'
-import WebhookHandler from '../App/utils/discordWebhookHandler'
+import DiscordModule from '../App/utils/discord.module'
 
 @Module({
-  imports: [CacheModule.register({ ttl: 3600 }), httpModule(10000)],
+  imports: [CacheModule.register({ ttl: 3600 }), httpModule(10000), DiscordModule],
   controllers: [SitemapController],
-  providers: [WikiService, ValidSlug, CategoryService, WebhookHandler],
+  providers: [WikiService, ValidSlug, CategoryService],
 })
 class SitemapModule {}
 

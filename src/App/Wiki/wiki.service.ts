@@ -1,4 +1,3 @@
-import { Cron, CronExpression } from '@nestjs/schedule'
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource, MoreThan, Repository } from 'typeorm'
@@ -16,10 +15,9 @@ import {
   WikiUrl,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
-import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
-import WebhookHandler from '../utils/discordWebhookHandler'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
+import DiscordWebhookService from '../utils/discordWebhookService'
 
 @Injectable()
 class WikiService {
@@ -28,61 +26,9 @@ class WikiService {
     private validSlug: ValidSlug,
     private dataSource: DataSource,
     private httpService: HttpService,
-    private webhookHandler: WebhookHandler,
+    private discordService: DiscordWebhookService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-
-  @Cron(CronExpression.EVERY_2_HOURS)
-  async handleCron() {
-    const defaultMessage: {
-      knownAddresses: Record<string, number>
-      unknownAddresses: string[]
-    } = {
-      knownAddresses: {},
-      unknownAddresses: [],
-    }
-
-    const cacheKey = 'key'
-    const cachedData = await this.cacheManager.get<any>(cacheKey)
-    if (!cachedData) {
-      return
-    }
-    const recurringAddresses: Record<string, number> = {}
-    cachedData.forEach((entry: any) => {
-      if (entry?.address) {
-        const { address, name } = entry.address
-        if (name) {
-          if (defaultMessage.knownAddresses[name]) {
-            defaultMessage.knownAddresses[name] += 1
-          } else {
-            defaultMessage.knownAddresses[name] = 1
-          }
-        } else {
-          defaultMessage.unknownAddresses.push(address)
-        }
-        if (recurringAddresses[address]) {
-          recurringAddresses[address] += 1
-        } else {
-          recurringAddresses[address] = 1
-        }
-      }
-    })
-    const actionType = ActionTypes.WIKI_ETH_ADDRESS
-    const payload = {
-      defaultMessage,
-      recurringAddresses,
-    }
-    await this.sendDiscordMessage(actionType, payload)
-  }
-
-  async sendDiscordMessage(actionType: ActionTypes, payload: WebhookPayload) {
-    try {
-      await this.webhookHandler.postWebhook(actionType, payload)
-      console.log('Discord messagge sent successfully')
-    } catch (error) {
-      console.error('Error sending Discord message:', error)
-    }
-  }
 
   private getWebpageUrl() {
     return this.configService.get<string>('WEBSITE_URL') || ''
@@ -230,11 +176,6 @@ class WikiService {
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
-    const cacheKey = `address_to_wiki_cache_${address}`
-    const cachedData = await this.cacheManager.get<WikiUrl[]>(cacheKey)
-    if (cachedData) {
-      return cachedData
-    }
     const ids = await (
       await this.repository()
     ).query(
@@ -251,10 +192,6 @@ class WikiService {
     const links: [WikiUrl] = ids.map((e: { id: string }) => ({
       wiki: `${this.getWebpageUrl()}/wiki/${e.id}`,
     }))
-    if ((links.length as number) === 0) {
-      const cacheResult = links as WikiUrl[]
-      await this.cacheManager.set(cacheKey, cacheResult, { ttl: 7200 })
-    }
     if (links.length < 1) {
       await this.checkEthAddress(address)
     }
@@ -262,24 +199,17 @@ class WikiService {
   }
 
   async checkEthAddress(address: string): Promise<void> {
-    let addressData
     try {
       const response = await this.httpService
         .get(`https://eth.blockscout.com/api/v2/addresses/${address}`)
         .toPromise()
-      addressData = response?.data
+      if (response?.data) {
+        await this.discordService.updateAddressToWikiCache(response.data)
+      }
     } catch (error: any) {
       console.error('blockscout error', error?.response.data.message)
       console.error('blockscout error', error.response.status)
     }
-    const symbol = addressData?.token?.symbol
-    const name = addressData?.token?.name
-
-    await this.webhookHandler.postWebhook(ActionTypes.WIKI_ETH_ADDRESS, {
-      urlId: name ? `https://eth.blockscout.com/address/${address}` : undefined,
-      username: symbol || 'Unknown symbol',
-      user: name || address,
-    })
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
@@ -295,9 +225,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -305,9 +233,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -320,9 +246,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -333,9 +257,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -361,9 +283,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
@@ -387,7 +307,7 @@ class WikiService {
         foundersWiki.push(f)
       }
     }
-    return foundersWiki.filter((item) => item !== null)
+    return foundersWiki.filter(item => item !== null)
   }
 }
 

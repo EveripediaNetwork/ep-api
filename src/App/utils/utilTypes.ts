@@ -48,9 +48,6 @@ export interface WebhookPayload {
   adminAction?: AdminMutations
   type?: ContentFeedbackType
   content?: Record<string, unknown>
-  defaultMessage?: {
-    knownAddresses: Record<string, number>
-    unknownAddresses: string[]
-  }
-  recurringAddresses?: Record<string, number>
+  knownAddresses?: Record<string, number>
+  unknownAddresses?: string[]
 }

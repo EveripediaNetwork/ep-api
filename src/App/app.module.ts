@@ -34,7 +34,6 @@ import httpModule from '../httpModule'
 import RevalidatePageResolver from './revalidatePage/revalidatePage.resolver'
 import FlagWikiService from './flaggingSystem/flagWiki.service'
 import FlagWikiResolver from './flaggingSystem/flagWiki.resolver'
-import WebhookHandler from './utils/discordWebhookHandler'
 import AdminLogsInterceptor from './utils/adminLogs.interceptor'
 import WikiSubscriptionResolver from './Subscriptions/subscriptions.resolver'
 import TokenValidator from './utils/validateToken'
@@ -60,6 +59,7 @@ import HiIQHolderModule from './HiIQHolders/hiIQHolder.module'
 import IQHolderModule from './IQHolders/IQHolder.module'
 import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
+import DiscordModule from './utils/discord.module'
 
 // istanbul ignore next
 @Module({
@@ -102,6 +102,7 @@ import SentryMod from '../sentry/sentry.module'
     StakedIQModule,
     HiIQHolderModule,
     IQHolderModule,
+    DiscordModule,
     SentryMod
   ],
   controllers: [],
@@ -127,7 +128,6 @@ import SentryMod from '../sentry/sentry.module'
     FlagWikiResolver,
     ContentFeedbackService,
     ContentFeedbackResolver,
-    WebhookHandler,
     AdminLogsInterceptor,
     TokenValidator,
     WikiSubscriptionResolver,

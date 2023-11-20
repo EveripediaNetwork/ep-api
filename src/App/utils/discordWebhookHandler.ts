@@ -182,7 +182,7 @@ export default class WebhookHandler {
             complete: async () => {
               await fss.unlink('./uploads/message.json')
             },
-            error: async (err) => {
+            error: async err => {
               await fss.unlink('./uploads/message.json')
               console.log(err.response)
             },
@@ -253,35 +253,39 @@ export default class WebhookHandler {
       }
     }
     if (actionType === ActionTypes.WIKI_ETH_ADDRESS) {
-      const desc = payload?.urlId
-        ? `
-            Wiki page not found, but token name detected
-            
-            name: ***${payload.user}***
-            symbol: ***${payload.username}***
+      let desc = ''
+      let knownAddressesInfo = ''
+      let unknownAddressesCount = 0
+      if (payload) {
+        const { knownAddresses, unknownAddresses } = payload
+        unknownAddressesCount = unknownAddresses?.length || 0
+        if (knownAddresses && Object.keys(knownAddresses).length > 0) {
+          knownAddressesInfo = ''
+          for (const [name, count] of Object.entries(knownAddresses)) {
+            knownAddressesInfo += `\nName: ***${name}***, requests: ***${count}***`
+          }
+        }
+      }
+      desc = `
+          ${knownAddressesInfo}
+          ${
+            unknownAddressesCount > 0
+              ? `\nUnknown Addresses requests: ***${unknownAddressesCount}***`
+              : ''
+          }
         `
-        : `Wiki page not found for ***${payload.user}***`
       const jsonContent = JSON.stringify({
         username: 'Eth address ➡️ Wiki Page',
         embeds: [
           {
-            color: payload?.urlId ? 0xb400ce : 0xffa500,
-            url: payload?.urlId
-              ? payload?.urlId
-              : `https://etherscan.io/token/${payload.user}`,
-            title: 'Wiki page not found ❌',
+            color: 0xe60dac,
+            title: 'Requested wiki pages not found',
             description: desc,
-            footer: {
-              text: payload?.urlId
-                ? 'Source - Blockscout'
-                : 'Source - Etherscan',
-            },
           },
         ],
       })
       await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
-
     return true
   }
 
