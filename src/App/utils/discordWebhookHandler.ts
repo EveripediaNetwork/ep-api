@@ -104,28 +104,14 @@ export default class WebhookHandler {
           message = ''
       }
 
+      
       const jsonContent = JSON.stringify({
         username: 'EP Admin 🔐',
         embeds: [
           {
-            title: 'Address Request Frequency',
+            color: 0x0c71e0,
+            title: '🚧  Admin activity  🚧',
             description: message,
-            color: 16777215,
-            fields: [
-              {
-                name: 'Address',
-                value: payload?.urlId || '0x1234567890',
-                inline: true,
-              },
-              {
-                name: payload?.urlId ? `${payload.urlId} times` : 'Frequency',
-                value: '5 times',
-                inline: true,
-              },
-            ],
-            footer: {
-              text: `Requested on ${new Date().toLocaleDateString()}`,
-            },
           },
         ],
       })
