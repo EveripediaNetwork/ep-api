@@ -104,7 +104,6 @@ export default class WebhookHandler {
           message = ''
       }
 
-      
       const jsonContent = JSON.stringify({
         username: 'EP Admin 🔐',
         embeds: [
