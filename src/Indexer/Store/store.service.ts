@@ -10,7 +10,6 @@ import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
 import {
   RevalidatePageService,
-  RevalidateEndpoints,
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
@@ -166,14 +165,14 @@ class DBStoreService {
         } as Activity),
       )
 
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.STORE_WIKI,
-        existWiki.user.id,
-        existWiki.id,
-        existWiki.promoted,
-      )
+    //   await this.revalidate.revalidatePage(
+    //     RevalidateEndpoints.STORE_WIKI,
+    //     existWiki.user.id,
+    //     existWiki.id,
+    //     existWiki.promoted,
+    //   )
 
-      await this.iqInjest.initiateInjest()
+    //   await this.iqInjest.initiateInjest()
       return true
     }
 
@@ -205,11 +204,11 @@ class DBStoreService {
         type: Status.CREATED,
       } as Activity),
     )
-    await this.revalidate.revalidatePage(
-      RevalidateEndpoints.STORE_WIKI,
-      newWiki.user.id,
-      newWiki.id,
-    )
+    // await this.revalidate.revalidatePage(
+    //   RevalidateEndpoints.STORE_WIKI,
+    //   newWiki.user.id,
+    //   newWiki.id,
+    // )
     return true
   }
 }
