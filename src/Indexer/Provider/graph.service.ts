@@ -14,7 +14,7 @@ export type Hash = {
 
 export const query = gql`
   query ($unixtime: Int) {
-    ipfshashs(where: { createdAt_gt: $unixtime, first: 1000 }) {
+    ipfshashs(where: { createdAt_gt: $unixtime }, first: 1000) {
       id
       block
       createdAt
