@@ -87,8 +87,9 @@ export default class SecurityTestingService {
     const alertObfuscation =
       /\b(alert|a=alert,a|\[1\]\.find\(alert\)|top\["al"\s*\+\s*"ert"\]\(1\)|top\/al\/.source\s*\+\s*\/ert\/.source\(1\)|al\\u0065rt\(1\)|top\['al\\145rt'\]\(1\)|top\['al\\x65rt'\]\(1\)|top\[8680439..toString\(30\)\]\(1\)|alert\?\(\)|`${alert``}`)\b/
 
-    const evalObfuscation =
-      /(^|\W)(alert|eval|prompt|confirm)((\s*?)?(\?)?\s*?\(|\s+)(.*?)(\s*?)?(\)|;|$|\W)/gi
+      const evalObfuscation =
+  /(^|\W)(alert|eval|prompt|confirm(?!\s+scheduling)((\s*?)?(\?)?\s*?\(|\s+)(.*?)(\s*?)?(\)|;|$|\W))/gi;
+    
     const jsURISchemeRegex =
       /(?=.*javascript:|.*data:)(?!(?:['"]?(?:on\w+|style)\s*=|\w+\s*=)\s*(?:\(|&#[xX]28;|%28|['"]?\+?\d))/i
 

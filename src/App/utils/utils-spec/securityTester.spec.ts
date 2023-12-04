@@ -111,4 +111,23 @@ describe('checkContent', () => {
     expect(result.status).toBe(false)
     expect(result.message).toBe('Malicious JavaScript found in content')
   })
+  it('shoukld not flag "confirm scheduling" as malicious', async () => {
+    const wikiWithConfirmScheduling = {
+      id: 'wiki',
+      summary: 'Summary of the wiki',
+      promoted: 0,
+      title: 'wiki',
+      content: 'This is some content with confirm scheduling.',
+      categories: [],
+      tags: [],
+      hidden: false,
+      metadata: [],
+      version: 1,
+      language: 'en',
+    };
+    const result = await service.checkContent(wikiWithConfirmScheduling as unknown as Wiki);
+    console.log(result);
+    expect(result.status).toBe(true);
+    expect(result.message).toBe('Content secure');
+  })
 })
