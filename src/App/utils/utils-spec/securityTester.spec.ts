@@ -124,10 +124,12 @@ describe('checkContent', () => {
       metadata: [],
       version: 1,
       language: 'en',
-    };
-    const result = await service.checkContent(wikiWithConfirmScheduling as unknown as Wiki);
-    console.log(result);
-    expect(result.status).toBe(true);
-    expect(result.message).toBe('Content secure');
+    }
+    const result = await service.checkContent(
+      wikiWithConfirmScheduling as unknown as Wiki,
+    )
+    console.log(result)
+    expect(result.status).toBe(true)
+    expect(result.message).toBe('Content secure')
   })
 })
