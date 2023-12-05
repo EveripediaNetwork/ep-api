@@ -232,4 +232,11 @@ export const cryptocurrencyIds = [
     coingeckoId: 'alethea-artificial-liquid-intelligence-token',
     wikiId: 'alethea-ai',
   },
+  { coingeckoId: 'bittensor', wikiId: 'bittensor-tao' },
+  { coingeckoId: 'compound-wrapped-btc', wikiId: 'cwbtc' },
+  { coingeckoId: 'ordinals', wikiId: 'ordi-token' },
+  { coingeckoId: 'osmosis', wikiId: 'osmosis-osmo' },
+  { coingeckoId: 'lukso-token-2', wikiId: 'lukso' },
+  { coingeckoId: 'eusd-new', wikiId: 'eusd' },
+  { coingeckoId: 'prisma-mkusd', wikiId: 'prisma-finance-mkusd' },
 ]
