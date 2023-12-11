@@ -1,4 +1,4 @@
-# IQ.wiki (formerly Everipedia) API 🧠
+              # IQ.wiki (formerly Everipedia) API 🧠
 The API house of [IQ.wiki](https://iq.wiki), Its built using a host of modern technologies that helps to ship features faster and more efficiently.
 
 # Tech stack 🛠️
