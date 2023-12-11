@@ -1,24 +1,18 @@
-import { Injectable } from '@nestjs/common'
-import * as fs from 'fs'
-import path from 'path'
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import Upload from "../../Database/Entities/upload.entity"
 
 @Injectable()
-export default class UploadService {
-  async processFile(file: Express.Multer.File): Promise<string> {
-    try {
-      const uploadDirectory = path.join(__dirname, 'Upload')
-      if (!fs.existsSync(uploadDirectory)) {
-        fs.mkdirSync(uploadDirectory)
-      }
-      const filename = `${Date.now()}_${file.originalname}`
+export default class DatabaseService {
+  constructor(
+    @InjectRepository(Upload)
+    private readonly uploadRepository: Repository<Upload>,
+  ) {}
 
-      const filePath = path.join(uploadDirectory, filename)
-      fs.writeFileSync(filePath, file.buffer)
-
-      return 'File has been saved successfully'
-    } catch (error) {
-      console.error('Error:', error)
-      throw new Error('Failed to save the file')
-    }
+  async saveJsonData(data: any): Promise<void> {
+    const entity = this.uploadRepository.create({ data });
+    await this.uploadRepository.save(entity);
+    console.log('Saved upload data to the database:', data);
   }
 }
