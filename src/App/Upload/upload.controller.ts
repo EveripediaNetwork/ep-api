@@ -1,7 +1,13 @@
-import { Controller, Post, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
-import * as fs from 'fs';
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  Res,
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { Response } from 'express'
+import * as fs from 'fs'
 
 @Controller('file')
 export class UploadController {
@@ -15,22 +21,22 @@ export class UploadController {
       if (file.mimetype !== 'application/json') {
         return res.status(400).json({
           error: 'Invalid format, must be a JSON file.',
-        });
+        })
       }
 
-      const filePath = `./uploads/${file.originalname}`;
-      fs.writeFileSync(filePath, file.buffer);
+      const filePath = `./uploads/${file.originalname}`
+      fs.writeFileSync(filePath, file.buffer)
 
       return res.json({
         message: 'JSON file uploaded successfully',
-      });
+      })
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Error uploading file:', error)
       return res.status(500).json({
         error: 'Internal Server Error',
-      });
+      })
     }
   }
 }
 
-export default UploadController;
+export default UploadController
