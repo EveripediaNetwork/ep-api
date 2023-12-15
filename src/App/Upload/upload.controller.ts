@@ -20,15 +20,14 @@ export class UploadController {
     try {
       if (file.mimetype !== 'application/json') {
         return res.status(400).json({
-          error: 'Invalid format, must be a JSON file.',
+          error: 'File format is not valid, must be a JSON file.',
         })
       }
-
       const filePath = `./uploads/${file.originalname}`
       fs.writeFileSync(filePath, file.buffer)
 
       return res.json({
-        message: 'JSON file uploaded successfully',
+        message: 'JSON file upload is successful',
       })
     } catch (error) {
       console.error('Error uploading file:', error)
