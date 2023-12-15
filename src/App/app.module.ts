@@ -60,7 +60,6 @@ import IQHolderModule from './IQHolders/IQHolder.module'
 import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
-import UploadService from './Upload/upload.service'
 
 // istanbul ignore next
 @Module({
@@ -136,7 +135,6 @@ import UploadService from './Upload/upload.service'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
-    UploadService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>
