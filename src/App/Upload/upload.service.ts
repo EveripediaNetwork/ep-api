@@ -1,18 +1,35 @@
-import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import Upload from '../../Database/Entities/upload.entity'
+import { Controller, Post, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import * as fs from 'fs';
 
-@Injectable()
-export default class DatabaseService {
-  constructor(
-    @InjectRepository(Upload)
-    private readonly uploadRepository: Repository<Upload>,
-  ) {}
+@Controller('file')
+export class UploadController {
+  @Post('upload-json')
+  @UseInterceptors(FileInterceptor('file', { dest: './uploads' }))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response,
+  ) {
+    try {
+      if (file.mimetype !== 'application/json') {
+        return res.status(400).json({
+          error: 'File format is not valid, must be a JSON file.',
+        });
+      }
+      const filePath = `./uploads/${file.originalname}`;
+      fs.writeFileSync(filePath, file.buffer);
 
-  async saveJsonData(data: any): Promise<void> {
-    const entity = this.uploadRepository.create({ data })
-    await this.uploadRepository.save(entity)
-    console.log('Saved upload data to the database:', data)
+      return res.json({
+        message: 'JSON file upload is successful',
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      return res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
   }
 }
+
+export default UploadController;
