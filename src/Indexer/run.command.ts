@@ -12,6 +12,7 @@ import { getWikiSummary } from '../App/utils/getWikiSummary'
 interface CommandOptions {
   unixtime: number
   loop: boolean
+  ipfsTime: boolean
 }
 
 const SLEEP_TIME = 4000
@@ -49,11 +50,12 @@ class RunCommand implements CommandRunner {
     hashes: Hash[],
     unixtime: number,
     loop?: boolean,
+    useIpfsTime = false,
   ): Promise<void> {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
@@ -66,7 +68,7 @@ class RunCommand implements CommandRunner {
     }
 
     for (const hash of hashes) {
-      await this.indexHash(hash, false)
+      await this.saveToDB(hash, false, useIpfsTime)
     }
 
     if (loop) {
@@ -78,29 +80,52 @@ class RunCommand implements CommandRunner {
     }
   }
 
-  async run(passedParam: string[], options?: CommandOptions): Promise<void> {
-    let unixtime = 0
-    const loop = options?.loop || false
-
-    if (options?.unixtime === undefined) {
-      unixtime = await this.getUnixtime()
-    } else {
-      unixtime = options.unixtime
+  async getDate(unix: number, jump: number, isoDate?: string) {
+    if (isoDate) {
+      const date = new Date(isoDate)
+      date.setUTCHours(date.getUTCHours() - jump)
+      const modifiedISO = date.toISOString().replace('Z', '')
+      return modifiedISO
     }
 
-    const hashes = await this.providerService.getIPFSHashesFromBlock(unixtime)
+    const milliseconds = unix * 1000
+    const date = new Date(milliseconds)
+    const minutes = date.getUTCMinutes()
+    const seconds = date.getUTCSeconds()
 
-    if (loop) await this.initiateIndexer(hashes, unixtime, loop)
+    date.setUTCHours(date.getUTCHours() - jump)
+    date.setUTCMinutes(minutes)
+    date.setUTCSeconds(seconds)
 
-    await this.initiateIndexer(hashes, unixtime)
-
-    process.exit()
+    return date.toISOString()
   }
 
-  async indexHash(hash: Hash, webhook: boolean): Promise<void> {
+  async saveToDB(
+    hash: Hash,
+    webhook: boolean,
+    reIndex: boolean,
+  ): Promise<void> {
     try {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
-      const computedMetadata = await this.metaChanges.appendMetadata(content)
+      let wikiContent = content
+      if (reIndex) {
+        if (!content.created) {
+          const hashDate = await this.getDate(hash.createdAt, 1)
+          wikiContent = {
+            ...content,
+            created: hashDate,
+            updated: hashDate,
+          }
+        }
+        const update = await this.getDate(hash.createdAt, 1, content.updated)
+        wikiContent = {
+          ...content,
+          updated: update,
+        }
+      }
+      const computedMetadata = await this.metaChanges.appendMetadata(
+        wikiContent,
+      )
       const addedSummary = await getWikiSummary(computedMetadata)
 
       const completeWiki = {
@@ -115,19 +140,51 @@ class RunCommand implements CommandRunner {
       )
       if (stat.status) {
         console.log('✅ Validated Wiki content! IPFS going through...')
-        await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
+        if (!reIndex) {
+          await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
+        } else {
+          await this.dbStoreService.storeWiki(
+            completeWiki as WikiType,
+            hash,
+            true,
+          )
+        }
+
         console.log(`🚀 Storing IPFS: ${hash.id}`)
       } else {
         console.log(stat)
         console.error(`🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
-        await new Promise((r) => setTimeout(r, SLEEP_TIME))
+        await new Promise(r => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
     } catch (ex) {
       console.error(`🛑 Invalid IPFS: ${hash.id}`)
       console.error(ex)
     }
+  }
+
+  async run(passedParam: string[], options?: CommandOptions): Promise<void> {
+    let unixtime = 0
+    const loop = options?.loop || false
+    const useIpfs = options?.ipfsTime || false
+
+    if (options?.unixtime === undefined) {
+      unixtime = await this.getUnixtime()
+    } else {
+      unixtime = options.unixtime
+    }
+
+    const hashes = await this.providerService.getIPFSHashesFromBlock(
+      unixtime,
+      useIpfs && false,
+    )
+
+    if (loop) await this.initiateIndexer(hashes, unixtime, loop)
+
+    await this.initiateIndexer(hashes, unixtime, loop, useIpfs)
+
+    process.exit()
   }
 
   @Option({
@@ -143,6 +200,14 @@ class RunCommand implements CommandRunner {
     description: 'keeps the command running in a loop',
   })
   parseBoolean(val: string): boolean {
+    return JSON.parse(val)
+  }
+
+  @Option({
+    flags: '-it, --ipfsTime [boolean]',
+    description: 'Uses IPFS time instead of db auto create/update time',
+  })
+  parseTimeBoolean(val: string): boolean {
     return JSON.parse(val)
   }
 }

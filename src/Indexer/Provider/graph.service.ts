@@ -14,7 +14,10 @@ export type Hash = {
 
 export const query = gql`
   query ($unixtime: Int) {
-    ipfshashs(where: { createdAt_gt: $unixtime }, orderBy: createdAt) {
+    ipfshashs(
+      where: { createdAt_gt: $unixtime }
+      orderBy: createdAt
+    ) {
       id
       block
       createdAt
@@ -29,7 +32,13 @@ export const query = gql`
 class GraphProviderService {
   constructor(private configService: ConfigService) {}
 
-  async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash] | []> {
+  async getIPFSHashesFromBlock(
+    unixtime: number,
+    graph = true,
+  ): Promise<[Hash] | []> {
+    if (!graph) {
+      return [] // get ipfs json from file dir
+    }
     const reqUrl = this.configService.get('graphUrl')
     let response
     try {

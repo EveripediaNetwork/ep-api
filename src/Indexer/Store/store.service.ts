@@ -24,7 +24,11 @@ class DBStoreService {
     private iqInjest: AutoInjestService,
   ) {}
 
-  async storeWiki(wiki: WikiType, hash: Hash): Promise<boolean> {
+  async storeWiki(
+    wiki: WikiType,
+    hash: Hash,
+    ipfsTime?: boolean,
+  ): Promise<boolean> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
     const languageRepository = this.dataSource.getRepository(Language)
     const userRepository = this.dataSource.getRepository(User)
@@ -106,8 +110,8 @@ class DBStoreService {
           user,
           tags,
           author,
-          created: existWiki?.created || newDate,
-          updated: newDate,
+          created: (ipfsTime && wiki.created) || existWiki?.created || newDate,
+          updated: (ipfsTime && wiki.updated) || newDate,
           categories,
           images: wiki.images,
           media: wiki.media || [],
@@ -117,11 +121,15 @@ class DBStoreService {
         },
       ],
       userAddress: user.id,
-      created_timestamp: existWiki?.created || newDate,
-      updated_timestamp: existWiki?.updated || newDate,
+      created_timestamp:
+        (ipfsTime && wiki.created) || existWiki?.created || newDate,
+      updated_timestamp:
+        (ipfsTime && (wiki.updated as unknown as Date)) ||
+        existWiki?.updated ||
+        newDate,
       block: hash.block,
       language,
-      datetime: newDate,
+      datetime: (ipfsTime && (wiki.created as unknown as Date)) || newDate,
       ipfs: hash.id,
     }
 
@@ -157,23 +165,27 @@ class DBStoreService {
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
       existWiki.hidden = wiki.hidden
+      existWiki.updated = ipfsTime
+        ? (wiki.updated as unknown as Date)
+        : existWiki.updated
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
       await activityRepository.save(
         createActivity(activityRepository, {
           ...incomingActivity,
           type: Status.UPDATED,
-        } as Activity),
+        } as unknown as Activity),
       )
+      if (!ipfsTime) {
+        await this.revalidate.revalidatePage(
+          RevalidateEndpoints.STORE_WIKI,
+          existWiki.user.id,
+          existWiki.id,
+          existWiki.promoted,
+        )
+        await this.iqInjest.initiateInjest()
+      }
 
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.STORE_WIKI,
-        existWiki.user.id,
-        existWiki.id,
-        existWiki.promoted,
-      )
-
-      await this.iqInjest.initiateInjest()
       return true
     }
 
@@ -195,6 +207,7 @@ class DBStoreService {
       metadata: wiki.metadata,
       block: hash.block,
       ipfs: hash.id,
+      ...(ipfsTime && { created: wiki.created, updated: wiki.updated }),
       transactionHash: hash.transactionHash,
     })
 
@@ -203,13 +216,15 @@ class DBStoreService {
       createActivity(activityRepository, {
         ...incomingActivity,
         type: Status.CREATED,
-      } as Activity),
+      } as unknown as Activity),
     )
-    await this.revalidate.revalidatePage(
-      RevalidateEndpoints.STORE_WIKI,
-      newWiki.user.id,
-      newWiki.id,
-    )
+    if (!ipfsTime) {
+      await this.revalidate.revalidatePage(
+        RevalidateEndpoints.STORE_WIKI,
+        newWiki.user.id,
+        newWiki.id,
+      )
+    }
     return true
   }
 }
