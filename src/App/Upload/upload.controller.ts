@@ -9,7 +9,7 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import * as fs from 'fs'
 
-export const hashesFilePath = './uploads/hashes.json' 
+export const hashesFilePath = './uploads/hashes.json'
 @Controller('file')
 export class UploadController {
   @Post('upload-json')
@@ -25,7 +25,7 @@ export class UploadController {
         })
       }
 
-      fs.writeFileSync(hashesFilePath, file.buffer) 
+      fs.writeFileSync(hashesFilePath, file.buffer)
 
       return res.json({
         message: 'JSON file upload is successful',
