@@ -80,6 +80,7 @@ export const cryptocurrencyIds = [
   { coingeckoId: 'xdce-crowd-sale', wikiId: 'xdc-network' },
   { coingeckoId: 'bitget-token', wikiId: 'bitget' },
   { coingeckoId: 'paxos-standard', wikiId: 'pax-dollar-usdp' },
+  { coingeckoId: 'nusd', wikiId: 'susd' },
   { coingeckoId: 'tether-gold', wikiId: 'tether-gold-xaut' },
   { coingeckoId: 'compound-ether', wikiId: 'ceth' },
   { coingeckoId: 'gala', wikiId: 'gala-games' },
