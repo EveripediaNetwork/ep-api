@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
 import * as fs from 'fs'
-import { hashesFilePath } from '../../App/Upload/upload.controller'
 
 export type Hash = {
   id: string
@@ -26,6 +25,8 @@ export const query = gql`
     }
   }
 `
+
+export const hashesFilePath = './uploads/hashes.json'
 
 @Injectable()
 class GraphProviderService {
