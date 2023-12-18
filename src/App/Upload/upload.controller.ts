@@ -9,10 +9,11 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import * as fs from 'fs'
 
+export const hashesFilePath = './uploads/hashes.json' 
 @Controller('file')
 export class UploadController {
   @Post('upload-json')
-  @UseInterceptors(FileInterceptor('file', { dest: './uploads' }))
+  @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Res() res: Response,
@@ -23,8 +24,8 @@ export class UploadController {
           error: 'File format is not valid, must be a JSON file.',
         })
       }
-      const filePath = `./uploads/${file.originalname}`
-      fs.writeFileSync(filePath, file.buffer)
+
+      fs.writeFileSync(hashesFilePath, file.buffer) 
 
       return res.json({
         message: 'JSON file upload is successful',

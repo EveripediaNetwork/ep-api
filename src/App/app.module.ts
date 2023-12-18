@@ -60,6 +60,7 @@ import IQHolderModule from './IQHolders/IQHolder.module'
 import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
+import UploadController from './Upload/upload.controller'
 
 // istanbul ignore next
 @Module({
@@ -105,7 +106,7 @@ import DiscordModule from './utils/discord.module'
     DiscordModule,
     SentryMod
   ],
-  controllers: [],
+  controllers: [UploadController],
   providers: [
     SecurityTestingService,
     ConfigService,

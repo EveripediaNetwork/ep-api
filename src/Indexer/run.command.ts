@@ -1,6 +1,7 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { DataSource } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
+import * as fs from 'fs/promises'
 import GraphProviderService, { Hash } from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
@@ -8,6 +9,7 @@ import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { getWikiSummary } from '../App/utils/getWikiSummary'
+import { hashesFilePath } from '../App/Upload/upload.controller'
 
 interface CommandOptions {
   unixtime: number
@@ -55,7 +57,7 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
@@ -66,9 +68,12 @@ class RunCommand implements CommandRunner {
       newUnixtime = await this.getUnixtime()
       await this.initiateIndexer(newHashes, newUnixtime, loop)
     }
-
+    const lastHash = hashes[hashes.length - 1]
     for (const hash of hashes) {
       await this.saveToDB(hash, false, useIpfsTime)
+      if (useIpfsTime && hash.transactionHash === lastHash.transactionHash) {
+        await fs.unlink(hashesFilePath)
+      }
     }
 
     if (loop) {
@@ -156,7 +161,7 @@ class RunCommand implements CommandRunner {
         console.error(`🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
-        await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
+        await new Promise(r => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
     } catch (ex) {
       console.error(`🛑 Invalid IPFS: ${hash.id}`)
@@ -179,6 +184,7 @@ class RunCommand implements CommandRunner {
       unixtime,
       useIpfs && false,
     )
+    // console.log(hashes)
 
     if (loop) await this.initiateIndexer(hashes, unixtime, loop)
 
