@@ -2,7 +2,10 @@ import { Command, CommandRunner, Option } from 'nest-commander'
 import { DataSource } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import * as fs from 'fs/promises'
-import GraphProviderService, { Hash, hashesFilePath } from './Provider/graph.service'
+import GraphProviderService, {
+  Hash,
+  hashesFilePath,
+} from './Provider/graph.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
 import IPFSValidatorService from './Validator/validator.service'
 import DBStoreService from './Store/store.service'
