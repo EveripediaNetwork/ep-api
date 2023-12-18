@@ -21,7 +21,7 @@ const HashKeys = [
 ]
 
 @Controller('file')
-export class UploadController {
+class UploadController {
   @Post('upload-json')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -38,7 +38,7 @@ export class UploadController {
       const jsonData = file.buffer.toString('utf-8')
       const parsedData: Hash[] = JSON.parse(jsonData)
       const fieldCheck = parsedData.every(
-        e => JSON.stringify(HashKeys) === JSON.stringify(Object.keys(e)),
+        (e) => JSON.stringify(HashKeys) === JSON.stringify(Object.keys(e)),
       )
 
       if (!fieldCheck) {
