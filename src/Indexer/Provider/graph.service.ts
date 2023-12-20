@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { request, gql } from 'graphql-request'
+import * as fs from 'fs'
 
 export type Hash = {
   id: string
@@ -25,11 +26,29 @@ export const query = gql`
   }
 `
 
+export const hashesFilePath = './uploads/hashes.json'
+
 @Injectable()
 class GraphProviderService {
   constructor(private configService: ConfigService) {}
 
-  async getIPFSHashesFromBlock(unixtime: number): Promise<[Hash] | []> {
+  async getIPFSHashesFromBlock(
+    unixtime: number,
+    graph = true,
+  ): Promise<[Hash] | []> {
+    if (!graph) {
+      try {
+        const jsonData = fs.readFileSync(hashesFilePath, 'utf-8')
+        const parsedData: Hash[] = JSON.parse(jsonData)
+        return parsedData.filter(
+          (hash: Hash) => hash.id && hash.id.length === 46,
+        ) as [Hash]
+      } catch (error) {
+        console.error('Error reading file:', error)
+        return []
+      }
+    }
+
     const reqUrl = this.configService.get('graphUrl')
     let response
     try {
