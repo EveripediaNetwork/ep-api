@@ -186,7 +186,6 @@ class RunCommand implements CommandRunner {
       unixtime,
       useIpfs && false,
     )
-    // console.log(hashes)
 
     if (loop) await this.initiateIndexer(hashes, unixtime, loop)
 
