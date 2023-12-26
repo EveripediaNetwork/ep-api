@@ -8,13 +8,14 @@ import { ConfigService } from '@nestjs/config'
 import {
   MarketCapInputs,
   NftRankListData,
+  RankPageIdInputs,
   RankType,
   TokenRankListData,
 } from './marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { cryptocurrencyIds, nftIds } from './marketcapIds'
 import Tag from '../../Database/Entities/tag.entity'
 import WikiService from '../Wiki/wiki.service'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 const noContentWiki = {
   id: 'no-content',
@@ -40,23 +41,22 @@ class MarketCapService {
     return this.configService.get('COINGECKO_API_KEY')
   }
 
-  private async findWiki(
-    id: string,
-    exceptionIds: typeof nftIds,
-    category: string,
-  ) {
-    const repository = this.dataSource.getRepository(Wiki)
-    const mapId = exceptionIds.find((e: any) => id === e.coingeckoId)?.wikiId
+  private async findWiki(id: string, category: string) {
+    const wikiRepository = this.dataSource.getRepository(Wiki)
+    const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
+    const marketCapId = await marketCapIdRepository.findOne({
+      where: { coingeckoId: id, kind: category as RankType },
+    })
 
-    const noCategoryId = mapId || id
+    const noCategoryId = marketCapId?.wikiId || id
     const wiki =
-      (await repository
+      (await wikiRepository
         .createQueryBuilder('wiki')
         .where('wiki.id = :id AND wiki.hidden = false', {
           id: noCategoryId,
         })
         .getOne()) ||
-      (await repository
+      (await wikiRepository
         .createQueryBuilder('wiki')
         .innerJoinAndSelect(
           'wiki.categories',
@@ -98,11 +98,7 @@ class MarketCapService {
     const data = await this.cgMarketDataApiCall(args, categoryParam)
 
     const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(
-        element.id,
-        cryptocurrencyIds,
-        'cryptocurrencies',
-      )
+      const wiki = await this.findWiki(element.id, 'cryptocurrencies')
 
       const tokenData = {
         image: element.image || '',
@@ -152,7 +148,7 @@ class MarketCapService {
     const data = await this.cgMarketDataApiCall(args)
 
     const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, nftIds, 'nfts')
+      const wiki = await this.findWiki(element.id, 'nfts')
       const nftData = {
         alias: null,
         name: element.name || '',
@@ -249,6 +245,22 @@ class MarketCapService {
 
     await this.cacheManager.set(key, result, { ttl: 180 })
     return result
+  }
+
+  async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
+    const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
+    try {
+      await marketCapIdRepository
+        .createQueryBuilder()
+        .insert()
+        .into(MarketCapIds)
+        .values(args)
+        .execute()
+      return true
+    } catch (e) {
+      console.error(e)
+    }
+    return false
   }
 }
 
