@@ -128,3 +128,18 @@ export class MarketCapInputs extends PaginationArgs {
   @Field(() => Boolean, {defaultValue: false})
   founders!: boolean
 }
+
+@ArgsType()
+export class RankPageIdInputs {
+  @Field(() => String)
+  @Validate(ValidStringParams)
+  wikiId!: string
+
+  @Field(() => String)
+  @Validate(ValidStringParams)
+  coingeckoId!: string
+
+  @Field(() => RankType, { defaultValue: RankType.TOKEN })
+  @Validate(ValidStringParams)
+  kind!: RankType
+}

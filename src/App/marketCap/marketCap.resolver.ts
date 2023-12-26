@@ -1,8 +1,9 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 import {
   MarketCapInputs,
   MarketRankData,
   NftRankListData,
+  RankPageIdInputs,
   TokenRankListData,
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
@@ -16,6 +17,13 @@ class MarketCapResolver {
     @Args() args: MarketCapInputs,
   ): Promise<NftRankListData | TokenRankListData> {
     return this.marketCapService.ranks(args)
+  }
+
+  @Mutation(() => Boolean )
+  async rankPageIds(
+    @Args() args: RankPageIdInputs,
+  ): Promise<boolean> {
+    return this.marketCapService.updateMistachIds(args)
   }
 }
 

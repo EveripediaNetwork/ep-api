@@ -20,6 +20,7 @@ import HiIQHolderAddress from './Entities/hiIQHolderAddress.entity'
 import HiIQHolder from './Entities/hiIQHolder.entity'
 import IQHolderAddress from './Entities/iqHolderAddress.entity'
 import IQHolder from './Entities/iqHolder.entity'
+import MarketCapIds from './Entities/marketCapIds.entity'
 
 @Module({
   imports: [
@@ -51,7 +52,8 @@ import IQHolder from './Entities/iqHolder.entity'
           HiIQHolder,
           HiIQHolderAddress,
           IQHolder,
-          IQHolderAddress
+          IQHolderAddress,
+          MarketCapIds
         ],
         synchronize: true,
         keepConnectionAlive: true,
