@@ -2,7 +2,6 @@ import { ObjectType } from '@nestjs/graphql'
 import { Entity, Column, PrimaryColumn } from 'typeorm'
 import { RankType } from '../../App/marketCap/marketcap.dto'
 
-
 @ObjectType()
 @Entity()
 class MarketCapIds {
