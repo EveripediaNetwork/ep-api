@@ -41,7 +41,7 @@ class IndexerWebhookService {
           block: eventData.number,
         }
 
-        await this.indexerCommand.indexHash(newHash as Hash, true)
+        await this.indexerCommand.saveToDB(newHash as Hash, true, false)
         console.log('Indexing webhook Wiki event 📇')
       }
     }
