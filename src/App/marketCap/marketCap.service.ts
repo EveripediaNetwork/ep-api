@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { DataSource } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
@@ -16,6 +16,7 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import WikiService from '../Wiki/wiki.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import { InjectRepository } from '@nestjs/typeorm'
 
 const noContentWiki = {
   id: 'no-content',
@@ -35,6 +36,8 @@ class MarketCapService {
     private configService: ConfigService,
     private wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectRepository(Wiki)
+    private readonly wikiRepository: Repository<Wiki>,
   ) {}
 
   private apiKey() {
@@ -261,6 +264,69 @@ class MarketCapService {
       console.error(e)
     }
     return false
+  }
+  async findWikiByCoingeckoId(
+    id: string,
+    category?: string,
+  ): Promise<Wiki | null> {
+    const metadataCondition = {
+      id: 'coingecko_profile',
+      value: () => id,
+    }
+
+    const queryBuilder = this.wikiRepository
+      .createQueryBuilder('wiki')
+      .innerJoinAndSelect('wiki.categories', 'category')
+      .where('wiki.metadata @> :metadataCondition', { metadataCondition })
+
+    if (category) {
+      queryBuilder.andWhere('category.id = :category', { category })
+    }
+
+    return queryBuilder.getOne()
+  }
+
+  async findWikiByCryptocurrencyId(
+    id: string,
+    category?: string,
+  ): Promise<Wiki | null> {
+    const metadataCondition = {
+      id: 'coingecko_profile',
+      value: (value: string) => value.endsWith(`/${id}`),
+    }
+
+    const queryBuilder = this.wikiRepository
+      .createQueryBuilder('wiki')
+      .innerJoinAndSelect('wiki.categories', 'category')
+      .where('wiki.metadata @> :metadataCondition', { metadataCondition })
+
+    if (category) {
+      queryBuilder.andWhere('category.id = :category', { category })
+    }
+
+    return queryBuilder.getOne()
+  }
+  async findWikiById(id: string, category?: string): Promise<Wiki | null> {
+    const parsedId = id.split('/').pop()
+
+    if (parsedId) {
+      const cryptocurrencyWiki = await this.findWikiByCryptocurrencyId(
+        parsedId,
+        category,
+      )
+
+      if (cryptocurrencyWiki) {
+        return cryptocurrencyWiki
+      }
+
+      const nftWiki = await this.findWikiByCoingeckoId(parsedId, category)
+
+      if (nftWiki) {
+        return nftWiki
+      }
+    }
+
+    return null
   }
 }
 
