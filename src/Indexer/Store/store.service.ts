@@ -24,6 +24,14 @@ class DBStoreService {
     private iqInjest: AutoInjestService,
   ) {}
 
+  async existIPFS(newHash: string, oldHash?: string): Promise<boolean> {
+    const activityRepository = this.dataSource.getRepository(Activity)
+    const existActivity = await activityRepository.findOneBy({
+      ipfs: newHash,
+    })
+    return oldHash === newHash && existActivity !== null
+  }
+
   async storeWiki(
     wiki: WikiType,
     hash: Hash,
@@ -132,7 +140,7 @@ class DBStoreService {
       datetime: (ipfsTime && (wiki.created as unknown as Date)) || newDate,
       ipfs: hash.id,
     }
-
+    const existIpfs = await this.existIPFS(hash.id, existWiki?.ipfs)
     const createActivity = (
       repo: Repository<Activity>,
       data: Partial<Activity>,
@@ -148,7 +156,7 @@ class DBStoreService {
     }
 
     // TODO: store history and delete?
-    if (existWiki) {
+    if (existWiki && !existIpfs) {
       existWiki.version = wiki.version
       existWiki.language = language
       existWiki.title = wiki.title
