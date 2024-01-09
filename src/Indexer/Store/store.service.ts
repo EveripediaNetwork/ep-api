@@ -141,6 +141,10 @@ class DBStoreService {
       ipfs: hash.id,
     }
     const existIpfs = await this.existIPFS(hash.id, existWiki?.ipfs)
+    if (existIpfs) {
+      console.debug('--- D U P L I C A T E   H A S H', hash.id, existWiki?.ipfs)
+      return true
+    }
     const createActivity = (
       repo: Repository<Activity>,
       data: Partial<Activity>,
@@ -156,7 +160,7 @@ class DBStoreService {
     }
 
     // TODO: store history and delete?
-    if (existWiki && !existIpfs) {
+    if (existWiki) {
       existWiki.version = wiki.version
       existWiki.language = language
       existWiki.title = wiki.title
