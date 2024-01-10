@@ -262,6 +262,24 @@ class MarketCapService {
     }
     return false
   }
+  async getWikiObject(id: string, category: 'crypto' | 'nft'): Promise<any> {
+    const wikiRepository = this.dataSource.getRepository(Wiki)
+
+    const wiki = await wikiRepository
+      .createQueryBuilder('wiki')
+      .where('wiki.id = :id AND wiki.hidden = false', { id })
+      .andWhere(`wiki.coingecko_profile->>'value' = :profileValue`, {
+        profileValue: `https://url/${id}`,
+      })
+      .innerJoinAndSelect(
+        'wiki.categories',
+        'category',
+        'category.id = :categoryId',
+        { categoryId: category },
+      )
+      .getOne()
+    return wiki
+  }
 }
 
 export default MarketCapService
