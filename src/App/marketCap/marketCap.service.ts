@@ -267,13 +267,24 @@ class MarketCapService {
     id: string,
     category: 'cryptocurrencies' | 'nft',
   ): Promise<any> {
-    const wikiRepository = this.dataSource.getRepository(Wiki)
-
+    const wikiRepository = this.dataSource.getRepository(Wiki);
+  
+    let coingeckoProfileUrl: string;
+  
+    if (category === 'cryptocurrencies') {
+      coingeckoProfileUrl = `https://www.coingecko.com/en/coins/${id}`;
+    } else if (category === 'nft') {
+      coingeckoProfileUrl = `https://www.coingecko.com/en/nft/${id}`;
+    } else {
+      
+      return null;
+    }
+  
     const wiki = await wikiRepository
       .createQueryBuilder('wiki')
       .where('wiki.id = :id AND wiki.hidden = false', { id })
       .andWhere(`wiki.coingecko_profile->>'value' = :url`, {
-        url: `https://www.coingecko.com/en/coins/${id}`,
+        url: coingeckoProfileUrl,
       })
       .innerJoinAndSelect(
         'wiki.categories',
@@ -281,10 +292,11 @@ class MarketCapService {
         'category.id = :categoryId',
         { categoryId: category },
       )
-      .getOne()
-
-    return wiki
+      .getOne();
+  
+    return wiki;
   }
+  
 }
 
 export default MarketCapService
