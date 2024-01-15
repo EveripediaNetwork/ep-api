@@ -262,7 +262,7 @@ class MarketCapService {
     }
     return false
   }
- 
+
   async getWikiObject(
     id: string,
     category: 'cryptocurrencies' | 'nft',
