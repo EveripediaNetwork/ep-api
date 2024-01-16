@@ -50,12 +50,13 @@ class MarketCapService {
 
     const noCategoryId = marketCapId?.wikiId || id
     const wiki =
-      (await wikiRepository
-        .createQueryBuilder('wiki')
-        .where('wiki.id = :id AND wiki.hidden = false', {
-          id: noCategoryId,
-        })
-        .getOne()) ||
+      (await this.findWikiByCoingeckoUrl(id, category)) ||
+        (await wikiRepository
+          .createQueryBuilder('wiki')
+          .where('wiki.id = :id AND wiki.hidden = false', {
+            id: noCategoryId,
+          })
+          .getOne()) ||
       (await wikiRepository
         .createQueryBuilder('wiki')
         .innerJoinAndSelect(
@@ -263,33 +264,37 @@ class MarketCapService {
     return false
   }
 
-  async getWikiObject(
+  async findWikiByCoingeckoUrl(
     id: string,
-    category: 'cryptocurrencies' | 'nft',
+    category: string,
   ): Promise<any> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
 
-    let coingeckoProfileUrl: string
-
-    if (category === 'cryptocurrencies') {
-      coingeckoProfileUrl = `https://www.coingecko.com/en/coins/${id}`
-    } else if (category === 'nft') {
-      coingeckoProfileUrl = `https://www.coingecko.com/en/nft/${id}`
-    } else {
-      return null
-    }
+    const baseCoingeckoUrl = 'https://www.coingecko.com/en'
+    const coingeckoProfileUrl = `${baseCoingeckoUrl}/${
+      category === 'cryptocurrencies' ? 'coins' : 'nft'
+    }/${id}`
 
     const wiki = await wikiRepository
       .createQueryBuilder('wiki')
       .where('wiki.id = :id AND wiki.hidden = false', { id })
-      .andWhere(`wiki.coingecko_profile->>'value' = :url`, {
-        url: coingeckoProfileUrl,
-      })
+      .andWhere(
+        `exists (
+            select 1
+            from json_array_elements(wiki.metadata) as meta
+            where meta->>'id' = 'coingecko_profile' and meta->>'value' = :url
+        )`,
+        {
+          url: coingeckoProfileUrl,
+        },
+      )
       .innerJoinAndSelect(
         'wiki.categories',
         'category',
         'category.id = :categoryId',
-        { categoryId: category },
+        {
+          categoryId: category,
+        },
       )
       .getOne()
 
