@@ -51,12 +51,12 @@ class MarketCapService {
     const noCategoryId = marketCapId?.wikiId || id
     const wiki =
       (await this.findWikiByCoingeckoUrl(id, category)) ||
-        (await wikiRepository
-          .createQueryBuilder('wiki')
-          .where('wiki.id = :id AND wiki.hidden = false', {
-            id: noCategoryId,
-          })
-          .getOne()) ||
+      (await wikiRepository
+        .createQueryBuilder('wiki')
+        .where('wiki.id = :id AND wiki.hidden = false', {
+          id: noCategoryId,
+        })
+        .getOne()) ||
       (await wikiRepository
         .createQueryBuilder('wiki')
         .innerJoinAndSelect(
@@ -264,10 +264,7 @@ class MarketCapService {
     return false
   }
 
-  async findWikiByCoingeckoUrl(
-    id: string,
-    category: string,
-  ): Promise<any> {
+  async findWikiByCoingeckoUrl(id: string, category: string): Promise<Wiki | null> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
 
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
