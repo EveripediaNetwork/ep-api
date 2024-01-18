@@ -22,6 +22,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
+  MediaError,
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
@@ -99,6 +100,16 @@ class WikiResolver {
   @Query(() => Count)
   async categoryTotal(@Args() args: CategoryArgs) {
     return this.wikiService.getCategoryTotal(args)
+  }
+
+  @Query(() => Wiki)
+  async getWiki(@Args("id") id: string): Promise<Wiki> {
+    try {
+      const result = await this.wikiService.mediaOperation(id);
+      return result;
+    } catch (error: any){
+      throw new MediaError("Media operation failed", id, error.wikiObject);
+    }
   }
 
   @Mutation(() => Wiki, { nullable: true })

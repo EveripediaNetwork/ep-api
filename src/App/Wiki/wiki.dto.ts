@@ -58,3 +58,16 @@ export class WikiUrl {
   @Validate(ValidStringParams)
   wiki!: string
 }
+
+export interface Wiki {
+  id: string;
+}
+
+export class MediaError extends Error {
+  constructor(message: string,
+    public readonly wikiId?: string,
+    public readonly wikiObject?: Wiki) {
+      super(message);
+      Object.setPrototypeOf(this, MediaError.prototype);
+    }
+}

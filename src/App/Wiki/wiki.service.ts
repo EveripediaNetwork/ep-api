@@ -10,6 +10,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   LangArgs,
+  MediaError,
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
@@ -318,6 +319,19 @@ class WikiService {
       }
     }
     return foundersWiki.filter((item) => item !== null)
+  }
+  async mediaOperation(wikiId: string): Promise<Wiki> {
+    try {
+      const wikiObject = await this.findWiki({
+        id: wikiId
+      } as ByIdArgs);
+      if(!wikiObject){
+        throw new MediaError("Wiki object not found", wikiId);
+      }
+      return wikiObject
+    } catch (error){
+      throw new MediaError("Media operation failed", wikiId)
+    }
   }
 }
 
