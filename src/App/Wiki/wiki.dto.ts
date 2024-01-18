@@ -60,14 +60,16 @@ export class WikiUrl {
 }
 
 export interface Wiki {
-  id: string;
+  id: string
 }
 
 export class MediaError extends Error {
-  constructor(message: string,
+  constructor(
+    message: string,
     public readonly wikiId?: string,
-    public readonly wikiObject?: Wiki) {
-      super(message);
-      Object.setPrototypeOf(this, MediaError.prototype);
-    }
+    public readonly wikiObject?: Wiki,
+  ) {
+    super(message)
+    Object.setPrototypeOf(this, MediaError.prototype)
+  }
 }

@@ -323,14 +323,14 @@ class WikiService {
   async mediaOperation(wikiId: string): Promise<Wiki> {
     try {
       const wikiObject = await this.findWiki({
-        id: wikiId
-      } as ByIdArgs);
-      if(!wikiObject){
-        throw new MediaError("Wiki object not found", wikiId);
+        id: wikiId,
+      } as ByIdArgs)
+      if (!wikiObject) {
+        throw new MediaError('Wiki object not found', wikiId)
       }
       return wikiObject
-    } catch (error){
-      throw new MediaError("Media operation failed", wikiId)
+    } catch (error) {
+      throw new MediaError('Media operation failed', wikiId)
     }
   }
 }

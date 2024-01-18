@@ -105,10 +105,10 @@ class WikiResolver {
   @Query(() => Wiki)
   async getWiki(@Args("id") id: string): Promise<Wiki> {
     try {
-      const result = await this.wikiService.mediaOperation(id);
-      return result;
-    } catch (error: any){
-      throw new MediaError("Media operation failed", id, error.wikiObject);
+      const result = await this.wikiService.mediaOperation(id)
+      return result
+    } catch (error: any) {
+      throw new MediaError('Media operation failed', id, error.wikiObject)
     }
   }
 
