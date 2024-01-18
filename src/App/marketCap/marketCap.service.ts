@@ -274,11 +274,9 @@ class MarketCapService {
     const coingeckoProfileUrl = `${baseCoingeckoUrl}/${
       category === 'cryptocurrencies' ? 'coins' : 'nft'
     }/${id}`
-
     const wiki = await wikiRepository
       .createQueryBuilder('wiki')
-      .where('wiki.id = :id AND wiki.hidden = false', { id })
-      .andWhere(
+      .where(
         `exists (
             select 1
             from json_array_elements(wiki.metadata) as meta
@@ -297,7 +295,6 @@ class MarketCapService {
         },
       )
       .getOne()
-
     return wiki
   }
 }
