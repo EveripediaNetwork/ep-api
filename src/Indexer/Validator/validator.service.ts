@@ -20,6 +20,12 @@ export type ValidatorResult = {
   message: string
 }
 
+type CustomValidatorCodes = {
+  code: string
+  wikiId?: string
+  wikiObject?: string
+}
+
 @Injectable()
 class IPFSValidatorService {
   async validate(
@@ -204,6 +210,15 @@ class IPFSValidatorService {
         }
         if (m.type && !Object.values(MediaType).includes(m.type)) {
           isContentValid = false
+        }
+        if (!isContentValid) {
+          let message: ValidatorCodes | CustomValidatorCodes =
+            ValidatorCodes.VALID_WIKI
+          message = {
+            code: `${ValidatorCodes.MEDIA}`,
+            wikiId: validatingWiki.id,
+            wikiObject: JSON.stringify(validatingWiki),
+          }
         }
         return isContentValid
       })
