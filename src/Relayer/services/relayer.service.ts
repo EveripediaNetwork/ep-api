@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import {
   DefenderRelayProvider,
   DefenderRelaySigner,
-} from 'defender-relay-client/lib/ethers'
+} from '@openzeppelin/defender-relay-client/lib/ethers'
 import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
