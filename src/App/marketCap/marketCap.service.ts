@@ -49,6 +49,7 @@ class MarketCapService {
     })
 
     const noCategoryId = marketCapId?.wikiId || id
+
     const wiki =
       (await this.findWikiByCoingeckoUrl(id, category)) ||
       (await wikiRepository
@@ -276,7 +277,8 @@ class MarketCapService {
     }/${id}`
     const wiki = await wikiRepository
       .createQueryBuilder('wiki')
-      .where(
+      .where('hidden = false')
+      .andWhere(
         `exists (
             select 1
             from json_array_elements(wiki.metadata) as meta
