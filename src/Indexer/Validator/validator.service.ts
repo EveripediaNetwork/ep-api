@@ -216,11 +216,11 @@ class IPFSValidatorService {
             ValidatorCodes.VALID_WIKI
           if (validatingWiki) {
             message = {
-            code: `${ValidatorCodes.MEDIA}`,
-            wikiId: validatingWiki.id,
-            wikiObject: JSON.stringify(validatingWiki) || "N/A",
+              code: `${ValidatorCodes.MEDIA}`,
+              wikiId: validatingWiki.id,
+              wikiObject: JSON.stringify(validatingWiki) || 'N/A',
+            }
           }
-        }
         }
         return isContentValid
       })
