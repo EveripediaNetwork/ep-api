@@ -70,7 +70,7 @@ class PinService {
       this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
         title: errorMessage,
         description: isContentSecure?.match,
-        content: !isContentSecure?.status ? isContentSecure?.data : wikiData,
+        content: (!isContentSecure?.status || !isDataValid.status) && wikiData,
       } as unknown as WebhookPayload)
       if (wikiDate && wikiDate > contentCheckDate) {
         throw new HttpException(
