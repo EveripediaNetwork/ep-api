@@ -83,9 +83,16 @@ export default class WebhookHandler {
           break
         }
         case AdminMutations.REVALIDATE_PAGE: {
-          message = `**Route revalidated** - ${this.getWebpageUrl()}${
-            payload?.urlId
-          }  ♻️ \n\n _Performed by_ ***${adminUser}*** `
+          const { urlId } = payload
+          const baseUrl = this.getWebpageUrl()
+          const koUrl = `${baseUrl}/ko${urlId}`
+
+          message = `
+            **Routes revalidated**  
+            - ${baseUrl}${urlId}  ♻️ 
+            - ${koUrl}  ♻️ 
+            \n\n_Performed by_ ***${adminUser}***
+            `
           break
         }
         case AdminMutations.TOGGLE_USER_STATE: {
@@ -182,7 +189,7 @@ export default class WebhookHandler {
             complete: async () => {
               await fss.unlink('./uploads/message.json')
             },
-            error: async (err) => {
+            error: async err => {
               await fss.unlink('./uploads/message.json')
               console.log(err.response)
             },
