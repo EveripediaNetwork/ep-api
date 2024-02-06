@@ -189,7 +189,7 @@ export default class WebhookHandler {
             complete: async () => {
               await fss.unlink('./uploads/message.json')
             },
-            error: async err => {
+            error: async (err) => {
               await fss.unlink('./uploads/message.json')
               console.log(err.response)
             },
