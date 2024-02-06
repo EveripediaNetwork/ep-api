@@ -42,11 +42,10 @@ class IndexerWebhookService {
           block: eventData.number,
         }
 
-        if (firstLevelNodeProcess()){
-            await this.indexerCommand.saveToDB(newHash as Hash, true, false)
-            console.log('Indexing webhook Wiki event 📇')
+        if (firstLevelNodeProcess()) {
+          await this.indexerCommand.saveToDB(newHash as Hash, true, false)
+          console.log('Indexing webhook Wiki event 📇')
         }
-
       }
     }
   }
