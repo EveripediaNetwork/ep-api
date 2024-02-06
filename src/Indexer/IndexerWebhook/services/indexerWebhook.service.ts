@@ -8,6 +8,7 @@ import {
   BlockData,
   decodeABI,
 } from '../../../ExternalServices/alchemyNotify.dto'
+import { firstLevelNodeProcess } from '../../../App/Treasury/treasury.dto'
 
 @Injectable()
 class IndexerWebhookService {
@@ -41,8 +42,11 @@ class IndexerWebhookService {
           block: eventData.number,
         }
 
-        await this.indexerCommand.saveToDB(newHash as Hash, true, false)
-        console.log('Indexing webhook Wiki event 📇')
+        if (firstLevelNodeProcess()){
+            await this.indexerCommand.saveToDB(newHash as Hash, true, false)
+            console.log('Indexing webhook Wiki event 📇')
+        }
+
       }
     }
   }
