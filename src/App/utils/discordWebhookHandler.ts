@@ -118,7 +118,7 @@ export default class WebhookHandler {
           },
         ],
       })
-        await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
+      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
       const user = await userProfileRepo.findOneBy({
@@ -186,7 +186,7 @@ export default class WebhookHandler {
             complete: async () => {
               await fss.unlink('./uploads/message.json')
             },
-            error: async err => {
+            error: async (err) => {
               await fss.unlink('./uploads/message.json')
               console.log(err.response)
             },
