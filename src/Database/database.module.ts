@@ -11,7 +11,6 @@ import UserProfile from './Entities/userProfile.entity'
 import IqSubscription from './Entities/IqSubscription'
 import Notification from './Entities/notification.entity'
 import PageviewsPerDay from './Entities/pageviewsPerPage.entity'
-import ContentFeedback from './Entities/contentFeedback.entity'
 import Feedback from './Entities/feedback.entity'
 import BrainPass from './Entities/brainPass.entity'
 import Treasury from './Entities/treasury.entity'
@@ -44,7 +43,6 @@ import MarketCapIds from './Entities/marketCapIds.entity'
           IqSubscription,
           Notification,
           PageviewsPerDay,
-          ContentFeedback,
           Feedback,
           BrainPass,
           Treasury,
@@ -53,7 +51,7 @@ import MarketCapIds from './Entities/marketCapIds.entity'
           HiIQHolderAddress,
           IQHolder,
           IQHolderAddress,
-          MarketCapIds
+          MarketCapIds,
         ],
         synchronize: true,
         keepConnectionAlive: true,

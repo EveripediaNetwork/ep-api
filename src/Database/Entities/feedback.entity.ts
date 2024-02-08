@@ -1,13 +1,10 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
-import { ContentFeedbackSite, ContentFeedbackType } from './types/IFeedback'
 import { Content } from '../../App/content-feedback/contentFeedback.dto'
+import ContentFeedbackSite from './types/IFeedback'
 
 registerEnumType(ContentFeedbackSite, {
   name: 'ContentFeedbackSite',
-})
-registerEnumType(ContentFeedbackType, {
-  name: 'ContentFeedbackType',
 })
 
 @ObjectType({ description: 'IQ feedback' })
@@ -41,10 +38,6 @@ class Feedback {
   @Column('enum', { enum: ContentFeedbackSite })
   site!: ContentFeedbackSite
 
-  @Field(() => ContentFeedbackType)
-  @Column('enum', { enum: ContentFeedbackType })
-  feedback!: ContentFeedbackType
-
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   message?: string
@@ -56,6 +49,10 @@ class Feedback {
   @Field(() => [Content], { nullable: true })
   @Column('jsonb', { nullable: true })
   content?: Content[]
+
+  @Field()
+  @Column('integer')
+  rating!: number
 }
 
 export default Feedback

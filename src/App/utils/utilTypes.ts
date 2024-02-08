@@ -1,5 +1,3 @@
-import { ContentFeedbackType } from '../../Database/Entities/types/IFeedback'
-
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
@@ -42,11 +40,12 @@ export interface WebhookPayload {
   user?: string
   title?: string
   urlId?: string
+  rating?: number
+  choice?: boolean
   username?: string
   description?: string
   reportSubject?: string
   adminAction?: AdminMutations
-  type?: ContentFeedbackType
   content?: Record<string, unknown>
   knownAddresses?: Record<string, number>
   unknownAddresses?: string[]

@@ -5,10 +5,7 @@ import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ContentFeedbackPayload } from './contentFeedback.dto'
 import Feedback from '../../Database/Entities/feedback.entity'
-import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from '../../Database/Entities/types/IFeedback'
+import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
 class ContentFeedbackService {
@@ -33,15 +30,13 @@ class ContentFeedbackService {
       contentId: args.contentId as string,
       message: args.message as string,
       site: args.site as ContentFeedbackSite,
-      feedback: args.feedback,
-      reportType: args.reportType as ContentFeedbackType,
+      reportType: args.reportType,
     })
 
     if (checkFeedback) {
       await this.webhookHandler.postWebhook(ActionTypes.CONTENT_FEEDBACK, {
         ip: args.ip,
         urlId: args.contentId,
-        type: args.feedback,
         user: args.userId,
         title: args.site,
         reportSubject: args.reportType,
@@ -54,7 +49,6 @@ class ContentFeedbackService {
   async storeFeedback(args: ContentFeedbackPayload): Promise<boolean> {
     const repository = this.dataSource.getRepository(Feedback)
     const id = `${args.ip}-${args.contentId || args.input}`
-    const cached: string | undefined = await this.cacheManager.get(id)
 
     let check
     if (args.site === ContentFeedbackSite.IQSEARCH) {
@@ -71,25 +65,24 @@ class ContentFeedbackService {
     }
 
     if (
-      cached ||
-      (check &&
-        check.feedback === args.feedback &&
-        !(args.site === ContentFeedbackSite.IQSOCIAL))
+      check &&
+      check.rating === args.rating &&
+      !(args.site === ContentFeedbackSite.IQSOCIAL)
     ) {
       return false
     }
 
-    if (check && check.feedback !== args.feedback) {
+    if (check && check.rating !== args.rating) {
       if (args.reportType) {
         await repository.query(
-          `UPDATE feedback SET feedback = $1 where "contentId" = $2 AND ip = $3`,
-          [args.feedback, args.contentId, args.ip],
+          `UPDATE feedback SET rating = $1 where "contentId" = $2 AND ip = $3`,
+          [args.rating, args.contentId, args.ip],
         )
       } else {
         await repository.query(
-          'UPDATE feedback SET feedback = $1 where "contentId" = $2 OR feedback.content @> $3 AND ip = $4',
+          'UPDATE feedback SET rating = $1 where "contentId" = $2 OR feedback.content @> $3 AND ip = $4',
           [
-            args.feedback,
+            args.rating,
             args.contentId,
             `[{ "input":"${args.input}"}]`,
             args.ip,
@@ -122,7 +115,7 @@ class ContentFeedbackService {
   async checkIP(ip: string): Promise<boolean> {
     const cached: string | undefined = await this.cacheManager.get(ip)
     if (!cached) {
-      await this.cacheManager.set(ip, ip, { ttl: 180 })
+      await this.cacheManager.set(ip, ip, { ttl: 60 })
       return true
     }
     return false
