@@ -34,8 +34,8 @@ class ContentFeedbackService {
     `,
       [contentId],
     )
-    if(count.length < 1) {
-        return null
+    if (count.length < 1) {
+      return null
     }
     return count.map((e: { rated_count: number }) => ({
       ...e,

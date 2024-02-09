@@ -23,8 +23,8 @@ class AutoInjestService {
 
     const locked = await this.lockingService.acquireLock(injestId)
     console.debug({
-        injest_wait: locked,
-        workflow_status: status,
+      injest_wait: locked,
+      workflow_status: status,
     })
     if (environment === 'dev' || !locked || !status) return
 
