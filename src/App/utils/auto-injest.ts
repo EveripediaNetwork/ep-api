@@ -22,7 +22,10 @@ class AutoInjestService {
     const environment = this.configService.get<string>('API_LEVEL') as string
 
     const locked = await this.lockingService.acquireLock(injestId)
-
+    console.debug({
+        injest_wait: locked,
+        workflow_status: status,
+    })
     if (environment === 'dev' || !locked || !status) return
 
     try {

@@ -12,6 +12,15 @@ export class Content {
 }
 
 @ArgsType()
+export class RatingArgs {
+  @Field(() => String)
+  contentId!: string
+
+  @Field(() => String)
+  userId!: string
+}
+
+@ArgsType()
 export class ContentFeedbackArgs {
   @Field(() => String, {
     nullable: true,

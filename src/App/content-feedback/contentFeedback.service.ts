@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ContentFeedbackPayload } from './contentFeedback.dto'
-import Feedback from '../../Database/Entities/feedback.entity'
+import Feedback, { RatingsCount } from '../../Database/Entities/feedback.entity'
 import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
@@ -14,6 +14,34 @@ class ContentFeedbackService {
     private webhookHandler: WebhookHandler,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  async getRating(contentId: string, userId: string) {
+    const repository = this.dataSource.getRepository(Feedback)
+    return repository.findOneBy({ contentId, userId })
+  }
+
+  async ratingsCount(contentId?: string) {
+    const repository = this.dataSource.getRepository(Feedback)
+    const count = await repository.query(
+      `
+        SELECT "contentId", rating, COUNT(*) as rated_count
+        FROM feedback
+        WHERE ("contentId" = $1 OR $1 IS NULL)
+        GROUP BY "contentId", rating
+        ORDER BY rated_count DESC
+        LIMIT 50
+
+    `,
+      [contentId],
+    )
+    if(count.length < 1) {
+        return null
+    }
+    return count.map((e: { rated_count: number }) => ({
+      ...e,
+      count: e.rated_count,
+    })) as RatingsCount
+  }
 
   async postFeedback(args: ContentFeedbackPayload) {
     const waitIP = await this.checkIP(args.ip)

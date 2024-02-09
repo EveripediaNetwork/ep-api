@@ -1,7 +1,19 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { Content } from '../../App/content-feedback/contentFeedback.dto'
 import ContentFeedbackSite from './types/IFeedback'
+
+@ObjectType()
+export class RatingsCount {
+  @Field()
+  contentId!: string
+
+  @Field()
+  rating!: string
+
+  @Field()
+  count!: string
+}
 
 registerEnumType(ContentFeedbackSite, {
   name: 'ContentFeedbackSite',
@@ -10,7 +22,6 @@ registerEnumType(ContentFeedbackSite, {
 @ObjectType({ description: 'IQ feedback' })
 @Entity()
 class Feedback {
-  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
@@ -28,13 +39,11 @@ class Feedback {
   })
   contentId?: string
 
-  @Field()
   @Column('varchar', {
     length: 255,
   })
   ip!: string
 
-  @Field(() => ContentFeedbackSite)
   @Column('enum', { enum: ContentFeedbackSite })
   site!: ContentFeedbackSite
 
