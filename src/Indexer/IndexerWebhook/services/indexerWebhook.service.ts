@@ -19,11 +19,14 @@ class IndexerWebhookService {
   ) {}
 
   async indexWebhook(eventData: BlockData): Promise<void> {
-    console.log('Signature verified 🎟️ for Wiki')
-
     const { logs } = eventData
 
-    if (logs.length > 0 && logs[0].transaction.status === 1) {
+    if (
+      logs.length > 0 &&
+      logs[0].transaction.status === 1 &&
+      firstLevelNodeProcess()
+    ) {
+      console.log('Signature verified 🎟️ for Wiki')
       const { transaction } = logs[0]
       const decodedLog = await this.alchemyNotifyService.decodeLog(
         transaction.logs[0],
@@ -42,10 +45,8 @@ class IndexerWebhookService {
           block: eventData.number,
         }
 
-        if (firstLevelNodeProcess()) {
-          await this.indexerCommand.saveToDB(newHash as Hash, true, false)
-          console.log('Indexing webhook Wiki event 📇')
-        }
+        await this.indexerCommand.saveToDB(newHash as Hash, true, false)
+        console.log('Indexing webhook Wiki event 📇')
       }
     }
   }

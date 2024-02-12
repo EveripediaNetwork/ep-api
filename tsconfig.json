@@ -5,6 +5,6 @@
     "outDir": "dist",
     "experimentalDecorators": true
   },
-  "include": ["src/", "test/", "k.entity.ts"],
+  "include": ["src/", "test/"],
   "exclude": ["node_modules", "uploads"]
 }

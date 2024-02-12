@@ -3,7 +3,7 @@ import { Cache } from 'cache-manager'
 import { DataSource } from 'typeorm'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
-import { ContentFeedbackPayload } from './contentFeedback.dto'
+import { ContentFeedbackPayload, RatingArgs } from './contentFeedback.dto'
 import Feedback, { RatingsCount } from '../../Database/Entities/feedback.entity'
 import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
@@ -15,9 +15,13 @@ class ContentFeedbackService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getRating(contentId: string, userId: string) {
+  async getRating(args: RatingArgs) {
+    const { contentId, userId, ip } = args
     const repository = this.dataSource.getRepository(Feedback)
-    return repository.findOneBy({ contentId, userId })
+    if (userId) {
+      return repository.findOneBy({ contentId, userId })
+    }
+    return repository.findOneBy({ contentId, ip })
   }
 
   async ratingsCount(contentId?: string) {

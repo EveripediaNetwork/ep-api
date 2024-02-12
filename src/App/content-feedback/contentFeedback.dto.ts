@@ -16,8 +16,11 @@ export class RatingArgs {
   @Field(() => String)
   contentId!: string
 
-  @Field(() => String)
-  userId!: string
+  @Field(() => String, { nullable: true })
+  userId?: string
+
+  @Field(() => String, { nullable: true })
+  ip?: string
 }
 
 @ArgsType()

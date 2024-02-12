@@ -11,7 +11,7 @@ class ContentFeedbackResolver {
 
   @Query(() => Feedback, { nullable: true })
   async ratingsByUser(@Args() args: RatingArgs) {
-    return this.contentFeebackService.getRating(args.contentId, args.userId)
+    return this.contentFeebackService.getRating(args)
   }
 
   @Query(() => [RatingsCount], { nullable: true })
