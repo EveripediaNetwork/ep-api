@@ -6,10 +6,7 @@ import { promises as fss } from 'fs'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { ActionTypes, AdminMutations, WebhookPayload } from './utilTypes'
-import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from '../../Database/Entities/types/IFeedback'
+import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
 export default class WebhookHandler {
@@ -96,15 +93,15 @@ export default class WebhookHandler {
           break
         }
         case AdminMutations.TOGGLE_USER_STATE: {
-          if (payload?.type === ContentFeedbackType.POSITIVE) {
+          if (!payload?.choice) {
+            message = `**User banned** - ${this.getWebpageUrl()}/account/${
+              payload?.urlId
+            } ❌ \n\n _Performed by_ ***${adminUser}*** `
+          } else {
             message = `**User unbanned** - ${this.getWebpageUrl()}/account/${
               payload?.urlId
             }  ✅ \n\n _Performed by_ ***${adminUser}*** `
           }
-          if (payload?.type === ContentFeedbackType.NEGATIVE)
-            message = `**User banned** - ${this.getWebpageUrl()}/account/${
-              payload?.urlId
-            } ❌ \n\n _Performed by_ ***${adminUser}*** `
           break
         }
         default:
@@ -212,6 +209,9 @@ export default class WebhookHandler {
       }
 
       if (payload.title === ContentFeedbackSite.IQWIKI) {
+        const clampedRating = Math.max(1, Math.min(payload.rating as number, 5))
+
+        const stars = '⭐'.repeat(clampedRating)
         const wiki = await wikiRepo.find({
           select: ['title'],
           where: {
@@ -223,19 +223,12 @@ export default class WebhookHandler {
           username: 'IQ Wiki feedback',
           embeds: [
             {
-              color:
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 0x6beb34
-                  : 0xeb6234,
-              title: `${
-                payload?.type === ContentFeedbackType.POSITIVE ? '👍' : '👎'
-              }  ${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
+              color: clampedRating >= 3 ? 0x6beb34 : 0xeb6234,
+              title: `${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
               url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
-              description: `${user} ${
-                payload?.type === ContentFeedbackType.POSITIVE
-                  ? 'finds'
-                  : 'does not find'
-              } this wiki interesting`,
+              description: `${stars}\n\n ${user} rated this wiki ${clampedRating} star${
+                clampedRating > 1 ? 's' : ''
+              }`,
               footer: {
                 text: 'IQ.wiki feedback',
               },

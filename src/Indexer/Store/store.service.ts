@@ -14,14 +14,12 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import AutoInjestService from '../../App/utils/auto-injest'
 
 @Injectable()
 class DBStoreService {
   constructor(
     private dataSource: DataSource,
     private revalidate: RevalidatePageService,
-    private iqInjest: AutoInjestService,
   ) {}
 
   async existIPFS(newHash: string, oldHash?: string): Promise<boolean> {
@@ -195,7 +193,6 @@ class DBStoreService {
           existWiki.id,
           existWiki.promoted,
         )
-        await this.iqInjest.initiateInjest()
       }
 
       return true

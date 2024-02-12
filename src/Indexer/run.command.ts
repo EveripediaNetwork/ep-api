@@ -12,6 +12,7 @@ import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { getWikiSummary } from '../App/utils/getWikiSummary'
+import AutoInjestService from '../App/utils/auto-injest'
 
 interface CommandOptions {
   unixtime: number
@@ -31,6 +32,7 @@ class RunCommand implements CommandRunner {
     private dbStoreService: DBStoreService,
     private dataSource: DataSource,
     private metaChanges: MetadataChangesService,
+    private iqInjest: AutoInjestService,
   ) {}
 
   async getUnixtime() {
@@ -149,6 +151,7 @@ class RunCommand implements CommandRunner {
         console.log('✅ Validated Wiki content! IPFS going through...')
         if (!reIndex) {
           await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
+          await this.iqInjest.initiateInjest()
         } else {
           await this.dbStoreService.storeWiki(
             completeWiki as WikiType,

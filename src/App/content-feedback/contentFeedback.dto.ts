@@ -1,8 +1,6 @@
-import { ArgsType, Field, ObjectType } from '@nestjs/graphql'
-import {
-  ContentFeedbackSite,
-  ContentFeedbackType,
-} from '../../Database/Entities/types/IFeedback'
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
+import { Max, Min } from 'class-validator'
+import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @ObjectType()
 export class Content {
@@ -11,6 +9,18 @@ export class Content {
 
   @Field()
   output!: string
+}
+
+@ArgsType()
+export class RatingArgs {
+  @Field(() => String)
+  contentId!: string
+
+  @Field(() => String, { nullable: true })
+  userId?: string
+
+  @Field(() => String, { nullable: true })
+  ip?: string
 }
 
 @ArgsType()
@@ -32,14 +42,16 @@ export class ContentFeedbackArgs {
   @Field(() => String, { nullable: true })
   message?: string
 
+  @Min(1)
+  @Max(5)
+  @Field(() => Int, { nullable: true })
+  rating?: number
+
   @Field(() => String, { nullable: true })
   input?: string
 
   @Field(() => String, { nullable: true })
   output?: string
-
-  @Field(() => ContentFeedbackType, { nullable: true })
-  feedback = ContentFeedbackType.NEUTRAL
 
   @Field(() => String, { nullable: true })
   reportType?: string
