@@ -60,7 +60,7 @@ class Feedback {
   content?: Content[]
 
   @Field()
-  @Column('integer')
+  @Column('integer', { nullable: true })
   rating!: number
 }
 

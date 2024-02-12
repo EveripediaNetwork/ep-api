@@ -2,7 +2,6 @@
   "name": "ep-api",
   "private": true,
   "version": "0.0.1",
-  "license": "CC-BY-NC-SA-4.0",
   "description": "Everipedia API",
   "scripts": {
     "prepare": "husky install",
