@@ -17,7 +17,7 @@ const contentCheckDate = 1699269216 // 6/11/23
 class PinService {
   constructor(
     private activityRepository: ActivityRepository,
-    private pinateService: PinataService,
+    private pinataService: PinataService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private metadataChanges: MetadataChangesService,
@@ -36,84 +36,118 @@ class PinService {
     const pinImageToPinata = async (
       data: typeof readableStreamForFile,
       option: typeof options,
-    ) => this.pinateService.getPinataInstance().pinFileToIPFS(data, option)
+    ) => this.pinataService.getPinataInstance().pinFileToIPFS(data, option)
 
     try {
       const res = await pinImageToPinata(readableStreamForFile, options)
       return res
-    } catch (e) {
-      return e
+    } catch (error) {
+      console.error('Media Error:', error)
+      return { error: 'Media Error' }
     }
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const wikiObject: WikiType = JSON.parse(body)
-    const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
+    console.log('Received JSON body:', body)
 
-    const isDataValid = await this.validator.validate(wikiData, true)
+    try {
+      const wikiObject: WikiType = JSON.parse(body)
+      const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
+      const isTimeoutError = (
+        error: unknown,
+      ): error is NodeJS.ErrnoException => {
+        return (
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'ETIMEOUT'
+        )
+      }
 
-    let isContentSecure
+      const isDataValid = await this.validator.validate(wikiData, true)
 
-    const wikiDate = wikiObject.created
-      ? Math.floor(new Date(wikiObject.created).getTime() / 1000)
-      : null
+      let isContentSecure
 
-    if (!wikiObject.created) {
-      isContentSecure = await this.testSecurity.checkContent(wikiData)
-    }
+      const wikiDate = wikiObject.created
+        ? Math.floor(new Date(wikiObject.created).getTime() / 1000)
+        : null
 
-    if (!isDataValid.status || (isContentSecure && !isContentSecure.status)) {
-      const errorMessage = !isDataValid.status
-        ? isDataValid.message
-        : isContentSecure?.message
+      if (!wikiObject.created) {
+        isContentSecure = await this.testSecurity.checkContent(wikiData)
+      }
 
-      this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
-        title: errorMessage,
-        description: isContentSecure?.match,
-        content: (!isContentSecure?.status || !isDataValid.status) && wikiData,
-      } as unknown as WebhookPayload)
+      if (
+        !isDataValid ||
+        !isDataValid.status ||
+        (isContentSecure && !isContentSecure.status)
+      ) {
+        const errorMessage = !isDataValid.status
+          ? isDataValid.message
+          : isContentSecure?.message
+
+        this.pinJSONErrorWebhook.postWebhook(ActionTypes.PINJSON_ERROR, {
+          title: errorMessage,
+          description: isContentSecure?.match,
+          content:
+            (!isContentSecure?.status || !isDataValid.status) && wikiData,
+        } as unknown as WebhookPayload)
+
+        if (isTimeoutError(errorMessage)) {
+          console.error('API Timeout:', errorMessage)
+          return { error: 'API Timeout' }
+        }
+
+        if ((errorMessage as string).startsWith('SyntaxError:')) {
+          console.error('JSON Parsing Error:', errorMessage)
+          return { error: 'Invalid JSON Format' }
+        }
+
+        console.error('Media Error:', errorMessage)
+        return { error: 'Media Error' }
+      }
+
       if (wikiDate && wikiDate > contentCheckDate) {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            error: errorMessage,
+            error: 'Invalid wiki date',
           },
           HttpStatus.BAD_REQUEST,
         )
       }
-    }
 
-    const activityResult = await this.activityRepository.countUserActivity(
-      wikiData.user.id,
-      72,
-    )
-
-    if (activityResult > USER_ACTIVITY_LIMIT) {
-      throw new HttpException(
-        {
-          status: HttpStatus.TOO_MANY_REQUESTS,
-          error: ValidatorCodes.GLOBAL_RATE_LIMIT,
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
+      const activityResult = await this.activityRepository.countUserActivity(
+        wikiData.user.id,
+        72,
       )
-    }
 
-    const payload = {
-      pinataMetadata: {
-        name: wikiData.content !== undefined ? wikiData.title : 'image',
-      },
-      pinataContent: {
-        ...wikiData,
-      },
-    }
-    const pinToPinata = async (wikiContent: typeof payload) =>
-      this.pinateService.getPinataInstance().pinJSONToIPFS(wikiContent)
+      if (activityResult > USER_ACTIVITY_LIMIT) {
+        throw new HttpException(
+          {
+            status: HttpStatus.TOO_MANY_REQUESTS,
+            error: ValidatorCodes.GLOBAL_RATE_LIMIT,
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        )
+      }
 
-    try {
+      const payload = {
+        pinataMetadata: {
+          name: wikiData.content !== undefined ? wikiData.title : 'image',
+        },
+        pinataContent: {
+          ...wikiData,
+        },
+      }
+
+      const pinToPinata = async (wikiContent: typeof payload) =>
+        this.pinataService.getPinataInstance().pinJSONToIPFS(wikiContent)
+
       const res = await pinToPinata(payload)
       return res
-    } catch (e) {
-      return e
+    } catch (error) {
+      console.error('Unexpected Error:', error)
+      return { error: 'Unexpected Error' }
     }
   }
 }
