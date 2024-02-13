@@ -15,6 +15,15 @@ export class RatingsCount {
   count!: string
 }
 
+@ObjectType()
+export class RatingsAverage {
+  @Field()
+  contentId!: string
+
+  @Field()
+  average!: number
+}
+
 registerEnumType(ContentFeedbackSite, {
   name: 'ContentFeedbackSite',
 })

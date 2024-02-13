@@ -4,7 +4,10 @@ import { DataSource } from 'typeorm'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ContentFeedbackPayload, RatingArgs } from './contentFeedback.dto'
-import Feedback, { RatingsCount } from '../../Database/Entities/feedback.entity'
+import Feedback, {
+  RatingsAverage,
+  RatingsCount,
+} from '../../Database/Entities/feedback.entity'
 import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
@@ -22,6 +25,20 @@ class ContentFeedbackService {
       return repository.findOneBy({ contentId, userId })
     }
     return repository.findOneBy({ contentId, ip })
+  }
+
+  async averageRating(id: string) {
+    const repository = this.dataSource.getRepository(Feedback)
+    const average = await repository.query(
+      `
+        SELECT "contentId", ROUND(AVG(rating), 2) AS average
+        FROM feedback
+        WHERE "contentId" = $1
+        GROUP BY "contentId";
+    `,
+      [id],
+    )
+    return average[0] as RatingsAverage
   }
 
   async ratingsCount(contentId?: string) {
