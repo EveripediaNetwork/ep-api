@@ -4,7 +4,10 @@ import { DataSource } from 'typeorm'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ContentFeedbackPayload, RatingArgs } from './contentFeedback.dto'
-import Feedback, { RatingsAverage, RatingsCount } from '../../Database/Entities/feedback.entity'
+import Feedback, {
+  RatingsAverage,
+  RatingsCount,
+} from '../../Database/Entities/feedback.entity'
 import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
 
 @Injectable()
