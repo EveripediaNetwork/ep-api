@@ -31,7 +31,7 @@ class ContentFeedbackService {
     const repository = this.dataSource.getRepository(Feedback)
     const average = await repository.query(
       `
-        SELECT "contentId", ROUND(AVG(rating), 2) AS average
+        SELECT "contentId", ROUND(AVG(rating), 2) AS average, count("contentId") as votes
         FROM feedback
         WHERE "contentId" = $1
         GROUP BY "contentId";
@@ -75,6 +75,7 @@ class ContentFeedbackService {
       ip: args.ip,
       input: args.input,
       output: args.output,
+      rating: args.rating,
       userId: args.userId as string,
       contentId: args.contentId as string,
       message: args.message as string,
@@ -87,6 +88,7 @@ class ContentFeedbackService {
         ip: args.ip,
         urlId: args.contentId,
         user: args.userId,
+        rating: args.rating,
         title: args.site,
         reportSubject: args.reportType,
         description: args.message,
