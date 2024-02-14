@@ -39,7 +39,6 @@ class ContentFeedbackResolver {
     @Context() ctx: any,
     @Args() args: ContentFeedbackArgs,
   ) {
-    console.log(args)
     return this.contentFeebackService.postFeedback({
       ...args,
       ip: ctx.req.ip,
