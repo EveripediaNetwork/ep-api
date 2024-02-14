@@ -22,6 +22,9 @@ export class RatingsAverage {
 
   @Field()
   average!: number
+
+  @Field()
+  votes!: number
 }
 
 registerEnumType(ContentFeedbackSite, {

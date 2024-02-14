@@ -209,9 +209,8 @@ export default class WebhookHandler {
       }
 
       if (payload.title === ContentFeedbackSite.IQWIKI) {
-        const clampedRating = Math.max(1, Math.min(payload.rating as number, 5))
-
-        const stars = '⭐'.repeat(clampedRating)
+        const rating = payload.rating as number
+        const stars = '⭐'.repeat(rating)
         const wiki = await wikiRepo.find({
           select: ['title'],
           where: {
@@ -223,11 +222,11 @@ export default class WebhookHandler {
           username: 'IQ Wiki feedback',
           embeds: [
             {
-              color: clampedRating >= 3 ? 0x6beb34 : 0xeb6234,
+              color: rating >= 3 ? 0x6beb34 : 0xeb6234,
               title: `${wiki.length !== 0 ? wiki[0].title : 'invalid title'}`,
               url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
-              description: `${stars}\n\n ${user} rated this wiki ${clampedRating} star${
-                clampedRating > 1 ? 's' : ''
+              description: `${stars}\n\n ${user} rated this wiki ${rating} star${
+                rating > 1 ? 's' : ''
               }`,
               footer: {
                 text: 'IQ.wiki feedback',
