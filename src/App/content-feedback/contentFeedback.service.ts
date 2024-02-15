@@ -27,7 +27,7 @@ class ContentFeedbackService {
     return repository.findOneBy({ contentId, ip })
   }
 
-  async averageRating(id: string) {
+  async averageRating(id: string): Promise<RatingsAverage | null> {
     const repository = this.dataSource.getRepository(Feedback)
     const average = await repository.query(
       `
@@ -38,7 +38,7 @@ class ContentFeedbackService {
     `,
       [id],
     )
-    return average[0] as RatingsAverage
+    return average.length > 0 ? (average[0] as RatingsAverage) : null
   }
 
   async ratingsCount(contentId?: string) {

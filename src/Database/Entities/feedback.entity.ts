@@ -17,14 +17,14 @@ export class RatingsCount {
 
 @ObjectType()
 export class RatingsAverage {
-  @Field()
-  contentId!: string
+  @Field({ nullable: true })
+  contentId?: string
 
-  @Field()
-  average!: number
+  @Field({ nullable: true })
+  average?: number
 
-  @Field()
-  votes!: number
+  @Field({ nullable: true })
+  votes?: number
 }
 
 registerEnumType(ContentFeedbackSite, {
