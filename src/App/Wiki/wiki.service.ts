@@ -321,7 +321,7 @@ class WikiService {
     return foundersWiki.filter((item) => item !== null)
   }
 
-  async getPopularEvents(args: LangArgs): Promise<Events[]>{
+  async getPopularEvents(args: LangArgs): Promise<Events[]> {
     return (await this.repository()).find({
       where: {
         language: { id: args.lang },
@@ -329,7 +329,7 @@ class WikiService {
         views: MoreThan(200),
       },
       order: {
-        views: "DESC",
+        views: 'DESC',
       },
       take: args.limit,
       skip: args.offset,

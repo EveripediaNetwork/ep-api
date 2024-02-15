@@ -101,7 +101,6 @@ class WikiResolver {
     return this.wikiService.getCategoryTotal(args)
   }
 
-
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
