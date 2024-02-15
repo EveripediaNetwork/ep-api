@@ -61,6 +61,7 @@ import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
+import EventsResolver from './Wiki/events.resolver'
 
 // istanbul ignore next
 @Module({
@@ -136,6 +137,7 @@ import UploadController from './Upload/upload.controller'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    EventsResolver,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

@@ -18,6 +18,7 @@ import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
+import Events from '../../Database/Entities/types/IEvents'
 
 @Injectable()
 class WikiService {
@@ -318,6 +319,21 @@ class WikiService {
       }
     }
     return foundersWiki.filter((item) => item !== null)
+  }
+
+  async getPopularEvents(args: LangArgs): Promise<Events[]>{
+    return (await this.repository()).find({
+      where: {
+        language: { id: args.lang },
+        hidden: false,
+        views: MoreThan(200),
+      },
+      order: {
+        views: "DESC",
+      },
+      take: args.limit,
+      skip: args.offset,
+    })
   }
 }
 
