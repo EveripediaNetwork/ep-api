@@ -322,18 +322,18 @@ class WikiService {
   }
 
   async getPopularEvents(args: LangArgs): Promise<Events[]> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        hidden: false,
-        views: MoreThan(200),
-      },
-      order: {
-        views: 'DESC',
-      },
-      take: args.limit,
-      skip: args.offset,
+    const queryBuilder = (await this.repository()).createQueryBuilder("wiki")
+    const wikis = await queryBuilder.where({
+      language: { id: args.lang },
+      hidden: false,
     })
+    .andWhere("EXISTS (SELECT 1 FROM wiki_tags_tag tag WHERE tag.'wikiId' = wiki.id AND tag.name = :tagName", { taeName: "event" })
+    .orderBy("wiki.created", "DESC")
+    .take(args.limit)
+    .skip(args.offset)
+    .getMany()
+
+    return wikis
   }
 }
 
