@@ -13,7 +13,7 @@ import {
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
-} from './wiki.dto' 
+} from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
@@ -322,20 +322,16 @@ class WikiService {
   }
 
   async getPopularEvents(args: LangArgs): Promise<Events[]> {
-    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
-    const wikis = await queryBuilder
-      .where({
-        language: { id: args.lang },
-        hidden: false,
-      })
-      .andWhere(
-        "EXISTS (SELECT 1 FROM wiki_tags_tag tag WHERE tag.'wikiId' = wiki.id AND tag.name = :tagName",
-        { tagName: 'event' },
-      )
-      .orderBy('wiki.created', 'DESC')
-      .take(args.limit)
-      .skip(args.offset)
-      .getMany()
+    const queryBuilder = (await this.repository()).createQueryBuilder("wiki")
+    const wikis = await queryBuilder.where({
+      language: { id: args.lang },
+      hidden: false,
+    })
+    .andWhere("EXISTS (SELECT 1 FROM wiki_tags_tag tag WHERE tag.'wikiId' = wiki.id AND tag.name = :tagName", { tagName: "event" })
+    .orderBy("wiki.created", "DESC")
+    .take(args.limit)
+    .skip(args.offset)
+    .getMany()
 
     return wikis
   }
