@@ -13,7 +13,7 @@ import {
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
-} from './wiki.dto'
+} from './wiki.dto' 
 import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
