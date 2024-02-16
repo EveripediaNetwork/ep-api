@@ -1,6 +1,14 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Between, DataSource, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
+import {
+  Between,
+  DataSource,
+  LessThan,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -356,7 +364,7 @@ class WikiService {
       )
     } else if (args.startDate) {
       whereCondition.updated = MoreThanOrEqual(new Date(args.startDate * 1000))
-    } else if (args.endDate){
+    } else if (args.endDate) {
       whereCondition.updated = LessThanOrEqual(new Date(args.endDate * 1000))
     }
 
