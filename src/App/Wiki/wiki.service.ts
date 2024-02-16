@@ -1,6 +1,6 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { DataSource, MoreThan, Repository } from 'typeorm'
+import { Between, DataSource, MoreThan, Repository } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -332,6 +332,32 @@ class WikiService {
         "EXISTS (SELECT 1 FROM wiki_tags_tag tag WHERE tag.'wikiId' = wiki.id AND tag.name = :tagName",
         { tagName: 'event' },
       )
+      .orderBy('wiki.created', 'DESC')
+      .take(args.limit)
+      .skip(args.offset)
+      .getMany()
+
+    return wikis
+  }
+
+  async searchEvents(args: LangArgs & DateArgs): Promise<Events[]> {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    const whereCondition: Record<string, any> = {
+      language: { id: args.lang },
+      hidden: false,
+      tags: { some: [{ name: 'event' }] },
+    }
+
+    if (args.startDate && args.endDate) {
+      whereCondition.updated = Between(
+        new Date(args.startDate * 1000),
+        new Date(args.endDate * 1000),
+      )
+    }
+
+    const wikis = await queryBuilder
+      .where(whereCondition)
       .orderBy('wiki.created', 'DESC')
       .take(args.limit)
       .skip(args.offset)
