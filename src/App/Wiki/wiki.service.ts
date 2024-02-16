@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import {
   Between,
   DataSource,
-  LessThan,
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
