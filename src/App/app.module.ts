@@ -62,6 +62,7 @@ import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
 import EventsResolver from './Wiki/events.resolver'
+import TagRepository from './Tag/tag.repository'
 
 // istanbul ignore next
 @Module({
@@ -116,6 +117,7 @@ import EventsResolver from './Wiki/events.resolver'
     LanguageResolver,
     CategoryResolver,
     CategoryService,
+    TagRepository,
     TagResolver,
     TagService,
     UserResolver,

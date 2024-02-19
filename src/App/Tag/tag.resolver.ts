@@ -2,7 +2,6 @@ import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
-import Wiki from '../../Database/Entities/wiki.entity'
 import { ITag } from '../../Database/Entities/types/ITag'
 import TagService from './tag.service'
 import TagIDArgs from './tag.dto'
@@ -36,18 +35,7 @@ class TagResolver {
   @ResolveField()
   async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
     const { id } = tag
-    const repository = this.dataSource.getRepository(Wiki)
-
-    return repository
-      .createQueryBuilder('wiki')
-      .innerJoin('wiki.tags', 'tag', 'tag.id ILIKE :tagId', {
-        tagId: id,
-      })
-      .where('wiki.hidden = false')
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('wiki.updated', 'DESC')
-      .getMany()
+    return this.service.wikis([id], args)
   }
 }
 
