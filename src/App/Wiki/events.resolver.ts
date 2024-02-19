@@ -32,7 +32,7 @@ class EventsResolver {
     return this.wikiService.getWikisByCategory(
       { category: args.categoryId } as CategoryArgs,
       args,
-    ) 
+    )
   }
 
   @Query(() => [Wiki])
@@ -40,7 +40,7 @@ class EventsResolver {
     return this.wikiService.getWikisByTitle(
       { title: args.title } as TitleArgs,
       args,
-    ) 
+    )
   }
 
   // @Query(() => [Wiki], { nullable: true })

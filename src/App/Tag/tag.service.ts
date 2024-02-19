@@ -44,7 +44,7 @@ class TagService {
       .createQueryBuilder('wiki')
       .innerJoin('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map(tag => tag.toLowerCase()),
+        tags: ids.map((tag) => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .limit(args.limit)
