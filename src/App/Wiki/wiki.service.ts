@@ -1,11 +1,6 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import {
-  DataSource,
-  MoreThan,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm'
+import { DataSource, MoreThan, Repository, SelectQueryBuilder } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'

@@ -1,5 +1,11 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
-import { CategoryArgs, EventArgs, LangArgs, TitleArgs, eventTag } from './wiki.dto'
+import {
+  CategoryArgs,
+  EventArgs,
+  LangArgs,
+  TitleArgs,
+  eventTag,
+} from './wiki.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import TagService from '../Tag/tag.service'
 import WikiService from './wiki.service'
