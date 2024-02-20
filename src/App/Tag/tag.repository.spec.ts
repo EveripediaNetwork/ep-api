@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
-import TagService from './tag.service'
 import PaginationArgs from '../pagination.args'
 import TagIDArgs from './tag.dto'
 import Tag from '../../Database/Entities/tag.entity'
 import { ArgsById } from '../general.args'
+import TagRepository from './tag.repository'
 
-describe('TagService', () => {
-  let service: TagService
+describe('TagRepository', () => {
+  let repo: TagRepository
 
   let dataSource: {
     createEntityManager: jest.Mock
@@ -20,7 +20,7 @@ describe('TagService', () => {
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
-        TagService,
+        TagRepository,
         {
           provide: DataSource,
           useValue: dataSource,
@@ -28,32 +28,32 @@ describe('TagService', () => {
       ],
     }).compile()
 
-    service = moduleRef.get<TagService>(TagService)
+    repo = moduleRef.get<TagRepository>(TagRepository)
   })
 
   it('should be defined', () => {
-    expect(service).toBeDefined()
+    expect(repo).toBeDefined()
   })
 
-  describe('getTags', () => {
+  describe('findTags', () => {
     it('should get tags with pagination', async () => {
       const args: PaginationArgs = {
         offset: 0,
         limit: 10,
       }
 
-      jest.spyOn(service, 'find').mockResolvedValue([new Tag()])
+      jest.spyOn(repo, 'find').mockResolvedValue([new Tag()])
 
-      await service.getTags(args)
+      await repo.findTags(args)
 
-      expect(service.find).toHaveBeenCalledWith({
+      expect(repo.find).toHaveBeenCalledWith({
         take: args.limit,
         skip: args.offset,
       })
     })
   })
 
-  describe('getTagById', () => {
+  describe('findTagById', () => {
     it('should get a tag by ID and wikis using the tag', async () => {
       const args: ArgsById = {
         id: '123',
@@ -65,20 +65,20 @@ describe('TagService', () => {
       }
 
       jest
-        .spyOn(service, 'createQueryBuilder')
+        .spyOn(repo, 'createQueryBuilder')
         .mockImplementation(() => createQueryBuilder)
 
-      await service.getTagById(args)
+      await repo.findTagById(args)
 
-      expect(service.createQueryBuilder).toHaveBeenCalled()
-      expect(service.createQueryBuilder().where).toHaveBeenCalledWith(
+      expect(repo.createQueryBuilder).toHaveBeenCalled()
+      expect(repo.createQueryBuilder().where).toHaveBeenCalledWith(
         'tag.id ILIKE :id',
         { id: args.id },
       )
     })
   })
 
-  describe('getTagsById', () => {
+  describe('findTagsById', () => {
     it('should get tags by ID with pagination', async () => {
       const args: TagIDArgs = {
         id: '123',
@@ -95,18 +95,18 @@ describe('TagService', () => {
       }
 
       jest
-        .spyOn(service, 'createQueryBuilder')
+        .spyOn(repo, 'createQueryBuilder')
         .mockImplementation(() => createQueryBuilder)
 
-      await service.getTagsById(args)
+      await repo.findTagsById(args)
 
-      expect(service.createQueryBuilder).toHaveBeenCalled()
-      expect(service.createQueryBuilder().where).toHaveBeenCalledWith(
+      expect(repo.createQueryBuilder).toHaveBeenCalled()
+      expect(repo.createQueryBuilder().where).toHaveBeenCalledWith(
         'LOWER(tag.id) LIKE :id',
         { id: `%${args.id.toLowerCase()}%` },
       )
-      expect(service.createQueryBuilder).toHaveBeenCalledWith('tag')
-      expect(service.createQueryBuilder().orderBy).toHaveBeenCalledWith(
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('tag')
+      expect(repo.createQueryBuilder().orderBy).toHaveBeenCalledWith(
         'tag.id',
         'DESC',
       )

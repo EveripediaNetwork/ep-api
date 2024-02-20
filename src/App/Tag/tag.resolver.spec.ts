@@ -30,7 +30,17 @@ describe('TagResolver', () => {
         }),
       ],
       providers: [
-        ...getProviders([ProviderEnum.tagResolver, ProviderEnum.tagService]),
+        ...getProviders([
+          ProviderEnum.tagResolver,
+          ProviderEnum.tagService,
+          ProviderEnum.wikiService,
+          ProviderEnum.validSlug,
+          ProviderEnum.configService,
+          ProviderEnum.tagRepository,
+
+          ProviderEnum.webhookHandler,
+          ProviderEnum.discordWebhookService,
+        ]),
         {
           provide: DataSource,
           useValue: dataSource,

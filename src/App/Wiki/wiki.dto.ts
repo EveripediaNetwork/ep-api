@@ -5,6 +5,9 @@ import ValidStringParams from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
 
+export const eventTag = 'events'
+export const eventDate = 'EVENT'
+
 @ArgsType()
 export class LangArgs extends PaginationArgs {
   @Field(() => String)
@@ -57,4 +60,30 @@ export class WikiUrl {
   @Field(() => String)
   @Validate(ValidStringParams)
   wiki!: string
+}
+
+@ArgsType()
+export class EventArgs extends LangArgs {
+  @Field(() => [String], { nullable: true })
+  @Validate(ValidStringParams)
+  ids?: string[]
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  startDate?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  endDate?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  categoryId?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  title?: string
+
+  @Field(() => Boolean)
+  hidden = false
 }
