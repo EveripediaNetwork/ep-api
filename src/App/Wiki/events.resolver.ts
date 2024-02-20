@@ -1,5 +1,5 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
-import { CategoryArgs, EventArgs, TitleArgs, eventTag } from './wiki.dto'
+import { CategoryArgs, EventArgs, LangArgs, TitleArgs, eventTag } from './wiki.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import TagService from '../Tag/tag.service'
 import WikiService from './wiki.service'
@@ -43,10 +43,10 @@ class EventsResolver {
     )
   }
 
-  // @Query(() => [Wiki], { nullable: true })
-  // async popularEvents(@Args() args: LangArgs): Promise<Wiki[]> {
-  //   return this.wikiService.getPopularEvents(args)
-  // }
+  @Query(() => [Wiki], { nullable: true })
+  async popularEvents(@Args() args: LangArgs): Promise<Wiki[]> {
+    return this.wikiService.getPopularEvents(args)
+  }
 }
 
 export default EventsResolver

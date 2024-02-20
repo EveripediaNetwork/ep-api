@@ -1,11 +1,8 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
-  Between,
   DataSource,
-  LessThanOrEqual,
   MoreThan,
-  MoreThanOrEqual,
   Repository,
   SelectQueryBuilder,
 } from 'typeorm'
@@ -28,7 +25,6 @@ import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
-import Events from '../../Database/Entities/types/IEvents'
 
 @Injectable()
 class WikiService {
@@ -396,44 +392,14 @@ class WikiService {
     return foundersWiki.filter((item) => item !== null)
   }
 
-  async getPopularEvents() {
+  async getPopularEvents(args: LangArgs) {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
     const wikis = await queryBuilder
       .innerJoin('wiki.tags', 'tag')
-      .innerJoin('wiki.categories', 'category')
-      .where('tag.id = :tagId', { tagId: 'Founders' })
-      .andWhere('category.id = :categoryId', { categoryId: 'cryptocurrencies' })
+      .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .orderBy('views', 'DESC')
-      .getMany()
-
-    return wikis
-  }
-
-  async searchEvents(args: LangArgs & DateArgs): Promise<Events[]> {
-    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
-
-    const whereCondition: Record<string, any> = {
-      language: { id: args.lang },
-      hidden: false,
-      tags: { some: [{ name: 'event' }] },
-    }
-
-    if (args.startDate && args.endDate) {
-      whereCondition.updated = Between(
-        new Date(args.startDate * 1000),
-        new Date(args.endDate * 1000),
-      )
-    } else if (args.startDate) {
-      whereCondition.updated = MoreThanOrEqual(new Date(args.startDate * 1000))
-    } else if (args.endDate) {
-      whereCondition.updated = LessThanOrEqual(new Date(args.endDate * 1000))
-    }
-
-    const wikis = await queryBuilder
-      .where(whereCondition)
-      .orderBy('wiki.created', 'DESC')
-      .take(args.limit)
-      .skip(args.offset)
+      .limit(args.limit)
+      .offset(args.offset)
       .getMany()
 
     return wikis

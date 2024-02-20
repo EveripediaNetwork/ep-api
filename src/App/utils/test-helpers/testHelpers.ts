@@ -39,12 +39,14 @@ import CategoryService from '../../Category/category.service'
 import TagService from '../../Tag/tag.service'
 import AutoInjestService from '../auto-injest'
 import DiscordWebhookService from '../discordWebhookService'
+import TagRepository from '../../Tag/tag.repository'
 
 export const providerObjects = {
   validSlug: ValidSlug,
   runCommand: RunCommand,
   tagService: TagService,
   tagResolver: TagResolver,
+  tagRepository: TagRepository,
   wikiService: WikiService,
   userService: UserService,
   userResolver: UserResolver,
@@ -89,6 +91,7 @@ export enum ProviderEnum {
   runCommand = 'runCommand',
   tagService = 'tagService',
   tagResolver = 'tagResolver',
+  tagRepository = 'tagRepository',
   wikiService = 'wikiService',
   userService = 'userService',
   userResolver = 'userResolver',
