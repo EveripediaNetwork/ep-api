@@ -399,6 +399,8 @@ class WikiService {
 
     return wikis
   }
+
+  // async getNearbyEvents ()
 }
 
 export default WikiService
