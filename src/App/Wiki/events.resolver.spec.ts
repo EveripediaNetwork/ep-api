@@ -59,6 +59,24 @@ describe('EventsResolver', () => {
 
       expect(result).toEqual(expectedEvents)
     })
+
+    it("should handle missing argument", async () => {
+      const args: EventArgs = {
+        limit: 10,
+        offset: 0,
+        startDate: '2024-01-01',
+        endDate: '2024-02-01',
+        ids: ['id1', 'id2', 'id3'],
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+
+      const result = await eventsResolver.events(args)
+      expect(result).toEqual([])
+
+    })
   })
 
   describe('wikiEventsByCategory', () => {
@@ -78,6 +96,20 @@ describe('EventsResolver', () => {
       const result = await eventsResolver.wikiEventsByCategory(args)
 
       expect(result).toEqual(expectedEvents)
+    })
+
+    it("should handle missing arguments", async () => {
+      const args: EventArgs = {
+        limit: 10,
+        offset: 0,
+        categoryId: 'category_id',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual([])
     })
   })
 
