@@ -50,7 +50,7 @@ class TagService {
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
-    if (dates) {
+    if (dates?.start && dates.end) {
       query = await this.wikiService.eventsFilter(query, dates, true)
     }
     return query.getMany()
