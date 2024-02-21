@@ -60,7 +60,7 @@ describe('EventsResolver', () => {
       expect(result).toEqual(expectedEvents)
     })
 
-    it("should handle missing argument", async () => {
+    it('should handle missing argument', async () => {
       const args: EventArgs = {
         limit: 10,
         offset: 0,
@@ -75,7 +75,6 @@ describe('EventsResolver', () => {
 
       const result = await eventsResolver.events(args)
       expect(result).toEqual([])
-
     })
   })
 
@@ -98,7 +97,7 @@ describe('EventsResolver', () => {
       expect(result).toEqual(expectedEvents)
     })
 
-    it("should handle missing arguments", async () => {
+    it('should handle missing arguments', async () => {
       const args: EventArgs = {
         limit: 10,
         offset: 0,
