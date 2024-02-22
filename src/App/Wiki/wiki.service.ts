@@ -292,7 +292,9 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (await this.repository())
+        await (
+          await this.repository()
+        )
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -300,7 +302,9 @@ class WikiService {
           .execute()
       }
 
-      await (await this.repository())
+      await (
+        await this.repository()
+      )
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -313,7 +317,9 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -324,7 +330,9 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (await this.repository())
+    await (
+      await this.repository()
+    )
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -350,7 +358,9 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (await this.repository())
+    const response = await (
+      await this.repository()
+    )
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
@@ -374,7 +384,7 @@ class WikiService {
         foundersWiki.push(f)
       }
     }
-    return foundersWiki.filter(item => item !== null)
+    return foundersWiki.filter((item) => item !== null)
   }
 
   async getPopularEvents(args: LangArgs) {
