@@ -113,7 +113,6 @@ describe('EventsResolver', () => {
     })
   })
 
-
   describe('popularEvents', () => {
     it('should return an array of popular events', async () => {
       const args: LangArgs = {
