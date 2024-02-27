@@ -3,6 +3,7 @@ import {
   CategoryArgs,
   EventArgs,
   LangArgs,
+  NearByEventsArgs,
   TitleArgs,
   eventTag,
 } from './wiki.dto'
@@ -52,6 +53,11 @@ class EventsResolver {
   @Query(() => [Wiki], { nullable: true })
   async popularEvents(@Args() args: LangArgs): Promise<Wiki[]> {
     return this.wikiService.getPopularEvents(args)
+  }
+
+  @Query(() => [Wiki], { nullable: true })
+  async nearbyEvents(@Args() args: NearByEventsArgs) {
+    return this.wikiService.getNearbyEvents(args)
   }
 }
 
