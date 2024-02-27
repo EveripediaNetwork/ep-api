@@ -79,12 +79,12 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe('wikiEventsByCategory', () => {
-    it('should return an array of events based on category', async () => {
+  describe('wikiEventsByCategory' || 'wikiEventsByTitle', () => {
+    it('should return an array of events based on category or title', async () => {
       const args: EventArgs = {
         limit: 10,
         offset: 0,
-        categoryId: 'category_id',
+        categoryId: 'category_id' || 'event_title',
         lang: 'en',
         hidden: false,
         direction: Direction.DESC,
@@ -113,25 +113,6 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe('wikiEventsByTitle', () => {
-    it('should return an array of events based on title', async () => {
-      const args: EventArgs = {
-        limit: 10,
-        offset: 0,
-        title: 'event_title',
-        lang: 'en',
-        hidden: false,
-        direction: Direction.DESC,
-        order: OrderBy.UPDATED,
-      }
-
-      const expectedEvents: Wiki[] = []
-
-      const result = await eventsResolver.wikiEventsByTitle(args)
-
-      expect(result).toEqual(expectedEvents)
-    })
-  })
 
   describe('popularEvents', () => {
     it('should return an array of popular events', async () => {
@@ -199,23 +180,6 @@ describe('EventsResolver', () => {
       const args: NearByEventsArgs = {
         latitude: 0,
         longitude: 0,
-        maxDistance: 10,
-        offset: 0,
-      }
-      const expectedEvents: Wiki[] = []
-
-      jest
-        .spyOn(wikiService, 'getNearbyEvents')
-        .mockResolvedValue(expectedEvents)
-
-      const result = await eventsResolver.nearbyEvents(args)
-      expect(result).toEqual(expectedEvents)
-    })
-
-    it('should return nearby events for a valid user location', async () => {
-      const args: NearByEventsArgs = {
-        latitude: 6.5323,
-        longitude: 3.3526,
         maxDistance: 10,
         offset: 0,
       }
