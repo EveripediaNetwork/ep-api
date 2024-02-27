@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
+import { ArgsType, Field, Float, Int, ObjectType } from '@nestjs/graphql'
 import { MinLength, Validate } from 'class-validator'
 import ValidStringParams from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
@@ -86,4 +86,22 @@ export class EventArgs extends LangArgs {
 
   @Field(() => Boolean)
   hidden = false
+}
+
+@ArgsType()
+export class NearByEventsArgs {
+  @Field(() => Float)
+  latitude?: number
+
+  @Field(() => Float)
+  longitude?: number
+
+  @Field(() => Int, { defaultValue: 10 })
+  maxDistance?: number
+
+  @Field(() => Int)
+  limit?: number
+
+  @Field(() => Int)
+  offset?: number  
 }

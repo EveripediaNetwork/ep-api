@@ -3,7 +3,7 @@ import EventsResolver from './events.resolver'
 import WikiService from './wiki.service'
 import TagService from '../Tag/tag.service'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { EventArgs, LangArgs } from './wiki.dto'
+import { EventArgs, LangArgs, NearByEventsArgs } from './wiki.dto'
 import { Direction, OrderBy } from '../general.args'
 
 describe('EventsResolver', () => {
@@ -21,6 +21,7 @@ describe('EventsResolver', () => {
             getWikisByCategory: jest.fn().mockResolvedValue([]),
             getWikisByTitle: jest.fn().mockResolvedValue([]),
             getPopularEvents: jest.fn().mockResolvedValue([]),
+            getNearbyEvents: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -156,5 +157,68 @@ describe('EventsResolver', () => {
 
   afterEach(() => {
     jest.restoreAllMocks()
+  })
+
+  describe("nearbyEvents", () => {
+    it("should return nearby events", async () => {
+      const args: NearByEventsArgs = {
+        latitude: 6.5323,
+        longitude: 3.3526,
+        maxDistance: 10,
+        offset: 0
+      }
+
+      const expectedEvents: Wiki[] = []
+
+      jest.spyOn(wikiService, "getNearbyEvents").mockResolvedValue(expectedEvents)
+
+      const result = await eventsResolver.nearbyEvents(args)
+      expect(result).toEqual(expectedEvents)
+    })
+
+    it("should not include events beyond the maximum distance", async () => {
+      const args: NearByEventsArgs = {
+        latitude: 6.5323,
+        longitude: 3.3526,
+        maxDistance: 1,
+        offset: 0,
+      }
+      const expectedEvents: Wiki[] = []
+
+      jest.spyOn(wikiService, "getNearbyEvents").mockResolvedValue(expectedEvents)
+
+      const result = await eventsResolver.nearbyEvents(args)
+      expect(result).toEqual([])
+    })
+    
+    it("should return an empty array for no nearby events", async () => {
+      const args: NearByEventsArgs = {
+        latitude: 0,
+        longitude: 0,
+        maxDistance: 10,
+        offset: 0,
+      }
+      const expectedEvents: Wiki[] = []
+
+      jest.spyOn(wikiService, "getNearbyEvents").mockResolvedValue(expectedEvents)
+
+      const result = await eventsResolver.nearbyEvents(args)
+      expect(result).toEqual(expectedEvents)
+    })
+
+    it("should return nearby events for a valid user location", async () => {
+      const args: NearByEventsArgs = {
+        latitude: 6.5323,
+        longitude: 3.3526,
+        maxDistance: 10,
+        offset: 0,
+      }
+      const expectedEvents: Wiki[] = []
+
+      jest.spyOn(wikiService, "getNearbyEvents").mockResolvedValue(expectedEvents)
+
+      const result = await eventsResolver.nearbyEvents(args)
+      expect(result).toEqual(expectedEvents)
+    })
   })
 })

@@ -147,6 +147,12 @@ class Wiki {
       this.media = []
     }
   }
+
+  @Column({ type: "double precision", nullable: true })
+  latitude?: number
+
+  @Column({ type: "double precision", nullable: true })
+  longitude?: number
 }
 
 export default Wiki

@@ -11,6 +11,7 @@ import {
   CategoryArgs,
   EventArgs,
   LangArgs,
+  NearByEventsArgs,
   PromoteWikiArgs,
   TitleArgs,
   WikiUrl,
@@ -398,6 +399,22 @@ class WikiService {
       .getMany()
 
     return wikis
+  }
+
+  async getNearbyEvents(args: NearByEventsArgs): Promise<Wiki[] | []> {
+    const { latitude, longitude } = args
+
+    const nearbyWikis = await (await this.repository()).query(`
+    SELECT *
+    FROM wiki
+    WHERE
+    earth_box(11_to_earth($1, $2), $3) @> 11_to_earth(latitude, longitude)
+    AND earth_distance(11_to_earth($1, $2), 11_to_earth(longitude, latitude)) <= $3
+    ORDER BY earth_distance(11_to_earth($1, $2), 11_to_earth(latitude, longitude))
+    LIMIT $4
+    OFFSET $5
+    `, [latitude, longitude, args.maxDistance, args.offset, args.limit])
+    return nearbyWikis
   }
 }
 
