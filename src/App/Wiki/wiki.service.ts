@@ -404,7 +404,10 @@ class WikiService {
   async getNearbyEvents(args: NearByEventsArgs): Promise<Wiki[] | []> {
     const { latitude, longitude } = args
 
-    const nearbyWikis = await (await this.repository()).query(`
+    const nearbyWikis = await (
+      await this.repository()
+    ).query(
+      `
     SELECT *
     FROM wiki
     WHERE
@@ -413,7 +416,9 @@ class WikiService {
     ORDER BY earth_distance(11_to_earth($1, $2), 11_to_earth(latitude, longitude))
     LIMIT $4
     OFFSET $5
-    `, [latitude, longitude, args.maxDistance, args.offset, args.limit])
+    `,
+      [latitude, longitude, args.maxDistance, args.offset, args.limit],
+    )
     return nearbyWikis
   }
 }

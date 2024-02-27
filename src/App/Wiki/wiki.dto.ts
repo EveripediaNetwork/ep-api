@@ -103,5 +103,5 @@ export class NearByEventsArgs {
   limit?: number
 
   @Field(() => Int)
-  offset?: number  
+  offset?: number
 }
