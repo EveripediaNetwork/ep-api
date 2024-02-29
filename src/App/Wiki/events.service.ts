@@ -121,7 +121,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map(tag => tag.toLowerCase()),
+        tags: ids.map((tag) => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', {
@@ -133,7 +133,7 @@ class EventsService {
       .orderBy('wiki.updated', 'DESC')
 
     if (ids && ids.length > 1) {
-      const lowerCaseIds = ids.map(tag => tag.toLowerCase())
+      const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
       let mainQuery = `
           SELECT "subquery".*
           FROM (

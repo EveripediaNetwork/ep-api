@@ -1,9 +1,4 @@
-import {
-  Args,
-  Context,
-  Query,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Context, Query, Resolver } from '@nestjs/graphql'
 import {
   CategoryArgs,
   EventArgs,
@@ -15,19 +10,18 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from './wiki.service'
 import EventsService, { EventObj } from './events.service'
 
-
 @Resolver('Event')
 class EventsResolver {
   constructor(
     private readonly wikiService: WikiService,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
   ) {}
 
   @Query(() => [EventObj], { nullable: true })
   async events(@Args() args: EventArgs, @Context() context: any) {
     const { req } = context
     const { query } = req.body
-    
+
     const events = await this.eventsService.events(
       [eventTag, ...(args.ids || [])],
       {
