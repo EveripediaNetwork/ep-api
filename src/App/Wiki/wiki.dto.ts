@@ -66,7 +66,7 @@ export class WikiUrl {
 export class EventArgs extends LangArgs {
   @Field(() => [String], { nullable: true })
   @Validate(ValidStringParams)
-  ids?: string[]
+  tagIds?: string[]
 
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)

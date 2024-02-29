@@ -23,7 +23,7 @@ class EventsResolver {
     const { query } = req.body
 
     const events = await this.eventsService.events(
-      [eventTag, ...(args.ids || [])],
+      [eventTag, ...(args.tagIds || [])],
       {
         limit: args.limit,
         offset: args.offset,
