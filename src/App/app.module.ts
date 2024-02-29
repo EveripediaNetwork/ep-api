@@ -63,6 +63,7 @@ import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
 import EventsResolver from './Wiki/events.resolver'
 import TagRepository from './Tag/tag.repository'
+import EventsService from './Wiki/events.service'
 
 // istanbul ignore next
 @Module({
@@ -140,6 +141,7 @@ import TagRepository from './Tag/tag.repository'
     MarketCapService,
     SentryPlugin,
     EventsResolver,
+    EventsService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

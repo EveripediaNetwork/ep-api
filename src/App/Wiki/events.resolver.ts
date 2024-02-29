@@ -1,4 +1,9 @@
-import { Args, Query, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Query,
+  Resolver,
+} from '@nestjs/graphql'
 import {
   CategoryArgs,
   EventArgs,
@@ -7,19 +12,23 @@ import {
   eventTag,
 } from './wiki.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
-import TagService from '../Tag/tag.service'
 import WikiService from './wiki.service'
+import EventsService, { EventObj } from './events.service'
+
 
 @Resolver('Event')
 class EventsResolver {
   constructor(
     private readonly wikiService: WikiService,
-    private readonly tagService: TagService,
+    private readonly eventsService: EventsService
   ) {}
 
-  @Query(() => [Wiki], { nullable: true })
-  async events(@Args() args: EventArgs) {
-    const events = await this.tagService.wikis(
+  @Query(() => [EventObj], { nullable: true })
+  async events(@Args() args: EventArgs, @Context() context: any) {
+    const { req } = context
+    const { query } = req.body
+    
+    const events = await this.eventsService.events(
       [eventTag, ...(args.ids || [])],
       {
         limit: args.limit,
@@ -30,7 +39,8 @@ class EventsResolver {
         end: args.endDate as string,
       },
     )
-    return events
+
+    return this.eventsService.resolveWikiRelations(events, query)
   }
 
   @Query(() => [Wiki])
@@ -50,8 +60,13 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki], { nullable: true })
-  async popularEvents(@Args() args: LangArgs): Promise<Wiki[]> {
+  async popularEvents(@Args() args: LangArgs) {
     return this.wikiService.getPopularEvents(args)
+  }
+
+  @Query(() => [Wiki], { nullable: true })
+  async eventsByBlockchain(@Args() args: EventArgs) {
+    return this.eventsService.getEventsByBlockchain(args)
   }
 }
 

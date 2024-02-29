@@ -35,7 +35,7 @@ class TagResolver {
   @ResolveField()
   async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
     const { id } = tag
-    return this.service.wikis([id], args)
+    return this.service.wikis(id, args)
   }
 }
 
