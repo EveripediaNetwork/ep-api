@@ -84,6 +84,10 @@ export class EventArgs extends LangArgs {
   @Validate(ValidStringParams)
   title?: string
 
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  blockchain?: string
+
   @Field(() => Boolean)
   hidden = false
 }

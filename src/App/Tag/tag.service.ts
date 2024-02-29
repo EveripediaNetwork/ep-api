@@ -7,15 +7,10 @@ import { DateArgs } from '../Wiki/wikiStats.dto'
 import { ArgsById } from '../general.args'
 import TagRepository from './tag.repository'
 import Wiki from '../../Database/Entities/wiki.entity'
-import WikiService from '../Wiki/wiki.service'
 
 @Injectable()
 class TagService {
-  constructor(
-    private dataSource: DataSource,
-    private tagRepo: TagRepository,
-    private wikiService: WikiService,
-  ) {}
+  constructor(private dataSource: DataSource, private tagRepo: TagRepository) {}
 
   async getTags(args: PaginationArgs): Promise<Tag[]> {
     return this.tagRepo.findTags(args)
@@ -33,27 +28,30 @@ class TagService {
     return this.tagRepo.findTagsPopular(args)
   }
 
-  async wikis(
-    ids: string[],
-    args: PaginationArgs,
-    dates?: { start: string; end: string },
-  ) {
-    const repository = this.dataSource.getRepository(Wiki)
+  async wikiTags(wikiId: string) {
+    const repository = this.dataSource.getRepository(Tag)
 
-    let query = repository
+    return repository
+      .createQueryBuilder()
+      .select('wiki_tag.tagId', 'id')
+      .from('wiki_tags_tag', 'wiki_tag')
+      .where('wiki_tag.wikiId = :id', { id: wikiId })
+      .groupBy('wiki_tag.tagId')
+      .getRawMany()
+  }
+
+  async wikis(id: string, args: PaginationArgs) {
+    const repository = this.dataSource.getRepository(Wiki)
+    return repository
       .createQueryBuilder('wiki')
-      .innerJoin('wiki.tags', 'tag')
-      .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+      .innerJoin('wiki.tags', 'tag', 'tag.id ILIKE :tagId', {
+        tagId: id,
       })
-      .andWhere('wiki.hidden = false')
+      .where('wiki.hidden = false')
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
-    if (dates?.start && dates.end) {
-      query = await this.wikiService.eventsFilter(query, dates, true)
-    }
-    return query.getMany()
+      .getMany()
   }
 }
 
