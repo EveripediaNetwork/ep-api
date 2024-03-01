@@ -154,25 +154,22 @@ class WikiService {
   eventsFilter(
     query: SelectQueryBuilder<Wiki>,
     dates?: { start: string; end: string },
-    datesOnly = false,
   ): SelectQueryBuilder<Wiki> {
     const dateFilter = `wiki.events->0->>'date' BETWEEN :start AND :end`
+    const datesFrom = `wiki.events->0->>'date' >= :start`
 
-    if (datesOnly && dates?.start && dates?.end) {
-      return query.andWhere(dateFilter, {
-        startDate: dates.start,
-        endDate: dates.end,
-      })
-    }
     const baseQuery = query
       .innerJoin('wiki.tags', 'tag')
       .andWhere('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
 
-    if (dates?.start && dates?.end) {
-      return baseQuery.andWhere(dateFilter, {
-        startDate: dates.start,
-        endDate: dates.end,
-      })
+    if (dates?.start) {
+      if (dates?.end) {
+        return baseQuery.andWhere(dateFilter, {
+          start: dates.start,
+          end: dates.end,
+        })
+      }
+      return baseQuery.andWhere(datesFrom, { start: dates.start })
     }
 
     return baseQuery
@@ -385,6 +382,7 @@ class WikiService {
     const wikis = await queryBuilder
       .innerJoin('wiki.tags', 'tag')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
+      .andWhere('wiki.hidden = false')
       .orderBy('views', 'DESC')
       .limit(args.limit)
       .offset(args.offset)

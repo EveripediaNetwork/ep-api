@@ -13,7 +13,7 @@ import Media from '../../Database/Entities/types/IMedia'
 import User from '../../Database/Entities/user.entity'
 import Image from '../../Database/Entities/image.entity'
 import PaginationArgs from '../pagination.args'
-import { EventArgs, eventTag } from './wiki.dto'
+import { EventByBlockchainArgs, eventTag } from './wiki.dto'
 
 @ObjectType()
 export class EventObj {
@@ -280,7 +280,7 @@ class EventsService {
     return userDetails
   }
 
-  async getEventsByBlockchain(args: EventArgs) {
+  async getEventsByBlockchain(args: EventByBlockchainArgs) {
     const repository = this.dataSource.getRepository(Wiki)
     const query = `
       SELECT *
