@@ -156,14 +156,7 @@ class WikiService {
     dates?: { start: string; end: string },
     datesOnly = false,
   ): SelectQueryBuilder<Wiki> {
-    const dateFilter = `EXISTS (
-        SELECT 1
-        FROM json_array_elements(wiki.events) AS json_obj
-        WHERE json_obj->>'type' = 'CREATED'
-          AND to_date(json_obj->>'date' || '-01', 'YYYY-MM-DD') BETWEEN :startDate AND :endDate
-          AND json_obj->>'date' ~ '^\\d{4}-\\d{2}$'
-        ORDER BY (json_obj->>'created')::date DESC
-      )`
+    const dateFilter = `wiki.events->0->>'date' BETWEEN :start AND :end`
 
     if (datesOnly && dates?.start && dates?.end) {
       return query.andWhere(dateFilter, {

@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { ObjectType, Field, ID, GraphQLISODateTime, Int } from '@nestjs/graphql'
 import gql from 'graphql-tag'
-import { DataSource, Relation } from 'typeorm'
+import { DataSource, Relation, Repository } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
-import TagService from '../Tag/tag.service'
-import CategoryService from '../Category/category.service'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Metadata from '../../Database/Entities/metadata.entity'
@@ -106,8 +104,6 @@ export class EventObj {
 class EventsService {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly tagService: TagService,
-    private readonly categoryService: CategoryService,
   ) {}
 
   async events(
@@ -117,78 +113,83 @@ class EventsService {
   ) {
     const repository = this.dataSource.getRepository(Wiki)
 
-    let query = repository
+    const queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+        tags: ids.map(tag => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
-      .andWhere('LOWER(tag.id) = LOWER(:ev)', {
-        ev: eventTag,
-      })
-      .having('')
+      .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
 
-    if (ids && ids.length > 1) {
-      const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
-      let mainQuery = `
-          SELECT "subquery".*
-          FROM (
-              SELECT
-                  "wiki".*,
-                  "tag"."id" AS "tagid",
-                  COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
-              FROM "wiki" "wiki"
-              INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
-              INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
-              WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
-        `
+    if (ids.length > 1) {
+      return this.queryWikisWithMultipleTags(repository, ids, args, dates)
+    }
 
-      const queryEnd = `
-        ) AS "subquery"
-          WHERE LOWER("subquery"."tagid") = LOWER($2) and "subquery"."wikiCount" > 1
-          ORDER BY "subquery"."wikiCount" DESC
-          OFFSET $3
-          LIMIT $4`
+    if (dates?.start && dates?.end && ids.length === 1) {
+      queryBuilder.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
+        start: dates.start,
+        end: dates.end,
+      })
+    }
 
-      if (dates?.start && dates?.end) {
-        mainQuery += `
-        AND wiki.events->0->>'date' BETWEEN $5 AND $6`
-        mainQuery += queryEnd
+    return queryBuilder.getMany()
+  }
 
-        const filterWithDates = await repository.query(mainQuery, [
-          lowerCaseIds,
-          eventTag,
-          args.offset,
-          args.limit,
-          dates?.start,
-          dates?.end,
-        ])
-        return filterWithDates
-      }
+  private async queryWikisWithMultipleTags(
+    repository: Repository<Wiki>,
+    ids: string[],
+    args: PaginationArgs,
+    dates?: { start: string; end: string },
+  ) {
+    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
+
+    let mainQuery = `
+    SELECT "subquery".*
+    FROM (
+        SELECT
+            "wiki".*,
+            "tag"."id" AS "tagid",
+            COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
+        FROM "wiki" "wiki"
+        INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
+        INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
+        WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
+  `
+
+    const queryEnd = `
+    ) AS "subquery"
+      WHERE LOWER("subquery"."tagid") = LOWER($2) and "subquery"."wikiCount" > 1
+      ORDER BY "subquery"."wikiCount" DESC
+      OFFSET $3
+      LIMIT $4`
+
+    if (dates?.start && dates?.end) {
+      mainQuery += `
+      AND wiki.events->0->>'date' BETWEEN $5 AND $6`
       mainQuery += queryEnd
 
-      const wikis = await repository.query(mainQuery, [
+      return repository.query(mainQuery, [
         lowerCaseIds,
         eventTag,
         args.offset,
         args.limit,
+        dates.start,
+        dates.end,
       ])
-
-      return wikis
     }
 
-    if (dates?.start && dates?.end && ids.length === 1) {
-      query = query.andWhere(
-        `wiki.events->0->>'date' BETWEEN :start AND :end`,
-        { start: dates.start, end: dates.end },
-      )
-    }
+    mainQuery += queryEnd
 
-    return query.getMany()
+    return repository.query(mainQuery, [
+      lowerCaseIds,
+      eventTag,
+      args.offset,
+      args.limit,
+    ])
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
@@ -202,32 +203,24 @@ class EventsService {
     const isUserFieldIncluded = this.hasField(ast, 'user')
     const isAuthorFieldIncluded = this.hasField(ast, 'author')
 
-    if (isTagsFieldIncluded) {
-      for (const wiki of wikis) {
-        const tags = await this.tagService.wikiTags(wiki.id)
+    for (const wiki of wikis) {
+      if (isTagsFieldIncluded) {
+        const tags = await this.wikiTags(wiki.id)
         wiki.tags = tags
       }
-    }
-    if (isCategoriesFieldIncluded) {
-      for (const wiki of wikis) {
-        const category = await this.categoryService.wikiCategories(wiki.id)
+      if (isCategoriesFieldIncluded) {
+        const category = await this.wikiCategories(wiki.id)
         wiki.categories = category
       }
-    }
-    if (isLanguageFieldIncluded) {
-      for (const wiki of wikis) {
+      if (isLanguageFieldIncluded) {
         const language = await this.wikiLanguage(wiki.id)
         wiki.language = language as Language
       }
-    }
-    if (isUserFieldIncluded) {
-      for (const wiki of wikis) {
+      if (isUserFieldIncluded) {
         const user = await this.wikiUser(wiki.id)
         wiki.user = user as User
       }
-    }
-    if (isAuthorFieldIncluded) {
-      for (const wiki of wikis) {
+      if (isAuthorFieldIncluded) {
         const author = await this.wikiAuthor(wiki.id)
         wiki.author = author as User
       }
@@ -247,30 +240,45 @@ class EventsService {
     return language
   }
 
+  async wikiTags(wikiId: string) {
+    const repository = this.dataSource.getRepository(Tag)
+
+    return repository
+      .createQueryBuilder()
+      .select('wiki_tag.tagId', 'id')
+      .from('wiki_tags_tag', 'wiki_tag')
+      .where('wiki_tag.wikiId = :id', { id: wikiId })
+      .groupBy('wiki_tag.tagId')
+      .getRawMany()
+  }
+
+  async wikiCategories(id: string) {
+    const repository = this.dataSource.getRepository(Category)
+    return repository.createQueryBuilder('cc')
+      .innerJoin('wiki_categories_category', 'wc', 'wc.categoryId = cc.id')
+      .where('wc.wikiId = :id', { id })
+      .getMany()
+  }
+
   async wikiUser(id: string) {
+    return this.getUserDetails(id, 'wiki.userId = user.id', 'user')
+  }
+
+  async wikiAuthor(id: string) {
+    return this.getUserDetails(id, 'wiki.authorId = author.id', 'author')
+  }
+
+  private async getUserDetails(id: string, condition: string, builder: string) {
     const userRepository = this.dataSource.getRepository(User)
 
     const userDetails = await userRepository
-      .createQueryBuilder('user')
-      .innerJoin('Wiki', 'wiki', 'wiki.userId = user.id')
-      .leftJoinAndSelect('user.profile', 'user_profile')
+      .createQueryBuilder(builder)
+      .innerJoin('wiki', 'wiki', condition)
+      .leftJoinAndSelect(`${builder}.profile`, `${builder}_profile`)
       .where('wiki.id = :id', { id })
       .getOne()
 
     return userDetails
-  }
-
-  async wikiAuthor(id: string) {
-    const authorRepository = this.dataSource.getRepository(User)
-
-    const authorDetails = await authorRepository
-      .createQueryBuilder('author')
-      .innerJoin('Wiki', 'wiki', 'wiki.authorId = author.id')
-      .leftJoinAndSelect('author.profile', 'author_profile')
-      .where('wiki.id = :id', { id })
-      .getOne()
-
-    return authorDetails
   }
 
   async getEventsByBlockchain(args: EventArgs) {
