@@ -102,9 +102,7 @@ export class EventObj {
 
 @Injectable()
 class EventsService {
-  constructor(
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async events(
     ids: string[],
@@ -117,7 +115,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map(tag => tag.toLowerCase()),
+        tags: ids.map((tag) => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -145,7 +143,7 @@ class EventsService {
     args: PaginationArgs,
     dates?: { start: string; end: string },
   ) {
-    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
+    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
 
     let mainQuery = `
     SELECT "subquery".*
@@ -254,7 +252,8 @@ class EventsService {
 
   async wikiCategories(id: string) {
     const repository = this.dataSource.getRepository(Category)
-    return repository.createQueryBuilder('cc')
+    return repository
+      .createQueryBuilder('cc')
       .innerJoin('wiki_categories_category', 'wc', 'wc.categoryId = cc.id')
       .where('wc.wikiId = :id', { id })
       .getMany()
