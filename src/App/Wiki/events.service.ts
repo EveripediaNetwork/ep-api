@@ -1,104 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { ObjectType, Field, ID, GraphQLISODateTime, Int } from '@nestjs/graphql'
 import gql from 'graphql-tag'
-import { DataSource, Relation, Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
-import Metadata from '../../Database/Entities/metadata.entity'
 import Tag from '../../Database/Entities/tag.entity'
-import Events from '../../Database/Entities/types/IEvents'
-import LinkedWikis from '../../Database/Entities/types/ILinkedWikis'
-import Media from '../../Database/Entities/types/IMedia'
 import User from '../../Database/Entities/user.entity'
-import Image from '../../Database/Entities/image.entity'
 import PaginationArgs from '../pagination.args'
 import { EventByBlockchainArgs, eventTag } from './wiki.dto'
-
-@ObjectType()
-export class EventObj {
-  @Field(() => ID)
-  id!: string
-
-  @Field()
-  title!: string
-
-  @Field()
-  hidden!: boolean
-
-  @Field(() => GraphQLISODateTime, {
-    nullable: true,
-  })
-  created!: Date
-
-  @Field(() => GraphQLISODateTime, {
-    nullable: true,
-  })
-  updated!: Date
-
-  @Field(() => Int)
-  block!: number
-
-  @Field()
-  transactionHash!: string
-
-  @Field()
-  ipfs!: string
-
-  @Field(() => Int)
-  version = 1
-
-  @Field(() => Int, { nullable: true })
-  views!: number
-
-  @Field(() => Int, {
-    nullable: true,
-    defaultValue: 0,
-  })
-  visits?: number
-
-  @Field(() => [Wiki], { nullable: true })
-  founderWikis?: Wiki[]
-
-  @Field(() => Int)
-  promoted = 0
-
-  @Field()
-  content!: string
-
-  @Field()
-  summary!: string
-
-  @Field(() => Language)
-  language!: Language
-
-  @Field(() => User)
-  user!: User
-
-  @Field(() => User, { nullable: true })
-  author?: User
-
-  @Field(() => [Metadata])
-  metadata!: Metadata[]
-
-  @Field(() => [Media], { nullable: true })
-  media?: Media[]
-
-  @Field(() => LinkedWikis, { nullable: true })
-  linkedWikis?: LinkedWikis
-
-  @Field(() => [Events], { nullable: true })
-  events?: Events[]
-
-  @Field(() => [Image])
-  images!: Image[]
-
-  @Field(() => [Tag], { nullable: true })
-  tags!: Relation<Tag>[]
-
-  @Field(() => [Category])
-  categories!: Category[]
-}
 
 @Injectable()
 class EventsService {
