@@ -293,59 +293,57 @@ describe('PinResolver', () => {
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
   })
 
-  // TODO: Revert after UI fix
+  it('should return status true for valid media', async () => {
+    const wiki = {
+      ...testWiki,
+      media: [
+        {
+          name: 'Myblockchainjobs.jpg',
+          id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
+          size: '0.022',
+          source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
+          size: '0.107',
+          source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: 'N23VH1wyylQ',
+          id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
+          size: '0',
+          source: MediaSource.YOUTUBE,
+        },
+        {
+          name: 'xQaKA2uWZ_4',
+          id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
+          size: '0',
+          source: MediaSource.YOUTUBE,
+        },
+        {
+          name: 'FKMGGfyfFmY',
+          id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
+          size: '0',
+          source: MediaSource.YOUTUBE,
+        },
+        {
+          name: 'image',
+          id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
+          size: '0.056',
+          source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: 'image',
+          id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
+          size: '0.065',
+          source: MediaSource.IPFS_IMG,
+        },
+      ],
+    }
 
-  //   it('should return status true for valid media', async () => {
-  //     const wiki = {
-  //       ...testWiki,
-  //       media: [
-  //         {
-  //           name: 'Myblockchainjobs.jpg',
-  //           id: 'QmQL77TKW2wD9yWN6a8aXuM2N1YFT4K5NZbVq5Mf3V1GXF',
-  //           size: '0.022',
-  //           source: MediaSource.IPFS_IMG,
-  //         },
-  //         {
-  //           name: 'image',
-  //           id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
-  //           size: '0.107',
-  //           source: MediaSource.IPFS_IMG,
-  //         },
-  //         {
-  //           name: 'N23VH1wyylQ',
-  //           id: 'https://www.youtube.com/watch?v=N23VH1wyylQ',
-  //           size: '0',
-  //           source: MediaSource.YOUTUBE,
-  //         },
-  //         {
-  //           name: 'xQaKA2uWZ_4',
-  //           id: 'https://www.youtube.com/watch?v=xQaKA2uWZ_4',
-  //           size: '0',
-  //           source: MediaSource.YOUTUBE,
-  //         },
-  //         {
-  //           name: 'FKMGGfyfFmY',
-  //           id: 'https://www.youtube.com/watch?v=FKMGGfyfFmY',
-  //           size: '0',
-  //           source: MediaSource.YOUTUBE,
-  //         },
-  //         {
-  //           name: 'image',
-  //           id: 'QmRBaZ7zjCpP1jG8f8bYXh72eGQDZLRz9aHux2SHo9uRFr',
-  //           size: '0.056',
-  //           source: MediaSource.IPFS_IMG,
-  //         },
-  //         {
-  //           name: 'image',
-  //           id: 'QmPYdsewJ8PyYpWY3FWnQR6s8U7PHXVctsUr5kFTpD6DM3',
-  //           size: '0.065',
-  //           source: MediaSource.IPFS_IMG,
-  //         },
-  //       ],
-  //     }
-
-  //     expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
-  //   })
+    expect(await ipfsValidatorService.validate(wiki, true)).toEqual(result)
+  })
 
   it('should throw media error if wrong media type is sent', async () => {
     const wiki = {
@@ -363,6 +361,12 @@ describe('PinResolver', () => {
           id: 'QmWkrRz6ysPnKjcH18RtgFeXCMzrGW4Y1WVeCPvRSKBnHg',
           size: '0.107',
           source: MediaSource.IPFS_IMG,
+        },
+        {
+          name: '',
+          id: 'https://www.youtube.com/watch?v=undefined',
+          size: '0',
+          source: MediaSource.YOUTUBE,
         },
       ],
     }
