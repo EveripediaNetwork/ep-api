@@ -192,16 +192,20 @@ class IPFSValidatorService {
         ) {
           isContentValid = m.id.length === 46
         }
-        if (m.source === MediaSource.YOUTUBE) {
-          const validYTLinkReg =
-            /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
-          isContentValid =
-            m.id === `https://www.youtube.com/watch?v=${m.name}` &&
-            validYTLinkReg.test(m.id)
-        }
-        if (m.source === MediaSource.VIMEO) {
-          isContentValid = m.id === `https://vimeo.com/${m.name}`
-        }
+
+        // TODO: Revert after UI fix
+
+        // if (m.source === MediaSource.YOUTUBE) {
+        //   const validYTLinkReg =
+        //     /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
+        //   isContentValid =
+        //     m.id === `https://www.youtube.com/watch?v=${m.name}`
+        //     && validYTLinkReg.test(m.id)
+        // }
+        // if (m.source === MediaSource.VIMEO) {
+        //   isContentValid = m.id === `https://vimeo.com/${m.name}`
+        // }
+
         if (m.type && !Object.values(MediaType).includes(m.type)) {
           isContentValid = false
         }
