@@ -169,9 +169,9 @@ class RunCommand implements CommandRunner {
       if (!webhook) {
         await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
-    } catch (ex: any) {
+    } catch (ex) {
       console.error(`🛑 Invalid IPFS: ${hash.id}`)
-      console.error(ex.message || ex)
+      console.error(ex)
     }
   }
 
