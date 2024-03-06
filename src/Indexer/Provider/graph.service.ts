@@ -34,17 +34,17 @@ class GraphProviderService {
 
   async getIPFSHashesFromBlock(
     unixtime: number,
-    graph = true,
+    graph = false,
   ): Promise<[Hash] | []> {
-    if (!graph) {
+    if (graph) {
       try {
         const jsonData = fs.readFileSync(hashesFilePath, 'utf-8')
         const parsedData: Hash[] = JSON.parse(jsonData)
         return parsedData.filter(
           (hash: Hash) => hash.id && hash.id.length === 46,
         ) as [Hash]
-      } catch (error) {
-        console.error('Error reading file:', error)
+      } catch (error: any) {
+        console.error('Error reading file:', error.message || error)
         return []
       }
     }

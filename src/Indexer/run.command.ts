@@ -61,7 +61,7 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
       const newHashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
       )
@@ -118,6 +118,7 @@ class RunCommand implements CommandRunner {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
       let wikiContent = content
       if (reIndex) {
+        console.log('REINDEX CHECK CONTENT')
         if (!content.created) {
           const hashDate = await this.getDate(hash.createdAt, 1)
           wikiContent = {
@@ -166,11 +167,11 @@ class RunCommand implements CommandRunner {
         console.error(`🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
-        await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
+        await new Promise(r => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
-    } catch (ex) {
+    } catch (ex: any) {
       console.error(`🛑 Invalid IPFS: ${hash.id}`)
-      console.error(ex)
+      console.error(ex.message || ex)
     }
   }
 
@@ -187,7 +188,7 @@ class RunCommand implements CommandRunner {
 
     const hashes = await this.providerService.getIPFSHashesFromBlock(
       unixtime,
-      useIpfs && false,
+      useIpfs,
     )
 
     if (loop) await this.initiateIndexer(hashes, unixtime, loop)
