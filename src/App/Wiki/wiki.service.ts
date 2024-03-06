@@ -153,7 +153,7 @@ class WikiService {
     return query.getMany()
   }
 
-eventsFilter(
+  eventsFilter(
     query: SelectQueryBuilder<Wiki>,
     dates?: { start: string; end: string },
     datesOnly = false,

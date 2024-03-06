@@ -62,7 +62,9 @@ class EventsResolver {
 
   @Query(() => [Wiki], { nullable: true })
   async eventsByBlockchain(@Args() args: EventsByBlockchainArgs) {
-    return this.eventsService.getEventsByBlockchain(args as EventsByBlockchainArgs)
+    return this.eventsService.getEventsByBlockchain(
+      args as EventsByBlockchainArgs,
+    )
   }
 }
 
