@@ -1,7 +1,9 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql'
 import {
   CategoryArgs,
-  EventArgs,
+  CommonArgs,
+  EventsArgs,
+  EventsByBlockchainArgs,
   LangArgs,
   TitleArgs,
   eventTag,
@@ -18,7 +20,7 @@ class EventsResolver {
   ) {}
 
   @Query(() => [EventObj], { nullable: true })
-  async events(@Args() args: EventArgs, @Context() context: any) {
+  async events(@Args() args: EventsArgs, @Context() context: any) {
     const { req } = context
     const { query } = req.body
 
@@ -38,7 +40,7 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki])
-  async wikiEventsByCategory(@Args() args: EventArgs) {
+  async wikiEventsByCategory(@Args() args: CommonArgs) {
     return this.wikiService.getWikisByCategory(
       { category: args.categoryId } as CategoryArgs,
       args,
@@ -46,7 +48,7 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki])
-  async wikiEventsByTitle(@Args() args: EventArgs) {
+  async wikiEventsByTitle(@Args() args: CommonArgs) {
     return this.wikiService.getWikisByTitle(
       { title: args.title } as TitleArgs,
       args,
@@ -59,8 +61,8 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki], { nullable: true })
-  async eventsByBlockchain(@Args() args: EventArgs) {
-    return this.eventsService.getEventsByBlockchain(args)
+  async eventsByBlockchain(@Args() args: EventsByBlockchainArgs) {
+    return this.eventsService.getEventsByBlockchain(args as EventsByBlockchainArgs)
   }
 }
 

@@ -9,6 +9,7 @@ import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
   CategoryArgs,
+  CommonArgs,
   EventArgs,
   LangArgs,
   PromoteWikiArgs,
@@ -37,7 +38,7 @@ class WikiService {
   }
 
   async repository(): Promise<Repository<Wiki>> {
-    return this.dataSource.getRepository(Wiki)
+    return this.dataSource.manager.getRepository(Wiki)
   }
 
   async getWikiIds() {
@@ -89,11 +90,11 @@ class WikiService {
 
   async getWikisByCategory(
     args: CategoryArgs,
-    eventArgs?: EventArgs,
+    commonArgs?: CommonArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset } = eventArgs || args
-    const startDate = (eventArgs as EventArgs)?.startDate as string
-    const endDate = (eventArgs as EventArgs)?.endDate as string
+    const { lang, limit, offset } = commonArgs || args
+    const startDate = (commonArgs as CommonArgs)?.startDate as string
+    const endDate = (commonArgs as CommonArgs)?.endDate as string
 
     let query = (await this.repository())
       .createQueryBuilder('wiki')
@@ -108,7 +109,7 @@ class WikiService {
       .offset(offset)
       .orderBy('wiki.updated', 'DESC')
 
-    if (eventArgs) {
+    if (commonArgs) {
       query = this.eventsFilter(query, {
         start: startDate,
         end: endDate,
@@ -120,11 +121,12 @@ class WikiService {
 
   async getWikisByTitle(
     args: TitleArgs,
+    commonArgs?: CommonArgs,
     eventArgs?: EventArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset, hidden } = eventArgs || args
-    const startDate = (eventArgs as EventArgs)?.startDate as string
-    const endDate = (eventArgs as EventArgs)?.endDate as string
+    const { lang, limit, offset } = commonArgs || args
+    const startDate = (commonArgs as CommonArgs)?.startDate as string
+    const endDate = (commonArgs as CommonArgs)?.endDate as string
     const title = `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`
 
     let query = (await this.repository())
@@ -134,14 +136,14 @@ class WikiService {
         {
           lang,
           title,
-          hidden: hidden ?? false,
+          hidden: (eventArgs as EventArgs) ?? false,
         },
       )
       .limit(limit)
       .offset(offset)
       .orderBy('wiki.updated', 'DESC')
 
-    if (eventArgs) {
+    if (commonArgs) {
       query = this.eventsFilter(query, {
         start: startDate,
         end: endDate,
@@ -151,7 +153,7 @@ class WikiService {
     return query.getMany()
   }
 
-  eventsFilter(
+eventsFilter(
     query: SelectQueryBuilder<Wiki>,
     dates?: { start: string; end: string },
     datesOnly = false,
