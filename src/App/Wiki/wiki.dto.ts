@@ -93,7 +93,7 @@ export class WikiUrl {
 // }
 
 @ArgsType()
-export class CommonArgs extends LangArgs {
+export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   startDate?: string
@@ -102,33 +102,31 @@ export class CommonArgs extends LangArgs {
   @Validate(ValidStringParams)
   endDate?: string
 
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  categoryId?: string
-
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  title?: string
-}
-
-@ArgsType()
-export class EventsByBlockchainArgs extends CommonArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  blockchain?: string
-
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => Boolean)
   hidden = false
 }
 
 @ArgsType()
-export class EventsArgs extends CommonArgs {
+export class EventArgs extends EventDefaultArgs {
   @Field(() => [String], { nullable: true })
   @Validate(ValidStringParams)
   tagIds?: string[]
 }
-
-export class EventArgs extends CommonArgs {
-  @Field(() => Boolean, { nullable: true })
-  hidden = false
+@ArgsType()
+export class EventByTitleArgs extends EventDefaultArgs {
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  title?: string
+}
+@ArgsType()
+export class EventByCategoryArgs extends EventDefaultArgs {
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  category?: string
+}
+@ArgsType()
+export class EventByBlockchainArgs extends LangArgs {
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  blockchain?: string
 }

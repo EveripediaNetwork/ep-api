@@ -28,18 +28,6 @@ class TagService {
     return this.tagRepo.findTagsPopular(args)
   }
 
-  async wikiTags(wikiId: string) {
-    const repository = this.dataSource.getRepository(Tag)
-
-    return repository
-      .createQueryBuilder()
-      .select('wiki_tag.tagId', 'id')
-      .from('wiki_tags_tag', 'wiki_tag')
-      .where('wiki_tag.wikiId = :id', { id: wikiId })
-      .groupBy('wiki_tag.tagId')
-      .getRawMany()
-  }
-
   async wikis(id: string, args: PaginationArgs) {
     const repository = this.dataSource.getRepository(Wiki)
     return repository

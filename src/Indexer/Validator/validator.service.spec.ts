@@ -362,6 +362,12 @@ describe('PinResolver', () => {
           size: '0.107',
           source: MediaSource.IPFS_IMG,
         },
+        {
+          name: '',
+          id: 'https://www.youtube.com/watch?v=undefined',
+          size: '0',
+          source: MediaSource.YOUTUBE,
+        },
       ],
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({

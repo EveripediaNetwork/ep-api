@@ -118,6 +118,7 @@ class RunCommand implements CommandRunner {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
       let wikiContent = content
       if (reIndex) {
+        console.log('REINDEX CHECK CONTENT')
         if (!content.created) {
           const hashDate = await this.getDate(hash.createdAt, 1)
           wikiContent = {
@@ -187,7 +188,7 @@ class RunCommand implements CommandRunner {
 
     const hashes = await this.providerService.getIPFSHashesFromBlock(
       unixtime,
-      useIpfs && false,
+      useIpfs,
     )
 
     if (loop) await this.initiateIndexer(hashes, unixtime, loop)

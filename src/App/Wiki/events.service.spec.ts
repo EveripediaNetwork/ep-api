@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
-// import { getRepositoryToken } from '@nestjs/typeorm';
 import CategoryService from '../Category/category.service'
 import TagService from '../Tag/tag.service'
 import EventsService from './events.service'

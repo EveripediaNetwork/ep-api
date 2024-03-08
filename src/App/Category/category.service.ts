@@ -50,13 +50,6 @@ class CategoryService extends Repository<Category> {
       .orderBy('weight', 'DESC')
       .getMany()
   }
-
-  async wikiCategories(id: string) {
-    return this.createQueryBuilder('cc')
-      .innerJoin('wiki_categories_category', 'wc', 'wc.categoryId = cc.id')
-      .where('wc.wikiId = :wikiId', { wikiId: 'metavsummit' })
-      .getMany()
-  }
 }
 
 export default CategoryService

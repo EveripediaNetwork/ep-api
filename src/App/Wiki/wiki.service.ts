@@ -156,32 +156,22 @@ class WikiService {
   eventsFilter(
     query: SelectQueryBuilder<Wiki>,
     dates?: { start: string; end: string },
-    datesOnly = false,
   ): SelectQueryBuilder<Wiki> {
-    const dateFilter = `EXISTS (
-        SELECT 1
-        FROM json_array_elements(wiki.events) AS json_obj
-        WHERE json_obj->>'type' = 'CREATED'
-          AND to_date(json_obj->>'date' || '-01', 'YYYY-MM-DD') BETWEEN :startDate AND :endDate
-          AND json_obj->>'date' ~ '^\\d{4}-\\d{2}$'
-        ORDER BY (json_obj->>'created')::date DESC
-      )`
+    const dateFilter = `wiki.events->0->>'date' BETWEEN :start AND :end`
+    const datesFrom = `wiki.events->0->>'date' >= :start`
 
-    if (datesOnly && dates?.start && dates?.end) {
-      return query.andWhere(dateFilter, {
-        startDate: dates.start,
-        endDate: dates.end,
-      })
-    }
     const baseQuery = query
       .innerJoin('wiki.tags', 'tag')
       .andWhere('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
 
-    if (dates?.start && dates?.end) {
-      return baseQuery.andWhere(dateFilter, {
-        startDate: dates.start,
-        endDate: dates.end,
-      })
+    if (dates?.start) {
+      if (dates?.end) {
+        return baseQuery.andWhere(dateFilter, {
+          start: dates.start,
+          end: dates.end,
+        })
+      }
+      return baseQuery.andWhere(datesFrom, { start: dates.start })
     }
 
     return baseQuery
@@ -394,6 +384,7 @@ class WikiService {
     const wikis = await queryBuilder
       .innerJoin('wiki.tags', 'tag')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
+      .andWhere('wiki.hidden = false')
       .orderBy('views', 'DESC')
       .limit(args.limit)
       .offset(args.offset)

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, ILike, Repository } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -45,12 +45,14 @@ class DBStoreService {
       this.dataSource.getRepository(IqSubscription)
     const notificationRepository = this.dataSource.getRepository(Notification)
 
-    let user = await userRepository.findOneBy({ id: wiki.user.id })
     const oldWiki = await wikiRepository.findOneBy({
       id: wiki.id,
     })
+    let user = await userRepository.findOneBy({ id: ILike(wiki.user.id) })
     const author = await userRepository.findOneBy({
-      id: oldWiki ? (wiki.author.id as string) : (wiki.user.id as string),
+      id: ILike(
+        oldWiki ? (wiki.author.id as string) : (wiki.user.id as string),
+      ),
     })
 
     if (!user) {
