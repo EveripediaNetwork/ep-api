@@ -7,7 +7,13 @@ import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService, { EventObj } from './events.service'
-import { CommonArgs, EventArgs, EventsArgs, EventsByBlockchainArgs, LangArgs } from './wiki.dto'
+import {
+  CommonArgs,
+  EventArgs,
+  EventsArgs,
+  EventsByBlockchainArgs,
+  LangArgs,
+} from './wiki.dto'
 import { Direction, OrderBy } from '../general.args'
 import EventsResolver from './events.resolver'
 import WebhookHandler from '../utils/discordWebhookHandler'
@@ -129,12 +135,12 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe("wikiEventsByTitle", () => {
+  describe('wikiEventsByTitle', () => {
     it('should return an array of events based on title', async () => {
       const args: CommonArgs | EventArgs = {
         limit: 10,
         offset: 0,
-        title: "A title",
+        title: 'A title',
         lang: 'en',
         hidden: false,
         direction: Direction.DESC,
@@ -162,10 +168,10 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe("eventsByBlockchain", () => {
-    it("should return events by blockchain", async () => {
+  describe('eventsByBlockchain', () => {
+    it('should return events by blockchain', async () => {
       const args: EventsByBlockchainArgs = {
-        blockchain: "bitcoin",
+        blockchain: 'bitcoin',
         limit: 10,
         offset: 0,
         lang: 'en',
@@ -176,12 +182,14 @@ describe('EventsResolver', () => {
 
       const events: EventObj[] = []
 
-      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      jest
+        .spyOn(eventsService, 'getEventsByBlockchain')
+        .mockResolvedValue(events)
       const result = await eventsResolver.eventsByBlockchain(args)
       expect(result).toEqual(events)
     })
 
-    it("should handle missing blockchain argument", async () => {
+    it('should handle missing blockchain argument', async () => {
       const args: EventsByBlockchainArgs = {
         limit: 10,
         offset: 0,
@@ -190,10 +198,12 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-      
+
       const events: EventObj[] = []
 
-      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      jest
+        .spyOn(eventsService, 'getEventsByBlockchain')
+        .mockResolvedValue(events)
       const result = await eventsResolver.eventsByBlockchain(args)
       expect(result).toEqual(events)
     })
