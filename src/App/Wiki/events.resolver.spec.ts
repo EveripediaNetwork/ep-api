@@ -6,8 +6,8 @@ import { DataSource, EntityManager, Repository } from 'typeorm'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
-import EventsService from './events.service'
-import { EventArgs, EventsArgs, LangArgs } from './wiki.dto'
+import EventsService, { EventObj } from './events.service'
+import { CommonArgs, EventArgs, EventsArgs, EventsByBlockchainArgs, LangArgs } from './wiki.dto'
 import { Direction, OrderBy } from '../general.args'
 import EventsResolver from './events.resolver'
 import WebhookHandler from '../utils/discordWebhookHandler'
@@ -81,36 +81,38 @@ describe('EventsResolver', () => {
     })
   })
 
-  // describe("wikiEventsByCategory", () => {
-  //   it("should return an array of events based on category", async () => {
-  //     const args: EventArgs = {
-  //       limit: 10,
-  //       offset: 0,
-  //       categoryId: "category_id",
-  //       lang: 'en',
-  //       hidden: false,
-  //       direction: Direction.DESC,
-  //       order: OrderBy.UPDATED,
-  //     }
+  describe('wikiEventsByCategory', () => {
+    it('should return an array of events based on category', async () => {
+      const args: EventArgs = {
+        limit: 10,
+        offset: 0,
+        categoryId: 'category_id',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
 
-  //     const mockRepository = {
-  //       createQueryBuilder: jest.fn().mockReturnThis(),
-  //       innerJoin: jest.fn().mockReturnThis(),
-  //       andWhere: jest.fn().mockReturnThis(),
-  //       where: jest.fn().mockReturnThis(),
-  //       limit: jest.fn().mockReturnThis(),
-  //       offset: jest.fn().mockReturnThis(),
-  //       orderBy: jest.fn().mockReturnThis(),
-  //       getMany: jest.fn(),
-  //     };
+      const mockRepository = {
+        createQueryBuilder: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }
 
-  //     jest.spyOn(wikiService, 'repository').mockResolvedValue(mockRepository as unknown as Repository<Wiki>);
+      jest
+        .spyOn(wikiService, 'repository')
+        .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
 
-  //     const expectedEvents: Wiki[] = []
-  //     const result = await eventsResolver.wikiEventsByCategory(args)
-  //     expect(result).toEqual(expectedEvents)
-  //   })
-  // })
+      const expectedEvents: Wiki[] = []
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(expectedEvents)
+    })
+  })
 
   describe('popularEvents', () => {
     it('should return an array of popular events', async () => {
@@ -124,6 +126,76 @@ describe('EventsResolver', () => {
       }
       const result = await eventsResolver.popularEvents(args)
       expect(result).toEqual([])
+    })
+  })
+
+  describe("wikiEventsByTitle", () => {
+    it('should return an array of events based on title', async () => {
+      const args: CommonArgs | EventArgs = {
+        limit: 10,
+        offset: 0,
+        title: "A title",
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+
+      const mockRepository = {
+        createQueryBuilder: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }
+
+      jest
+        .spyOn(wikiService, 'repository')
+        .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
+
+      const expectedEvents: Wiki[] = []
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(expectedEvents)
+    })
+  })
+
+  describe("eventsByBlockchain", () => {
+    it("should return events by blockchain", async () => {
+      const args: EventsByBlockchainArgs = {
+        blockchain: "bitcoin",
+        limit: 10,
+        offset: 0,
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+
+      const events: EventObj[] = []
+
+      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      const result = await eventsResolver.eventsByBlockchain(args)
+      expect(result).toEqual(events)
+    })
+
+    it("should handle missing blockchain argument", async () => {
+      const args: EventsByBlockchainArgs = {
+        limit: 10,
+        offset: 0,
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      
+      const events: EventObj[] = []
+
+      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      const result = await eventsResolver.eventsByBlockchain(args)
+      expect(result).toEqual(events)
     })
   })
 })
