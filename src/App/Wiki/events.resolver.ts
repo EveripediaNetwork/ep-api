@@ -1,14 +1,12 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql'
 import {
   CategoryArgs,
-  CommonArgs,
-  EventsArgs,
-  EventsByBlockchainArgs,
-  EventByCategoryArgs,
   EventByTitleArgs,
   LangArgs,
   TitleArgs,
   eventTag,
+  EventByBlockchainArgs,
+  EventArgs,
 } from './wiki.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from './wiki.service'
@@ -22,7 +20,7 @@ class EventsResolver {
   ) {}
 
   @Query(() => [Wiki], { nullable: true })
-  async events(@Args() args: EventsArgs, @Context() context: any) {
+  async events(@Args() args: EventArgs, @Context() context: any) {
     const { req } = context
     const { query } = req.body
 
@@ -42,7 +40,7 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki])
-  async wikiEventsByCategory(@Args() args: CommonArgs) {
+  async wikiEventsByCategory(@Args() args: CategoryArgs) {
     return this.wikiService.getWikisByCategory(
       { category: args.category } as CategoryArgs,
       args,

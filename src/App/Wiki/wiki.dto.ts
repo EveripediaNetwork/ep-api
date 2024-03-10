@@ -62,36 +62,6 @@ export class WikiUrl {
   wiki!: string
 }
 
-// @ArgsType()
-// export class EventArgs extends LangArgs {
-//   @Field(() => [String], { nullable: true })
-//   @Validate(ValidStringParams)
-//   tagIds?: string[]
-
-//   @Field(() => String, { nullable: true })
-//   @Validate(ValidStringParams)
-//   startDate?: string
-
-//   @Field(() => String, { nullable: true })
-//   @Validate(ValidStringParams)
-//   endDate?: string
-
-//   @Field(() => String, { nullable: true })
-//   @Validate(ValidStringParams)
-//   categoryId?: string
-
-//   @Field(() => String, { nullable: true })
-//   @Validate(ValidStringParams)
-//   title?: string
-
-//   @Field(() => String, { nullable: true })
-//   @Validate(ValidStringParams)
-//   blockchain?: string
-
-//   @Field(() => Boolean)
-//   hidden = false
-// }
-
 @ArgsType()
 export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })

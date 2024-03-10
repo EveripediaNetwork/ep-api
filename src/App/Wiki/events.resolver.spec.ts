@@ -6,13 +6,13 @@ import { DataSource, EntityManager, Repository } from 'typeorm'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
-import EventsService, { EventObj } from './events.service'
+import EventsService from './events.service'
 import {
-  CommonArgs,
   EventArgs,
-  EventsArgs,
-  EventsByBlockchainArgs,
-  LangArgs,
+  EventByBlockchainArgs,
+  EventByCategoryArgs,
+  EventByTitleArgs,
+  LangArgs
 } from './wiki.dto'
 import { Direction, OrderBy } from '../general.args'
 import EventsResolver from './events.resolver'
@@ -66,7 +66,7 @@ describe('EventsResolver', () => {
 
   describe('events', () => {
     it('should handle missing argument', async () => {
-      const args: EventsArgs | EventArgs = {
+      const args: EventArgs | EventArgs = {
         limit: 10,
         offset: 0,
         startDate: '2024-01-01',
@@ -89,10 +89,10 @@ describe('EventsResolver', () => {
 
   describe('wikiEventsByCategory', () => {
     it('should return an array of events based on category', async () => {
-      const args: EventArgs = {
+      const args: EventArgs | EventByCategoryArgs = {
         limit: 10,
         offset: 0,
-        categoryId: 'category_id',
+        category: 'category_id',
         lang: 'en',
         hidden: false,
         direction: Direction.DESC,
@@ -135,12 +135,12 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe('wikiEventsByTitle', () => {
+  describe("wikiEventsByTitle", () => {
     it('should return an array of events based on title', async () => {
-      const args: CommonArgs | EventArgs = {
+      const args: EventByTitleArgs | EventArgs = {
         limit: 10,
         offset: 0,
-        title: 'A title',
+        title: "A title",
         lang: 'en',
         hidden: false,
         direction: Direction.DESC,
@@ -163,48 +163,51 @@ describe('EventsResolver', () => {
         .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
 
       const expectedEvents: Wiki[] = []
-      const result = await eventsResolver.wikiEventsByCategory(args)
+      const result = await eventsResolver.wikiEventsByTitle(args)
       expect(result).toEqual(expectedEvents)
     })
   })
 
-  describe('eventsByBlockchain', () => {
-    it('should return events by blockchain', async () => {
-      const args: EventsByBlockchainArgs = {
-        blockchain: 'bitcoin',
+  describe("eventsByBlockchain", () => {
+    it("should return events by blockchain", async () => {
+      const args: EventByBlockchainArgs = {
+        blockchain: "bitcoin",
         limit: 10,
         offset: 0,
         lang: 'en',
-        hidden: false,
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
 
-      const events: EventObj[] = []
 
-      jest
-        .spyOn(eventsService, 'getEventsByBlockchain')
-        .mockResolvedValue(events)
-      const result = await eventsResolver.eventsByBlockchain(args)
+      const context = {
+        req: { body: {} },
+      }
+
+      const events = eventsService.getEventsByBlockchain(args)
+
+      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      const result = await eventsService.resolveWikiRelations(args, context)
       expect(result).toEqual(events)
     })
 
-    it('should handle missing blockchain argument', async () => {
-      const args: EventsByBlockchainArgs = {
+    it("should handle missing blockchain argument", async () => {
+      const args: EventByBlockchainArgs = {
         limit: 10,
         offset: 0,
         lang: 'en',
-        hidden: false,
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
+      
+      const events = eventsService.getEventsByBlockchain(args)
 
-      const events: EventObj[] = []
+      const context = {
+        req: { body: {} },
+      }
 
-      jest
-        .spyOn(eventsService, 'getEventsByBlockchain')
-        .mockResolvedValue(events)
-      const result = await eventsResolver.eventsByBlockchain(args)
+      jest.spyOn(eventsService, "getEventsByBlockchain").mockResolvedValue(events)
+      const result = await eventsService.resolveWikiRelations(args, context)
       expect(result).toEqual(events)
     })
   })
