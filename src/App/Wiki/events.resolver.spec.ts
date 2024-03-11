@@ -87,12 +87,13 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe('wikiEventsByCategory', () => {
-    it('should return an array of events based on category', async () => {
-      const args: EventArgs | EventByCategoryArgs = {
+  describe('wikiEventsByCategory' || 'wikiEventsByTitle', () => {
+    it('should return an array of events based on category' || 'should return an array of events based on title', async () => {
+      const args: EventArgs | EventByCategoryArgs | EventByTitleArgs= {
         limit: 10,
         offset: 0,
         category: 'category_id',
+        title: 'A title',
         lang: 'en',
         hidden: false,
         direction: Direction.DESC,
@@ -135,38 +136,7 @@ describe('EventsResolver', () => {
     })
   })
 
-  describe('wikiEventsByTitle', () => {
-    it('should return an array of events based on title', async () => {
-      const args: EventByTitleArgs | EventArgs = {
-        limit: 10,
-        offset: 0,
-        title: 'A title',
-        lang: 'en',
-        hidden: false,
-        direction: Direction.DESC,
-        order: OrderBy.UPDATED,
-      }
 
-      const mockRepository = {
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      }
-
-      jest
-        .spyOn(wikiService, 'repository')
-        .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
-
-      const expectedEvents: Wiki[] = []
-      const result = await eventsResolver.wikiEventsByTitle(args)
-      expect(result).toEqual(expectedEvents)
-    })
-  })
 
   describe('eventsByBlockchain', () => {
     it('should return events by blockchain', async () => {
