@@ -126,7 +126,7 @@ class MarketCapService {
       }
 
       const founderWikis = founders
-        ? await this.wikiService.getFounderWikis(
+        ? await this.wikiService.getFullLinkedWikis(
             wiki.linkedWikis?.founders as string[],
           )
         : []
@@ -178,7 +178,7 @@ class MarketCapService {
       }
 
       const founderWikis = founders
-        ? await this.wikiService.getFounderWikis(
+        ? await this.wikiService.getFullLinkedWikis(
             wiki.linkedWikis?.founders as string[],
           )
         : []
