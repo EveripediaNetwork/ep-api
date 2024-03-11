@@ -200,12 +200,18 @@ class EventsService {
 
   async getEventsByBlockchain(args: EventByBlockchainArgs) {
     const repository = this.dataSource.getRepository(Wiki)
+    const order =
+      args.order === 'date'
+        ? `wiki."events"->0->>'date'`
+        : `wiki."${args.order}"`
+        
     const query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
+      ORDER BY ${order} ${args.direction}
       LIMIT $2
       OFFSET $3;
     `

@@ -29,7 +29,6 @@ class EventsResolver {
       [eventTag, ...(args.tagIds || [])],
       args,
     )
-
     return this.eventsService.resolveWikiRelations(events, query)
   }
 
