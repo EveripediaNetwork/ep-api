@@ -399,7 +399,7 @@ class WikiService {
   }
 
   async getFullLinkedWikis(ids: string[]): Promise<(Wiki | null)[]> {
-    if(!ids) return []
+    if (!ids) return []
     const fullLinkedWikis: (Wiki | null)[] = []
     if (ids && ids.length > 0) {
       for (const id of ids) {
