@@ -204,7 +204,7 @@ class EventsService {
       args.order === 'date'
         ? `wiki."events"->0->>'date'`
         : `wiki."${args.order}"`
-        
+
     const query = `
       SELECT *
       FROM wiki
