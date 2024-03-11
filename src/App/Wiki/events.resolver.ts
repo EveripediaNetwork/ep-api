@@ -27,14 +27,7 @@ class EventsResolver {
 
     const events = await this.eventsService.events(
       [eventTag, ...(args.tagIds || [])],
-      {
-        limit: args.limit,
-        offset: args.offset,
-      },
-      {
-        start: args.startDate as string,
-        end: args.endDate as string,
-      },
+      args,
     )
 
     return this.eventsService.resolveWikiRelations(events, query)

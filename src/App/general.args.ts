@@ -9,6 +9,7 @@ export enum OrderBy {
   CREATED = 'created',
   UPDATED = 'updated',
   DAY = 'day',
+  DATE = 'date'
 }
 
 export enum ActivityType {
