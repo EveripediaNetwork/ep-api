@@ -167,8 +167,22 @@ class WikiResolver {
 
   @ResolveField(() => [Wiki], { nullable: true })
   async founderWikis(@Parent() wiki: IWiki) {
-    return this.wikiService.getFounderWikis(
+    return this.wikiService.getFullLinkedWikis(
       wiki.linkedWikis.founders as string[],
+    )
+  }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  async speakerWikis(@Parent() wiki: IWiki) {
+    return this.wikiService.getFullLinkedWikis(
+      wiki.linkedWikis.speakers as string[],
+    )
+  }
+
+  @ResolveField(() => [Wiki], { nullable: true })
+  async blockchainWikis(@Parent() wiki: IWiki) {
+    return this.wikiService.getFullLinkedWikis(
+      wiki.linkedWikis.blockchains as string[],
     )
   }
 }

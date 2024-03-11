@@ -6,19 +6,27 @@ import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
-import PaginationArgs from '../pagination.args'
-import { EventByBlockchainArgs, eventTag } from './wiki.dto'
+import { EventArgs, EventByBlockchainArgs, eventTag } from './wiki.dto'
 
 @Injectable()
 class EventsService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async events(
-    ids: string[],
-    args: PaginationArgs,
-    dates?: { start: string; end: string },
-  ) {
+  async events(ids: string[], args: EventArgs) {
     const repository = this.dataSource.getRepository(Wiki)
+
+    let order
+
+    switch (args.order) {
+      case 'date':
+        order = "wiki.events->0->>'date'"
+        break
+      case 'id':
+        order = 'wiki.id'
+        break
+      default:
+        order = args.order
+    }
 
     const queryBuilder = repository
       .createQueryBuilder('wiki')
@@ -30,16 +38,16 @@ class EventsService {
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       .limit(args.limit)
       .offset(args.offset)
-      .orderBy('wiki.updated', 'DESC')
+      .orderBy(order, args.direction)
 
     if (ids.length > 1) {
-      return this.queryWikisWithMultipleTags(repository, ids, args, dates)
+      return this.queryWikisWithMultipleTags(repository, ids, args)
     }
 
-    if (dates?.start && dates?.end && ids.length === 1) {
+    if (args.startDate && args.endDate && ids.length === 1) {
       queryBuilder.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
-        start: dates.start,
-        end: dates.end,
+        start: args.startDate,
+        end: args.endDate,
       })
     }
 
@@ -49,11 +57,13 @@ class EventsService {
   private async queryWikisWithMultipleTags(
     repository: Repository<Wiki>,
     ids: string[],
-    args: PaginationArgs,
-    dates?: { start: string; end: string },
+    args: EventArgs,
   ) {
     const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
-
+    const order =
+      args.order === 'date'
+        ? `"subquery"."events"->0->>'date'`
+        : `"subquery"."${args.order}"`
     let mainQuery = `
     SELECT "subquery".*
     FROM (
@@ -70,22 +80,21 @@ class EventsService {
     const queryEnd = `
     ) AS "subquery"
       WHERE LOWER("subquery"."tagid") = LOWER($2) and "subquery"."wikiCount" > 1
-      ORDER BY "subquery"."wikiCount" DESC
+      ORDER BY ${order} ${args.direction}
       OFFSET $3
       LIMIT $4`
 
-    if (dates?.start && dates?.end) {
+    if (args.startDate && args.endDate) {
       mainQuery += `
       AND wiki.events->0->>'date' BETWEEN $5 AND $6`
       mainQuery += queryEnd
-
       return repository.query(mainQuery, [
         lowerCaseIds,
         eventTag,
         args.offset,
         args.limit,
-        dates.start,
-        dates.end,
+        args.startDate,
+        args.endDate,
       ])
     }
 
@@ -191,12 +200,18 @@ class EventsService {
 
   async getEventsByBlockchain(args: EventByBlockchainArgs) {
     const repository = this.dataSource.getRepository(Wiki)
+    const order =
+      args.order === 'date'
+        ? `wiki."events"->0->>'date'`
+        : `wiki."${args.order}"`
+
     const query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
+      ORDER BY ${order} ${args.direction}
       LIMIT $2
       OFFSET $3;
     `

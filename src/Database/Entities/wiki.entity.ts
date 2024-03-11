@@ -85,6 +85,12 @@ class Wiki {
   @Field(() => [Wiki], { nullable: true })
   founderWikis?: Wiki[]
 
+  @Field(() => [Wiki], { nullable: true })
+  speakerWikis?: Wiki[]
+
+  @Field(() => [Wiki], { nullable: true })
+  blockchainWikis?: Wiki[]
+
   @Field(() => Int)
   @Column('smallint', { default: 0 })
   promoted = 0
