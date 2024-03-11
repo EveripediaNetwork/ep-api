@@ -9,7 +9,6 @@ import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
   CategoryArgs,
-  CommonArgs,
   EventArgs,
   LangArgs,
   PromoteWikiArgs,
@@ -90,11 +89,11 @@ class WikiService {
 
   async getWikisByCategory(
     args: CategoryArgs,
-    commonArgs?: CommonArgs,
+    eventArgs?: EventArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset } = commonArgs || args
-    const startDate = (commonArgs as CommonArgs)?.startDate as string
-    const endDate = (commonArgs as CommonArgs)?.endDate as string
+    const { lang, limit, offset } = eventArgs || args
+    const startDate = (eventArgs as EventArgs)?.startDate as string
+    const endDate = (eventArgs as EventArgs)?.endDate as string
 
     let query = (await this.repository())
       .createQueryBuilder('wiki')
@@ -109,7 +108,7 @@ class WikiService {
       .offset(offset)
       .orderBy('wiki.updated', 'DESC')
 
-    if (commonArgs) {
+    if (eventArgs) {
       query = this.eventsFilter(query, {
         start: startDate,
         end: endDate,
@@ -121,12 +120,11 @@ class WikiService {
 
   async getWikisByTitle(
     args: TitleArgs,
-    commonArgs?: CommonArgs,
     eventArgs?: EventArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset } = commonArgs || args
-    const startDate = (commonArgs as CommonArgs)?.startDate as string
-    const endDate = (commonArgs as CommonArgs)?.endDate as string
+    const { lang, limit, offset } = eventArgs || args
+    const startDate = (eventArgs as EventArgs)?.startDate as string
+    const endDate = (eventArgs as EventArgs)?.endDate as string
     const title = `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`
 
     let query = (await this.repository())
@@ -143,7 +141,7 @@ class WikiService {
       .offset(offset)
       .orderBy('wiki.updated', 'DESC')
 
-    if (commonArgs) {
+    if (eventArgs) {
       query = this.eventsFilter(query, {
         start: startDate,
         end: endDate,
