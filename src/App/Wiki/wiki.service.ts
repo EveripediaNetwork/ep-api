@@ -82,7 +82,7 @@ class WikiService {
       take: args.limit,
       skip: args.offset,
       order: {
-        promoted: 'DESC',
+        promoted: args.direction,
       },
     })
   }
@@ -125,6 +125,19 @@ class WikiService {
     const { lang, limit, offset } = eventArgs || args
     const startDate = (eventArgs as EventArgs)?.startDate as string
     const endDate = (eventArgs as EventArgs)?.endDate as string
+
+    let order
+
+    switch (args.order || eventArgs?.order) {
+      case 'date':
+        order = "wiki.events->0->>'date'"
+        break
+      case 'id':
+        order = 'wiki.id'
+        break
+      default:
+        order = args.order || eventArgs?.order
+    }
     const title = `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`
 
     let query = (await this.repository())
@@ -139,7 +152,7 @@ class WikiService {
       )
       .limit(limit)
       .offset(offset)
-      .orderBy('wiki.updated', 'DESC')
+      .orderBy(order, args.direction || eventArgs?.direction)
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
@@ -315,6 +328,25 @@ class WikiService {
       .set({ hidden: true, promoted: 0 })
       .where('id = :id', { id: args.id })
       .execute()
+
+    const currentPromotions = await this.getPromotedWikis({
+      id: 'en',
+      direction: 'ASC',
+    } as unknown as LangArgs)
+
+    if (currentPromotions.length > 0) {
+      for (let index = 0; index < currentPromotions.length; index += 1) {
+        await (
+          await this.repository()
+        )
+          .createQueryBuilder()
+          .update(Wiki)
+          .set({ promoted: index + 1 })
+          .where('id = :id', { id: currentPromotions[index].id })
+          .execute()
+      }
+    }
+
     return wiki
   }
 
@@ -366,15 +398,16 @@ class WikiService {
     return response
   }
 
-  async getFounderWikis(founders: string[]): Promise<(Wiki | null)[]> {
-    const foundersWiki: (Wiki | null)[] = []
-    if (founders && founders.length > 0) {
-      for (const founder of founders) {
-        const f = await this.findWiki({ id: founder } as ByIdArgs)
-        foundersWiki.push(f)
+  async getFullLinkedWikis(ids: string[]): Promise<(Wiki | null)[]> {
+    if (!ids) return []
+    const fullLinkedWikis: (Wiki | null)[] = []
+    if (ids && ids.length > 0) {
+      for (const id of ids) {
+        const f = await this.findWiki({ id } as ByIdArgs)
+        fullLinkedWikis.push(f)
       }
     }
-    return foundersWiki.filter((item) => item !== null)
+    return fullLinkedWikis.filter((item) => item !== null)
   }
 
   async getPopularEvents(args: LangArgs) {
@@ -383,7 +416,7 @@ class WikiService {
       .innerJoin('wiki.tags', 'tag')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .andWhere('wiki.hidden = false')
-      .orderBy('views', 'DESC')
+      .orderBy('views', args.direction)
       .limit(args.limit)
       .offset(args.offset)
       .getMany()
