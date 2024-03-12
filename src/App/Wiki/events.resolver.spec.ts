@@ -64,6 +64,208 @@ describe('EventsResolver', () => {
     wikiService = module.get<WikiService>(WikiService)
   })
 
+  const testEvents: Partial<Wiki> = [
+    {
+      id: 'paris-blockchain-week-5th-edition',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'Blockchains',
+        },
+      ],
+    },
+    {
+      id: 'blockchain-lagos',
+      tags: [
+        {
+          id: 'Ethereum',
+        },
+        {
+          id: 'Festival',
+        },
+        {
+          id: 'DEXes',
+        },
+        {
+          id: 'Polygon',
+        },
+        {
+          id: 'Events',
+        },
+      ],
+    },
+    {
+      id: 'web3-lagos',
+      tags: [
+        {
+          id: 'Ethereum',
+        },
+        {
+          id: 'Marketplaces',
+        },
+        {
+          id: 'Events',
+        },
+        {
+          id: 'Solana',
+        },
+        {
+          id: 'Conference',
+        },
+      ],
+    },
+    {
+      id: 'the-blockchain-event',
+      tags: [
+        {
+          id: 'Stablecoins',
+        },
+        {
+          id: 'Polygon',
+        },
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'Conference',
+        },
+      ],
+    },
+    {
+      id: '13th-annual-london-finance-and-capital-markets-conference',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'BinanceSmartChain',
+        },
+        {
+          id: 'Blockchains',
+        },
+      ],
+    },
+    {
+      id: 'mwc-barcelona',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'Developers',
+        },
+        {
+          id: 'BinanceSmartChain',
+        },
+        {
+          id: 'Games',
+        },
+      ],
+    },
+    {
+      id: 'international-conference-on-blockchain-and-cryptocurrencies',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'Developers',
+        },
+        {
+          id: 'BinanceSmartChain',
+        },
+        {
+          id: 'Games',
+        },
+      ],
+    },
+    {
+      id: 'ethdenver-innovation-festival',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'Developers',
+        },
+        {
+          id: 'BinanceSmartChain',
+        },
+        {
+          id: 'CEXes',
+        },
+      ],
+    },
+    {
+      id: 'web3-revolution-cyprus-blockchain-expo-2024',
+      tags: [
+        {
+          id: 'Events',
+        },
+        {
+          id: 'AI',
+        },
+        {
+          id: 'BinanceSmartChain',
+        },
+        {
+          id: 'Blockchains',
+        },
+      ],
+    },
+    {
+      id: 'quantum-miami-2024',
+      tags: [
+        {
+          id: 'Protocols',
+        },
+        {
+          id: 'Ethereum',
+        },
+        {
+          id: 'Stablecoins',
+        },
+        {
+          id: 'Events',
+        },
+        {
+          id: 'Blockchains',
+        },
+      ],
+    },
+    {
+      id: 'metavsummit',
+      tags: [
+        {
+          id: 'Ethereum',
+        },
+        {
+          id: 'Events',
+        },
+        {
+          id: 'Blockchains',
+        },
+      ],
+    },
+  ]
+
   describe('events', () => {
     it('should handle missing argument', async () => {
       const args: EventArgs | EventArgs = {
@@ -85,8 +287,16 @@ describe('EventsResolver', () => {
       const result = await eventsResolver.events(args, context)
       expect(result).toEqual([])
     })
+
+    // TODO:
+    it('should return wikis, each wiki should have at least an events tag', async () => {})
+    it('should return wikis that have the requested tag ids including events', async () => {})
+    it('should work with date filters and return wikis within that range', async () => {})
   })
 
+  // TODO:
+
+  // separate these two test cases
   describe('wikiEventsByCategory' || 'wikiEventsByTitle', () => {
     it(
       'should return an array of events based on category' ||
@@ -138,6 +348,9 @@ describe('EventsResolver', () => {
       const result = await eventsResolver.popularEvents(args)
       expect(result).toEqual([])
     })
+
+    // TODO:
+    it('should return wikis with the highest views and also contains events tag', async () => {})
   })
 
   describe('eventsByBlockchain', () => {
@@ -161,28 +374,7 @@ describe('EventsResolver', () => {
         .spyOn(eventsService, 'getEventsByBlockchain')
         .mockResolvedValue(events)
       const result = await eventsService.resolveWikiRelations(args, context)
-      expect(result).toEqual(events)
-    })
-
-    it('should handle missing blockchain argument', async () => {
-      const args: EventByBlockchainArgs | EventArgs = {
-        limit: 10,
-        offset: 0,
-        lang: 'en',
-        direction: Direction.DESC,
-        order: OrderBy.UPDATED,
-      }
-
-      const events = eventsService.getEventsByBlockchain(args)
-
-      const context = {
-        req: { body: {} },
-      }
-
-      jest
-        .spyOn(eventsService, 'getEventsByBlockchain')
-        .mockResolvedValue(events)
-      const result = await eventsService.resolveWikiRelations(args, context)
+      // TODO: use an actual events object, test that each event in the result has the blockchain being searched for
       expect(result).toEqual(events)
     })
   })
