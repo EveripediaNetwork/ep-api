@@ -64,45 +64,43 @@ describe('EventsService', () => {
 
   describe('event', () => {
     it('should retrieve event with valid argument', async () => {
-    //   tagService.wikiTags.mockReturnValue(55)
-
-    //   const ids = ['id1', 'id2']
-    //   const args: PaginationArgs = {
-    //     limit: 10,
-    //     offset: 0,
-    //   }
-    //   const dates = {
-    //     start: '2024-01-01',
-    //     end: '2024-02-02',
-    //   }
-    //   await eventsService.events(ids, args, dates)
-
-    //   expect(dataSource.getRepository).toHaveBeenCalledWith(Wiki)
-    //   expect(repository.createQueryBuilder).toHaveBeenCalledWith('wiki')
-    //   expect(repository.query).toHaveBeenCalled()
+      //   tagService.wikiTags.mockReturnValue(55)
+      //   const ids = ['id1', 'id2']
+      //   const args: PaginationArgs = {
+      //     limit: 10,
+      //     offset: 0,
+      //   }
+      //   const dates = {
+      //     start: '2024-01-01',
+      //     end: '2024-02-02',
+      //   }
+      //   await eventsService.events(ids, args, dates)
+      //   expect(dataSource.getRepository).toHaveBeenCalledWith(Wiki)
+      //   expect(repository.createQueryBuilder).toHaveBeenCalledWith('wiki')
+      //   expect(repository.query).toHaveBeenCalled()
     })
 
     it('should retrieve events with multiple IDs and date filtering', async () => {
-    //   const ids = ['id1', 'id2']
-    //   const args: PaginationArgs = {
-    //     limit: 10,
-    //     offset: 0,
-    //   }
-    //   const dates = {
-    //     start: '2024-01-01',
-    //     end: '2024-02-02',
-    //   }
-    //   await eventsService.events(ids, args, dates)
-    //   expect(repository.createQueryBuilder).toHaveBeenCalledWith('wiki')
-    //   expect(repository.query).toHaveBeenCalled()
-    //   expect(repository.query).toHaveBeenCalledWith(expect.any(String), [
-    //     ids.map((id) => id.toLocaleLowerCase()),
-    //     eventTag,
-    //     args.offset,
-    //     args.limit,
-    //     dates.start,
-    //     dates.end,
-    //   ])
+      //   const ids = ['id1', 'id2']
+      //   const args: PaginationArgs = {
+      //     limit: 10,
+      //     offset: 0,
+      //   }
+      //   const dates = {
+      //     start: '2024-01-01',
+      //     end: '2024-02-02',
+      //   }
+      //   await eventsService.events(ids, args, dates)
+      //   expect(repository.createQueryBuilder).toHaveBeenCalledWith('wiki')
+      //   expect(repository.query).toHaveBeenCalled()
+      //   expect(repository.query).toHaveBeenCalledWith(expect.any(String), [
+      //     ids.map((id) => id.toLocaleLowerCase()),
+      //     eventTag,
+      //     args.offset,
+      //     args.limit,
+      //     dates.start,
+      //     dates.end,
+      //   ])
     })
   })
 })
