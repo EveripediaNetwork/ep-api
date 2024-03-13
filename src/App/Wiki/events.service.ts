@@ -205,17 +205,25 @@ class EventsService {
         ? `wiki."events"->0->>'date'`
         : `wiki."${args.order}"`
 
-    const query = `
+    let params = [args.blockchain, args.limit, args.offset]
+    let query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
-      ORDER BY ${order} ${args.direction}
-      LIMIT $2
-      OFFSET $3;
     `
-    return repository.query(query, [args.blockchain, args.limit, args.offset])
+
+    if (args.startDate && args.endDate) {
+      query += `AND wiki.events->0->>'date' BETWEEN $4 AND $5\n`
+      params = [...params, args.startDate, args.endDate]
+    }
+
+    query += `ORDER BY ${order} ${args.direction}
+      LIMIT $2
+      OFFSET $3`
+
+    return repository.query(query, params)
   }
 
   hasField(ast: any, fieldName: string): boolean {
