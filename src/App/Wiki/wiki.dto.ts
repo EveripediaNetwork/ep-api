@@ -95,7 +95,7 @@ export class EventByCategoryArgs extends EventDefaultArgs {
   category?: string
 }
 @ArgsType()
-export class EventByBlockchainArgs extends LangArgs {
+export class EventByBlockchainArgs extends EventDefaultArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   blockchain?: string

@@ -32,7 +32,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+        tags: ids.map(tag => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -59,7 +59,7 @@ class EventsService {
     ids: string[],
     args: EventArgs,
   ) {
-    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
+    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
     const order =
       args.order === 'date'
         ? `"subquery"."events"->0->>'date'`
@@ -205,17 +205,25 @@ class EventsService {
         ? `wiki."events"->0->>'date'`
         : `wiki."${args.order}"`
 
-    const query = `
+    let params = [args.blockchain, args.limit, args.offset]
+    let query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
-      ORDER BY ${order} ${args.direction}
-      LIMIT $2
-      OFFSET $3;
     `
-    return repository.query(query, [args.blockchain, args.limit, args.offset])
+
+    if (args.startDate && args.endDate) {
+      query += `AND wiki.events->0->>'date' BETWEEN $4 AND $5\n`
+      params = [...params, args.startDate, args.endDate]
+    }
+
+    query += `ORDER BY ${order} ${args.direction}
+      LIMIT $2
+      OFFSET $3`
+
+    return repository.query(query, params)
   }
 
   hasField(ast: any, fieldName: string): boolean {
