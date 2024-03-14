@@ -3,9 +3,6 @@ import { DataSource } from 'typeorm'
 import CategoryService from '../Category/category.service'
 import TagService from '../Tag/tag.service'
 import EventsService from './events.service'
-import Wiki from '../../Database/Entities/wiki.entity'
-import PaginationArgs from '../pagination.args'
-import { eventTag } from './wiki.dto'
 
 describe('EventsService', () => {
   let eventsService: EventsService

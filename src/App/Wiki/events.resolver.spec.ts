@@ -363,14 +363,12 @@ describe('EventsResolver', () => {
 
   describe('wikiEventsByCategory', () => {
     it(
-      'should return an array of events based on category' ||
-        'should return an array of events based on title',
+      'should return an array of events based on category',
       async () => {
-        const args: EventArgs | EventByCategoryArgs | EventByTitleArgs = {
+        const args: EventArgs | EventByCategoryArgs = {
           limit: 10,
           offset: 0,
           category: 'category_id',
-          title: 'A title',
           lang: 'en',
           hidden: false,
           direction: Direction.DESC,
