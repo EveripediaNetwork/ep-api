@@ -266,7 +266,6 @@ describe('EventsResolver', () => {
     },
   ]
 
-
   const mockRepository = {
     createQueryBuilder: jest.fn().mockReturnThis(),
     innerJoin: jest.fn().mockReturnThis(),
@@ -403,7 +402,6 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-
 
       jest
         .spyOn(wikiService, 'repository')
