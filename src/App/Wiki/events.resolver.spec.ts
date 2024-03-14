@@ -268,7 +268,7 @@ describe('EventsResolver', () => {
 
   describe('events', () => {
     it('should handle missing argument', async () => {
-      const args: EventArgs | EventArgs = {
+      const args: EventArgs = {
         limit: 10,
         offset: 0,
         startDate: '2024-01-01',
@@ -288,16 +288,73 @@ describe('EventsResolver', () => {
       expect(result).toEqual([])
     })
 
-    // TODO:
-    it('should return wikis, each wiki should have at least an events tag', async () => {})
-    it('should return wikis that have the requested tag ids including events', async () => {})
-    it('should work with date filters and return wikis within that range', async () => {})
+    it('should return wikis, each wiki should have at least an events tag', async () => {
+      const args: EventByCategoryArgs = {
+        limit: 10,
+        offset: 0,
+        category: 'category_id',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      jest
+        .spyOn(wikiService, 'getWikisByCategory')
+        .mockResolvedValue(Promise.resolve(testEvents as Wiki[]))
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(testEvents)
+    })
+    it('should return wikis that have the requested tag ids including events', async () => {
+      const args: EventArgs = {
+        tagIds: ['tagId'],
+        lang: 'en',
+        hidden: false,
+        limit: 10,
+        offset: 0,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      jest
+        .spyOn(wikiService, 'getWikisByCategory')
+        .mockResolvedValue(Promise.resolve(testEvents as Wiki[]))
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      const filteredEvents = result.filter((testEvent) =>
+        testEvent.tags.some((tag) => tag.id === 'Events'),
+      )
+      expect(filteredEvents.length).toBeGreaterThan(0)
+      expect(filteredEvents.length).toBe(result.length)
+    })
+    it('should work with date filters and return wikis within that range', async () => {
+      const args: EventArgs = {
+        limit: 10,
+        offset: 0,
+        startDate: '2024-01-01',
+        endDate: '2024-02-02',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+
+      const context = {
+        req: { body: {} },
+      }
+
+      jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockImplementation((events) => Promise.resolve(events))
+
+      const result = await eventsResolver.events(args, context)
+      console.log(context)
+      console.log(args)
+      console.log(testEvents)
+      console.log(result)
+      expect(result).toEqual(testEvents)
+    })
   })
 
-  // TODO:
-
-  // separate these two test cases
-  describe('wikiEventsByCategory' || 'wikiEventsByTitle', () => {
+  describe('wikiEventsByCategory', () => {
     it(
       'should return an array of events based on category' ||
         'should return an array of events based on title',
@@ -334,6 +391,38 @@ describe('EventsResolver', () => {
       },
     )
   })
+  describe('wikiEventsByTitle', () => {
+    it('should return an array of events based on title', async () => {
+      const args: EventArgs | EventByTitleArgs = {
+        limit: 10,
+        offset: 0,
+        title: 'A title',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+
+      const mockRepository = {
+        createQueryBuilder: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }
+
+      jest
+        .spyOn(wikiService, 'repository')
+        .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
+
+      const expectedEvents: Wiki[] = []
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(expectedEvents)
+    })
+  })
 
   describe('popularEvents', () => {
     it('should return an array of popular events', async () => {
@@ -349,10 +438,34 @@ describe('EventsResolver', () => {
       expect(result).toEqual([])
     })
 
-    // TODO:
-    it('should return wikis with the highest views and also contains events tag', async () => {})
+    it('should return wikis with the highest views and also contains events tag', async () => {
+      const popularEvents: Partial<Wiki>[] = [
+        {
+          id: 'metavsummit',
+          title: 'metavsummit',
+          tags: [
+            {
+              id: 'Ethereum',
+              wikis: [],
+            },
+          ],
+          views: 1000,
+        },
+      ]
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockResolvedValue(Promise.resolve(popularEvents as Wiki[]))
+      const args: LangArgs = {
+        lang: 'en',
+        limit: 10,
+        offset: 0,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      const result = await eventsResolver.popularEvents(args)
+      expect(result).toEqual(popularEvents)
+    })
   })
-
   describe('eventsByBlockchain', () => {
     it('should return events by blockchain', async () => {
       const args: EventByBlockchainArgs = {
@@ -364,18 +477,23 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      const context = {
-        req: { body: {} },
-      }
-
-      const events = eventsService.getEventsByBlockchain(args)
+      const testEvent: Partial<Wiki>[] = [
+        {
+          id: 'ethdenver-innovation-festival',
+          title: 'ethdenver-innovation-festival',
+          block: 123,
+          tags: [],
+        },
+      ]
 
       jest
         .spyOn(eventsService, 'getEventsByBlockchain')
-        .mockResolvedValue(events)
-      const result = await eventsService.resolveWikiRelations(args, context)
-      // TODO: use an actual events object, test that each event in the result has the blockchain being searched for
-      expect(result).toEqual(events)
+        .mockResolvedValue(testEvent)
+      const result = await eventsService.getEventsByBlockchain(args)
+      expect(result).toEqual(testEvent)
+      result.forEach((event: Wiki) => {
+        expect(event.block).toBe(123)
+      })
     })
   })
 })
