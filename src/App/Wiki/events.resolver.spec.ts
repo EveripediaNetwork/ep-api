@@ -266,6 +266,18 @@ describe('EventsResolver', () => {
     },
   ]
 
+
+  const mockRepository = {
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    offset: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
+  }
+
   describe('events', () => {
     it('should handle missing argument', async () => {
       const args: EventArgs = {
@@ -370,17 +382,6 @@ describe('EventsResolver', () => {
           order: OrderBy.UPDATED,
         }
 
-        const mockRepository = {
-          createQueryBuilder: jest.fn().mockReturnThis(),
-          innerJoin: jest.fn().mockReturnThis(),
-          andWhere: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnThis(),
-          offset: jest.fn().mockReturnThis(),
-          orderBy: jest.fn().mockReturnThis(),
-          getMany: jest.fn().mockResolvedValue([]),
-        }
-
         jest
           .spyOn(wikiService, 'repository')
           .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
@@ -403,16 +404,6 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      const mockRepository = {
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      }
 
       jest
         .spyOn(wikiService, 'repository')
