@@ -357,10 +357,6 @@ describe('EventsResolver', () => {
         .mockImplementation((events) => Promise.resolve(events))
 
       const result = await eventsResolver.events(args, context)
-      console.log(context)
-      console.log(args)
-      console.log(testEvents)
-      console.log(result)
       expect(result).toEqual(testEvents)
     })
   })
