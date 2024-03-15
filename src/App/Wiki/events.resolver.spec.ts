@@ -362,28 +362,25 @@ describe('EventsResolver', () => {
   })
 
   describe('wikiEventsByCategory', () => {
-    it(
-      'should return an array of events based on category',
-      async () => {
-        const args: EventArgs | EventByCategoryArgs = {
-          limit: 10,
-          offset: 0,
-          category: 'category_id',
-          lang: 'en',
-          hidden: false,
-          direction: Direction.DESC,
-          order: OrderBy.UPDATED,
-        }
+    it('should return an array of events based on category', async () => {
+      const args: EventArgs | EventByCategoryArgs = {
+        limit: 10,
+        offset: 0,
+        category: 'category_id',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
 
-        jest
-          .spyOn(wikiService, 'repository')
-          .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
+      jest
+        .spyOn(wikiService, 'repository')
+        .mockResolvedValue(mockRepository as unknown as Repository<Wiki>)
 
-        const expectedEvents: Wiki[] = []
-        const result = await eventsResolver.wikiEventsByCategory(args)
-        expect(result).toEqual(expectedEvents)
-      },
-    )
+      const expectedEvents: Wiki[] = []
+      const result = await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(expectedEvents)
+    })
   })
   describe('wikiEventsByTitle', () => {
     it('should return an array of events based on title', async () => {
