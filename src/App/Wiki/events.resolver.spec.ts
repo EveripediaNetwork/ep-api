@@ -64,17 +64,17 @@ describe('EventsResolver', () => {
     wikiService = module.get<WikiService>(WikiService)
   })
 
-  const testEvents: Partial<Wiki> [] = [
+  const testEvents: Partial<Wiki>[] = [
     {
       id: 'paris-blockchain-week-5th-edition',
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Blockchains',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -83,23 +83,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Ethereum',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Festival',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'DEXes',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Polygon',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -108,23 +108,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Ethereum',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Marketplaces',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Solana',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Conference',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -133,23 +133,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Stablecoins',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Polygon',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Conference',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -158,19 +158,19 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'BinanceSmartChain',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Blockchains',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -179,23 +179,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Developers',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'BinanceSmartChain',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Games',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -204,23 +204,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Developers',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'BinanceSmartChain',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Games',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -229,23 +229,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Developers',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'BinanceSmartChain',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'CEXes',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -254,19 +254,19 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'AI',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'BinanceSmartChain',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Blockchains',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -275,23 +275,23 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Protocols',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Ethereum',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Stablecoins',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Blockchains',
-          wikis: []
+          wikis: [],
         },
       ],
     },
@@ -300,15 +300,15 @@ describe('EventsResolver', () => {
       tags: [
         {
           id: 'Ethereum',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Events',
-          wikis: []
+          wikis: [],
         },
         {
           id: 'Blockchains',
-          wikis: []
+          wikis: [],
         },
       ],
     },
