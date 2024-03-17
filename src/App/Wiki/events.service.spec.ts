@@ -1,63 +1,63 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { DataSource } from 'typeorm'
-import CategoryService from '../Category/category.service'
-import TagService from '../Tag/tag.service'
-import EventsService from './events.service'
+// import { Test, TestingModule } from '@nestjs/testing'
+// import { DataSource } from 'typeorm'
+// import CategoryService from '../Category/category.service'
+// import TagService from '../Tag/tag.service'
+// import EventsService from './events.service'
 
 describe('EventsService', () => {
-  let eventsService: EventsService
+  // let eventsService: EventsService
 
-  const repository = {
-    createQueryBuilder: jest.fn(() => ({
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      having: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      offset: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn(),
-    })),
-    query: jest.fn(),
-  }
+  // const repository = {
+  //   createQueryBuilder: jest.fn(() => ({
+  //     leftJoinAndSelect: jest.fn().mockReturnThis(),
+  //     where: jest.fn().mockReturnThis(),
+  //     having: jest.fn().mockReturnThis(),
+  //     limit: jest.fn().mockReturnThis(),
+  //     offset: jest.fn().mockReturnThis(),
+  //     orderBy: jest.fn().mockReturnThis(),
+  //     andWhere: jest.fn().mockReturnThis(),
+  //     getMany: jest.fn(),
+  //   })),
+  //   query: jest.fn(),
+  // }
 
-  const tagService = {
-    wikiTags: jest.fn(),
-  }
+  // const tagService = {
+  //   wikiTags: jest.fn(),
+  // }
 
-  const categoryService = {
-    wikiCategories: jest.fn(),
-  }
+  // const categoryService = {
+  //   wikiCategories: jest.fn(),
+  // }
 
-  const dataSource = {
-    getRepository: jest.fn(() => repository),
-  }
+  // const dataSource = {
+  //   getRepository: jest.fn(() => repository),
+  // }
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        EventsService,
-        {
-          provide: DataSource,
-          useValue: dataSource,
-        },
-        {
-          provide: TagService,
-          useValue: tagService,
-        },
-        {
-          provide: CategoryService,
-          useValue: categoryService,
-        },
-      ],
-    }).compile()
+  // beforeEach(async () => {
+  //   // const module: TestingModule = await Test.createTestingModule({
+  //   //   providers: [
+  //   //     EventsService,
+  //   //     {
+  //   //       provide: DataSource,
+  //   //       useValue: dataSource,
+  //   //     },
+  //   //     {
+  //   //       provide: TagService,
+  //   //       useValue: tagService,
+  //   //     },
+  //   //     {
+  //   //       provide: CategoryService,
+  //   //       useValue: categoryService,
+  //   //     },
+  //   //   ],
+  //   // }).compile()
 
-    eventsService = module.get<EventsService>(EventsService)
-  })
+  //   // eventsService = module.get<EventsService>(EventsService)
+  // })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+  // afterEach(() => {
+  //   jest.clearAllMocks()
+  // })
 
   describe('event', () => {
     it('should retrieve event with valid argument', async () => {

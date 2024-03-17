@@ -503,6 +503,7 @@ describe('EventsResolver', () => {
         lang: 'en',
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
+        hidden: false,
       }
 
       const testEvent: Partial<Wiki>[] = [
