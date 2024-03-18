@@ -9,6 +9,8 @@ export interface IEvents {
   type: EventType
   description?: string
   link?: string
+  multiDateStart?: string
+  multiDateEnd?: string
 }
 
 @ObjectType()
@@ -21,6 +23,12 @@ class Events {
 
   @Field(() => String, { nullable: true })
   date?: string
+
+  @Field(() => String, { nullable: true })
+  multiDateStart?: string
+
+  @Field(() => String, { nullable: true })
+  multiDateEnd?: string
 
   @Field(() => String, { nullable: true })
   description?: string
