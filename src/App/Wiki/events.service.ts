@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import { Brackets, DataSource, Repository } from 'typeorm'
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
 import { EventArgs, EventByBlockchainArgs, eventTag } from './wiki.dto'
+import WikiService from './wiki.service'
 
 @Injectable()
 class EventsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private wikiService: WikiService,
+  ) {}
 
   async events(ids: string[], args: EventArgs) {
     const repository = this.dataSource.getRepository(Wiki)
@@ -19,9 +23,7 @@ class EventsService {
 
     switch (args.order) {
       case 'date':
-        order = `COALESCE(wiki.events->0->>'date', wiki.events->0->>'${
-          args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
-        }')`
+        order = this.wikiService.orderFuse(args.direction, 'wiki')
         break
       case 'id':
         order = 'wiki.id'
@@ -30,11 +32,11 @@ class EventsService {
         order = args.order
     }
 
-    const queryBuilder = repository
+    let queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+        tags: ids.map(tag => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -46,47 +48,11 @@ class EventsService {
       return this.queryWikisWithMultipleTags(repository, ids, args)
     }
 
-    if (args.startDate && !args.endDate && ids.length === 1) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.orWhere("wiki.events->0->>'type' IS NULL")
-            .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
-            .andWhere("wiki.events->0->>'date' >= :start", {
-              start: args.startDate,
-            })
-            .orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
-            .andWhere(
-              ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
-              { start: args.startDate },
-            )
-        }),
-      )
-    }
-
-    if (args.startDate && args.endDate && ids.length === 1) {
-      queryBuilder
-        .andWhere(
-          new Brackets((qb) => {
-            qb.orWhere("wiki.events->0->>'type' IS NULL")
-              .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
-              .andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
-                start: args.startDate,
-                end: args.endDate,
-              })
-          }),
-        )
-        .orWhere(
-          new Brackets((qb) => {
-            qb.where("wiki.events->0->>'type' = 'MULTIDATE'")
-              .andWhere(
-                ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
-                { start: args.startDate },
-              )
-              .andWhere("wiki.events->0->>'multiEndDate' <= :end", {
-                end: args.endDate,
-              })
-          }),
-        )
+    if (ids.length === 1) {
+      queryBuilder = this.wikiService.applyDateFilter(
+        queryBuilder,
+        args,
+      ) as SelectQueryBuilder<Wiki>
     }
 
     return queryBuilder.getMany()
@@ -97,13 +63,11 @@ class EventsService {
     ids: string[],
     args: EventArgs,
   ) {
-    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
+    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
 
     const order =
       args.order === 'date'
-        ? `COALESCE("subquery".events->0->>'date', "subquery".events->0->>'${
-            args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
-          }')`
+        ? this.wikiService.orderFuse(args.direction, 'subquery')
         : `"subquery"."${args.order}"`
 
     let mainQuery = `
@@ -126,7 +90,7 @@ class EventsService {
       OFFSET $3
       LIMIT $4`
 
-    const params = [
+    let params = [
       lowerCaseIds,
       eventTag,
       args.offset,
@@ -134,37 +98,18 @@ class EventsService {
       args.startDate,
       args.endDate,
     ]
+    params = params.filter(item => item !== undefined)
 
-    if (args.startDate && !args.endDate) {
-      mainQuery += `
-        AND (
-            wiki.events->0->>'type' IS NULL
-            OR wiki.events->0->>'type' = 'DEFAULT'
-            AND wiki.events->0->>'date' >= $5
-            OR wiki.events->0->>'type' = 'MULTIDATE'
-            AND $5 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
-        )`
-      mainQuery += queryEnd
-      return repository.query(mainQuery, params.slice(0, -1))
-    }
-
-    if (args.startDate && args.endDate) {
-      mainQuery += `
-        AND (
-            wiki.events->0->>'type' IS NULL
-            OR wiki.events->0->>'type' = 'DEFAULT'
-            AND wiki.events->0->>'date' BETWEEN $5 AND $6
-            OR wiki.events->0->>'type' = 'MULTIDATE'
-            AND $5 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
-            AND wiki.events->0->>'multiEndDate' <= $6
-        )`
-      mainQuery += queryEnd
-      return repository.query(mainQuery, params)
-    }
-
+    mainQuery = !args.startDate
+      ? (this.wikiService.applyDateFilter(mainQuery, args, params) as string)
+      : (mainQuery += this.wikiService.applyDateFilter(
+          mainQuery,
+          args,
+          params,
+        ) as string)
     mainQuery += queryEnd
 
-    return repository.query(mainQuery, params.slice(0, -2))
+    return repository.query(mainQuery, params)
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
@@ -261,12 +206,17 @@ class EventsService {
     const repository = this.dataSource.getRepository(Wiki)
     const order =
       args.order === 'date'
-        ? `COALESCE(wiki.events->0->>'date', wiki.events->0->>'${
-            args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
-          }')`
+        ? this.wikiService.orderFuse(args.direction, 'wiki')
         : `wiki."${args.order}"`
 
-    let params = [args.blockchain, args.limit, args.offset]
+    let params = [
+      args.blockchain,
+      args.limit,
+      args.offset,
+      args.startDate,
+      args.endDate,
+    ]
+    params = params.filter(item => item !== undefined)
     let query = `
       SELECT *
       FROM wiki
@@ -274,35 +224,18 @@ class EventsService {
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
     `
-
-    if (args.startDate && !args.endDate) {
-      query += `
-        AND (
-            wiki.events->0->>'type' IS NULL
-            OR wiki.events->0->>'type' = 'DEFAULT'
-            AND wiki.events->0->>'date' >= $4
-            OR wiki.events->0->>'type' = 'MULTIDATE'
-            AND $4 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
-        )\n`
-      params = [...params, args.startDate]
-    }
-
-    if (args.startDate && args.endDate) {
-      query += `
-        AND (
-            wiki.events->0->>'type' IS NULL
-            OR wiki.events->0->>'type' = 'DEFAULT'
-            AND wiki.events->0->>'date' BETWEEN $4 AND $5
-            OR wiki.events->0->>'type' = 'MULTIDATE'
-            AND $4 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
-            AND wiki.events->0->>'multiEndDate' <= $5
-        )\n`
-      params = [...params, args.startDate, args.endDate]
-    }
-
-    query += `ORDER BY ${order} ${args.direction}
+    const queryEnd = `ORDER BY ${order} ${args.direction}
       LIMIT $2
       OFFSET $3`
+
+    query = !args.startDate
+      ? (this.wikiService.applyDateFilter(query, args, params) as string)
+      : (query += this.wikiService.applyDateFilter(
+          query,
+          args,
+          params,
+        ) as string)
+    query += queryEnd
 
     return repository.query(query, params)
   }
