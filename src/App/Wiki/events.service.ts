@@ -34,7 +34,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map(tag => tag.toLowerCase()),
+        tags: ids.map((tag) => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -48,7 +48,7 @@ class EventsService {
 
     if (args.startDate && !args.endDate && ids.length === 1) {
       queryBuilder.andWhere(
-        new Brackets(qb => {
+        new Brackets((qb) => {
           qb.orWhere("wiki.events->0->>'type' IS NULL")
             .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
             .andWhere("wiki.events->0->>'date' >= :start", {
@@ -66,7 +66,7 @@ class EventsService {
     if (args.startDate && args.endDate && ids.length === 1) {
       queryBuilder
         .andWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             qb.orWhere("wiki.events->0->>'type' IS NULL")
               .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
               .andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
@@ -76,7 +76,7 @@ class EventsService {
           }),
         )
         .orWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             qb.where("wiki.events->0->>'type' = 'MULTIDATE'")
               .andWhere(
                 ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
@@ -97,14 +97,14 @@ class EventsService {
     ids: string[],
     args: EventArgs,
   ) {
-    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
+    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
 
     const order =
       args.order === 'date'
-        ? 
-          `COALESCE("subquery".events->0->>'date', "subquery".events->0->>'${args.direction=== 'ASC'? 'multiStartDate' : 'multiEndDate'}')`
-        : 
-          `"subquery"."${args.order}"`
+        ? `COALESCE("subquery".events->0->>'date', "subquery".events->0->>'${
+            args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
+          }')`
+        : `"subquery"."${args.order}"`
 
     let mainQuery = `
         SELECT "subquery".*
