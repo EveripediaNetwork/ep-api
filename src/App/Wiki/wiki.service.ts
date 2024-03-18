@@ -136,9 +136,7 @@ class WikiService {
 
     switch (args.order || eventArgs?.order) {
       case 'date':
-        order = `COALESCE(wiki.events->0->>'date', wiki.events->0->>'${
-          args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
-        }')`
+        order = this.orderFuse(args.direction, 'wiki')
         break
       case 'id':
         order = 'wiki.id'
