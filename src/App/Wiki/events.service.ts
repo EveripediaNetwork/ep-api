@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import { DataSource, Repository } from 'typeorm'
+import { Brackets, DataSource, Repository } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -19,7 +19,9 @@ class EventsService {
 
     switch (args.order) {
       case 'date':
-        order = "wiki.events->0->>'date'"
+        order = `COALESCE(wiki.events->0->>'date', wiki.events->0->>'${
+          args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
+        }')`
         break
       case 'id':
         order = 'wiki.id'
@@ -32,7 +34,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+        tags: ids.map(tag => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -45,16 +47,46 @@ class EventsService {
     }
 
     if (args.startDate && !args.endDate && ids.length === 1) {
-      queryBuilder.andWhere("wiki.events->0->>'date' >= :start", {
-        start: args.startDate,
-      })
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          qb.orWhere("wiki.events->0->>'type' IS NULL")
+            .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
+            .andWhere("wiki.events->0->>'date' >= :start", {
+              start: args.startDate,
+            })
+            .orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
+            .andWhere(
+              ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
+              { start: args.startDate },
+            )
+        }),
+      )
     }
 
     if (args.startDate && args.endDate && ids.length === 1) {
-      queryBuilder.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
-        start: args.startDate,
-        end: args.endDate,
-      })
+      queryBuilder
+        .andWhere(
+          new Brackets(qb => {
+            qb.orWhere("wiki.events->0->>'type' IS NULL")
+              .orWhere("wiki.events->0->>'type' = 'DEFAULT'")
+              .andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
+                start: args.startDate,
+                end: args.endDate,
+              })
+          }),
+        )
+        .orWhere(
+          new Brackets(qb => {
+            qb.where("wiki.events->0->>'type' = 'MULTIDATE'")
+              .andWhere(
+                ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
+                { start: args.startDate },
+              )
+              .andWhere("wiki.events->0->>'multiEndDate' <= :end", {
+                end: args.endDate,
+              })
+          }),
+        )
     }
 
     return queryBuilder.getMany()
@@ -65,11 +97,15 @@ class EventsService {
     ids: string[],
     args: EventArgs,
   ) {
-    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
+    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
+
     const order =
       args.order === 'date'
-        ? `"subquery"."events"->0->>'date'`
-        : `"subquery"."${args.order}"`
+        ? 
+          `COALESCE("subquery".events->0->>'date', "subquery".events->0->>'${args.direction=== 'ASC'? 'multiStartDate' : 'multiEndDate'}')`
+        : 
+          `"subquery"."${args.order}"`
+
     let mainQuery = `
         SELECT "subquery".*
         FROM (
@@ -99,18 +135,31 @@ class EventsService {
       args.endDate,
     ]
 
-    if (args.startDate && args.endDate) {
-      mainQuery += `
-      AND wiki.events->0->>'date' BETWEEN $5 AND $6`
-      mainQuery += queryEnd
-      return repository.query(mainQuery, params)
-    }
-
     if (args.startDate && !args.endDate) {
       mainQuery += `
-      AND wiki.events->0->>'date' >= $5`
+        AND (
+            wiki.events->0->>'type' IS NULL
+            OR wiki.events->0->>'type' = 'DEFAULT'
+            AND wiki.events->0->>'date' >= $5
+            OR wiki.events->0->>'type' = 'MULTIDATE'
+            AND $5 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
+        )`
       mainQuery += queryEnd
       return repository.query(mainQuery, params.slice(0, -1))
+    }
+
+    if (args.startDate && args.endDate) {
+      mainQuery += `
+        AND (
+            wiki.events->0->>'type' IS NULL
+            OR wiki.events->0->>'type' = 'DEFAULT'
+            AND wiki.events->0->>'date' BETWEEN $5 AND $6
+            OR wiki.events->0->>'type' = 'MULTIDATE'
+            AND $5 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
+            AND wiki.events->0->>'multiEndDate' <= $6
+        )`
+      mainQuery += queryEnd
+      return repository.query(mainQuery, params)
     }
 
     mainQuery += queryEnd
@@ -212,7 +261,9 @@ class EventsService {
     const repository = this.dataSource.getRepository(Wiki)
     const order =
       args.order === 'date'
-        ? `wiki."events"->0->>'date'`
+        ? `COALESCE(wiki.events->0->>'date', wiki.events->0->>'${
+            args.direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
+          }')`
         : `wiki."${args.order}"`
 
     let params = [args.blockchain, args.limit, args.offset]
@@ -225,12 +276,27 @@ class EventsService {
     `
 
     if (args.startDate && !args.endDate) {
-      query += `AND wiki.events->0->>'date' >= $4\n`
+      query += `
+        AND (
+            wiki.events->0->>'type' IS NULL
+            OR wiki.events->0->>'type' = 'DEFAULT'
+            AND wiki.events->0->>'date' >= $4
+            OR wiki.events->0->>'type' = 'MULTIDATE'
+            AND $4 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
+        )\n`
       params = [...params, args.startDate]
     }
 
     if (args.startDate && args.endDate) {
-      query += `AND wiki.events->0->>'date' BETWEEN $4 AND $5\n`
+      query += `
+        AND (
+            wiki.events->0->>'type' IS NULL
+            OR wiki.events->0->>'type' = 'DEFAULT'
+            AND wiki.events->0->>'date' BETWEEN $4 AND $5
+            OR wiki.events->0->>'type' = 'MULTIDATE'
+            AND $4 BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
+            AND wiki.events->0->>'multiEndDate' <= $5
+        )\n`
       params = [...params, args.startDate, args.endDate]
     }
 
