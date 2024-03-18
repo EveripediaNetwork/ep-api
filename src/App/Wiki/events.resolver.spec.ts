@@ -327,7 +327,6 @@ describe('EventsResolver', () => {
   }
 
   describe('events', () => {
-
     it('should return events', async () => {
       const args: EventArgs = {
         tagIds: ['id1', 'id2'],
@@ -338,24 +337,73 @@ describe('EventsResolver', () => {
         limit: 10,
         offset: 0,
       }
-      
+
       const context = {
         req: {
           body: {
-            query: 'a_query'
-      } } }
+            query: 'a_query',
+          },
+        },
+      }
       jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
-      jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValue(testEvents)
-    const result = await eventsResolver.events(args, context)
-    expect(result).toEqual(testEvents)
-    expect(eventsService.events).toHaveBeenCalledWith([eventTag, ...(args.tagIds || [])], args)
-    expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(testEvents, context.req.body.query)
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockResolvedValue(testEvents)
+      const result = await eventsResolver.events(args, context)
+      expect(result).toEqual(testEvents)
+      expect(eventsService.events).toHaveBeenCalledWith(
+        [eventTag, ...(args.tagIds || [])],
+        args,
+      )
+      expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(
+        testEvents,
+        context.req.body.query,
+      )
     })
-    
+
     it('should handle missing arguments', async () => {
       const context = { req: { body: {} } }
-      const result = async () => { await eventsResolver.events(undefined as unknown as EventArgs, context)}
+      const result = async () => {
+        await eventsResolver.events(undefined as unknown as EventArgs, context)
+      }
       expect(result()).rejects.toThrow()
+    })
+
+    it('should throw an error if relation resolution fails', async () => {
+      jest.spyOn(eventsService, 'resolveWikiRelations').mockImplementation(() => {
+        throw new Error('Relation resolution failed')
+      })
+      const context = {
+        req: {
+          body: {
+            query: 'a_query',
+          },
+        },
+      }
+      const result = async () => {
+        await eventsResolver.events({} as EventArgs, context)
+      }
+      await expect(result()).rejects.toThrow('Relation resolution failed')
+    })
+
+    it('should throw an errow when retrieval fails', async () => {
+      jest.spyOn(eventsService, 'events').mockRejectedValue(
+        new Error (
+          'Events retrieval failed'
+        )
+      )
+      const context = {
+        req: {
+          body: {
+            query: 'a_query',
+          },
+        },
+      }
+
+      const result = async () => {
+        await eventsResolver.events({} as EventArgs, context)
+      }
+      await expect(result()).rejects.toThrow('Events retrieval failed')
     })
   })
 })
