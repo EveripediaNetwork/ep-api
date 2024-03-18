@@ -9,6 +9,9 @@ import User from '../../Database/Entities/user.entity'
 import { EventArgs, EventByBlockchainArgs, eventTag } from './wiki.dto'
 import WikiService from './wiki.service'
 
+function nullFilter(arr: any[]) {
+  return arr.filter((item: undefined) => item !== undefined)
+}
 @Injectable()
 class EventsService {
   constructor(
@@ -36,7 +39,7 @@ class EventsService {
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
+        tags: ids.map(tag => tag.toLowerCase()),
       })
       .andWhere('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
@@ -63,7 +66,7 @@ class EventsService {
     ids: string[],
     args: EventArgs,
   ) {
-    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
+    const lowerCaseIds = ids.map(tag => tag.toLowerCase())
 
     const order =
       args.order === 'date'
@@ -90,15 +93,14 @@ class EventsService {
       OFFSET $3
       LIMIT $4`
 
-    let params = [
+    const params = nullFilter([
       lowerCaseIds,
       eventTag,
       args.offset,
       args.limit,
       args.startDate,
       args.endDate,
-    ]
-    params = params.filter((item) => item !== undefined)
+    ])
 
     mainQuery = !args.startDate
       ? (this.wikiService.applyDateFilter(mainQuery, args, params) as string)
@@ -209,14 +211,14 @@ class EventsService {
         ? this.wikiService.orderFuse(args.direction, 'wiki')
         : `wiki."${args.order}"`
 
-    let params = [
+    const params = nullFilter([
       args.blockchain,
       args.limit,
       args.offset,
       args.startDate,
       args.endDate,
-    ]
-    params = params.filter((item) => item !== undefined)
+    ])
+
     let query = `
       SELECT *
       FROM wiki
