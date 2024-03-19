@@ -99,7 +99,7 @@ class IPFSValidatorService {
         validatingWiki.images.length <= 5
       ) {
         let result = true
-        validatingWiki.images.forEach((image) => {
+        validatingWiki.images.forEach(image => {
           const keys = Object.keys(image)
           const key = keys.includes('id') && keys.includes('type')
           result =
@@ -118,7 +118,7 @@ class IPFSValidatorService {
     const checkExternalUrls = (validatingWiki: WikiType) => {
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
-      markdownLinks?.every((link) => {
+      markdownLinks?.every(link => {
         const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
         const text = linkMatch?.[1]
         const url = linkMatch?.[2]
@@ -154,7 +154,7 @@ class IPFSValidatorService {
         ...Object.values(EditSpecificMetaIds),
       ]
 
-      const valueField = validatingWiki.metadata.every((e) => {
+      const valueField = validatingWiki.metadata.every(e => {
         ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds)
         if (e.id !== CommonMetaIds.REFERENCES) {
           return e.value.length < 255
@@ -183,7 +183,7 @@ class IPFSValidatorService {
 
       const size = validatingWiki.media.length
 
-      const contentCheck = validatingWiki.media.every((m) => {
+      const contentCheck = validatingWiki.media.every(m => {
         let isContentValid = true
 
         if (
@@ -211,7 +211,7 @@ class IPFSValidatorService {
       })
 
       const wikiMediasWithIcon = validatingWiki.media.filter(
-        (m) => m.type === MediaType.ICON,
+        m => m.type === MediaType.ICON,
       )
 
       const isValidMedia =
@@ -224,9 +224,20 @@ class IPFSValidatorService {
       if (!validatingWiki.events) return true
       let isValid = true
 
+      const checkDate = (str: string) => {
+        const date = new Date(str)
+        return date.toString() !== 'Invalid Date'
+      }
+
       for (const event of validatingWiki.events) {
-        const date = new Date(event.date)
-        const isDateValid = date.toString() !== 'Invalid Date'
+        let isDateValid
+        if (event.type === EventType.MULTIDATE) {
+          isDateValid =
+            checkDate(event.multiDateStart as string) &&
+            checkDate(event.multiDateEnd as string)
+        } else {
+          isDateValid = checkDate(event.date)
+        }
         const isLinkValid = event.link
           ? isValidUrl(event.link) && event.link.length < 500
           : true
