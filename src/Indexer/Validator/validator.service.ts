@@ -224,9 +224,20 @@ class IPFSValidatorService {
       if (!validatingWiki.events) return true
       let isValid = true
 
+      const checkDate = (str: string) => {
+        const date = new Date(str)
+        return date.toString() !== 'Invalid Date'
+      }
+
       for (const event of validatingWiki.events) {
-        const date = new Date(event.date)
-        const isDateValid = date.toString() !== 'Invalid Date'
+        let isDateValid
+        if (event.type === EventType.MULTIDATE) {
+          isDateValid =
+            checkDate(event.multiDateStart as string) &&
+            checkDate(event.multiDateEnd as string)
+        } else {
+          isDateValid = checkDate(event.date)
+        }
         const isLinkValid = event.link
           ? isValidUrl(event.link) && event.link.length < 500
           : true
