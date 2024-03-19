@@ -370,9 +370,11 @@ describe('EventsResolver', () => {
     })
 
     it('should throw an error if relation resolution fails', async () => {
-      jest.spyOn(eventsService, 'resolveWikiRelations').mockImplementation(() => {
-        throw new Error('Relation resolution failed')
-      })
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockImplementation(() => {
+          throw new Error('Relation resolution failed')
+        })
       const context = {
         req: {
           body: {
@@ -386,12 +388,10 @@ describe('EventsResolver', () => {
       await expect(result()).rejects.toThrow('Relation resolution failed')
     })
 
-    it('should throw an errow when retrieval fails', async () => {
-      jest.spyOn(eventsService, 'events').mockRejectedValue(
-        new Error (
-          'Events retrieval failed'
-        )
-      )
+    it('should throw an error when retrieval fails', async () => {
+      jest
+        .spyOn(eventsService, 'events')
+        .mockRejectedValue(new Error('Events retrieval failed'))
       const context = {
         req: {
           body: {
@@ -405,5 +405,9 @@ describe('EventsResolver', () => {
       }
       await expect(result()).rejects.toThrow('Events retrieval failed')
     })
+  })
+
+  describe('wikiEventsByCategory', () => {
+    it('should return an array of events based on ca')
   })
 })

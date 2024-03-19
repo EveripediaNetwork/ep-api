@@ -44,12 +44,6 @@ class EventsService {
       return this.queryWikisWithMultipleTags(repository, ids, args)
     }
 
-    if (args.startDate && !args.endDate && ids.length === 1) {
-      queryBuilder.andWhere("wiki.events->0->>'date' >= :start", {
-        start: args.startDate,
-      })
-    }
-
     if (args.startDate && args.endDate && ids.length === 1) {
       queryBuilder.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
         start: args.startDate,
@@ -71,17 +65,17 @@ class EventsService {
         ? `"subquery"."events"->0->>'date'`
         : `"subquery"."${args.order}"`
     let mainQuery = `
-        SELECT "subquery".*
-        FROM (
-            SELECT
-                "wiki".*,
-                "tag"."id" AS "tagid",
-                COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
-            FROM "wiki" "wiki"
-            INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
-            INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
-            WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
-    `
+    SELECT "subquery".*
+    FROM (
+        SELECT
+            "wiki".*,
+            "tag"."id" AS "tagid",
+            COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
+        FROM "wiki" "wiki"
+        INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
+        INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
+        WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
+  `
 
     const queryEnd = `
     ) AS "subquery"
@@ -90,32 +84,28 @@ class EventsService {
       OFFSET $3
       LIMIT $4`
 
-    const params = [
-      lowerCaseIds,
-      eventTag,
-      args.offset,
-      args.limit,
-      args.startDate,
-      args.endDate,
-    ]
-
     if (args.startDate && args.endDate) {
       mainQuery += `
       AND wiki.events->0->>'date' BETWEEN $5 AND $6`
       mainQuery += queryEnd
-      return repository.query(mainQuery, params)
-    }
-
-    if (args.startDate && !args.endDate) {
-      mainQuery += `
-      AND wiki.events->0->>'date' >= $5`
-      mainQuery += queryEnd
-      return repository.query(mainQuery, params.slice(0, -1))
+      return repository.query(mainQuery, [
+        lowerCaseIds,
+        eventTag,
+        args.offset,
+        args.limit,
+        args.startDate,
+        args.endDate,
+      ])
     }
 
     mainQuery += queryEnd
 
-    return repository.query(mainQuery, params.slice(0, -2))
+    return repository.query(mainQuery, [
+      lowerCaseIds,
+      eventTag,
+      args.offset,
+      args.limit,
+    ])
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
@@ -215,30 +205,17 @@ class EventsService {
         ? `wiki."events"->0->>'date'`
         : `wiki."${args.order}"`
 
-    let params = [args.blockchain, args.limit, args.offset]
-    let query = `
+    const query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
-    `
-
-    if (args.startDate && !args.endDate) {
-      query += `AND wiki.events->0->>'date' >= $4\n`
-      params = [...params, args.startDate]
-    }
-
-    if (args.startDate && args.endDate) {
-      query += `AND wiki.events->0->>'date' BETWEEN $4 AND $5\n`
-      params = [...params, args.startDate, args.endDate]
-    }
-
-    query += `ORDER BY ${order} ${args.direction}
+      ORDER BY ${order} ${args.direction}
       LIMIT $2
-      OFFSET $3`
-
-    return repository.query(query, params)
+      OFFSET $3;
+    `
+    return repository.query(query, [args.blockchain, args.limit, args.offset])
   }
 
   hasField(ast: any, fieldName: string): boolean {
