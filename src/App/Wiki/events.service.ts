@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
 import { EventArgs, EventByBlockchainArgs, eventTag } from './wiki.dto'
+import WikiService from './wiki.service'
 
+function nullFilter(arr: any[]) {
+  return arr.filter((item: undefined) => item !== undefined)
+}
 @Injectable()
 class EventsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private wikiService: WikiService,
+  ) {}
 
   async events(ids: string[], args: EventArgs) {
     const repository = this.dataSource.getRepository(Wiki)
@@ -19,7 +26,7 @@ class EventsService {
 
     switch (args.order) {
       case 'date':
-        order = "wiki.events->0->>'date'"
+        order = this.wikiService.orderFuse(args.direction, 'wiki')
         break
       case 'id':
         order = 'wiki.id'
@@ -28,7 +35,7 @@ class EventsService {
         order = args.order
     }
 
-    const queryBuilder = repository
+    let queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
       .where('LOWER(tag.id) IN (:...tags)', {
@@ -44,11 +51,11 @@ class EventsService {
       return this.queryWikisWithMultipleTags(repository, ids, args)
     }
 
-    if (args.startDate && args.endDate && ids.length === 1) {
-      queryBuilder.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
-        start: args.startDate,
-        end: args.endDate,
-      })
+    if (ids.length === 1) {
+      queryBuilder = this.wikiService.applyDateFilter(
+        queryBuilder,
+        args,
+      ) as SelectQueryBuilder<Wiki>
     }
 
     return queryBuilder.getMany()
@@ -60,10 +67,12 @@ class EventsService {
     args: EventArgs,
   ) {
     const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
+
     const order =
       args.order === 'date'
-        ? `"subquery"."events"->0->>'date'`
+        ? this.wikiService.orderFuse(args.direction, 'subquery')
         : `"subquery"."${args.order}"`
+
     let mainQuery = `
     SELECT "subquery".*
     FROM (
@@ -84,28 +93,25 @@ class EventsService {
       OFFSET $3
       LIMIT $4`
 
-    if (args.startDate && args.endDate) {
-      mainQuery += `
-      AND wiki.events->0->>'date' BETWEEN $5 AND $6`
-      mainQuery += queryEnd
-      return repository.query(mainQuery, [
-        lowerCaseIds,
-        eventTag,
-        args.offset,
-        args.limit,
-        args.startDate,
-        args.endDate,
-      ])
-    }
-
-    mainQuery += queryEnd
-
-    return repository.query(mainQuery, [
+    const params = nullFilter([
       lowerCaseIds,
       eventTag,
       args.offset,
       args.limit,
+      args.startDate,
+      args.endDate,
     ])
+
+    mainQuery = !args.startDate
+      ? (this.wikiService.applyDateFilter(mainQuery, args, params) as string)
+      : (mainQuery += this.wikiService.applyDateFilter(
+          mainQuery,
+          args,
+          params,
+        ) as string)
+    mainQuery += queryEnd
+
+    return repository.query(mainQuery, params)
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
@@ -202,20 +208,29 @@ class EventsService {
     const repository = this.dataSource.getRepository(Wiki)
     const order =
       args.order === 'date'
-        ? `wiki."events"->0->>'date'`
+        ? this.wikiService.orderFuse(args.direction, 'wiki')
         : `wiki."${args.order}"`
 
-    const query = `
+    const params = nullFilter([
+      args.blockchain,
+      args.limit,
+      args.offset,
+      args.startDate,
+      args.endDate,
+    ])
+
+    let query = `
       SELECT *
       FROM wiki
       WHERE LOWER($1) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )
-      ORDER BY ${order} ${args.direction}
-      LIMIT $2
-      OFFSET $3;
     `
-    return repository.query(query, [args.blockchain, args.limit, args.offset])
+    const queryEnd = `ORDER BY ${order} ${args.direction}
+      LIMIT $2
+      OFFSET $3`
+
+    return repository.query(query, params)
   }
 
   hasField(ast: any, fieldName: string): boolean {

@@ -2,28 +2,21 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HttpModule } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { DataSource, EntityManager, Repository } from 'typeorm'
+import { DataSource, EntityManager } from 'typeorm'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService from './events.service'
-import {
-  EventArgs,
-  EventByBlockchainArgs,
-  EventByCategoryArgs,
-  EventByTitleArgs,
-  LangArgs,
-  eventTag,
-} from './wiki.dto'
-import { Direction, OrderBy } from '../general.args'
+import { EventArgs, EventByCategoryArgs, eventTag } from './wiki.dto'
 import EventsResolver from './events.resolver'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { Direction, OrderBy } from '../general.args'
 
 describe('EventsResolver', () => {
   let eventsResolver: EventsResolver
-  let wikiService: WikiService
   let eventsService: EventsService
+  let wikiService: WikiService
 
   beforeEach(async () => {
     const mockEntityManager: Partial<EntityManager> = {
@@ -33,6 +26,7 @@ describe('EventsResolver', () => {
       imports: [ConfigModule, HttpModule],
       providers: [
         EventsResolver,
+        WikiService,
         {
           provide: EventsService,
           useValue: {
@@ -42,7 +36,6 @@ describe('EventsResolver', () => {
           },
         },
         WikiService,
-
         ValidSlug,
         HttpModule,
         {
@@ -315,19 +308,8 @@ describe('EventsResolver', () => {
     },
   ]
 
-  const mockRepository = {
-    createQueryBuilder: jest.fn().mockReturnThis(),
-    innerJoin: jest.fn().mockReturnThis(),
-    andWhere: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    offset: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    getMany: jest.fn().mockResolvedValue([]),
-  }
-
   describe('events', () => {
-    it('should return events', async () => {
+    it('should return events based on provided arguments', async () => {
       const args: EventArgs = {
         tagIds: ['id1', 'id2'],
         lang: 'en',
@@ -345,11 +327,14 @@ describe('EventsResolver', () => {
           },
         },
       }
+
       jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
       jest
         .spyOn(eventsService, 'resolveWikiRelations')
         .mockResolvedValue(testEvents)
+
       const result = await eventsResolver.events(args, context)
+
       expect(result).toEqual(testEvents)
       expect(eventsService.events).toHaveBeenCalledWith(
         [eventTag, ...(args.tagIds || [])],
@@ -363,10 +348,10 @@ describe('EventsResolver', () => {
 
     it('should handle missing arguments', async () => {
       const context = { req: { body: {} } }
-      const result = async () => {
-        await eventsResolver.events(undefined as unknown as EventArgs, context)
-      }
-      expect(result()).rejects.toThrow()
+
+      await expect(
+        eventsResolver.events(undefined as unknown as EventArgs, context),
+      ).rejects.toThrow()
     })
 
     it('should throw an error if relation resolution fails', async () => {
@@ -375,6 +360,7 @@ describe('EventsResolver', () => {
         .mockImplementation(() => {
           throw new Error('Relation resolution failed')
         })
+
       const context = {
         req: {
           body: {
@@ -382,9 +368,11 @@ describe('EventsResolver', () => {
           },
         },
       }
+
       const result = async () => {
         await eventsResolver.events({} as EventArgs, context)
       }
+
       await expect(result()).rejects.toThrow('Relation resolution failed')
     })
 
@@ -392,6 +380,7 @@ describe('EventsResolver', () => {
       jest
         .spyOn(eventsService, 'events')
         .mockRejectedValue(new Error('Events retrieval failed'))
+
       const context = {
         req: {
           body: {
@@ -403,11 +392,34 @@ describe('EventsResolver', () => {
       const result = async () => {
         await eventsResolver.events({} as EventArgs, context)
       }
+
       await expect(result()).rejects.toThrow('Events retrieval failed')
     })
   })
 
   describe('wikiEventsByCategory', () => {
-    it('should return an array of events based on ca')
+    it('should return an array of events based on category', async () => {
+      const args: EventByCategoryArgs = {
+        category: 'blockchain',
+        lang: 'en',
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+        limit: 10,
+        offset: 0,
+      }
+
+      jest
+        .spyOn(wikiService, 'getWikisByCategory')
+        .mockResolvedValue(testEvents)
+      const result = await await eventsResolver.wikiEventsByCategory(args)
+      expect(result).toEqual(testEvents)
+      expect(wikiService.getWikisByCategory).toHaveBeenCalledWith(
+        {
+          category: args.category,
+        },
+        args,
+      )
+    })
   })
 })
