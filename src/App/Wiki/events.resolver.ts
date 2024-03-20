@@ -4,6 +4,7 @@ import {
   EventArgs,
   EventByBlockchainArgs,
   EventByCategoryArgs,
+  EventByLocationArgs,
   EventByTitleArgs,
   LangArgs,
   TitleArgs,
@@ -60,7 +61,23 @@ class EventsResolver {
   ) {
     const { req } = context
     const { query } = req.body
-    const events = await this.eventsService.getEventsByBlockchain(args)
+    const events = await this.eventsService.getEventsByLocationOrBlockchain(
+      args,
+      true,
+    )
+    return this.eventsService.resolveWikiRelations(events, query)
+  }
+
+  @Query(() => [Wiki], { nullable: true })
+  async eventsByLocation(
+    @Args() args: EventByLocationArgs,
+    @Context() context: any,
+  ) {
+    const { req } = context
+    const { query } = req.body
+    const events = await this.eventsService.getEventsByLocationOrBlockchain(
+      args,
+    )
     return this.eventsService.resolveWikiRelations(events, query)
   }
 }
