@@ -6,7 +6,7 @@ import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
-import { EventArgs, EventByBlockchainArgs, eventTag } from './wiki.dto'
+import { EventArgs, eventTag } from './wiki.dto'
 import WikiService from './wiki.service'
 
 function nullFilter(arr: any[]) {
@@ -204,42 +204,59 @@ class EventsService {
     return userDetails
   }
 
-  async getEventsByBlockchain(args: EventByBlockchainArgs) {
+  async getEventsByLocationOrBlockchain(args: any, blockchain = false) {
     const repository = this.dataSource.getRepository(Wiki)
     const order =
       args.order === 'date'
         ? this.wikiService.orderFuse(args.direction, 'wiki')
         : `wiki."${args.order}"`
 
-    const params = nullFilter([
-      args.blockchain,
-      args.limit,
-      args.offset,
-      args.startDate,
-      args.endDate,
-    ])
+    let queryBuilder = repository
+      .createQueryBuilder('wiki')
+      .leftJoinAndSelect('wiki.tags', 'tag')
+      .where('wiki.hidden = false')
+      .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy(order, args.direction)
 
-    let query = `
-      SELECT *
-      FROM wiki
-      WHERE LOWER($1) IN (
+    if (blockchain) {
+      const sub = `LOWER(:blockchain) IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
-      )
-    `
-    const queryEnd = `ORDER BY ${order} ${args.direction}
-      LIMIT $2
-      OFFSET $3`
+      )`
+      queryBuilder.andWhere(sub, {
+        blockchain: args.blockchain,
+      })
+    } else {
+      const conditions = []
+      if (args.country) {
+        conditions.push("elem->>'value' ILIKE '%' || :country || '%'")
+      }
+      if (args.continent) {
+        conditions.push("elem->>'value' ILIKE '%' || :continent || '%'")
+      }
+      const subqueryCondition =
+        conditions.length > 0 ? `AND (${conditions.join(' AND ')})` : ''
 
-    query = !args.startDate
-      ? (this.wikiService.applyDateFilter(query, args, params) as string)
-      : (query += this.wikiService.applyDateFilter(
-          query,
-          args,
-          params,
-        ) as string)
-    query += queryEnd
+      const sub = `
+            EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(metadata::jsonb) AS elem
+                WHERE elem->>'id' = 'location' ${subqueryCondition}
+            )
+        `
+      queryBuilder.andWhere(sub, {
+        country: args.country,
+        continent: args.continent,
+      })
+    }
 
-    return repository.query(query, params)
+    queryBuilder = this.wikiService.applyDateFilter(
+      queryBuilder,
+      args,
+    ) as SelectQueryBuilder<Wiki>
+
+    return queryBuilder.getMany()
   }
 
   hasField(ast: any, fieldName: string): boolean {
