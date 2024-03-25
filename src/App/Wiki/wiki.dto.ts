@@ -100,3 +100,14 @@ export class EventByBlockchainArgs extends EventDefaultArgs {
   @Validate(ValidStringParams)
   blockchain?: string
 }
+
+@ArgsType()
+export class EventByLocationArgs extends EventDefaultArgs {
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  continent?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  country?: string
+}

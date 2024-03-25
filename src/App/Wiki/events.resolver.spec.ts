@@ -2,12 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HttpModule } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
- import { DataSource, EntityManager } from 'typeorm'
+import { DataSource, EntityManager } from 'typeorm'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService from './events.service'
-import { EventArgs, EventByCategoryArgs, EventByTitleArgs, LangArgs, TitleArgs, eventTag } from './wiki.dto'
+import {
+  EventArgs,
+  EventByCategoryArgs,
+  EventByTitleArgs,
+  LangArgs,
+  TitleArgs,
+  eventTag,
+} from './wiki.dto'
 import EventsResolver from './events.resolver'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -308,7 +315,6 @@ describe('EventsResolver', () => {
     },
   ]
 
-
   describe('wikiEventsByTitle', () => {
     it('should return events based on provided title', async () => {
       const args: TitleArgs = {
@@ -321,12 +327,14 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      jest.spyOn(wikiService, 'getWikisByTitle').mockResolvedValueOnce(testEvents)
+      jest
+        .spyOn(wikiService, 'getWikisByTitle')
+        .mockResolvedValueOnce(testEvents)
       const result = await eventsResolver.wikiEventsByTitle(args)
       expect(result).toEqual(testEvents)
     })
 
-    it('should handle missing title',async () => {
+    it('should handle missing title', async () => {
       const args: TitleArgs = {
         title: 'Blockchain summit',
         limit: 10,
@@ -336,7 +344,9 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-      await expect(eventsResolver.wikiEventsByTitle(args)).rejects.toThrowError()
+      await expect(
+        eventsResolver.wikiEventsByTitle(args),
+      ).rejects.toThrowError()
     })
 
     it('should throw an error when retrieval fails', async () => {
@@ -349,15 +359,19 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-      jest.spyOn(wikiService, 'getWikisByTitle').mockRejectedValueOnce(new Error('Failed to retrieve events'))
-      await expect(eventsResolver.wikiEventsByTitle(args)).rejects.toThrowError('Failed to retrieve events')
+      jest
+        .spyOn(wikiService, 'getWikisByTitle')
+        .mockRejectedValueOnce(new Error('Failed to retrieve events'))
+      await expect(eventsResolver.wikiEventsByTitle(args)).rejects.toThrowError(
+        'Failed to retrieve events',
+      )
     })
   })
 
   describe('wikiEventsByCategory', () => {
     it('should return events based on provided category', async () => {
       const args: EventByCategoryArgs = {
-        category: "ethereum",
+        category: 'ethereum',
         limit: 10,
         offset: 0,
         lang: 'en',
@@ -366,13 +380,15 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      jest.spyOn(wikiService, 'getWikisByCategory').mockResolvedValueOnce(testEvents)
+      jest
+        .spyOn(wikiService, 'getWikisByCategory')
+        .mockResolvedValueOnce(testEvents)
       const result = await eventsResolver.wikiEventsByCategory(args)
 
       expect(result).toEqual(testEvents)
     })
 
-    it('should handle missing category', async ()=> {
+    it('should handle missing category', async () => {
       const args: EventByCategoryArgs = {
         limit: 10,
         offset: 0,
@@ -382,12 +398,14 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      await expect(eventsResolver.wikiEventsByCategory(args)).rejects.toThrowError()
+      await expect(
+        eventsResolver.wikiEventsByCategory(args),
+      ).rejects.toThrowError()
     })
 
     it('should throw an error when retrieval fails', async () => {
       const args: EventByCategoryArgs = {
-        category: "ethereum",
+        category: 'ethereum',
         limit: 10,
         offset: 0,
         lang: 'en',
@@ -396,8 +414,12 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      jest.spyOn(wikiService, 'getWikisByCategory').mockRejectedValueOnce(new Error('Failed to retrieve events'))
-      await expect(eventsResolver.wikiEventsByCategory(args)).rejects.toThrowError('Failed to retrieve events')
+      jest
+        .spyOn(wikiService, 'getWikisByCategory')
+        .mockRejectedValueOnce(new Error('Failed to retrieve events'))
+      await expect(
+        eventsResolver.wikiEventsByCategory(args),
+      ).rejects.toThrowError('Failed to retrieve events')
     })
   })
 
@@ -411,7 +433,9 @@ describe('EventsResolver', () => {
         order: OrderBy.UPDATED,
       }
 
-      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValueOnce(testEvents)
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockResolvedValueOnce(testEvents)
 
       const result = await eventsResolver.popularEvents(args)
 
@@ -437,13 +461,17 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-      
-      jest.spyOn(wikiService, 'getPopularEvents').mockRejectedValueOnce(new Error('Failed to retrieve popular events'))
-      await expect(eventsResolver.popularEvents(args)).rejects.toThrowError('Failed to retrieve popular events')
+
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockRejectedValueOnce(new Error('Failed to retrieve popular events'))
+      await expect(eventsResolver.popularEvents(args)).rejects.toThrowError(
+        'Failed to retrieve popular events',
+      )
     })
   })
 
-  describe('events', () =>{
+  describe('events', () => {
     it('should return events based on provided args', async () => {
       const args: EventArgs = {
         tagIds: ['tag1', 'tag2'],
@@ -456,45 +484,53 @@ describe('EventsResolver', () => {
       }
       const context = {
         req: {
-          body: {}
-        }
+          body: {},
+        },
       }
 
       jest.spyOn(eventsService, 'events').mockResolvedValueOnce(testEvents)
-      jest.spyOn(eventsService, 'resolveWikiRelations').mockReturnValueOnce(testEvents)
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockReturnValueOnce(testEvents)
 
       const result = await eventsResolver.events(args, context)
 
       expect(result).toEqual(testEvents)
     })
 
-    it('should handle missing arguments', async () =>{
+    it('should handle missing arguments', async () => {
       const context = {
         req: {
-          body: {}
-        }
+          body: {},
+        },
       }
 
-      await expect(eventsResolver.events(undefined, context)).rejects.toThrowError()
+      await expect(
+        eventsResolver.events(undefined, context),
+      ).rejects.toThrowError()
     })
 
-    // it('should throw an error if relation resolution fails', async () => {
+    // it('should return events sorted in descending order based on their dates', async () =>{
     //   const args: EventArgs = {
     //     tagIds: ['tag1', 'tag2'],
-    //     hidden: false,
-    //     lang: 'en',
+    //     direction: Direction.DESC,
     //     limit: 10,
     //     offset: 0,
-    //     direction: Direction.DESC,
+    //     hidden: false,
+    //     lang: 'en',
     //     order: OrderBy.UPDATED,
     //   }
+
     //   const context = {
     //     req: {
     //       body: {}
     //     }
     //   }
 
-    //   jest.spyOn(eventsResolver, 'resolveWikiRelations').mockRejectedValueOnce(new Error('Failed to resolve wiki relations'))
+    //   jest.spyOn(eventsService, 'events').mockResolvedValueOnce(testEvents)
+
+    //   const result = await eventsResolver.events(args, context)
+    //   expect(result).toEqual(testEvents)
     // })
   })
 })

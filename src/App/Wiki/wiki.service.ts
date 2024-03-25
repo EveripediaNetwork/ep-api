@@ -183,7 +183,7 @@ class WikiService {
 
   orderFuse(direction: Direction, table: string) {
     return `COALESCE(${table}.events->0->>'date', ${table}.events->0->>'${
-      direction === 'ASC' ? 'multiStartDate' : 'multiEndDate'
+      direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
     }')`
   }
 
@@ -204,7 +204,6 @@ class WikiService {
           qb.orWhere("wiki.events->0->>'type' IS NULL").orWhere(
             "wiki.events->0->>'type' = 'DEFAULT'",
           )
-
           if (endDate) {
             qb.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
               start: startDate,
@@ -214,9 +213,9 @@ class WikiService {
                 qb2
                   .where("wiki.events->0->>'type' = 'MULTIDATE'")
                   .andWhere(
-                    ":start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'",
+                    "wiki.events->0->>'multiDateStart' >= :start  AND wiki.events->0->>'multiDateEnd' <= :end",
                   )
-                  .andWhere("wiki.events->0->>'multiEndDate' <= :end", {
+                  .andWhere("wiki.events->0->>'multiDateEnd' <= :end", {
                     start: startDate,
                     end: endDate,
                   })
@@ -226,28 +225,29 @@ class WikiService {
             qb.andWhere("wiki.events->0->>'date' >= :start", {
               start: args.startDate,
             }).orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
-            qb.andWhere(
-              `:start BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'`,
-              { start: startDate },
-            )
+            qb.andWhere(`wiki.events->0->>'multiDateStart' >= :start`, {
+              start: startDate,
+            })
           }
         }),
       )
     }
-    const end = params && params.length - 1
-    const start = params?.length
 
-    const dateCondition = args.endDate
-      ? `
-            wiki.events->0->>'date' BETWEEN $${end} AND $${start}
+    const dateCondition =
+      args.endDate && params
+        ? `
+            wiki.events->0->>'date' BETWEEN $${params.length - 1} AND $${
+            params.length
+          }
             OR (wiki.events->0->>'type' = 'MULTIDATE'
-            AND $${end} BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate'
-            AND wiki.events->0->>'multiEndDate' <= $${end})
+            AND wiki.events->0->>'multiDateStart' >= $${
+              params.length
+            } AND wiki.events->0->>'multiDateEnd' <= $${params?.length})
             `
-      : `
-            wiki.events->0->>'date' >= $${start}
+        : `
+            wiki.events->0->>'date' >= $${params?.length}
             OR (wiki.events->0->>'type' = 'MULTIDATE'
-            AND $${start} BETWEEN wiki.events->0->>'multiStartDate' AND wiki.events->0->>'multiEndDate')
+            AND wiki.events->0->>'multiDateStart' >= $${params?.length})
             `
 
     return `
