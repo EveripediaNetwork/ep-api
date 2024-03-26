@@ -7,10 +7,7 @@ import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService from './events.service'
-import {
-  EventByCategoryArgs,
-  EventByTitleArgs,
-} from './wiki.dto'
+import { EventByCategoryArgs, EventByTitleArgs } from './wiki.dto'
 import EventsResolver from './events.resolver'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -284,14 +281,16 @@ describe('EventsResolver', () => {
       const args = {
         title,
       } as unknown as EventByTitleArgs
-      const eventsByTitle = testEvents.filter(obj => obj.id.toLowerCase().includes('blockchain'));
+      const eventsByTitle = testEvents.filter((obj) =>
+        obj.id.toLowerCase().includes('blockchain'),
+      )
 
       jest
         .spyOn(wikiService, 'getWikisByTitle')
         .mockResolvedValueOnce(eventsByTitle as Wiki[])
       const result = await eventsResolver.wikiEventsByTitle(args)
       expect(result).toEqual(eventsByTitle)
-      result.forEach(obj => {
+      result.forEach((obj) => {
         expect(obj.id.toLowerCase()).toContain(title)
       })
     })
@@ -304,7 +303,7 @@ describe('EventsResolver', () => {
       }
 
       const category = 'Cryptocurrencies'
-      const resultWithCategory = testEvents.map(e => ({
+      const resultWithCategory = testEvents.map((e) => ({
         ...e,
         categories: [categoryField],
       }))
@@ -318,11 +317,10 @@ describe('EventsResolver', () => {
         .mockResolvedValueOnce(resultWithCategory as Wiki[])
       const result = await eventsResolver.wikiEventsByCategory(args)
 
-      result.forEach(obj => {
+      result.forEach((obj) => {
         expect(obj.categories).toBeDefined()
         expect(obj.categories[0].id).toBe('Cryptocurrencies')
       })
     })
   })
-
 })
