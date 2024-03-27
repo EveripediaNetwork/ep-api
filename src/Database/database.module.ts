@@ -55,8 +55,7 @@ import MarketCapIds from './Entities/marketCapIds.entity'
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        // logging: true
-        // logging: ["error"]
+        logging: ["error"]
       }),
       inject: [ConfigService],
     }),

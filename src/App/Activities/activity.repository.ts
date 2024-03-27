@@ -48,7 +48,7 @@ class ActivityRepository extends Repository<Activity> {
   activityContentFields(fields: string[]): string[] {
     const arr = fields.filter((e) => typeof e !== 'string')
     return arr
-      .map((e: any) => {
+      .flatMap((e: any) => {
         const t: any[] = []
         if (e.name === 'content') {
           e.selections.filter((ee: string | { name: string }) => {
@@ -63,7 +63,6 @@ class ActivityRepository extends Repository<Activity> {
         }
         return t
       })
-      .flat()
   }
 
   async getActivities(
