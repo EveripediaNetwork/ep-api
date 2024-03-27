@@ -51,11 +51,12 @@ import MarketCapIds from './Entities/marketCapIds.entity'
           HiIQHolderAddress,
           IQHolder,
           IQHolderAddress,
-          MarketCapIds,
+          MarketCapIds
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        logging: ["error"]
+        // logging: true
+        // logging: ["error"]
       }),
       inject: [ConfigService],
     }),

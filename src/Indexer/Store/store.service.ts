@@ -106,6 +106,21 @@ class DBStoreService {
     const incomingActivity = {
       wikiId: wiki.id,
       user,
+      a_tags: tags,
+      a_categories: categories,
+      a_metadata: wiki.metadata,
+      a_images: wiki.images,
+      a_media: wiki.media || [],
+      a_transactionHash: hash.transactionHash,
+      a_block: hash.block,
+      a_ipfs: hash.id,
+      a_summary: wiki.summary,
+      a_title: wiki.title,
+      a_content: wiki.content,
+      a_created: (ipfsTime && wiki.created) || existWiki?.created || newDate,
+      a_updated: (ipfsTime && wiki.updated) || newDate,
+      a_author: author,
+      a_version: wiki.version,
       content: [
         {
           id: wiki.id,

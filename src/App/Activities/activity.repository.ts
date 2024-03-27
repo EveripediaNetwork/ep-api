@@ -1,5 +1,7 @@
+/* eslint-disable array-callback-return */
 import { Injectable } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
+import gql from 'graphql-tag'
 import Activity from '../../Database/Entities/activity.entity'
 import {
   ActivityArgs,
@@ -16,6 +18,7 @@ import {
   Count,
 } from '../Wiki/wikiStats.dto'
 import ActivityService from './activity.service'
+import { hasField } from '../Wiki/wiki.dto'
 
 @Injectable()
 class ActivityRepository extends Repository<Activity> {
@@ -42,21 +45,85 @@ class ActivityRepository extends Repository<Activity> {
     return parseInt(cr.count, 10)
   }
 
-  async getActivities(args: ActivityArgs): Promise<Activity[]> {
-    return this.createQueryBuilder('activity')
+  activityContentFields(fields: string[]): string[] {
+    const arr = fields.filter(e => typeof e !== 'string')
+    return arr
+      .map((e: any) => {
+        const t: any[] = []
+        if (e.name === 'content') {
+          e.selections.filter((ee: string | { name: string }) => {
+            if (typeof ee !== 'string' && ee.name !== undefined) {
+              if (ee.name !== 'user') {
+                t.push(`activity.a_${ee.name}`)
+              }
+            } else if (ee !== 'id') {
+              t.push(`activity.a_${ee}`)
+            }
+          })
+        }
+        return t
+      })
+      .flat()
+  }
+
+  async getActivities(
+    args: ActivityArgs,
+    query: string,
+    fields: string[],
+  ): Promise<Activity[]> {
+    let activityContent: string[] = []
+    const ast = gql`
+      ${query}
+    `
+    if (hasField(ast, 'content')) {
+      activityContent = this.activityContentFields(fields)
+    }
+
+    const data = await this.createQueryBuilder('activity')
+      .select([
+        'activity.id',
+        'activity.wikiId',
+        'activity.userAddress',
+        'activity.ipfs',
+        'activity.type',
+        'activity.datetime',
+        ...activityContent,
+      ])
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
       .where('activity.language = :lang AND w."hidden" = false', {
         lang: args.lang,
       })
-      .cache(
-        `activities_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}`,
-        60000,
-      )
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
       .getMany()
+
+    const result = data.map((e: any) => ({
+      ...e,
+      content: [
+        {
+          id: e.wikiId,
+          title: e.a_title,
+          block: e.a_block,
+          summary: e.a_summary,
+          categories: e.a_categories,
+          images: e.a_images,
+          media: e.a_media,
+          tags: e.a_tags,
+          metadata: e.a_metadata,
+          author: { id: e.a_author },
+          content: e.a_content,
+          ipfs: e.a_ipfs,
+          version: e.a_version,
+          transactionHash: e.a_transactionHash,
+          created: e.a_created,
+          updated: e.a_updated,
+          user: { id: e.userAddress },
+        },
+      ],
+    }))
+    return result as Activity[]
   }
 
   async getActivitiesByWikId(args: ActivityArgs): Promise<Activity[]> {
