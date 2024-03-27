@@ -46,7 +46,7 @@ class ActivityRepository extends Repository<Activity> {
   }
 
   activityContentFields(fields: string[]): string[] {
-    const arr = fields.filter(e => typeof e !== 'string')
+    const arr = fields.filter((e) => typeof e !== 'string')
     return arr
       .map((e: any) => {
         const t: any[] = []

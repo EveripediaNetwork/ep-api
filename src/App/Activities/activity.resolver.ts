@@ -37,10 +37,9 @@ class ActivityResolver {
     @Context() context: any,
     @SelectedFields({ nested: true, path: 'content' }) fields: string[],
   ) {
-    
     const { req } = context
-    const { query } = req.body   
-    
+    const { query } = req.body
+
     return this.activityRepository.getActivities(args, query, fields)
   }
 
@@ -105,7 +104,7 @@ class ActivityResolver {
   @ResolveField(() => [Wiki])
   async content(@Root() activity: Activity) {
     const { content } = activity
-    const updatedContent = content.map(wiki => ({
+    const updatedContent = content.map((wiki) => ({
       ...wiki,
       created: activity.created_timestamp,
       updated: activity.updated_timestamp,
