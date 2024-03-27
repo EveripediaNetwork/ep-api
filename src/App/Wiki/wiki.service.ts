@@ -43,7 +43,7 @@ class WikiService {
   }
 
   async repository(): Promise<Repository<Wiki>> {
-    return this.dataSource.getRepository(Wiki)
+    return this.dataSource.manager.getRepository(Wiki)
   }
 
   async getWikiIds() {
@@ -128,7 +128,7 @@ class WikiService {
     args: TitleArgs,
     eventArgs?: EventArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset, hidden } = eventArgs || args
+    const { lang, limit, offset } = eventArgs || args
     const startDate = (eventArgs as EventArgs)?.startDate as string
     const endDate = (eventArgs as EventArgs)?.endDate as string
 
@@ -153,7 +153,7 @@ class WikiService {
         {
           lang,
           title,
-          hidden: hidden ?? false,
+          hidden: (eventArgs as EventArgs) ?? false,
         },
       )
       .limit(limit)
