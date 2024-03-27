@@ -47,22 +47,21 @@ class ActivityRepository extends Repository<Activity> {
 
   activityContentFields(fields: string[]): string[] {
     const arr = fields.filter((e) => typeof e !== 'string')
-    return arr
-      .flatMap((e: any) => {
-        const t: any[] = []
-        if (e.name === 'content') {
-          e.selections.filter((ee: string | { name: string }) => {
-            if (typeof ee !== 'string' && ee.name !== undefined) {
-              if (ee.name !== 'user') {
-                t.push(`activity.a_${ee.name}`)
-              }
-            } else if (ee !== 'id') {
-              t.push(`activity.a_${ee}`)
+    return arr.flatMap((e: any) => {
+      const t: any[] = []
+      if (e.name === 'content') {
+        e.selections.filter((ee: string | { name: string }) => {
+          if (typeof ee !== 'string' && ee.name !== undefined) {
+            if (ee.name !== 'user') {
+              t.push(`activity.a_${ee.name}`)
             }
-          })
-        }
-        return t
-      })
+          } else if (ee !== 'id') {
+            t.push(`activity.a_${ee}`)
+          }
+        })
+      }
+      return t
+    })
   }
 
   async getActivities(
