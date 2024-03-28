@@ -1,4 +1,11 @@
-import { Args, Query, ResolveField, Resolver, Root } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Query,
+  ResolveField,
+  Resolver,
+  Root,
+} from '@nestjs/graphql'
 import Activity from '../../Database/Entities/activity.entity'
 import {
   ActivityArgs,
@@ -25,8 +32,15 @@ class ActivityResolver {
   constructor(private activityRepository: ActivityRepository) {}
 
   @Query(() => [Activity])
-  async activities(@Args() args: ActivityArgs) {
-    return this.activityRepository.getActivities(args)
+  async activities(
+    @Args() args: ActivityArgs,
+    @Context() context: any,
+    @SelectedFields({ nested: true, path: 'content' }) fields: string[],
+  ) {
+    const { req } = context
+    const { query } = req.body
+
+    return this.activityRepository.getActivities(args, query, fields)
   }
 
   @Query(() => [Activity])

@@ -111,3 +111,27 @@ export class EventByLocationArgs extends EventDefaultArgs {
   @Validate(ValidStringParams)
   country?: string
 }
+
+export function hasField(ast: any, fieldName: string): boolean {
+  let fieldExists = false
+
+  function traverse(node: {
+    kind: string
+    name: { value: string }
+    selectionSet: { selections: any[] }
+  }) {
+    if (node.kind === 'Field' && node.name.value === fieldName) {
+      fieldExists = true
+    }
+
+    if (node.selectionSet) {
+      node.selectionSet.selections.forEach(traverse)
+    }
+  }
+
+  ast.definitions.forEach((definition: any) => {
+    traverse(definition)
+  })
+
+  return fieldExists
+}

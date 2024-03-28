@@ -6,7 +6,7 @@ import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
-import { EventArgs, eventTag } from './wiki.dto'
+import { EventArgs, eventTag, hasField } from './wiki.dto'
 import WikiService from './wiki.service'
 
 function nullFilter(arr: any[]) {
@@ -119,11 +119,11 @@ class EventsService {
       ${query}
     `
 
-    const isTagsFieldIncluded = this.hasField(ast, 'tags')
-    const isCategoriesFieldIncluded = this.hasField(ast, 'categories')
-    const isLanguageFieldIncluded = this.hasField(ast, 'language')
-    const isUserFieldIncluded = this.hasField(ast, 'user')
-    const isAuthorFieldIncluded = this.hasField(ast, 'author')
+    const isTagsFieldIncluded = hasField(ast, 'tags')
+    const isCategoriesFieldIncluded = hasField(ast, 'categories')
+    const isLanguageFieldIncluded = hasField(ast, 'language')
+    const isUserFieldIncluded = hasField(ast, 'user')
+    const isAuthorFieldIncluded = hasField(ast, 'author')
 
     for (const wiki of wikis) {
       if (isTagsFieldIncluded) {
@@ -257,30 +257,6 @@ class EventsService {
     ) as SelectQueryBuilder<Wiki>
 
     return queryBuilder.getMany()
-  }
-
-  hasField(ast: any, fieldName: string): boolean {
-    let fieldExists = false
-
-    function traverse(node: {
-      kind: string
-      name: { value: string }
-      selectionSet: { selections: any[] }
-    }) {
-      if (node.kind === 'Field' && node.name.value === fieldName) {
-        fieldExists = true
-      }
-
-      if (node.selectionSet) {
-        node.selectionSet.selections.forEach(traverse)
-      }
-    }
-
-    ast.definitions.forEach((definition: any) => {
-      traverse(definition)
-    })
-
-    return fieldExists
   }
 }
 
