@@ -11,8 +11,8 @@ class TagIDArgs extends PaginationArgs {
   id!: string
 }
 
- export function eventWiki(tags: Tag[]) {
-    return tags.some((e: { id: string }) => e.id === 'Events')
-  }
+export function eventWiki(tags: Tag[]) {
+  return tags.some((e: { id: string }) => e.id === 'Events')
+}
 
 export default TagIDArgs
