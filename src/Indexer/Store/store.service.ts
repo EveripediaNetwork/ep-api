@@ -14,6 +14,7 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
+import { eventWiki } from '../../App/Tag/tag.dto'
 
 @Injectable()
 class DBStoreService {
@@ -203,12 +204,14 @@ class DBStoreService {
           type: Status.UPDATED,
         } as unknown as Activity),
       )
+
       if (!ipfsTime) {
         await this.revalidate.revalidatePage(
           RevalidateEndpoints.STORE_WIKI,
           existWiki.user.id,
           existWiki.id,
           existWiki.promoted,
+          eventWiki(tags),
         )
       }
 
@@ -244,11 +247,14 @@ class DBStoreService {
         type: Status.CREATED,
       } as unknown as Activity),
     )
+
     if (!ipfsTime) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
         newWiki.user.id,
         newWiki.id,
+        undefined,
+        eventWiki(tags),
       )
     }
     return true
