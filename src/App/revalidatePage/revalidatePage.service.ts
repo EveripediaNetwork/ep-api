@@ -17,6 +17,7 @@ export enum RevalidateEndpoints {
 export enum Routes {
   HOMEPAGE = '/',
   ACTIVITY = '/activity',
+  EVENTS = '/events',
   WIKI_PAGE = '/wiki',
   USER_PAGE = '/account',
 }
@@ -71,6 +72,7 @@ export class RevalidatePageService {
     id?: string,
     slug?: string,
     level?: number,
+    events = false,
   ) {
     try {
       if (page === RevalidateEndpoints.STORE_WIKI) {
@@ -79,7 +81,9 @@ export class RevalidatePageService {
         }
         await Promise.all([
           this.revalidate(Routes.ACTIVITY),
+          this.revalidate(Routes.EVENTS),
           this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+          events && this.revalidate(Routes.EVENTS, undefined, slug),
           this.revalidate(`/wiki/${slug}/history`),
           this.revalidate(`/wiki/${slug}/events`),
         ])
@@ -94,6 +98,7 @@ export class RevalidatePageService {
         await Promise.all([
           this.revalidate(Routes.ACTIVITY),
           this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+          events && this.revalidate(Routes.EVENTS, undefined, slug),
         ])
       }
     } catch (e: any) {

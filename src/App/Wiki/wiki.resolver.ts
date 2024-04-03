@@ -32,6 +32,7 @@ import { IWiki } from '../../Database/Entities/types/IWiki'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
+import { eventWiki } from '../Tag/tag.dto'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -126,6 +127,7 @@ class WikiResolver {
         undefined,
         wiki.id,
         wiki.promoted,
+        eventWiki(wiki.tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
@@ -145,6 +147,7 @@ class WikiResolver {
         undefined,
         wiki.id,
         wiki.promoted,
+        eventWiki(wiki.tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
