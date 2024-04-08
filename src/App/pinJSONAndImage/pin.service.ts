@@ -130,14 +130,12 @@ class PinService {
     }
   }
 
-  async handleCoingekoApiId(
-    wiki: WikiType,
-  ): Promise<{
+  async handleCoingekoApiId(wiki: WikiType): Promise<{
     wikiObject: WikiType
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      e => e.id === 'coingecko_profile',
+      (e) => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -157,7 +155,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        item => item.id === 'coingecko_profile',
+        (item) => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
@@ -171,7 +169,7 @@ class PinService {
             wikiId: wiki.id,
             coingeckoId: apiId,
             kind: RankType.TOKEN,
-            linked: false
+            linked: false,
           })
 
           await marketCapIdRepo.save(matchedId)

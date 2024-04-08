@@ -22,7 +22,5 @@ class MarketCapIds {
     default: true
   })
   linked!: boolean
-
-
 }
 export default MarketCapIds

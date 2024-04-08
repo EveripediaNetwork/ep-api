@@ -49,9 +49,9 @@ class DBStoreService {
     const notificationRepository = this.dataSource.getRepository(Notification)
 
     const marketCapId = await marketCapIdRepo.findOneBy({ wikiId: wiki.id })
-    if(marketCapId && !marketCapId.linked) {
-        marketCapId.linked = true
-        marketCapIdRepo.save(marketCapId)
+    if (marketCapId && !marketCapId.linked) {
+      marketCapId.linked = true
+      marketCapIdRepo.save(marketCapId)
     }
 
     const oldWiki = await wikiRepository.findOneBy({
