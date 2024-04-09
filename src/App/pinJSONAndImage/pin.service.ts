@@ -2,6 +2,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
+import { DataSource } from 'typeorm'
+import { HttpService } from '@nestjs/axios'
+import * as cheerio from 'cheerio'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -11,15 +14,19 @@ import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
 import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import { RankType } from '../marketCap/marketcap.dto'
 
 const contentCheckDate = 1699269216 // 6/11/23
 @Injectable()
 class PinService {
   constructor(
-    private activityRepository: ActivityRepository,
+    private dataSource: DataSource,
+    private httpService: HttpService,
     private pinateService: PinataService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
+    private activityRepository: ActivityRepository,
     private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: WebhookHandler,
   ) {}
@@ -47,7 +54,11 @@ class PinService {
   }
 
   async pinJSON(body: string): Promise<IpfsHash | any> {
-    const wikiObject: WikiType = JSON.parse(body)
+    const wiki: WikiType = JSON.parse(body)
+
+    const { wikiObject, saveMatchedIdcallback } =
+      await this.handleCoingekoApiId(wiki)
+
     const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
     const isDataValid = await this.validator.validate(wikiData, true)
@@ -111,10 +122,87 @@ class PinService {
 
     try {
       const res = await pinToPinata(payload)
+      console.log(res)
+      await saveMatchedIdcallback()
       return res
     } catch (e) {
       return e
     }
+  }
+
+  async handleCoingekoApiId(wiki: WikiType): Promise<{
+    wikiObject: WikiType
+    saveMatchedIdcallback: () => Promise<void | MarketCapIds>
+  }> {
+    const coingeckoProfileMetadata = wiki.metadata.find(
+      (e) => e.id === 'coingecko_profile',
+    )
+
+    if (!coingeckoProfileMetadata) {
+      return { wikiObject: wiki, saveMatchedIdcallback: async () => {} }
+    }
+
+    const coingeckoUrl = coingeckoProfileMetadata.value as string
+
+    const marketCapIdRepo = this.dataSource.getRepository(MarketCapIds)
+    const marketCapId = await marketCapIdRepo.findOneBy({ wikiId: wiki.id })
+
+    if (!marketCapId || !marketCapId.linked) {
+      const apiId = await this.getCgApiId(coingeckoUrl)
+
+      if (!apiId) {
+        return { wikiObject: wiki, saveMatchedIdcallback: async () => {} }
+      }
+
+      const index = wiki.metadata.findIndex(
+        (item) => item.id === 'coingecko_profile',
+      )
+
+      if (index !== -1) {
+        const newWiki = { ...wiki }
+        newWiki.metadata[
+          index
+        ].value = `https://www.coingecko.com/en/coins/${apiId}`
+
+        const saveMatchedIdcallback = async () => {
+          const matchedId = marketCapIdRepo.create({
+            wikiId: wiki.id,
+            coingeckoId: apiId,
+            kind: RankType.TOKEN,
+            linked: false,
+          })
+
+          await marketCapIdRepo.save(matchedId)
+        }
+
+        return { wikiObject: newWiki, saveMatchedIdcallback }
+      }
+    }
+
+    return { wikiObject: wiki, saveMatchedIdcallback: async () => {} }
+  }
+
+  async getCgApiId(url: string): Promise<string> {
+    let apiId
+    try {
+      const response = await this.httpService
+        .get(url, {
+          responseType: 'text',
+        })
+        .toPromise()
+
+      const html = response?.data
+      const $ = cheerio.load(html)
+      const button = $(
+        'button[data-action="click->application#copyToClipboard"][type="button"]',
+      )
+      const buttonText = button.text().trim()
+
+      apiId = buttonText
+    } catch (error) {
+      console.error('Error fetching coingecko api id for wiki')
+    }
+    return apiId as string
   }
 }
 

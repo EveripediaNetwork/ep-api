@@ -15,6 +15,7 @@ import {
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import { eventWiki } from '../../App/Tag/tag.dto'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 @Injectable()
 class DBStoreService {
@@ -42,9 +43,16 @@ class DBStoreService {
     const tagRepository = this.dataSource.getRepository(Tag)
     const categoryRepository = this.dataSource.getRepository(Category)
     const activityRepository = this.dataSource.getRepository(Activity)
+    const marketCapIdRepo = this.dataSource.getRepository(MarketCapIds)
     const iqSubscriptionRepository =
       this.dataSource.getRepository(IqSubscription)
     const notificationRepository = this.dataSource.getRepository(Notification)
+
+    const marketCapId = await marketCapIdRepo.findOneBy({ wikiId: wiki.id })
+    if (marketCapId && !marketCapId.linked) {
+      marketCapId.linked = true
+      await marketCapIdRepo.save(marketCapId)
+    }
 
     const oldWiki = await wikiRepository.findOneBy({
       id: wiki.id,

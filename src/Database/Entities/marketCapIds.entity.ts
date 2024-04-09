@@ -16,5 +16,11 @@ class MarketCapIds {
     enum: RankType,
   })
   kind!: RankType
+
+  @Column({
+    type: 'boolean',
+    default: true
+  })
+  linked!: boolean
 }
 export default MarketCapIds

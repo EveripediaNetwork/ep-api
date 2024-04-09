@@ -8,12 +8,10 @@ import PinService from './pin.service'
 import SecurityTestingService from '../utils/securityTester'
 import PinataService from '../../ExternalServices/pinata.service'
 import ActivityModule from '../Activities/activity.module'
+import DatabaseModule from '../../Database/database.module'
 
 @Module({
-  imports: [
-    HttpModule,
-    ActivityModule,
-  ],
+  imports: [HttpModule, ActivityModule, DatabaseModule],
   providers: [
     PinResolver,
     PinService,
