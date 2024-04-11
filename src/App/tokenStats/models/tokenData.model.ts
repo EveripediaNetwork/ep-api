@@ -26,6 +26,9 @@ export default class TokenData {
   market_cap_percentage_change!: number
 
   @Field()
+  price_percentage_change!: number
+
+  @Field()
   diluted_market_cap!: number
 
   @Field()
