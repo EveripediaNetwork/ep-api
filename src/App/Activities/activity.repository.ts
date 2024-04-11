@@ -46,7 +46,7 @@ class ActivityRepository extends Repository<Activity> {
   }
 
   activityContentFields(fields: string[]): string[] {
-    const arr = fields.filter(e => typeof e !== 'string')
+    const arr = fields.filter((e) => typeof e !== 'string')
     return arr.flatMap((e: any) => {
       const t: any[] = []
       if (e.name === 'content') {
@@ -111,7 +111,6 @@ class ActivityRepository extends Repository<Activity> {
       .getMany()
 
     const result = data.map((e: any) => {
-
       const authorId =
         e.author !== null && typeof e.a_author === 'string'
           ? JSON.parse(e.a_author).id

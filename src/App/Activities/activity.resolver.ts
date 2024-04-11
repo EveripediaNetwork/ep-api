@@ -108,7 +108,7 @@ class ActivityResolver {
   @ResolveField(() => [Wiki])
   async content(@Root() activity: Activity) {
     const { content } = activity
-    const updatedContent = content.map(wiki => ({
+    const updatedContent = content.map((wiki) => ({
       ...wiki,
       created: activity.created_timestamp,
       updated: activity.updated_timestamp,

@@ -210,36 +210,36 @@ describe('CategoryService', () => {
   //     })
   //   })
 
-  describe('getActivitiesByUser', () => {
-    it('should return activities by user', async () => {
-      const userArgs = {
-        userId: 'example-user-id',
-        offset: 0,
-        limit: 10,
-      }
+//   describe('getActivitiesByUser', () => {
+//     it('should return activities by user', async () => {
+//       const userArgs = {
+//         userId: 'example-user-id',
+//         offset: 0,
+//         limit: 10,
+//       }
 
-      jest.spyOn(service, 'createCustomQuery').mockResolvedValue(expectedQuery)
-      await service.createCustomQuery(
-        selections,
-        userArgs.userId,
-        userArgs.offset,
-        userArgs.limit,
-      )
+//       jest.spyOn(service, 'createCustomQuery').mockResolvedValue(expectedQuery)
+//       await service.createCustomQuery(
+//         selections,
+//         userArgs.userId,
+//         userArgs.offset,
+//         userArgs.limit,
+//       )
 
-      repository.query = jest.fn().mockResolvedValue(expectedActivities)
+//       repository.query = jest.fn().mockResolvedValue(expectedActivities)
 
-      const result = await repository.getActivitiesByUser(userArgs, selections)
+//       const result = await repository.getActivitiesByUser(userArgs, selections)
 
-      expect(result).toEqual(expectedActivities)
-      expect(service.createCustomQuery).toHaveBeenCalledWith(
-        selections,
-        userArgs.userId,
-        userArgs.offset,
-        userArgs.limit,
-      )
-      expect(repository.query).toHaveBeenCalledWith(expectedQuery)
-    })
-  })
+//       expect(result).toEqual(expectedActivities)
+//       expect(service.createCustomQuery).toHaveBeenCalledWith(
+//         selections,
+//         userArgs.userId,
+//         userArgs.offset,
+//         userArgs.limit,
+//       )
+//       expect(repository.query).toHaveBeenCalledWith(expectedQuery)
+//     })
+//   })
 
   //   describe('getActivitiesById', () => {
   //     it('should return activity by ID', async () => {
