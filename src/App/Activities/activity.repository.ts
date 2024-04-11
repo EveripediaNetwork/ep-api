@@ -46,7 +46,7 @@ class ActivityRepository extends Repository<Activity> {
   }
 
   activityContentFields(fields: string[]): string[] {
-    const arr = fields.filter((e) => typeof e !== 'string')
+    const arr = fields.filter(e => typeof e !== 'string')
     return arr.flatMap((e: any) => {
       const t: any[] = []
       if (e.name === 'content') {
@@ -64,10 +64,11 @@ class ActivityRepository extends Repository<Activity> {
     })
   }
 
-  async getActivities(
-    args: ActivityArgs,
+  async activityQueryBuilder(
+    args: any,
     query: string,
     fields: string[],
+    condition: string,
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -75,6 +76,14 @@ class ActivityRepository extends Repository<Activity> {
     `
     if (hasField(ast, 'content')) {
       activityContent = this.activityContentFields(fields)
+    }
+
+    let whereCondition = ''
+
+    if (condition === 'all') {
+      whereCondition = 'activity.language = :lang AND w."hidden" = false'
+    } else if (condition === 'user') {
+      whereCondition = 'w."hidden" = false AND activity.user = :id'
     }
 
     const data = await this.createQueryBuilder('activity')
@@ -85,43 +94,63 @@ class ActivityRepository extends Repository<Activity> {
         'activity.ipfs',
         'activity.type',
         'activity.datetime',
+        'activity.block',
         ...activityContent,
       ])
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
-      .where('activity.language = :lang AND w."hidden" = false', {
+
+      .where(whereCondition, {
         lang: args.lang,
+        id: args.userId,
       })
+
       .limit(args.limit)
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
       .getMany()
 
-    const result = data.map((e: any) => ({
-      ...e,
-      content: [
-        {
-          id: e.wikiId,
-          title: e.a_title,
-          block: e.a_block,
-          summary: e.a_summary,
-          categories: e.a_categories,
-          images: e.a_images,
-          media: e.a_media,
-          tags: e.a_tags,
-          metadata: e.a_metadata,
-          author: { id: e.a_author },
-          content: e.a_content,
-          ipfs: e.a_ipfs,
-          version: e.a_version,
-          transactionHash: e.a_transactionHash,
-          created: e.a_created,
-          updated: e.a_updated,
-          user: { id: e.userAddress },
-        },
-      ],
-    }))
+    const result = data.map((e: any) => {
+
+      const authorId =
+        e.author !== null && typeof e.a_author === 'string'
+          ? JSON.parse(e.a_author).id
+          : null
+
+      return {
+        ...e,
+        content: [
+          {
+            id: e.wikiId,
+            title: e.a_title,
+            block: e.a_block,
+            summary: e.a_summary,
+            categories: e.a_categories,
+            images: e.a_images,
+            media: e.a_media,
+            tags: e.a_tags,
+            metadata: e.a_metadata,
+            author: { id: authorId },
+            content: e.a_content,
+            ipfs: e.a_ipfs,
+            version: e.a_version,
+            transactionHash: e.a_transactionHash,
+            created: e.a_created,
+            updated: e.a_updated,
+            user: { id: e.userAddress },
+          },
+        ],
+      }
+    })
     return result as Activity[]
+  }
+
+  async getActivities(
+    args: ActivityArgs,
+    query: string,
+    fields: string[],
+  ): Promise<Activity[]> {
+    return this.activityQueryBuilder(args, query, fields, 'all')
   }
 
   async getActivitiesByWikId(args: ActivityArgs): Promise<Activity[]> {
@@ -163,15 +192,10 @@ class ActivityRepository extends Repository<Activity> {
 
   async getActivitiesByUser(
     args: ActivityArgsByUser,
+    query: string,
     fields: any[],
   ): Promise<Activity[]> {
-    const query = await this.service.createCustomQuery(
-      fields,
-      args.userId,
-      args.offset,
-      args.limit,
-    )
-    return this.query(query)
+    return this.activityQueryBuilder(args, query, fields, 'user')
   }
 
   async getActivitiesById(id: string): Promise<Activity | null> {

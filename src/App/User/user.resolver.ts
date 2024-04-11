@@ -83,9 +83,7 @@ class UserResolver {
 
     const user = await this.userService.getUser(args.id, fields)
 
-    await (
-      await this.userService.userRepository()
-    )
+    await (await this.userService.userRepository())
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })
@@ -133,7 +131,9 @@ class UserResolver {
   @ResolveField(() => UserProfile)
   async profile(@Parent() user: IUser, @SelectedFields() fields: string[]) {
     const { id } = user
-    const key = id.toLowerCase()
+
+    const key = id ? id.toLowerCase() : ''
+
     const cached: UserProfile | undefined = await this.cacheManager.get(
       key as unknown as string,
     )
