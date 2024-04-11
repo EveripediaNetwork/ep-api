@@ -133,7 +133,9 @@ class UserResolver {
   @ResolveField(() => UserProfile)
   async profile(@Parent() user: IUser, @SelectedFields() fields: string[]) {
     const { id } = user
-    const key = id.toLowerCase()
+
+    const key = id ? id.toLowerCase() : ''
+
     const cached: UserProfile | undefined = await this.cacheManager.get(
       key as unknown as string,
     )
