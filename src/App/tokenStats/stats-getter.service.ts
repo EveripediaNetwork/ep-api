@@ -100,6 +100,7 @@ class StatsGetterService {
       image: '',
       current_price: 0,
       market_cap_change_percentage_24h: 0,
+      price_change_24h: 0,
     }
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
@@ -140,6 +141,7 @@ class StatsGetterService {
       market_cap: marketCap || 0,
       market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
+      price_percentage_change: cgMarketData.price_change_24h,
       diluted_market_cap: cmcData.fully_diluted_market_cap,
       diluted_market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
