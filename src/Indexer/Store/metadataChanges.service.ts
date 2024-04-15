@@ -6,6 +6,8 @@ import {
   EditSpecificMetaIds,
   Wiki as WikiType,
 } from '@everipedia/iq-utils'
+
+import isDeepEqual from '@everipedia/iq-utils/build/main/lib/isDeepEqual'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Metadata from '../../Database/Entities/metadata.entity'
 
@@ -101,7 +103,7 @@ class MetadataChangesService {
     if (oldWiki?.summary !== newWiki.summary) {
       blocksChanged.push('summary')
     }
-    if (oldWiki?.events !== newWiki.events) {
+    if (isDeepEqual(oldWiki?.events, newWiki.events)) {
       blocksChanged.push('events')
     }
     const oldImgId = oldWiki.images?.[0].id

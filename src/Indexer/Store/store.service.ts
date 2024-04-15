@@ -14,6 +14,8 @@ import {
 } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
+import { eventWiki } from '../../App/Tag/tag.dto'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 @Injectable()
 class DBStoreService {
@@ -41,9 +43,16 @@ class DBStoreService {
     const tagRepository = this.dataSource.getRepository(Tag)
     const categoryRepository = this.dataSource.getRepository(Category)
     const activityRepository = this.dataSource.getRepository(Activity)
+    const marketCapIdRepo = this.dataSource.getRepository(MarketCapIds)
     const iqSubscriptionRepository =
       this.dataSource.getRepository(IqSubscription)
     const notificationRepository = this.dataSource.getRepository(Notification)
+
+    const marketCapId = await marketCapIdRepo.findOneBy({ wikiId: wiki.id })
+    if (marketCapId && !marketCapId.linked) {
+      marketCapId.linked = true
+      await marketCapIdRepo.save(marketCapId)
+    }
 
     const oldWiki = await wikiRepository.findOneBy({
       id: wiki.id,
@@ -106,6 +115,21 @@ class DBStoreService {
     const incomingActivity = {
       wikiId: wiki.id,
       user,
+      a_tags: tags,
+      a_categories: categories,
+      a_metadata: wiki.metadata,
+      a_images: wiki.images,
+      a_media: wiki.media || [],
+      a_transactionHash: hash.transactionHash,
+      a_block: hash.block,
+      a_ipfs: hash.id,
+      a_summary: wiki.summary,
+      a_title: wiki.title,
+      a_content: wiki.content,
+      a_created: (ipfsTime && wiki.created) || existWiki?.created || newDate,
+      a_updated: (ipfsTime && wiki.updated) || newDate,
+      a_author: author,
+      a_version: wiki.version,
       content: [
         {
           id: wiki.id,
@@ -188,12 +212,14 @@ class DBStoreService {
           type: Status.UPDATED,
         } as unknown as Activity),
       )
+
       if (!ipfsTime) {
         await this.revalidate.revalidatePage(
           RevalidateEndpoints.STORE_WIKI,
           existWiki.user.id,
           existWiki.id,
           existWiki.promoted,
+          eventWiki(tags),
         )
       }
 
@@ -229,11 +255,14 @@ class DBStoreService {
         type: Status.CREATED,
       } as unknown as Activity),
     )
+
     if (!ipfsTime) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
         newWiki.user.id,
         newWiki.id,
+        undefined,
+        eventWiki(tags),
       )
     }
     return true
