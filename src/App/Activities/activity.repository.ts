@@ -115,12 +115,13 @@ class ActivityRepository extends Repository<Activity> {
 
       if (e.a_author !== null && typeof e.a_author === 'string') {
         try {
-          const parsedAuthor = JSON.parse(e.a_author)
-          if (parsedAuthor && typeof parsedAuthor.id === 'string') {
-            authorId = parsedAuthor.id
+          if (e.a_author.includes('{')) {
+            authorId = JSON.parse(e.a_author).id
+          } else {
+            authorId = e.a_author
           }
         } catch (err) {
-          console.error({ err, id: e.id, wiki: e.wikiId, author: e.a_author })
+          console.error(err)
         }
       }
 
