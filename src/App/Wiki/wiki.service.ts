@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
@@ -16,6 +17,7 @@ import {
   ByIdArgs,
   CategoryArgs,
   EventArgs,
+  EventDefaultArgs,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -153,7 +155,7 @@ class WikiService {
         {
           lang,
           title,
-          hidden: false,
+          hidden: (eventArgs as EventArgs) ?? false,
         },
       )
       .limit(limit)
@@ -200,7 +202,7 @@ class WikiService {
 
     if (typeof queryBuilder !== 'string') {
       return queryBuilder.andWhere(
-        new Brackets((qb) => {
+        new Brackets(qb => {
           qb.orWhere("wiki.events->0->>'type' IS NULL").orWhere(
             "wiki.events->0->>'type' = 'DEFAULT'",
           )
@@ -209,23 +211,30 @@ class WikiService {
               start: startDate,
               end: endDate,
             }).orWhere(
-              new Brackets((qb2) => {
+              new Brackets(qb2 => {
                 qb2
                   .where("wiki.events->0->>'type' = 'MULTIDATE'")
                   .andWhere(
-                    "wiki.events->0->>'multiDateStart' >= :start  AND wiki.events->0->>'multiDateEnd' <= :end",
+                    ":start <= wiki.events->0->>'multiDateStart'  AND wiki.events->0->>'multiDateStart' <= :end",
+                    {
+                      start: startDate,
+                      end: endDate,
+                    },
                   )
-                  .andWhere("wiki.events->0->>'multiDateEnd' <= :end", {
-                    start: startDate,
-                    end: endDate,
-                  })
+                  .orWhere(
+                    ":start <= wiki.events->0->>'multiDateEnd'  AND wiki.events->0->>'multiDateEnd' <= :end",
+                    {
+                      start: startDate,
+                      end: endDate,
+                    },
+                  )
               }),
             )
           } else {
             qb.andWhere("wiki.events->0->>'date' >= :start", {
               start: args.startDate,
             }).orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
-            qb.andWhere(`wiki.events->0->>'multiDateStart' >= :start`, {
+            qb.andWhere(`:start <= wiki.events->0->>'multiDateStart'`, {
               start: startDate,
             })
           }
@@ -236,26 +245,44 @@ class WikiService {
     const dateCondition =
       args.endDate && params
         ? `
-            wiki.events->0->>'date' BETWEEN $${params.length - 1} AND $${
+        (
+           wiki.events->0->>'type' = 'DEFAULT' AND
+           wiki.events->0->>'date' BETWEEN $${params.length - 1} AND $${
             params.length
           }
-            OR (wiki.events->0->>'type' = 'MULTIDATE'
-            AND wiki.events->0->>'multiDateStart' >= $${
-              params.length
-            } AND wiki.events->0->>'multiDateEnd' <= $${params?.length})
+        )
+         OR 
+        (
+            wiki.events->0->>'type' = 'MULTIDATE' 
+            AND (
+                $${params.length - 1} <= wiki.events->0->>'multiDateStart'  
+                AND wiki.events->0->>'multiDateStart' <= $${params.length}
+                OR 
+                $${params.length - 1} <= wiki.events->0->>'multiDateEnd'  
+                AND wiki.events->0->>'multiDateEnd' <= $${params.length}
+            )
+        )
             `
         : `
+          (
+            wiki.events->0->>'type' = 'DEFAULT' AND
             wiki.events->0->>'date' >= $${params?.length}
-            OR (wiki.events->0->>'type' = 'MULTIDATE'
-            AND wiki.events->0->>'multiDateStart' >= $${params?.length})
+          )
+          OR
+          (
+            wiki.events->0->>'type' = 'MULTIDATE' 
+            AND (
+                $${params?.length} <= wiki.events->0->>'multiDateStart'  
+            )
+          )
             `
 
     return `
             AND (
-            wiki.events->0->>'type' IS NULL
-            OR wiki.events->0->>'type' = 'DEFAULT'
-            AND (${dateCondition})
-        )
+                wiki.events->0->>'type' IS NULL 
+                OR 
+                ${dateCondition}
+            )
         `
   }
 
@@ -366,9 +393,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -376,9 +401,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -391,9 +414,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -423,9 +444,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -451,9 +470,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
@@ -478,21 +495,23 @@ class WikiService {
         fullLinkedWikis.push(f)
       }
     }
-    return fullLinkedWikis.filter((item) => item !== null)
+    return fullLinkedWikis.filter(item => item !== null)
   }
 
-  async getPopularEvents(args: LangArgs) {
-    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
-    const wikis = await queryBuilder
+  async getPopularEvents(args: EventDefaultArgs) {
+    let query = (await this.repository())
+      .createQueryBuilder('wiki')
+
       .innerJoin('wiki.tags', 'tag')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .andWhere('wiki.hidden = false')
       .orderBy('views', args.direction)
       .limit(args.limit)
       .offset(args.offset)
-      .getMany()
 
-    return wikis
+    query = this.applyDateFilter(query, args) as SelectQueryBuilder<Wiki>
+
+    return query.getMany()
   }
 }
 
