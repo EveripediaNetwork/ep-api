@@ -111,10 +111,19 @@ class ActivityRepository extends Repository<Activity> {
       .getMany()
 
     const result = data.map((e: any) => {
-      const authorId =
-        e.author !== null && typeof e.a_author === 'string'
-          ? JSON.parse(e.a_author).id
-          : null
+      let authorId = null
+
+      if (e.a_author !== null && typeof e.a_author === 'string') {
+        try {
+          if (e.a_author.includes('{')) {
+            authorId = JSON.parse(e.a_author).id
+          } else {
+            authorId = e.a_author
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
 
       return {
         ...e,
