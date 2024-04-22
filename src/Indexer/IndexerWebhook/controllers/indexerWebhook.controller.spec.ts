@@ -55,6 +55,7 @@ describe('IndexerWebhookController', () => {
           ProviderEnum.revalidatePageService,
           ProviderEnum.autoInjestService,
           ProviderEnum.lockingService,
+          ProviderEnum.rpcProviderService,
         ]),
         {
           provide: ConfigService,

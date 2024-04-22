@@ -40,6 +40,7 @@ import TagService from '../../Tag/tag.service'
 import AutoInjestService from '../auto-injest'
 import DiscordWebhookService from '../discordWebhookService'
 import TagRepository from '../../Tag/tag.repository'
+import RPCProviderService from '../../../Indexer/RPCProvider/RPCProvider.service'
 
 export const providerObjects = {
   validSlug: ValidSlug,
@@ -71,6 +72,7 @@ export const providerObjects = {
   ipfsGetterService: IPFSGetterService,
   marketCapResolver: MarketCapResolver,
   autoInjestService: AutoInjestService,
+  rpcProviderService: RPCProviderService,
   userProfileResolver: UserProfileResolver,
   ipfsValidatorService: IPFSValidatorService,
   graphProviderService: GraphProviderService,
@@ -116,6 +118,7 @@ export enum ProviderEnum {
   ipfsGetterService = 'ipfsGetterService',
   marketCapResolver = 'marketCapResolver',
   autoInjestService = 'autoInjestService',
+  rpcProviderService = 'rpcProviderService',
   userProfileResolver = 'userProfileResolver',
   ipfsValidatorService = 'ipfsValidatorService',
   graphProviderService = 'graphProviderService',
