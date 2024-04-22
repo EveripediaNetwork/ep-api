@@ -64,7 +64,7 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
 
       const newHashes = await this.getHashes(mode, unixtime)
       console.log(
@@ -114,7 +114,7 @@ class RunCommand implements CommandRunner {
     hash: Hash,
     webhook: boolean,
     reIndex: boolean,
-    mode: string
+    mode: string,
   ): Promise<void> {
     try {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
@@ -171,7 +171,7 @@ class RunCommand implements CommandRunner {
         console.error(`${mode} mode: 🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
-        await new Promise(r => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
+        await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
     } catch (ex) {
       console.error(`${mode} mode: 🛑 Invalid IPFS: ${hash.id}`)
