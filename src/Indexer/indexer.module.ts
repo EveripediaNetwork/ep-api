@@ -15,6 +15,7 @@ import { RevalidatePageService } from '../App/revalidatePage/revalidatePage.serv
 import SentryMod from '../sentry/sentry.module'
 import AutoInjestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
+import RPCProviderService from './RPCProvider/RPCProvider.service'
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { LockingService } from '../App/IQHolders/IQHolders.dto'
     RevalidatePageService,
     AutoInjestService,
     LockingService,
+    RPCProviderService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => new SentryInterceptor(),

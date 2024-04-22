@@ -155,7 +155,7 @@ class WikiService {
         {
           lang,
           title,
-          hidden: (eventArgs as EventArgs) ?? false,
+          hidden: false,
         },
       )
       .limit(limit)
