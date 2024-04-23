@@ -107,7 +107,7 @@ import EventsService from './Wiki/events.service'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
-    SentryMod
+    SentryMod,
   ],
   controllers: [UploadController],
   providers: [
