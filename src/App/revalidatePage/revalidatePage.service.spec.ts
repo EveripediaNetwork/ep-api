@@ -86,7 +86,7 @@ describe('RevalidatePage Service', () => {
     ]
 
     const promiseCalls = routes.map(
-      route => httpServiceMock.get(route).toPromise,
+      (route) => httpServiceMock.get(route).toPromise,
     )
 
     await Promise.all(promiseCalls)
