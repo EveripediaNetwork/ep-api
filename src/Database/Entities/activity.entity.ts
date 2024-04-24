@@ -95,63 +95,48 @@ class Activity {
   @Column('varchar', { nullable: true })
   ipfs!: string
 
-  @Field(() => [Tag])
   @Column('json', { nullable: true })
   a_tags!: Tag[]
 
-  @Field(() => [Category])
   @Column('json', { nullable: true })
   a_categories!: Category[]
 
-  @Field(() => [Metadata])
   @Column('json', { nullable: true })
   a_metadata!: Metadata[]
 
-  @Field(() => [Image])
   @Column('json', { nullable: true })
   a_images!: Image[]
 
-  @Field(() => [Media])
   @Column('json', { nullable: true })
   a_media!: Media[]
 
-  @Field()
   @Column({ nullable: true })
   a_transactionHash!: string
 
-  @Field(() => Int)
   @Column('integer', { nullable: true })
   a_block!: number
 
-  @Field()
   @Column('varchar', { default: '' })
   a_ipfs!: string
 
-  @Field()
   @Column('varchar', { nullable: true })
   a_summary!: string
 
-  @Field()
   @Column({ nullable: true })
   a_title!: string
 
-  @Field()
   @Column('text', { nullable: true })
   a_content!: string
 
-  @Field()
   @CreateDateColumn({ nullable: true })
   a_created!: Date
 
-  @Field()
   @UpdateDateColumn({ nullable: true })
   a_updated!: Date
 
-  @Field(() => User, { nullable: true })
   @Column('varchar', { nullable: true })
   a_author!: Relation<User>
 
-  @Field()
   @Column('smallint', { nullable: true })
   a_version!: string
 }
