@@ -83,11 +83,13 @@ export default class WebhookHandler {
           const { urlId } = payload
           const baseUrl = this.getWebpageUrl()
           const koUrl = `${baseUrl}/ko${urlId}`
+          const zhUrl = `${baseUrl}/zh${urlId}`
 
           message = `
             **Routes revalidated**  
             - ${baseUrl}${urlId}  ♻️ 
             - ${koUrl}  ♻️ 
+            - ${zhUrl}  ♻️ 
             \n\n_Performed by_ ***${adminUser}***
             `
           break
