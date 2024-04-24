@@ -57,11 +57,11 @@ export class RevalidatePageService {
       path += `/${id}`
     }
 
-    const urls = ['en', 'ko', 'zh'].map(locale => buildUrl(locale))
+    const urls = ['en', 'ko', 'zh'].map((locale) => buildUrl(locale))
 
     try {
       await Promise.all(
-        urls.map(r => this.httpService.get(`${r}&path=${path}`).toPromise()),
+        urls.map((r) => this.httpService.get(`${r}&path=${path}`).toPromise()),
       )
     } catch (e: any) {
       console.error(

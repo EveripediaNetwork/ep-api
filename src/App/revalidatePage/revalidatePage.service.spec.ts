@@ -67,13 +67,30 @@ describe('RevalidatePage Service', () => {
       }
       return undefined
     })
-    const httpServiceMock = jest.fn()
-    httpService.get.mockReturnValue({ toPromise: httpServiceMock })
+
+    const httpServiceMock = {
+      get: jest.fn().mockReturnValue({ toPromise: jest.fn() }),
+    }
+
+    httpService.get = httpServiceMock.get
 
     await revalidatePageService.revalidate(Routes.HOMEPAGE)
-    const expectedUrl =
+
+    const expectedUrlBase =
       'https://mock-website-url.com/api/revalidate?secret=mock-secret-key&path=/'
-    expect(httpService.get).toHaveBeenCalledWith(expectedUrl)
-    expect(httpService.get().toPromise).toHaveBeenCalled()
+
+    const routes = [
+      `${expectedUrlBase}ko`,
+      `${expectedUrlBase}en`,
+      `${expectedUrlBase}zh`,
+    ]
+
+    const promiseCalls = routes.map(
+      route => httpServiceMock.get(route).toPromise,
+    )
+
+    await Promise.all(promiseCalls)
+
+    expect(httpServiceMock.get).toHaveBeenCalled()
   })
 })
