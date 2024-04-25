@@ -3,14 +3,15 @@ import { HttpModule } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { DataSource, EntityManager } from 'typeorm'
-import { ValidSlug } from '../utils/validSlug'
+import { ValidSlug } from '../utils/validSlug' 
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService from './events.service'
-import { EventByCategoryArgs, EventByTitleArgs } from './wiki.dto'
+import { EventArgs, EventByBlockchainArgs, EventByCategoryArgs, EventByLocationArgs, EventByTitleArgs, EventDefaultArgs, LangArgs } from './wiki.dto'
 import EventsResolver from './events.resolver'
-import WebhookHandler from '../utils/discordWebhookHandler'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { Direction, OrderBy } from '../general.args'
+import WebhookHandler from '../utils/discordWebhookHandler'
 
 describe('EventsResolver', () => {
   let eventsResolver: EventsResolver
@@ -30,6 +31,7 @@ describe('EventsResolver', () => {
           provide: EventsService,
           useValue: {
             getEventsByBlockchain: jest.fn(),
+            getEventsByLocationOrBlockchain: jest.fn(),
             resolveWikiRelations: jest.fn(),
             events: jest.fn(),
           },
@@ -49,7 +51,7 @@ describe('EventsResolver', () => {
           provide: CACHE_MANAGER,
           useValue: CACHE_MANAGER,
         },
-      ],
+       ],
     }).compile()
 
     eventsResolver = module.get<EventsResolver>(EventsResolver)
@@ -57,7 +59,7 @@ describe('EventsResolver', () => {
     wikiService = module.get<WikiService>(WikiService)
   })
 
-  const testEvents: Partial<Wiki>[] = [
+  const testEvents: Partial<Wiki>[] = [ 
     {
       id: 'paris-blockchain-week-5th-edition',
       tags: [
@@ -275,6 +277,7 @@ describe('EventsResolver', () => {
     },
   ]
 
+
   describe('wikiEventsByTitle', () => {
     it('should return events based on provided title', async () => {
       const title = 'blockchain'
@@ -321,6 +324,64 @@ describe('EventsResolver', () => {
         expect(obj.categories).toBeDefined()
         expect(obj.categories[0].id).toBe('Cryptocurrencies')
       })
+    })    
+  })
+  
+  describe('events', ()=>{
+    it('should return events with events tag', async () => {
+      jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
+      const args: EventArgs = {
+        tagIds: ['tagId1', 'tagId2'],
+        lang: 'en',
+        offset: 0,
+        limit: 10,
+        direction:  Direction.DESC,
+        order: OrderBy.UPDATED,
+        hidden: false,
+      }
+      const context = {
+        req: {
+          body: {
+            query: 'query'
+          }
+        }
+      }
+
+      jest.spyOn(eventsService, 'events').mockResolvedValueOnce(testEvents)
+      jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValueOnce(testEvents as Wiki[])
+
+      const result = await eventsResolver.events(args, context)
+      console.log('Resolver Result:', result);
+      expect(eventsService.events).toHaveBeenCalledWith(['events', 'tagId1', 'tagId2'], args)
+      expect(result).toEqual(testEvents)
+      expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(testEvents, 'query', )
     })
+    // it('should return events with the extra tagId in their tag', async () => {
+    //   const tagId = ['tagId1', 'tagId2']
+    //   const args: EventArgs = {
+    //         lang: 'en',
+    //         offset: 0,
+    //         limit: 10,
+    //         direction:  Direction.DESC,
+    //         order: OrderBy.UPDATED,
+    //         hidden: false,
+    //   }
+
+    //   const context = {
+    //     req: {
+    //       body: {
+    //         query: 'query'
+    //       }
+    //     }
+    //   }
+
+    //   jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents);
+
+    //   const result = await eventsResolver.events(args, context)
+      
+    //   // expect(result).toBeDefined();
+    //   expect(result.every(event => event.tags.some(tag => tag.id === 'tagIdExtra'))).toBe(true);
+
+    // })
   })
 })

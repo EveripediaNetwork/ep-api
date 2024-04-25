@@ -6,7 +6,7 @@ import {
   EventByCategoryArgs,
   EventByLocationArgs,
   EventByTitleArgs,
-  EventDefaultArgs,
+  LangArgs,
   TitleArgs,
   eventTag,
 } from './wiki.dto'
@@ -23,6 +23,7 @@ class EventsResolver {
 
   @Query(() => [Wiki], { nullable: true })
   async events(@Args() args: EventArgs, @Context() context: any) {
+    console.log('Resolver Args:', args);
     const { req } = context
     const { query } = req.body
 
@@ -50,7 +51,7 @@ class EventsResolver {
   }
 
   @Query(() => [Wiki], { nullable: true })
-  async popularEvents(@Args() args: EventDefaultArgs) {
+  async popularEvents(@Args() args: LangArgs) {
     return this.wikiService.getPopularEvents(args)
   }
 
