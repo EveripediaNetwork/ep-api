@@ -12,6 +12,7 @@ import IndexerWebhookService from './services/indexerWebhook.service'
 import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
 import AutoInjestService from '../../App/utils/auto-injest'
 import { LockingService } from '../../App/IQHolders/IQHolders.dto'
+import RPCProviderService from '../RPCProvider/RPCProvider.service'
 
 @Module({
   imports: [httpModule(10000), CacheModule.register({ ttl: 3600 })],
@@ -27,7 +28,8 @@ import { LockingService } from '../../App/IQHolders/IQHolders.dto'
     RunCommand,
     AlchemyNotifyService,
     AutoInjestService,
-    LockingService
+    LockingService,
+    RPCProviderService
   ],
 })
 class IndexerWebhookModule {}

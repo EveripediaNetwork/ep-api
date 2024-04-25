@@ -13,20 +13,19 @@ import Wiki from '../Database/Entities/wiki.entity'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { getWikiSummary } from '../App/utils/getWikiSummary'
 import AutoInjestService from '../App/utils/auto-injest'
-
-interface CommandOptions {
-  unixtime: number
-  loop: boolean
-  ipfsTime: boolean
-}
-
-const SLEEP_TIME = 4000
-const SLEEP_TIME_QUERY = 3000
+import {
+  TWENTY_FOUR_HOURS_AGO,
+  SLEEP_TIME_QUERY,
+  SLEEP_TIME,
+  CommandOptions,
+} from './indexerUtils'
+import RPCProviderService from './RPCProvider/RPCProvider.service'
 
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
   constructor(
     private providerService: GraphProviderService,
+    private rpcProviderService: RPCProviderService,
     private ipfsGetter: IPFSGetterService,
     private validator: IPFSValidatorService,
     private dbStoreService: DBStoreService,
@@ -35,19 +34,22 @@ class RunCommand implements CommandRunner {
     private iqInjest: AutoInjestService,
   ) {}
 
-  async getUnixtime() {
+  async getMostRecentWiki(): Promise<Wiki[]> {
     const repo = this.dataSource.getRepository(Wiki)
-    const lastWikiEdited = await repo.find({
+    return repo.find({
       order: {
         updated: 'DESC',
       },
       take: 1,
     })
+  }
 
+  async getUnixtime() {
+    const lastWikiEdited = await this.getMostRecentWiki()
     const unixtime =
       lastWikiEdited.length > 0
         ? Math.floor(new Date(lastWikiEdited[0].updated).getTime() / 1000)
-        : Math.floor(new Date().getTime() / 1000) - 86400
+        : TWENTY_FOUR_HOURS_AGO
 
     return unixtime
   }
@@ -55,6 +57,7 @@ class RunCommand implements CommandRunner {
   async initiateIndexer(
     hashes: Hash[],
     unixtime: number,
+    mode: string,
     loop?: boolean,
     useIpfsTime = false,
   ): Promise<void> {
@@ -62,19 +65,19 @@ class RunCommand implements CommandRunner {
 
     if (hashes.length === 0 && loop) {
       await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
-      const newHashes = await this.providerService.getIPFSHashesFromBlock(
-        unixtime,
-      )
 
-      console.log('🔁 Running Indexer on Loop, checking for new hashes! 🔁')
+      const newHashes = await this.getHashes(mode, unixtime)
+      console.log(
+        `${mode} mode: 🔁 Running Indexer on Loop, checking for new hashes! 🔁`,
+      )
       console.log(`❕ Found ${newHashes.length} hashes!`)
 
       newUnixtime = await this.getUnixtime()
-      await this.initiateIndexer(newHashes, newUnixtime, loop)
+      await this.initiateIndexer(newHashes, newUnixtime, mode, loop)
     }
     const lastHash = hashes[hashes.length - 1]
     for (const hash of hashes) {
-      await this.saveToDB(hash, false, useIpfsTime)
+      await this.saveToDB(hash, false, useIpfsTime, mode)
       if (useIpfsTime && hash.transactionHash === lastHash.transactionHash) {
         await fs.unlink(hashesFilePath)
       }
@@ -82,10 +85,8 @@ class RunCommand implements CommandRunner {
 
     if (loop) {
       newUnixtime = await this.getUnixtime()
-      const newHashes = await this.providerService.getIPFSHashesFromBlock(
-        newUnixtime,
-      )
-      await this.initiateIndexer(newHashes, newUnixtime, loop)
+      const newHashes = await this.getHashes(mode, unixtime)
+      await this.initiateIndexer(newHashes, newUnixtime, mode, loop)
     }
   }
 
@@ -113,6 +114,7 @@ class RunCommand implements CommandRunner {
     hash: Hash,
     webhook: boolean,
     reIndex: boolean,
+    mode: string,
   ): Promise<void> {
     try {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
@@ -149,7 +151,9 @@ class RunCommand implements CommandRunner {
         hash.userId,
       )
       if (stat.status) {
-        console.log('✅ Validated Wiki content! IPFS going through...')
+        console.log(
+          `${mode} mode: ✅ Validated Wiki content! IPFS going through...`,
+        )
         if (!reIndex) {
           await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
           await this.iqInjest.initiateInjest()
@@ -161,24 +165,46 @@ class RunCommand implements CommandRunner {
           )
         }
 
-        console.log(`🚀 Storing IPFS: ${hash.id}`)
+        console.log(`${mode} mode: 🚀 Storing IPFS: ${hash.id}`)
       } else {
         console.log(stat)
-        console.error(`🔥 Invalid IPFS: ${hash.id}`)
+        console.error(`${mode} mode: 🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
         await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
     } catch (ex) {
-      console.error(`🛑 Invalid IPFS: ${hash.id}`)
+      console.error(`${mode} mode: 🛑 Invalid IPFS: ${hash.id}`)
       console.error(ex)
     }
   }
 
+  async getHashes(
+    mode: string,
+    unixtime: number,
+    useIpfs?: boolean,
+  ): Promise<Hash[] | []> {
+    console.log(1)
+    let hashes = []
+    if (mode === 'RPC') {
+      const wiki = await this.getMostRecentWiki()
+      const { block } = wiki[0]
+      hashes = await this.rpcProviderService.getHashesFromLogs(block)
+    } else {
+      hashes = await this.providerService.getIPFSHashesFromBlock(
+        unixtime,
+        useIpfs,
+      )
+    }
+    return hashes
+  }
+
   async run(passedParam: string[], options?: CommandOptions): Promise<void> {
+    console.log(2)
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false
+    const mode = options?.mode || 'SUBGRAPH'
 
     if (options?.unixtime === undefined) {
       unixtime = await this.getUnixtime()
@@ -186,14 +212,11 @@ class RunCommand implements CommandRunner {
       unixtime = options.unixtime
     }
 
-    const hashes = await this.providerService.getIPFSHashesFromBlock(
-      unixtime,
-      useIpfs,
-    )
+    const hashes = await this.getHashes(mode, unixtime, useIpfs)
 
-    if (loop) await this.initiateIndexer(hashes, unixtime, loop)
+    if (loop) await this.initiateIndexer(hashes, unixtime, mode, loop)
 
-    await this.initiateIndexer(hashes, unixtime, loop, useIpfs)
+    await this.initiateIndexer(hashes, unixtime, mode, loop, useIpfs)
 
     process.exit()
   }
@@ -220,6 +243,15 @@ class RunCommand implements CommandRunner {
   })
   parseTimeBoolean(val: string): boolean {
     return JSON.parse(val)
+  }
+
+  @Option({
+    flags: '-m, --mode [string]',
+    description: 'Set to subgraph calls or rpc mode',
+  })
+  parseMode(val: string): string {
+    console.log(val)
+    return String(val).toUpperCase()
   }
 }
 

@@ -45,8 +45,8 @@ export class RevalidatePageService {
 
   async revalidate(route: string, id?: string, slug?: string): Promise<any> {
     const { url, secret } = this.getSecrets()
-    const urlEN = `${url}/api/revalidate?secret=${secret}`
-    const urlKO = `${url}/KO/api/revalidate?secret=${secret}`
+
+    const revalidateUrl = `${url}/api/revalidate?secret=${secret}`
 
     let path = route
 
@@ -58,12 +58,17 @@ export class RevalidatePageService {
 
     try {
       await Promise.all([
-        this.httpService.get(`${urlEN}&path=${path}`).toPromise(),
-        this.httpService.get(`${urlKO}&path=${path}`).toPromise(),
+        this.httpService.get(`${revalidateUrl}&path=/en${path}`).toPromise(),
+        this.httpService.get(`${revalidateUrl}&path=/zh${path}`).toPromise(),
+        this.httpService.get(`${revalidateUrl}&path=/ko${path}`).toPromise(),
       ])
     } catch (e: any) {
-      console.error('Error revalidating path', e.response.config.url)
+      console.error(
+        'Error revalidating path',
+        e.response?.config?.url || e.message,
+      )
     }
+
     return true
   }
 
