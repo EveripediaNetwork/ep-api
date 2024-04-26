@@ -48,7 +48,6 @@ class AlchemyNotifyService {
     let decoded = null
     try {
       const iface = new ethers.Interface(abi)
-    //   const iface = new ethers.utils.Interface(abi)
       decoded = iface.parseLog(log)
     } catch (e: any) {
       console.error('Error decoding log', e)
