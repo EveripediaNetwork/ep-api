@@ -30,8 +30,12 @@ class RelayerService {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
     }
-    const PRIVATE_RPC = this.configService.get<string>('CUSTOM_RELAYER_RPC') as string
-    const PRIVATE_KEY = this.configService.get<string>('CUSTOM_RELAYER_SIGNER') as string
+    const PRIVATE_RPC = this.configService.get<string>(
+      'CUSTOM_RELAYER_RPC',
+    ) as string
+    const PRIVATE_KEY = this.configService.get<string>(
+      'CUSTOM_RELAYER_SIGNER',
+    ) as string
     const rpcProvider = new JsonRpcProvider(PRIVATE_RPC)
     const relayerProvider = new DefenderRelayProvider(credentials)
 
