@@ -3,7 +3,7 @@ import {
   DefenderRelayProvider,
   DefenderRelaySigner,
 } from '@openzeppelin/defender-relay-client/lib/ethers'
-import { ethers, Signer } from 'ethers'
+import { ethers, JsonRpcProvider, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -24,14 +24,23 @@ class RelayerService {
   }
 
   private getRelayerInstance() {
+    const environment = process.env.NODE_ENV
+
     const credentials = {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
     }
-    const provider = new DefenderRelayProvider(credentials)
-    const signer = new DefenderRelaySigner(credentials, provider, {
-      speed: 'fast',
-    })
+    const PRIVATE_RPC = this.configService.get<string>('CUSTOM_RELAYER_RPC') as string
+    const PRIVATE_KEY = this.configService.get<string>('CUSTOM_RELAYER_SIGNER') as string
+    const rpcProvider = new JsonRpcProvider(PRIVATE_RPC)
+    const relayerProvider = new DefenderRelayProvider(credentials)
+
+    const signer =
+      environment !== 'production'
+        ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
+        : new DefenderRelaySigner(credentials, relayerProvider, {
+            speed: 'fast',
+          })
 
     return signer
   }
