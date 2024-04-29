@@ -69,7 +69,9 @@ class UserService {
       id: data.id,
     })
 
-    const existsUser = await (await this.userRepository())
+    const existsUser = await (
+      await this.userRepository()
+    )
       .createQueryBuilder()
       .where({ id: data.id })
       .getRawOne()
@@ -107,7 +109,7 @@ class UserService {
         .set({ ...data })
         .where('id = :id', { id: data.id })
         .execute()
-    
+
     if (existsUser && existsProfile) {
       await updateProfile()
       return existsProfile
@@ -140,9 +142,9 @@ class UserService {
       return []
     }
 
-    const columnNames = userTable.columns.map(column => column.propertyName)
-    const columns = columnNames.filter(e => fields.includes(e))
-    const fieldsWithPrefix = columns.map(field => `${tableName}.${field}`)
+    const columnNames = userTable.columns.map((column) => column.propertyName)
+    const columns = columnNames.filter((e) => fields.includes(e))
+    const fieldsWithPrefix = columns.map((field) => `${tableName}.${field}`)
     return !columns.includes('id')
       ? [`${tableName}.id`, ...fieldsWithPrefix]
       : fieldsWithPrefix
