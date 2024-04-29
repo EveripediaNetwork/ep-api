@@ -111,8 +111,8 @@ class UserProfileResolver {
     const subs = await wikiRepo.query(
       `
         SELECT wiki.* FROM wiki
-        LEFT JOIN "subscription" s on s."auxiliaryId" = wiki.id
-        WHERE LOWER(s."userId") = $1 AND s."notificationType" = 'wiki' 
+        LEFT JOIN "iq_subscription" s on s."auxiliaryId" = wiki.id
+        WHERE LOWER(s."userId") = $1 AND s."subscriptionType" = 'wiki' 
     `,
       [id?.toLowerCase()],
     )
