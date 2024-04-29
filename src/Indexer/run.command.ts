@@ -114,7 +114,7 @@ class RunCommand implements CommandRunner {
     hash: Hash,
     webhook: boolean,
     reIndex: boolean,
-    mode= 'SUBGRAPH',
+    mode = 'SUBGRAPH',
   ): Promise<void> {
     try {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
