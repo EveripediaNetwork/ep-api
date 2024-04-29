@@ -114,7 +114,7 @@ class RunCommand implements CommandRunner {
     hash: Hash,
     webhook: boolean,
     reIndex: boolean,
-    mode: string,
+    mode = 'SUBGRAPH',
   ): Promise<void> {
     try {
       const content = await this.ipfsGetter.getIPFSDataFromHash(hash.id)
@@ -184,7 +184,6 @@ class RunCommand implements CommandRunner {
     unixtime: number,
     useIpfs?: boolean,
   ): Promise<Hash[] | []> {
-    console.log(1)
     let hashes = []
     if (mode === 'RPC') {
       const wiki = await this.getMostRecentWiki()
@@ -200,7 +199,6 @@ class RunCommand implements CommandRunner {
   }
 
   async run(passedParam: string[], options?: CommandOptions): Promise<void> {
-    console.log(2)
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false
@@ -250,7 +248,6 @@ class RunCommand implements CommandRunner {
     description: 'Set to subgraph calls or rpc mode',
   })
   parseMode(val: string): string {
-    console.log(val)
     return String(val).toUpperCase()
   }
 }
