@@ -38,7 +38,7 @@ class RPCProviderService {
     const contractAddress = this.configService.get<string>(
       'WIKI_CONTRACT_ADDRESS',
     ) as string
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
+    const provider = new ethers.JsonRpcProvider(this.provider())
     const contract = new ethers.Contract(contractAddress, WikiAbi, provider)
     let startBlock = blockNumber
 
@@ -65,22 +65,23 @@ class RPCProviderService {
           contentId: '',
         }
 
-        const parsedLog = contract.interface.parseLog(log)
         const block = await provider.getBlock(log.blockHash)
 
-        const user = parsedLog.args[0]
-        const ipfs = parsedLog.args[1]
+        const parsedLog = contract.interface.parseLog(log)
+        if (block && parsedLog) {
+          const user = parsedLog.args[0]
+          const ipfs = parsedLog.args[1]
 
-        hash.block = log.blockNumber
-        hash.contentId = `${log.transactionHash}-${log.logIndex}`
-        hash.transactionHash = log.transactionHash
-        hash.id = ipfs
-        hash.userId = user
-        hash.createdAt = block.timestamp
+          hash.block = log.blockNumber
+          hash.contentId = `${log.transactionHash}-${log.index}`
+          hash.transactionHash = log.transactionHash
+          hash.id = ipfs
+          hash.userId = user
+          hash.createdAt = block.timestamp
 
-        hashes.push(hash)
+          hashes.push(hash)
+        }
       }
-
       return hashes
     } catch (e) {
       console.error(e)

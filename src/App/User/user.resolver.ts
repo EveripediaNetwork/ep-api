@@ -98,11 +98,11 @@ class UserResolver {
   }
 
   @ResolveField()
-  async wikis(@Parent() use: IUser, @Args() args: PaginationArgs) {
+  async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const wikiRepo = this.dataSource.getRepository(Wiki)
     return wikiRepo.find({
       where: {
-        user: { id: use.id as string },
+        user: { id: user.id as string },
         hidden: false,
       },
       take: args.limit,
