@@ -30,7 +30,10 @@ class EventsResolver {
       [eventTag, ...(args.tagIds || [])],
       args,
     )
-    const resolvedEvents = await this.eventsService.resolveWikiRelations(events, query)
+    const resolvedEvents = await this.eventsService.resolveWikiRelations(
+      events,
+      query,
+    )
     return resolvedEvents
   }
 

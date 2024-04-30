@@ -20,13 +20,11 @@ class EventsService {
   ) {}
 
   async events(ids: string[], args: EventArgs) {
-
-    try{
-
+    try {
       const repository = this.dataSource.getRepository(Wiki)
-  
+
       let order
-  
+
       switch (args.order) {
         case 'date':
           order = this.wikiService.orderFuse(args.direction, 'wiki')
@@ -37,7 +35,7 @@ class EventsService {
         default:
           order = args.order
       }
-  
+
       let queryBuilder = repository
         .createQueryBuilder('wiki')
         .leftJoinAndSelect('wiki.tags', 'tag')
@@ -49,20 +47,20 @@ class EventsService {
         .limit(args.limit)
         .offset(args.offset)
         .orderBy(order, args.direction)
-  
+
       if (ids.length > 1) {
         return await this.queryWikisWithMultipleTags(repository, ids, args)
       }
-  
+
       if (ids.length === 1) {
         queryBuilder = this.wikiService.applyDateFilter(
           queryBuilder,
           args,
         ) as SelectQueryBuilder<Wiki>
       }
-  
+
       const result = await queryBuilder.getMany()
-      if(!result || !Array.isArray(result)) {
+      if (!result || !Array.isArray(result)) {
         throw new Error('Result is undefined or not an array')
       }
       return result
@@ -70,7 +68,6 @@ class EventsService {
       console.error('Error fetching events:', error)
       throw error
     }
-
   }
 
   private async queryWikisWithMultipleTags(
@@ -127,7 +124,6 @@ class EventsService {
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
-
     const ast = gql`
       ${query}
     `
@@ -138,17 +134,15 @@ class EventsService {
     const isUserFieldIncluded = hasField(ast, 'user')
     const isAuthorFieldIncluded = hasField(ast, 'author')
 
-    console.log('Included Fields:',
-    {
+    console.log('Included Fields:', {
       tags: isTagsFieldIncluded,
       categories: isCategoriesFieldIncluded,
       language: isLanguageFieldIncluded,
       user: isUserFieldIncluded,
-      author: isAuthorFieldIncluded
-     })
+      author: isAuthorFieldIncluded,
+    })
 
     for (const wiki of wikis) {
-
       if (isTagsFieldIncluded) {
         const tags = await this.wikiTags(wiki.id)
         wiki.tags = tags

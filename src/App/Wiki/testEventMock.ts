@@ -1,4 +1,4 @@
-import Wiki from "../../Database/Entities/wiki.entity";
+import Wiki from '../../Database/Entities/wiki.entity'
 
 const testEvents: Partial<Wiki>[] = [
   {
@@ -243,4 +243,4 @@ const mockEvents: Partial<Wiki>[] = [
   },
 ]
 
-export { mockEvents, testEvents };
+export { mockEvents, testEvents }

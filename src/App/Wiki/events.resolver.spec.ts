@@ -60,7 +60,7 @@ describe('EventsResolver', () => {
         },
       ],
     }).compile()
- 
+
     eventsResolver = module.get<EventsResolver>(EventsResolver)
     eventsService = module.get<EventsService>(EventsService)
     wikiService = module.get<WikiService>(WikiService)
@@ -171,11 +171,15 @@ describe('EventsResolver', () => {
         },
       }
 
-      jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents as Wiki[])
-      jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValue(testEvents as Wiki[])
+      jest
+        .spyOn(eventsService, 'events')
+        .mockResolvedValue(testEvents as Wiki[])
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockResolvedValue(testEvents as Wiki[])
       const result = await eventsResolver.events(args, context)
       result.forEach((event) => {
-        expect(event.tags.some(tag => tag.id === 'Events')).toBe(true)
+        expect(event.tags.some((tag) => tag.id === 'Events')).toBe(true)
       })
     })
     // it('should return extra tagId in each result when passed in the query', async() => {
@@ -220,7 +224,9 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEvents as Wiki[])
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockResolvedValue(mockEvents as Wiki[])
       const result = await eventsResolver.popularEvents(args)
       expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
       expect(result).toEqual(mockEvents)
@@ -233,23 +239,26 @@ describe('EventsResolver', () => {
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
       }
-    
-      const mockEventsWithViews = mockEvents.map(event => ({
-        ...event,
-        views: event.views || 0,
-      }))
-      .sort((a, b) => b.views - a.views)
-    
-    
-      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEventsWithViews as Wiki[])
-      const result = await eventsResolver.popularEvents(args);
-    
-    
-      expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args);
+
+      const mockEventsWithViews = mockEvents
+        .map((event) => ({
+          ...event,
+          views: event.views || 0,
+        }))
+        .sort((a, b) => b.views - a.views)
+
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockResolvedValue(mockEventsWithViews as Wiki[])
+      const result = await eventsResolver.popularEvents(args)
+
+      expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
       expect(result).toEqual(mockEventsWithViews)
-    
+
       for (let i = 1; i < mockEventsWithViews.length; i++) {
-        expect(mockEventsWithViews[i - 1].views || 0).toBeGreaterThanOrEqual(mockEventsWithViews[i].views || 0)
+        expect(mockEventsWithViews[i - 1].views || 0).toBeGreaterThanOrEqual(
+          mockEventsWithViews[i].views || 0,
+        )
       }
     })
     it('should return popular events for a certain time period', async () => {
@@ -263,7 +272,9 @@ describe('EventsResolver', () => {
         startDate: '2024-01-01',
         endDate: '2024-2-31',
       }
-      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEvents as Wiki[])
+      jest
+        .spyOn(wikiService, 'getPopularEvents')
+        .mockResolvedValue(mockEvents as Wiki[])
       const result = await eventsResolver.popularEvents(args)
       expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
       expect(result).toEqual(mockEvents)
