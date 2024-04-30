@@ -73,7 +73,6 @@ const testEvents: Partial<Wiki>[] = [
       },
     ],
   },
-
 ]
 
 const mockEvents: Partial<Wiki>[] = [
