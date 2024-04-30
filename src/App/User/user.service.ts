@@ -68,6 +68,7 @@ class UserService {
     ).findOneBy({
       id: data.id,
     })
+
     const existsUser = await (
       await this.userRepository()
     )
@@ -95,10 +96,12 @@ class UserService {
       await (await this.userRepository()).save(user)
       return true
     }
+
     const createProfile = async () => {
       const newProfile = await (await this.profileRepository()).save(profile)
       return newProfile
     }
+
     const updateProfile = async () =>
       (await this.profileRepository())
         .createQueryBuilder()
@@ -109,23 +112,14 @@ class UserService {
 
     if (existsUser && existsProfile) {
       await updateProfile()
-
       return existsProfile
     }
 
     if (existsUser && !existsProfile) {
       const newProfile = await createProfile()
-
-      await (
-        await this.userRepository()
-      )
-        .createQueryBuilder()
-        .update(User)
-        .set({ profile: newProfile })
-        .where('LOWER(id) = :id', { id: data.id.toLowerCase() })
-        .execute()
       return newProfile
     }
+
     if (!existsUser && existsProfile) {
       await createUser(profile)
       await updateProfile()
@@ -175,6 +169,7 @@ class UserService {
       fields,
       'user_profile',
     )
+    // console.log(fieldsWithPrefix)
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])

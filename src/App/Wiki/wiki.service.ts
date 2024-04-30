@@ -234,9 +234,12 @@ class WikiService {
             qb.andWhere("wiki.events->0->>'date' >= :start", {
               start: args.startDate,
             }).orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
-            qb.andWhere(`:start <= wiki.events->0->>'multiDateStart'`, {
-              start: startDate,
-            })
+            qb.andWhere(
+              `:start >= wiki.events->0->>'multiDateStart' AND :start <= wiki.events->0->>'multiDateEnd'`,
+              {
+                start: startDate,
+              },
+            )
           }
         }),
       )
@@ -272,7 +275,7 @@ class WikiService {
           (
             wiki.events->0->>'type' = 'MULTIDATE' 
             AND (
-                $${params?.length} <= wiki.events->0->>'multiDateStart'  
+                $${params?.length} >= wiki.events->0->>'multiDateStart'  AND $${params?.length} <= wiki.events->0->>'multiDateEnd' 
             )
           )
             `
