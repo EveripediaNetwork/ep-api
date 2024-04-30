@@ -8,10 +8,6 @@ const testEvents: Partial<Wiki>[] = [
         id: 'Events',
         wikis: [],
       },
-      {
-        id: 'Blockchains',
-        wikis: [],
-      },
     ],
   },
   {
@@ -78,27 +74,6 @@ const testEvents: Partial<Wiki>[] = [
     ],
   },
   {
-    id: '13th-annual-london-finance-and-capital-markets-conference',
-    tags: [
-      {
-        id: 'Events',
-        wikis: [],
-      },
-      {
-        id: 'AI',
-        wikis: [],
-      },
-      {
-        id: 'BinanceSmartChain',
-        wikis: [],
-      },
-      {
-        id: 'Blockchains',
-        wikis: [],
-      },
-    ],
-  },
-  {
     id: 'mwc-barcelona',
     tags: [
       {
@@ -157,23 +132,6 @@ const testEvents: Partial<Wiki>[] = [
       },
       {
         id: 'CEXes',
-        wikis: [],
-      },
-    ],
-  },
-  {
-    id: 'web3-revolution-cyprus-blockchain-expo-2024',
-    tags: [
-      {
-        id: 'Events',
-        wikis: [],
-      },
-      {
-        id: 'AI',
-        wikis: [],
-      },
-      {
-        id: 'Blockchains',
         wikis: [],
       },
     ],
