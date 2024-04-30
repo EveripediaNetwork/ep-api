@@ -23,7 +23,6 @@ class EventsResolver {
 
   @Query(() => [Wiki], { nullable: true })
   async events(@Args() args: EventArgs, @Context() context: any) {
-    console.log('Resolver Args:', args);
     const { req } = context
     const { query } = req.body
 
@@ -31,7 +30,8 @@ class EventsResolver {
       [eventTag, ...(args.tagIds || [])],
       args,
     )
-    return this.eventsService.resolveWikiRelations(events, query)
+    const resolvedEvents = await this.eventsService.resolveWikiRelations(events, query)
+    return resolvedEvents
   }
 
   @Query(() => [Wiki])

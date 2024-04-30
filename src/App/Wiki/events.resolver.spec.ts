@@ -3,15 +3,22 @@ import { HttpModule } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { DataSource, EntityManager } from 'typeorm'
-import { ValidSlug } from '../utils/validSlug' 
+import { ValidSlug } from '../utils/validSlug'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import WikiService from './wiki.service'
 import EventsService from './events.service'
-import { EventArgs, EventByBlockchainArgs, EventByCategoryArgs, EventByLocationArgs, EventByTitleArgs, EventDefaultArgs, LangArgs } from './wiki.dto'
+import {
+  EventArgs,
+  EventByCategoryArgs,
+  EventByTitleArgs,
+  EventDefaultArgs,
+  LangArgs,
+} from './wiki.dto'
 import EventsResolver from './events.resolver'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { Direction, OrderBy } from '../general.args'
 import WebhookHandler from '../utils/discordWebhookHandler'
+import { mockEvents, testEvents } from './testEventMock'
 
 describe('EventsResolver', () => {
   let eventsResolver: EventsResolver
@@ -51,232 +58,13 @@ describe('EventsResolver', () => {
           provide: CACHE_MANAGER,
           useValue: CACHE_MANAGER,
         },
-       ],
+      ],
     }).compile()
-
+ 
     eventsResolver = module.get<EventsResolver>(EventsResolver)
     eventsService = module.get<EventsService>(EventsService)
     wikiService = module.get<WikiService>(WikiService)
   })
-
-  const testEvents: Partial<Wiki>[] = [ 
-    {
-      id: 'paris-blockchain-week-5th-edition',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'Blockchains',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'blockchain-lagos',
-      tags: [
-        {
-          id: 'Ethereum',
-          wikis: [],
-        },
-        {
-          id: 'DEXes',
-          wikis: [],
-        },
-        {
-          id: 'Polygon',
-          wikis: [],
-        },
-        {
-          id: 'Events',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'web3-lagos',
-      tags: [
-        {
-          id: 'Ethereum',
-          wikis: [],
-        },
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'Solana',
-          wikis: [],
-        },
-        {
-          id: 'Conference',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'the-blockchain-event',
-      tags: [
-        {
-          id: 'Polygon',
-          wikis: [],
-        },
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'Conference',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: '13th-annual-london-finance-and-capital-markets-conference',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'BinanceSmartChain',
-          wikis: [],
-        },
-        {
-          id: 'Blockchains',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'mwc-barcelona',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'Developers',
-          wikis: [],
-        },
-        {
-          id: 'BinanceSmartChain',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'international-conference-on-blockchain-and-cryptocurrencies',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'Developers',
-          wikis: [],
-        },
-        {
-          id: 'BinanceSmartChain',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'ethdenver-innovation-festival',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'BinanceSmartChain',
-          wikis: [],
-        },
-        {
-          id: 'CEXes',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'web3-revolution-cyprus-blockchain-expo-2024',
-      tags: [
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'AI',
-          wikis: [],
-        },
-        {
-          id: 'Blockchains',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'quantum-miami-2024',
-      tags: [
-        {
-          id: 'Ethereum',
-          wikis: [],
-        },
-        {
-          id: 'Stablecoins',
-          wikis: [],
-        },
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'Blockchains',
-          wikis: [],
-        },
-      ],
-    },
-    {
-      id: 'metavsummit',
-      tags: [
-        {
-          id: 'Ethereum',
-          wikis: [],
-        },
-        {
-          id: 'Events',
-          wikis: [],
-        },
-        {
-          id: 'Blockchains',
-          wikis: [],
-        },
-      ],
-    },
-  ]
-
 
   describe('wikiEventsByTitle', () => {
     it('should return events based on provided title', async () => {
@@ -324,64 +112,161 @@ describe('EventsResolver', () => {
         expect(obj.categories).toBeDefined()
         expect(obj.categories[0].id).toBe('Cryptocurrencies')
       })
-    })    
+    })
   })
-  
-  describe('events', ()=>{
-    it('should return events with events tag', async () => {
+
+  describe('events', () => {
+    it('should return an array of Wiki objects with events tag', async () => {
       jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
       const args: EventArgs = {
         tagIds: ['tagId1', 'tagId2'],
         lang: 'en',
         offset: 0,
         limit: 10,
-        direction:  Direction.DESC,
+        direction: Direction.DESC,
         order: OrderBy.UPDATED,
         hidden: false,
       }
       const context = {
         req: {
           body: {
-            query: 'query'
-          }
-        }
+            query: 'query',
+          },
+        },
       }
 
       jest.spyOn(eventsService, 'events').mockResolvedValueOnce(testEvents)
-      jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValueOnce(testEvents as Wiki[])
+      jest
+        .spyOn(eventsService, 'resolveWikiRelations')
+        .mockResolvedValueOnce(testEvents as Wiki[])
 
       const result = await eventsResolver.events(args, context)
-      console.log('Resolver Result:', result);
-      expect(eventsService.events).toHaveBeenCalledWith(['events', 'tagId1', 'tagId2'], args)
+      console.log('Resolver Result:', result)
+      expect(eventsService.events).toHaveBeenCalledWith(
+        ['events', 'tagId1', 'tagId2'],
+        args,
+      )
       expect(result).toEqual(testEvents)
-      expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(testEvents, 'query', )
+      expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(
+        testEvents,
+        'query',
+      )
     })
-    // it('should return events with the extra tagId in their tag', async () => {
-    //   const tagId = ['tagId1', 'tagId2']
+    it('should return each result with the events tag', async () => {
+      const args: EventArgs = {
+        tagIds: ['tagId1', 'tagId2'],
+        lang: 'en',
+        offset: 0,
+        limit: 10,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+        hidden: false,
+      }
+
+      const context = {
+        req: {
+          body: {
+            query: 'query',
+          },
+        },
+      }
+
+      jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents as Wiki[])
+      jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValue(testEvents as Wiki[])
+      const result = await eventsResolver.events(args, context)
+      result.forEach((event) => {
+        expect(event.tags.some(tag => tag.id === 'Events')).toBe(true)
+      })
+    })
+    // it('should return extra tagId in each result when passed in the query', async() => {
+    //   const extraId = 'tagId2'
     //   const args: EventArgs = {
-    //         lang: 'en',
-    //         offset: 0,
-    //         limit: 10,
-    //         direction:  Direction.DESC,
-    //         order: OrderBy.UPDATED,
-    //         hidden: false,
+    //     tagIds: ['tagId1', extraId],
+    //     lang: 'en',
+    //     offset: 0,
+    //     limit: 10,
+    //     direction: Direction.DESC,
+    //     order: OrderBy.UPDATED,
+    //     hidden: false,
     //   }
+    //   console.log("Args:", args)
 
     //   const context = {
     //     req: {
     //       body: {
-    //         query: 'query'
-    //       }
-    //     }
+    //         query: 'query',
+    //       },
+    //     },
     //   }
 
-    //   jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents);
-
-    //   const result = await eventsResolver.events(args, context)
-      
-    //   // expect(result).toBeDefined();
-    //   expect(result.every(event => event.tags.some(tag => tag.id === 'tagIdExtra'))).toBe(true);
-
+    //   jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents as Wiki[])
+    //   jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValue(testEvents as Wiki[])
+    //     const result = await eventsResolver.events(args, context)
+    //     expect(eventsService.events).toHaveBeenCalledWith([eventTag, 'tagId1', extraId], args)
+    //     // result.forEach((events) => {
+    //     //   // console.log("Event Tags:", event.tags)
+    //     //   expect(events.tags.some(tag => tag.id === extraId)).toBe(true)
+    //     // })
+    //     expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(testEvents, 'query',
+    //     )
     // })
+  })
+  describe('popularEvents', () => {
+    it('should return popular events for the given language', async () => {
+      const args: LangArgs = {
+        lang: 'en',
+        offset: 0,
+        limit: 10,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEvents as Wiki[])
+      const result = await eventsResolver.popularEvents(args)
+      expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
+      expect(result).toEqual(mockEvents)
+    })
+    it('should return popular events in descending order of views', async () => {
+      const args: LangArgs = {
+        lang: 'en',
+        offset: 0,
+        limit: 10,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+      }
+    
+      const mockEventsWithViews = mockEvents.map(event => ({
+        ...event,
+        views: event.views || 0,
+      }))
+      .sort((a, b) => b.views - a.views)
+    
+    
+      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEventsWithViews as Wiki[])
+      const result = await eventsResolver.popularEvents(args);
+    
+    
+      expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args);
+      expect(result).toEqual(mockEventsWithViews)
+    
+      for (let i = 1; i < mockEventsWithViews.length; i++) {
+        expect(mockEventsWithViews[i - 1].views || 0).toBeGreaterThanOrEqual(mockEventsWithViews[i].views || 0)
+      }
+    })
+    it('should return popular events for a certain time period', async () => {
+      const args: EventDefaultArgs = {
+        lang: 'en',
+        offset: 0,
+        limit: 10,
+        hidden: false,
+        direction: Direction.DESC,
+        order: OrderBy.UPDATED,
+        startDate: '2024-01-01',
+        endDate: '2024-2-31',
+      }
+      jest.spyOn(wikiService, 'getPopularEvents').mockResolvedValue(mockEvents as Wiki[])
+      const result = await eventsResolver.popularEvents(args)
+      expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
+      expect(result).toEqual(mockEvents)
+    })
   })
 })
