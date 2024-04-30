@@ -14,7 +14,7 @@ const testEvents: Partial<Wiki>[] = [
     id: 'blockchain-lagos',
     tags: [
       {
-        id: 'Ethereum',
+        id: 'Bitcoin',
         wikis: [],
       },
       {
@@ -56,7 +56,7 @@ const testEvents: Partial<Wiki>[] = [
     id: 'the-blockchain-event',
     tags: [
       {
-        id: 'Polygon',
+        id: 'Polygon-matic',
         wikis: [],
       },
       {

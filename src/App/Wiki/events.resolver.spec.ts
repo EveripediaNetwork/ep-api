@@ -156,11 +156,11 @@ describe('EventsResolver', () => {
       const args: EventArgs = {
         tagIds: ['tagId1', 'tagId2'],
         lang: 'en',
-        offset: 0,
+        hidden: false,
         limit: 10,
         direction: Direction.DESC,
+        offset: 0,
         order: OrderBy.UPDATED,
-        hidden: false,
       }
 
       const context = {
@@ -219,10 +219,10 @@ describe('EventsResolver', () => {
     it('should return popular events for the given language', async () => {
       const args: LangArgs = {
         lang: 'en',
-        offset: 0,
-        limit: 10,
-        direction: Direction.DESC,
         order: OrderBy.UPDATED,
+        limit: 10,
+        offset: 0,
+        direction: Direction.DESC,
       }
       jest
         .spyOn(wikiService, 'getPopularEvents')
@@ -235,8 +235,8 @@ describe('EventsResolver', () => {
       const args: LangArgs = {
         lang: 'en',
         offset: 0,
-        limit: 10,
         direction: Direction.DESC,
+        limit: 10,
         order: OrderBy.UPDATED,
       }
 
@@ -263,13 +263,13 @@ describe('EventsResolver', () => {
     })
     it('should return popular events for a certain time period', async () => {
       const args: EventDefaultArgs = {
-        lang: 'en',
         offset: 0,
+        direction: Direction.DESC,
         limit: 10,
         hidden: false,
-        direction: Direction.DESC,
         order: OrderBy.UPDATED,
         startDate: '2024-01-01',
+        lang: 'en',
         endDate: '2024-2-31',
       }
       jest
