@@ -65,6 +65,7 @@ describe('EventsResolver', () => {
     eventsService = module.get<EventsService>(EventsService)
     wikiService = module.get<WikiService>(WikiService)
   })
+  
 
   describe('wikiEventsByTitle', () => {
     it('should return events based on provided title', async () => {
@@ -117,6 +118,7 @@ describe('EventsResolver', () => {
 
   describe('events', () => {
     it('should return an array of Wiki objects with events tag', async () => {
+
       jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
       const args: EventArgs = {
         tagIds: ['tagId1', 'tagId2'],
@@ -248,4 +250,4 @@ describe('EventsResolver', () => {
       expect(result).toEqual(mockEvents)
     })
   })
-})
+}) 
