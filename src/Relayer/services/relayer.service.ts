@@ -13,6 +13,8 @@ import ActivityRepository from '../../App/Activities/activity.repository'
 class RelayerService {
   private signer: any
 
+  private environment: string
+
   private wikiInstance: any
 
   constructor(
@@ -21,11 +23,10 @@ class RelayerService {
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
+    this.environment = process.env.NODE_ENV as string
   }
 
   private getRelayerInstance() {
-    const environment = process.env.NODE_ENV
-
     const credentials = {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
@@ -40,7 +41,7 @@ class RelayerService {
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
-      environment !== 'production'
+      this.environment !== 'production'
         ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
@@ -86,7 +87,7 @@ class RelayerService {
       r,
       s,
       {
-        gasLimit: 50000,
+        gasLimit: this.environment !== 'production' ? 350000 : 5000,
       },
     )
     return result

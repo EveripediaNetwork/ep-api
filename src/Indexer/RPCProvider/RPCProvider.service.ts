@@ -13,8 +13,11 @@ class RPCProviderService {
     private httpService: HttpService,
   ) {}
 
-  private provider(): string {
-    return this.configService.get<string>('RPC_INDEXER_URL') as string
+  private provider(): { URL: string; CHAIN: string } {
+    const values = JSON.parse(
+      this.configService.get<string>('RPC_INDEXER') as string,
+    )
+    return values
   }
 
   async getBlockByTimestamp(
@@ -34,17 +37,29 @@ class RPCProviderService {
     }
   }
 
-  async getHashesFromLogs(blockNumber?: number): Promise<Hash[] | []> {
+  async getHashesFromLogs(
+    blockNumber?: number,
+    tx?: string,
+  ): Promise<Hash[] | []> {
     const contractAddress = this.configService.get<string>(
       'WIKI_CONTRACT_ADDRESS',
     ) as string
-    const provider = new ethers.JsonRpcProvider(this.provider())
+
+    const provider = new ethers.JsonRpcProvider(this.provider().URL)
     const contract = new ethers.Contract(contractAddress, WikiAbi, provider)
-    let startBlock = blockNumber
+    let startBlock: string | number | undefined = blockNumber
 
     if (!startBlock) {
-      startBlock = await this.getBlockByTimestamp()
+      startBlock = await this.getBlockByTimestamp(this.provider().CHAIN)
     }
+
+    if (tx && this.provider().CHAIN === 'iq') {
+      const oldTx = await this.checkTransaction(tx)
+      if (oldTx.status !== '1') {
+        startBlock = 'earliest'
+      }
+    }
+
     const filter = {
       address: contractAddress,
       fromBlock: startBlock,
@@ -52,7 +67,8 @@ class RPCProviderService {
 
     try {
       const logs = await provider.getLogs(filter)
-      const limitedLogs = logs.slice(0, 50) // Limit logs to 50
+      const limitedLogs = logs.slice(1, 51) // Limit logs to 50
+
       const hashes: Hash[] = []
 
       for (const log of limitedLogs) {
@@ -86,6 +102,20 @@ class RPCProviderService {
     } catch (e) {
       console.error(e)
       return []
+    }
+  }
+
+  async checkTransaction(tx: string) {
+    try {
+      const r = await this.httpService
+        .get(
+          `https://testnet.braindao.org/api?module=transaction&action=gettxinfo&txhash=${tx}`,
+        )
+        .toPromise()
+      return r?.data
+    } catch (e) {
+      console.error(e)
+      return { message: 'Transaction not found', result: null, status: '0' }
     }
   }
 }
