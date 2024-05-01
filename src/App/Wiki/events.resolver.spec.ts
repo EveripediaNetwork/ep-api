@@ -182,38 +182,6 @@ describe('EventsResolver', () => {
         expect(event.tags.some((tag) => tag.id === 'Events')).toBe(true)
       })
     })
-    // it('should return extra tagId in each result when passed in the query', async() => {
-    //   const extraId = 'tagId2'
-    //   const args: EventArgs = {
-    //     tagIds: ['tagId1', extraId],
-    //     lang: 'en',
-    //     offset: 0,
-    //     limit: 10,
-    //     direction: Direction.DESC,
-    //     order: OrderBy.UPDATED,
-    //     hidden: false,
-    //   }
-    //   console.log("Args:", args)
-
-    //   const context = {
-    //     req: {
-    //       body: {
-    //         query: 'query',
-    //       },
-    //     },
-    //   }
-
-    //   jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents as Wiki[])
-    //   jest.spyOn(eventsService, 'resolveWikiRelations').mockResolvedValue(testEvents as Wiki[])
-    //     const result = await eventsResolver.events(args, context)
-    //     expect(eventsService.events).toHaveBeenCalledWith([eventTag, 'tagId1', extraId], args)
-    //     // result.forEach((events) => {
-    //     //   // console.log("Event Tags:", event.tags)
-    //     //   expect(events.tags.some(tag => tag.id === extraId)).toBe(true)
-    //     // })
-    //     expect(eventsService.resolveWikiRelations).toHaveBeenCalledWith(testEvents, 'query',
-    //     )
-    // })
   })
   describe('popularEvents', () => {
     it('should return popular events for the given language', async () => {
