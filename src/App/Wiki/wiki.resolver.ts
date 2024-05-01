@@ -56,7 +56,7 @@ class WikiResolver {
 
   @Query(() => [Wiki])
   async promotedWikis(@Args() args: LangArgs) {
-    return this.wikiService.getPromotxedWikis(args)
+    return this.wikiService.getPromotedWikis(args)
   }
 
   @Query(() => [Wiki])
