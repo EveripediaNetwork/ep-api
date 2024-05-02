@@ -79,6 +79,7 @@ class RelayerService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
+    const IQGas = process.env.BASE_GAS || 1500000
     const result = await this.wikiInstance.postBySig(
       ipfs,
       userAddr,
@@ -87,7 +88,7 @@ class RelayerService {
       r,
       s,
       {
-        gasLimit: this.environment !== 'production' ? 350000 : 5000,
+        gasLimit: this.environment !== 'prod' ? IQGas : 5000,
       },
     )
     return result
