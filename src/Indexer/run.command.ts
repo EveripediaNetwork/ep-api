@@ -187,8 +187,11 @@ class RunCommand implements CommandRunner {
     let hashes = []
     if (mode === 'RPC') {
       const wiki = await this.getMostRecentWiki()
-      const { block } = wiki[0]
-      hashes = await this.rpcProviderService.getHashesFromLogs(block)
+      const { block, transactionHash } = wiki[0]
+      hashes = await this.rpcProviderService.getHashesFromLogs(
+        block,
+        transactionHash,
+      )
     } else {
       hashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,

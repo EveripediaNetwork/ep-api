@@ -2,5 +2,6 @@
 . "$(dirname "$0")/_/husky.sh"
 
 yarn build:swc
+yarn format
 yarn test
 yarn rome ci ./src

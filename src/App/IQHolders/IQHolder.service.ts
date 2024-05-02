@@ -87,8 +87,8 @@ class IQHolderService {
   }
 
   async indexIQHolders() {
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
-    const iface = new ethers.utils.Interface(erc20Abi)
+    const provider = new ethers.JsonRpcProvider(this.provider())
+    const iface = new ethers.Interface(erc20Abi)
     const iq = new ethers.Contract(IQContract, iface, provider)
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
