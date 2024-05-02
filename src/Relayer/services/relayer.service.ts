@@ -23,7 +23,7 @@ class RelayerService {
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
-    this.environment = process.env.NODE_ENV as string
+    this.environment = process.env.API_LEVEL as string
   }
 
   private getRelayerInstance() {
@@ -41,7 +41,7 @@ class RelayerService {
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
-      this.environment !== 'production'
+      this.environment !== 'prod'
         ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',

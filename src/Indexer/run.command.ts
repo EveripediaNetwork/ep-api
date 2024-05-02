@@ -205,7 +205,11 @@ class RunCommand implements CommandRunner {
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false
-    const mode = options?.mode || 'SUBGRAPH'
+    const mode =
+      process.env.API_LEVEL !== 'prod'
+        ? 'RPC'
+        : options?.mode || 'SUBGRAPH'
+
 
     if (options?.unixtime === undefined) {
       unixtime = await this.getUnixtime()
