@@ -153,6 +153,88 @@ class ActivityRepository extends Repository<Activity> {
     return result as Activity[]
   }
 
+  async activitiesByWikIdQuery(args: any): Promise<Activity[]> {
+    const whereCondition = 'activity.wikiId = :wikiId AND w."hidden" = false';
+    
+    const data = await this.createQueryBuilder('activity')
+      .select([
+        'activity.id',
+        'activity.wikiId',
+        'activity.userAddress',
+        'activity.ipfs',
+        'activity.type',
+        'activity.datetime',
+        'activity.block',
+        'activity.a_title',
+        'activity.a_summary',
+        'activity.a_categories',
+        'activity.a_images',
+        'activity.a_media',
+        'activity.a_tags',
+        'activity.a_metadata',
+        'activity.a_content',
+        'activity.a_ipfs',
+        'activity.a_version',
+        'activity.a_transactionHash',
+        'activity.a_created',
+        'activity.a_updated',
+        'activity.userAddress',
+      ])
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .leftJoinAndSelect('activity.user', 'user')
+      .where(whereCondition, {
+        wikiId: args.wikiId,
+      })
+      .limit(args.limit)
+      .offset(args.offset)
+      .orderBy('datetime', 'DESC')
+      .getMany()
+  
+    const result = data.map((e: any) => {
+      let authorId = null;
+  
+      if (e.a_author !== null && typeof e.a_author === 'string') {
+        try {
+          if (e.a_author.includes('{')) {
+            authorId = JSON.parse(e.a_author).id;
+          } else {
+            authorId = e.a_author;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+  
+      return {
+        ...e,
+        content: [
+          {
+            id: e.wikiId,
+            title: e.a_title,
+            block: e.a_block,
+            summary: e.a_summary,
+            categories: e.a_categories,
+            images: e.a_images,
+            media: e.a_media,
+            tags: e.a_tags,
+            metadata: e.a_metadata,
+            author: { id: authorId },
+            content: e.a_content,
+            ipfs: e.a_ipfs,
+            version: e.a_version,
+            transactionHash: e.a_transactionHash,
+            created: e.a_created,
+            updated: e.a_updated,
+            user: { id: e.userAddress },
+          },
+        ],
+      }
+    })
+  
+    return result as Activity[]
+  }
+  
+
   async getActivities(
     args: ActivityArgs,
     query: string,
@@ -161,16 +243,18 @@ class ActivityRepository extends Repository<Activity> {
     return this.activityQueryBuilder(args, query, fields, 'all')
   }
 
-  async getActivitiesByWikId(args: ActivityArgs): Promise<Activity[]> {
-    return this.createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
-        wikiId: args.wikiId,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
+  async getActivitiesByWikId(args: ActivityArgs, fields: string[]): Promise<Activity[]> {
+    const {
+      wikiId,
+      limit,
+      offset,
+    } = args
+    return this.activitiesByWikIdQuery({
+      wikiId,
+      limit,
+      offset,
+      fields,
+    })
   }
 
   async getActivitiesByCategory(

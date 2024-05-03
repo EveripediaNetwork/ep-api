@@ -39,13 +39,16 @@ class ActivityResolver {
   ) {
     const { req } = context
     const { query } = req.body
-
-    return this.activityRepository.getActivities(args, query, fields)
+    const result = this.activityRepository.getActivities(args, query, fields)
+    console.log('Result:',result)
+    return result
   }
 
   @Query(() => [Activity])
   async activitiesByWikId(@Args() args: ActivityArgs) {
-    return this.activityRepository.getActivitiesByWikId(args)
+    const result = this.activityRepository.getActivitiesByWikId(args)
+    console.log('Result:', result)
+    return result
   }
 
   @Query(() => [Activity])
