@@ -47,7 +47,7 @@ class ActivityResolver {
   async activitiesByWikId(
     @Args() args: ActivityArgs,
     @SelectedFields({ nested: true, path: 'content' }) fields: string[],
-    ) {
+  ) {
     return this.activityRepository.getActivitiesByWikId(args, fields)
   }
 
