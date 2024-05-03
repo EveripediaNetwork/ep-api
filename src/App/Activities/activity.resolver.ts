@@ -40,15 +40,15 @@ class ActivityResolver {
     const { req } = context
     const { query } = req.body
     const result = this.activityRepository.getActivities(args, query, fields)
-    console.log('Result:',result)
     return result
   }
 
   @Query(() => [Activity])
-  async activitiesByWikId(@Args() args: ActivityArgs) {
-    const result = this.activityRepository.getActivitiesByWikId(args)
-    console.log('Result:', result)
-    return result
+  async activitiesByWikId(
+    @Args() args: ActivityArgs,
+    @SelectedFields({ nested: true, path: 'content' }) fields: string[],
+    ) {
+    return this.activityRepository.getActivitiesByWikId(args, fields)
   }
 
   @Query(() => [Activity])

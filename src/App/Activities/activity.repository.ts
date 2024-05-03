@@ -154,8 +154,8 @@ class ActivityRepository extends Repository<Activity> {
   }
 
   async activitiesByWikIdQuery(args: any): Promise<Activity[]> {
-    const whereCondition = 'activity.wikiId = :wikiId AND w."hidden" = false';
-    
+    const whereCondition = 'activity.wikiId = :wikiId AND w."hidden" = false'
+
     const data = await this.createQueryBuilder('activity')
       .select([
         'activity.id',
@@ -189,22 +189,22 @@ class ActivityRepository extends Repository<Activity> {
       .offset(args.offset)
       .orderBy('datetime', 'DESC')
       .getMany()
-  
+
     const result = data.map((e: any) => {
-      let authorId = null;
-  
+      let authorId = null
+
       if (e.a_author !== null && typeof e.a_author === 'string') {
         try {
           if (e.a_author.includes('{')) {
-            authorId = JSON.parse(e.a_author).id;
+            authorId = JSON.parse(e.a_author).id
           } else {
-            authorId = e.a_author;
+            authorId = e.a_author
           }
         } catch (err) {
-          console.error(err);
+          console.error(err)
         }
       }
-  
+
       return {
         ...e,
         content: [
@@ -230,10 +230,9 @@ class ActivityRepository extends Repository<Activity> {
         ],
       }
     })
-  
+
     return result as Activity[]
   }
-  
 
   async getActivities(
     args: ActivityArgs,
@@ -243,12 +242,11 @@ class ActivityRepository extends Repository<Activity> {
     return this.activityQueryBuilder(args, query, fields, 'all')
   }
 
-  async getActivitiesByWikId(args: ActivityArgs, fields: string[]): Promise<Activity[]> {
-    const {
-      wikiId,
-      limit,
-      offset,
-    } = args
+  async getActivitiesByWikId(
+    args: ActivityArgs,
+    fields: string[],
+  ): Promise<Activity[]> {
+    const { wikiId, limit, offset } = args
     return this.activitiesByWikIdQuery({
       wikiId,
       limit,
