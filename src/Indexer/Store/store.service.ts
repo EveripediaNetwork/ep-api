@@ -165,10 +165,7 @@ class DBStoreService {
       ipfs: hash.id,
     }
     const existIpfs = await this.existIPFS(hash.id, existWiki?.ipfs)
-    if (existIpfs) {
-      console.debug('--- D U P L I C A T E   H A S H', hash.id, existWiki?.ipfs)
-      return true
-    }
+
     const createActivity = (
       repo: Repository<Activity>,
       data: Partial<Activity>,
@@ -206,12 +203,15 @@ class DBStoreService {
         : existWiki.updated
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
-      await activityRepository.save(
-        createActivity(activityRepository, {
-          ...incomingActivity,
-          type: Status.UPDATED,
-        } as unknown as Activity),
-      )
+
+      if (!existIpfs) {
+        await activityRepository.save(
+          createActivity(activityRepository, {
+            ...incomingActivity,
+            type: Status.UPDATED,
+          } as unknown as Activity),
+        )
+      }
 
       if (!ipfsTime) {
         await this.revalidate.revalidatePage(

@@ -5,12 +5,12 @@ import ActivityRepository from './activity.repository'
 import ActivityService from './activity.service'
 import Activity from '../../Database/Entities/activity.entity'
 // import { ActivityByCategoryArgs } from './dto/activity.dto'
-import { expectedQuery, selections } from './activity.service.spec'
+// import { expectedQuery, selections } from './activity.service.spec'
 import { Count, UserArgs, WikiStats } from '../Wiki/wikiStats.dto'
 
 describe('CategoryService', () => {
   let repository: ActivityRepository
-  let service: ActivityService
+  //   let service: ActivityService
   let moduleRef: TestingModule
 
   //   const createQueryBuilder = jest.fn().mockReturnThis()
@@ -39,7 +39,7 @@ describe('CategoryService', () => {
     lang: 'en',
   }
 
-  const expectedActivities = [new Activity()]
+  //   const expectedActivities = [new Activity()]
 
   let dataSource: {
     createEntityManager: jest.Mock
@@ -60,7 +60,7 @@ describe('CategoryService', () => {
     }).compile()
 
     repository = moduleRef.get<ActivityRepository>(ActivityRepository)
-    service = moduleRef.get<ActivityService>(ActivityService)
+    // service = moduleRef.get<ActivityService>(ActivityService)
   })
 
   describe('countUserActivity', () => {

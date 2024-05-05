@@ -3,7 +3,7 @@ import {
   DefenderRelayProvider,
   DefenderRelaySigner,
 } from '@openzeppelin/defender-relay-client/lib/ethers'
-import { ethers, Signer } from 'ethers'
+import { ethers, JsonRpcProvider, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -13,6 +13,8 @@ import ActivityRepository from '../../App/Activities/activity.repository'
 class RelayerService {
   private signer: any
 
+  private environment: string
+
   private wikiInstance: any
 
   constructor(
@@ -21,6 +23,7 @@ class RelayerService {
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
+    this.environment = process.env.API_LEVEL as string
   }
 
   private getRelayerInstance() {
@@ -28,10 +31,21 @@ class RelayerService {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
     }
-    const provider = new DefenderRelayProvider(credentials)
-    const signer = new DefenderRelaySigner(credentials, provider, {
-      speed: 'fast',
-    })
+    const PRIVATE_RPC = this.configService.get<string>(
+      'CUSTOM_RELAYER_RPC',
+    ) as string
+    const PRIVATE_KEY = this.configService.get<string>(
+      'CUSTOM_RELAYER_SIGNER',
+    ) as string
+    const rpcProvider = new JsonRpcProvider(PRIVATE_RPC)
+    const relayerProvider = new DefenderRelayProvider(credentials)
+
+    const signer =
+      this.environment !== 'prod'
+        ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
+        : new DefenderRelaySigner(credentials, relayerProvider, {
+            speed: 'fast',
+          })
 
     return signer
   }
@@ -65,6 +79,7 @@ class RelayerService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
+    const IQGas = process.env.BASE_GAS || 1500000
     const result = await this.wikiInstance.postBySig(
       ipfs,
       userAddr,
@@ -73,7 +88,7 @@ class RelayerService {
       r,
       s,
       {
-        gasLimit: 50000,
+        gasLimit: this.environment !== 'prod' ? IQGas : 5000,
       },
     )
     return result
