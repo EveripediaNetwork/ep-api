@@ -134,14 +134,6 @@ class EventsService {
     const isUserFieldIncluded = hasField(ast, 'user')
     const isAuthorFieldIncluded = hasField(ast, 'author')
 
-    console.log('Included Fields:', {
-      tags: isTagsFieldIncluded,
-      categories: isCategoriesFieldIncluded,
-      language: isLanguageFieldIncluded,
-      user: isUserFieldIncluded,
-      author: isAuthorFieldIncluded,
-    })
-
     for (const wiki of wikis) {
       if (isTagsFieldIncluded) {
         const tags = await this.wikiTags(wiki.id)
