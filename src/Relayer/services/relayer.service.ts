@@ -80,6 +80,19 @@ class RelayerService {
       )
     }
     const IQGas = process.env.BASE_GAS || 1500000
+    let txConfig
+
+    if (this.environment !== 'prod') {
+      txConfig = {
+        gasLimit: IQGas,
+        gasPrice: ethers.parseUnits('0.7', 'gwei'),
+      }
+    } else {
+      txConfig = {
+        gasLimit: 5000,
+      }
+    }
+
     const result = await this.wikiInstance.postBySig(
       ipfs,
       userAddr,
@@ -87,9 +100,7 @@ class RelayerService {
       v,
       r,
       s,
-      {
-        gasLimit: this.environment !== 'prod' ? IQGas : 5000,
-      },
+      txConfig,
     )
     return result
   }
