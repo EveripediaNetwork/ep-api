@@ -87,7 +87,7 @@ class RelayerService {
       }
     } else {
       txConfig = {
-        gasLimit: 5000,
+        gasLimit: 50000,
       }
     }
 
