@@ -79,27 +79,31 @@ class RelayerService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-    let txConfig
+    let result
 
     if (this.environment !== 'prod') {
-      txConfig = {
+      const txConfig = {
         gasPrice: ethers.parseUnits('0.7', 'gwei'),
       }
+      result = await this.wikiInstance.postBySig(
+        ipfs,
+        userAddr,
+        deadline,
+        v,
+        r,
+        s,
+        txConfig,
+      )
     } else {
-      txConfig = {
-        gasLimit: ethers.parseUnits('50000', 'gwei'),
-      }
+      result = await this.wikiInstance.postBySig(
+        ipfs,
+        userAddr,
+        deadline,
+        v,
+        r,
+        s,
+      )
     }
-
-    const result = await this.wikiInstance.postBySig(
-      ipfs,
-      userAddr,
-      deadline,
-      v,
-      r,
-      s,
-      txConfig,
-    )
     return result
   }
 }
