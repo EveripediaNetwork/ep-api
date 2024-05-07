@@ -69,6 +69,7 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
     condition: string,
+    wikiId?: string
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -84,6 +85,16 @@ class ActivityRepository extends Repository<Activity> {
       whereCondition = 'activity.language = :lang AND w."hidden" = false'
     } else if (condition === 'user') {
       whereCondition = 'w."hidden" = false AND activity.user = :id'
+    } else if (condition === 'wikiId') {
+      whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
+    }
+
+    const params: any = {
+      lang: args.lang,
+      id: args.userId,
+    }
+    if (wikiId !== undefined) {
+      params.wikiId = wikiId
     }
 
     const data = await this.createQueryBuilder('activity')
@@ -100,10 +111,7 @@ class ActivityRepository extends Repository<Activity> {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
 
-      .where(whereCondition, {
-        lang: args.lang,
-        id: args.userId,
-      })
+      .where(whereCondition, params)
 
       .limit(args.limit)
       .offset(args.offset)
@@ -150,87 +158,6 @@ class ActivityRepository extends Repository<Activity> {
         ],
       }
     })
-    return result as Activity[]
-  }
-
-  async activitiesByWikIdQuery(args: any): Promise<Activity[]> {
-    const whereCondition = 'activity.wikiId = :wikiId AND w."hidden" = false'
-
-    const data = await this.createQueryBuilder('activity')
-      .select([
-        'activity.id',
-        'activity.wikiId',
-        'activity.userAddress',
-        'activity.ipfs',
-        'activity.type',
-        'activity.datetime',
-        'activity.block',
-        'activity.a_title',
-        'activity.a_summary',
-        'activity.a_categories',
-        'activity.a_images',
-        'activity.a_media',
-        'activity.a_tags',
-        'activity.a_metadata',
-        'activity.a_content',
-        'activity.a_ipfs',
-        'activity.a_version',
-        'activity.a_transactionHash',
-        'activity.a_created',
-        'activity.a_updated',
-        'activity.userAddress',
-      ])
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .leftJoinAndSelect('activity.user', 'user')
-      .where(whereCondition, {
-        wikiId: args.wikiId,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
-
-    const result = data.map((e: any) => {
-      let authorId = null
-
-      if (e.a_author !== null && typeof e.a_author === 'string') {
-        try {
-          if (e.a_author.includes('{')) {
-            authorId = JSON.parse(e.a_author).id
-          } else {
-            authorId = e.a_author
-          }
-        } catch (err) {
-          console.error(err)
-        }
-      }
-
-      return {
-        ...e,
-        content: [
-          {
-            id: e.wikiId,
-            title: e.a_title,
-            block: e.a_block,
-            summary: e.a_summary,
-            categories: e.a_categories,
-            images: e.a_images,
-            media: e.a_media,
-            tags: e.a_tags,
-            metadata: e.a_metadata,
-            author: { id: authorId },
-            content: e.a_content,
-            ipfs: e.a_ipfs,
-            version: e.a_version,
-            transactionHash: e.a_transactionHash,
-            created: e.a_created,
-            updated: e.a_updated,
-            user: { id: e.userAddress },
-          },
-        ],
-      }
-    })
-
     return result as Activity[]
   }
 
@@ -246,13 +173,48 @@ class ActivityRepository extends Repository<Activity> {
     args: ActivityArgs,
     fields: string[],
   ): Promise<Activity[]> {
-    const { wikiId, limit, offset } = args
-    return this.activitiesByWikIdQuery({
-      wikiId,
-      limit,
-      offset,
+    const query = `
+    query GetActivitiesByWikiId($wikiId: String!, $limit: Int!, $offset: Int!) {
+      getActivitiesByWikiId(args: { wikiId: $wikiId, limit: $limit, offset: $offset }) {
+        id
+        wikiId
+        userAddress
+        ipfs
+        type
+        datetime
+        block
+        content {
+          id
+          title
+          block
+          summary
+          categories
+          images
+          media
+          tags
+          metadata
+          author {
+            id
+          }
+          content
+          ipfs
+          version
+          transactionHash
+          created
+          updated
+          user {
+            id
+          }
+        }
+      }
+    }
+    `
+    return this.activityQueryBuilder(
+      args,
+      query,
       fields,
-    })
+      'all'
+    )
   }
 
   async getActivitiesByCategory(
@@ -304,7 +266,7 @@ class ActivityRepository extends Repository<Activity> {
         wikiId: args.wikiId,
       })
       .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang,
+        lang: args.lang, 
         block: args.block,
       })
       .getOne()
@@ -335,7 +297,7 @@ class ActivityRepository extends Repository<Activity> {
       .getRawMany()
   }
 
-  async getWikisCreatedByUser(
+  async getWikisCreatedByUser( 
     args: UserArgs,
     type = 0,
   ): Promise<WikiUserStats | undefined> {
