@@ -79,12 +79,10 @@ class RelayerService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-    const IQGas = process.env.BASE_GAS || 1500000
     let txConfig
 
     if (this.environment !== 'prod') {
       txConfig = {
-        gasLimit: IQGas,
         gasPrice: ethers.parseUnits('0.7', 'gwei'),
       }
     } else {
