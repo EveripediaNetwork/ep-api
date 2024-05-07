@@ -87,7 +87,7 @@ class RelayerService {
       }
     } else {
       txConfig = {
-        gasLimit: 50000,
+        gasPrice: ethers.parseUnits('50000', 'gwei'),
       }
     }
 
