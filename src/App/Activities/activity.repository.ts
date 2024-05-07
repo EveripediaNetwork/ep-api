@@ -69,7 +69,7 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
     condition: string,
-    wikiId?: string
+    wikiId?: string,
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -209,12 +209,7 @@ class ActivityRepository extends Repository<Activity> {
       }
     }
     `
-    return this.activityQueryBuilder(
-      args,
-      query,
-      fields,
-      'all'
-    )
+    return this.activityQueryBuilder(args, query, fields, 'all')
   }
 
   async getActivitiesByCategory(
@@ -266,7 +261,7 @@ class ActivityRepository extends Repository<Activity> {
         wikiId: args.wikiId,
       })
       .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang, 
+        lang: args.lang,
         block: args.block,
       })
       .getOne()
@@ -297,7 +292,7 @@ class ActivityRepository extends Repository<Activity> {
       .getRawMany()
   }
 
-  async getWikisCreatedByUser( 
+  async getWikisCreatedByUser(
     args: UserArgs,
     type = 0,
   ): Promise<WikiUserStats | undefined> {
