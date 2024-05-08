@@ -69,7 +69,6 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
     condition: string,
-    wikiId?: string,
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -89,14 +88,6 @@ class ActivityRepository extends Repository<Activity> {
       whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
     }
 
-    const params: any = {
-      lang: args.lang,
-      id: args.userId,
-    }
-    if (wikiId !== undefined) {
-      params.wikiId = wikiId
-    }
-
     const data = await this.createQueryBuilder('activity')
       .select([
         'activity.id',
@@ -111,7 +102,10 @@ class ActivityRepository extends Repository<Activity> {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
 
-      .where(whereCondition, params)
+      .where(whereCondition, {
+        lang: args.lang,
+        id: args.userId,
+      })
 
       .limit(args.limit)
       .offset(args.offset)
@@ -160,6 +154,7 @@ class ActivityRepository extends Repository<Activity> {
     })
     return result as Activity[]
   }
+  
 
   async getActivities(
     args: ActivityArgs,
@@ -171,45 +166,10 @@ class ActivityRepository extends Repository<Activity> {
 
   async getActivitiesByWikId(
     args: ActivityArgs,
-    fields: string[],
+    query: string,
+    fields: any[],
   ): Promise<Activity[]> {
-    const query = `
-    query GetActivitiesByWikiId($wikiId: String!, $limit: Int!, $offset: Int!) {
-      getActivitiesByWikiId(args: { wikiId: $wikiId, limit: $limit, offset: $offset }) {
-        id
-        wikiId
-        userAddress
-        ipfs
-        type
-        datetime
-        block
-        content {
-          id
-          title
-          block
-          summary
-          categories
-          images
-          media
-          tags
-          metadata
-          author {
-            id
-          }
-          content
-          ipfs
-          version
-          transactionHash
-          created
-          updated
-          user {
-            id
-          }
-        }
-      }
-    }
-    `
-    return this.activityQueryBuilder(args, query, fields, 'all')
+    return this.activityQueryBuilder(args, query, fields, 'wikiId')
   }
 
   async getActivitiesByCategory(
@@ -261,7 +221,7 @@ class ActivityRepository extends Repository<Activity> {
         wikiId: args.wikiId,
       })
       .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang,
+        lang: args.lang, 
         block: args.block,
       })
       .getOne()
@@ -292,7 +252,7 @@ class ActivityRepository extends Repository<Activity> {
       .getRawMany()
   }
 
-  async getWikisCreatedByUser(
+  async getWikisCreatedByUser( 
     args: UserArgs,
     type = 0,
   ): Promise<WikiUserStats | undefined> {

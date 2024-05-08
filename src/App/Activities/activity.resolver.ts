@@ -46,9 +46,12 @@ class ActivityResolver {
   @Query(() => [Activity])
   async activitiesByWikId(
     @Args() args: ActivityArgs,
+    @Context() context: any,
     @SelectedFields({ nested: true, path: 'content' }) fields: string[],
   ) {
-    return this.activityRepository.getActivitiesByWikId(args, fields)
+    const { req } = context
+    const { query } = req.body
+    return this.activityRepository.getActivitiesByWikId(args, query, fields)
   }
 
   @Query(() => [Activity])
