@@ -21,6 +21,9 @@ import {
 } from './indexerUtils'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 
+const onServer: boolean =
+  process.env.API_LEVEL === 'prod' || process.env.API_LEVEL === 'dev'
+
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
   constructor(
@@ -156,7 +159,9 @@ class RunCommand implements CommandRunner {
         )
         if (!reIndex) {
           await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
-          await this.iqInjest.initiateInjest()
+          if (onServer) {
+            await this.iqInjest.initiateInjest()
+          }
         } else {
           await this.dbStoreService.storeWiki(
             completeWiki as WikiType,
@@ -187,8 +192,11 @@ class RunCommand implements CommandRunner {
     let hashes = []
     if (mode === 'RPC') {
       const wiki = await this.getMostRecentWiki()
-      const { block } = wiki[0]
-      hashes = await this.rpcProviderService.getHashesFromLogs(block)
+      const { block, transactionHash } = wiki[0]
+      hashes = await this.rpcProviderService.getHashesFromLogs(
+        block,
+        transactionHash,
+      )
     } else {
       hashes = await this.providerService.getIPFSHashesFromBlock(
         unixtime,
@@ -202,7 +210,8 @@ class RunCommand implements CommandRunner {
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false
-    const mode = options?.mode || 'SUBGRAPH'
+    const mode =
+      process.env.API_LEVEL !== 'prod' ? 'RPC' : options?.mode || 'SUBGRAPH'
 
     if (options?.unixtime === undefined) {
       unixtime = await this.getUnixtime()

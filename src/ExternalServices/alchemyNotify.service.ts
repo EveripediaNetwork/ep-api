@@ -44,10 +44,10 @@ class AlchemyNotifyService {
   async decodeLog(
     log: TxData,
     abi: ABIdecodeType,
-  ): Promise<ethers.utils.LogDescription | null> {
+  ): Promise<ethers.LogDescription | null> {
     let decoded = null
     try {
-      const iface = new ethers.utils.Interface(abi)
+      const iface = new ethers.Interface(abi)
       decoded = iface.parseLog(log)
     } catch (e: any) {
       console.error('Error decoding log', e)

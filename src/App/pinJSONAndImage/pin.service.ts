@@ -122,7 +122,6 @@ class PinService {
 
     try {
       const res = await pinToPinata(payload)
-      console.log(res)
       await saveMatchedIdcallback()
       return res
     } catch (e) {

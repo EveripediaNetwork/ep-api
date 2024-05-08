@@ -20,45 +20,54 @@ class EventsService {
   ) {}
 
   async events(ids: string[], args: EventArgs) {
-    const repository = this.dataSource.getRepository(Wiki)
+    try {
+      const repository = this.dataSource.getRepository(Wiki)
 
-    let order
+      let order
 
-    switch (args.order) {
-      case 'date':
-        order = this.wikiService.orderFuse(args.direction, 'wiki')
-        break
-      case 'id':
-        order = 'wiki.id'
-        break
-      default:
-        order = args.order
+      switch (args.order) {
+        case 'date':
+          order = this.wikiService.orderFuse(args.direction, 'wiki')
+          break
+        case 'id':
+          order = 'wiki.id'
+          break
+        default:
+          order = args.order
+      }
+
+      let queryBuilder = repository
+        .createQueryBuilder('wiki')
+        .leftJoinAndSelect('wiki.tags', 'tag')
+        .where('LOWER(tag.id) IN (:...tags)', {
+          tags: ids.map((tag) => tag.toLowerCase()),
+        })
+        .andWhere('wiki.hidden = false')
+        .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
+        .limit(args.limit)
+        .offset(args.offset)
+        .orderBy(order, args.direction)
+
+      if (ids.length > 1) {
+        return await this.queryWikisWithMultipleTags(repository, ids, args)
+      }
+
+      if (ids.length === 1) {
+        queryBuilder = this.wikiService.applyDateFilter(
+          queryBuilder,
+          args,
+        ) as SelectQueryBuilder<Wiki>
+      }
+
+      const result = await queryBuilder.getMany()
+      if (!result || !Array.isArray(result)) {
+        throw new Error('Result is undefined or not an array')
+      }
+      return result
+    } catch (error) {
+      console.error('Error fetching events:', error)
+      throw error
     }
-
-    let queryBuilder = repository
-      .createQueryBuilder('wiki')
-      .leftJoinAndSelect('wiki.tags', 'tag')
-      .where('LOWER(tag.id) IN (:...tags)', {
-        tags: ids.map((tag) => tag.toLowerCase()),
-      })
-      .andWhere('wiki.hidden = false')
-      .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy(order, args.direction)
-
-    if (ids.length > 1) {
-      return this.queryWikisWithMultipleTags(repository, ids, args)
-    }
-
-    if (ids.length === 1) {
-      queryBuilder = this.wikiService.applyDateFilter(
-        queryBuilder,
-        args,
-      ) as SelectQueryBuilder<Wiki>
-    }
-
-    return queryBuilder.getMany()
   }
 
   private async queryWikisWithMultipleTags(
