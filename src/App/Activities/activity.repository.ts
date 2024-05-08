@@ -154,7 +154,6 @@ class ActivityRepository extends Repository<Activity> {
     })
     return result as Activity[]
   }
-  
 
   async getActivities(
     args: ActivityArgs,
@@ -221,7 +220,7 @@ class ActivityRepository extends Repository<Activity> {
         wikiId: args.wikiId,
       })
       .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang, 
+        lang: args.lang,
         block: args.block,
       })
       .getOne()
@@ -252,7 +251,7 @@ class ActivityRepository extends Repository<Activity> {
       .getRawMany()
   }
 
-  async getWikisCreatedByUser( 
+  async getWikisCreatedByUser(
     args: UserArgs,
     type = 0,
   ): Promise<WikiUserStats | undefined> {
