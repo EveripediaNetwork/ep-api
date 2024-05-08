@@ -23,8 +23,8 @@ class RelayerService {
     this.wikiInstance = this.getWikiContractInstance(this.signer)
   }
 
-  public apiLevel() {
-    return this.configService.get('API_LEVEL')
+  public apiLevel(): string | undefined {
+    return this.configService.get<string>('API_LEVEL')
   }
 
   private getRelayerInstance() {
