@@ -69,6 +69,7 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
     condition: string,
+    wikiId?: string
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -88,6 +89,15 @@ class ActivityRepository extends Repository<Activity> {
       whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
     }
 
+    const params: any = {
+      lang: args.lang,
+      id: args.userId,
+      wikiId: args.wikiId,
+    }
+    if (wikiId !== undefined) {
+      params.wikiId = wikiId
+    }
+
     const data = await this.createQueryBuilder('activity')
       .select([
         'activity.id',
@@ -102,10 +112,7 @@ class ActivityRepository extends Repository<Activity> {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
 
-      .where(whereCondition, {
-        lang: args.lang,
-        id: args.userId,
-      })
+      .where(whereCondition, params)
 
       .limit(args.limit)
       .offset(args.offset)
@@ -220,7 +227,7 @@ class ActivityRepository extends Repository<Activity> {
         wikiId: args.wikiId,
       })
       .andWhere('activity.language = :lang AND activity.block = :block ', {
-        lang: args.lang,
+        lang: args.lang, 
         block: args.block,
       })
       .getOne()
@@ -251,7 +258,7 @@ class ActivityRepository extends Repository<Activity> {
       .getRawMany()
   }
 
-  async getWikisCreatedByUser(
+  async getWikisCreatedByUser( 
     args: UserArgs,
     type = 0,
   ): Promise<WikiUserStats | undefined> {

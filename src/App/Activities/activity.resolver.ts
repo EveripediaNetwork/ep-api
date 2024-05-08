@@ -39,8 +39,7 @@ class ActivityResolver {
   ) {
     const { req } = context
     const { query } = req.body
-    const result = this.activityRepository.getActivities(args, query, fields)
-    return result
+    return this.activityRepository.getActivities(args, query, fields)
   }
 
   @Query(() => [Activity])
