@@ -69,7 +69,6 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
     condition: string,
-    wikiId?: string,
   ): Promise<Activity[]> {
     let activityContent: string[] = []
     const ast = gql`
@@ -104,10 +103,10 @@ class ActivityRepository extends Repository<Activity> {
       .leftJoinAndSelect('activity.user', 'user')
 
       .where(whereCondition, {
-          lang: args.lang,
-          id: args.userId,
-          wikiId: args.wikiId,
-        })
+        lang: args.lang,
+        id: args.userId,
+        wikiId: args.wikiId,
+      })
 
       .limit(args.limit)
       .offset(args.offset)
