@@ -20,13 +20,13 @@ import {
   CommandOptions,
 } from './indexerUtils'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
+import AppService from '../App/app.service'
 
-const onServer: boolean =
-  process.env.API_LEVEL === 'prod' || process.env.API_LEVEL === 'dev'
 
 @Command({ name: 'indexer', description: 'A blockchain indexer' })
 class RunCommand implements CommandRunner {
   constructor(
+    private appService: AppService,
     private providerService: GraphProviderService,
     private rpcProviderService: RPCProviderService,
     private ipfsGetter: IPFSGetterService,
@@ -159,7 +159,10 @@ class RunCommand implements CommandRunner {
         )
         if (!reIndex) {
           await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
-          if (onServer) {
+          if (
+            this.appService.apiLevel() !== 'prod' ||
+            this.appService.apiLevel() !== 'dev'
+          ) {
             await this.iqInjest.initiateInjest()
           }
         } else {
