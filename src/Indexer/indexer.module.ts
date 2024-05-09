@@ -42,6 +42,7 @@ import AppService from '../App/app.service'
     AutoInjestService,
     LockingService,
     RPCProviderService,
+    AppService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => new SentryInterceptor(),
