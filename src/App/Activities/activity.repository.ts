@@ -89,15 +89,6 @@ class ActivityRepository extends Repository<Activity> {
       whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
     }
 
-    const params: any = {
-      lang: args.lang,
-      id: args.userId,
-      wikiId: args.wikiId,
-    }
-    if (wikiId !== undefined) {
-      params.wikiId = wikiId
-    }
-
     const data = await this.createQueryBuilder('activity')
       .select([
         'activity.id',
@@ -112,7 +103,11 @@ class ActivityRepository extends Repository<Activity> {
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
       .leftJoinAndSelect('activity.user', 'user')
 
-      .where(whereCondition, params)
+      .where(whereCondition, {
+          lang: args.lang,
+          id: args.userId,
+          wikiId: args.wikiId,
+        })
 
       .limit(args.limit)
       .offset(args.offset)
