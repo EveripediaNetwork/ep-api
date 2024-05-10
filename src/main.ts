@@ -33,8 +33,8 @@ async function bootstrapApplication() {
   app.useGlobalPipes(new ValidationPipe())
   app.set('trust proxy', 1)
 
-  app.use(json({ limit: '50mb' }))
-  app.use(urlencoded({ extended: true, limit: '50mb' }))
+  app.use(json({ limit: '10mb' }))
+  app.use(urlencoded({ extended: true, limit: '10mb' }))
 
   app.use(
     rateLimit({
