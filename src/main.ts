@@ -6,6 +6,7 @@ import fs from 'fs'
 import { ValidationPipe } from '@nestjs/common'
 import rateLimit from 'express-rate-limit'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import { urlencoded, json } from 'express'
 
 import AppModule from './App/app.module'
 
@@ -31,6 +32,9 @@ async function bootstrapApplication() {
   app.enableCors()
   app.useGlobalPipes(new ValidationPipe())
   app.set('trust proxy', 1)
+
+  app.use(json({ limit: '50mb' }))
+  app.use(urlencoded({ extended: true, limit: '50mb' }))
 
   app.use(
     rateLimit({
