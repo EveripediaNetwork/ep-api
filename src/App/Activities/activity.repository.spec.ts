@@ -101,7 +101,6 @@ describe('CategoryService', () => {
     })
   })
 
-
   describe('getActivities', () => {
     it('should return a list of activities based on the provided arguments', async () => {
       const query = `
@@ -115,7 +114,7 @@ describe('CategoryService', () => {
           created_timestamp
           wikiId
         }`
-      
+
       const fields = [
         'id',
         'block',
@@ -124,47 +123,52 @@ describe('CategoryService', () => {
         'ipfs',
         'updated_timestamp',
         'created_timestamp',
-        'wikiId'
+        'wikiId',
       ]
-  
+
       const expectedResult = [new Activity(), new Activity()]
-  
+
       repository.getActivities = jest.fn().mockResolvedValue(expectedResult)
       const result = await repository.getActivities(args, query, fields)
       expect(result).toEqual(expectedResult)
       expect(repository.getActivities).toHaveBeenCalledWith(args, query, fields)
     })
   })
-  
-    describe('getActivitiesByWikId', () => {
+
+  describe('getActivitiesByWikId', () => {
     it('should return activities by wikiId', async () => {
-    const expectedResult = [new Activity(), new Activity()]
-  
-    repository.getActivitiesByWikId = jest.fn().mockResolvedValue(expectedResult)
-  
-    const result = await repository.getActivitiesByWikId(args)
-  
-    expect(result).toEqual(expectedResult)
-    expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(args)
+      const expectedResult = [new Activity(), new Activity()]
+
+      repository.getActivitiesByWikId = jest
+        .fn()
+        .mockResolvedValue(expectedResult)
+
+      const result = await repository.getActivitiesByWikId(args)
+
+      expect(result).toEqual(expectedResult)
+      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(args)
     })
-    })
-    describe('getActivitiesByCategory', () => {
-      it('should return activities by category', async () => {
-  
+  })
+  describe('getActivitiesByCategory', () => {
+    it('should return activities by category', async () => {
       const categoryArgs: ActivityByCategoryArgs = {
-         category: 'example-category',
-         type: ActivityType.CREATED,
-         limit: 10,
-         offset: 0,
+        category: 'example-category',
+        type: ActivityType.CREATED,
+        limit: 10,
+        offset: 0,
       }
       const expectedResult = [new Activity(), new Activity()]
-  
-      repository.getActivitiesByCategory = jest.fn().mockResolvedValue(expectedResult)
+
+      repository.getActivitiesByCategory = jest
+        .fn()
+        .mockResolvedValue(expectedResult)
       const result = await repository.getActivitiesByCategory(categoryArgs)
       expect(result).toEqual(expectedResult)
-      expect(repository.getActivitiesByCategory).toHaveBeenCalledWith(categoryArgs)
-      })
+      expect(repository.getActivitiesByCategory).toHaveBeenCalledWith(
+        categoryArgs,
+      )
     })
+  })
 
   describe('getActivitiesByWikiIdAndBlock', () => {
     it('should return activity by Wiki ID and block', async () => {
