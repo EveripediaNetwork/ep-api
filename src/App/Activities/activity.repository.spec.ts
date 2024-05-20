@@ -265,7 +265,7 @@ describe('CategoryService', () => {
 
   describe('getActivitiesById', () => {
     it('should return activity by ID', async () => {
-      const id = 'binance-coin'
+      const id = 'example-wiki-id'
       const expectedActivity = new Activity()
 
       repository.createQueryBuilder = jest.fn().mockReturnValue({
@@ -293,7 +293,7 @@ describe('CategoryService', () => {
   describe('getActivitiesByWikiIdAndBlock', () => {
     it('should return activity by Wiki ID and block', async () => {
       const blockArgs = {
-        wikiId: 'binance-coin',
+        wikiId: 'example-wiki-id',
         lang: 'en',
         block: 102102,
         offset: 0,
