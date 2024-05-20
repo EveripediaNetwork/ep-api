@@ -5,32 +5,32 @@ import ActivityRepository from './activity.repository'
 import ActivityService from './activity.service'
 import Activity from '../../Database/Entities/activity.entity'
 // import { ActivityByCategoryArgs } from './dto/activity.dto'
-import { expectedQuery, selections } from './activity.service.spec'
+// import { expectedQuery, selections } from './activity.service.spec'
 import { Count, UserArgs, WikiStats } from '../Wiki/wikiStats.dto'
-import { ActivityArgsByUser, ActivityByCategoryArgs } from './dto/activity.dto'
+import { ActivityByCategoryArgs } from './dto/activity.dto'
 import { ActivityType } from '../general.args'
 
 describe('CategoryService', () => {
   let repository: ActivityRepository
-  let service: ActivityService
+  // let service: ActivityService
   let moduleRef: TestingModule
 
   const select = jest.fn().mockReturnThis()
   const addSelect = jest.fn().mockReturnThis()
   const leftJoin = jest.fn().mockReturnThis()
-  const leftJoinAndSelect = jest.fn().mockReturnThis()
+  // const leftJoinAndSelect = jest.fn().mockReturnThis()
   const where = jest.fn().mockReturnThis()
   const andWhere = jest.fn().mockReturnThis()
-  const limit = jest.fn().mockReturnThis()
-  const offset = jest.fn().mockReturnThis()
+  // const limit = jest.fn().mockReturnThis()
+  // const offset = jest.fn().mockReturnThis()
   const orderBy = jest.fn().mockReturnThis()
   const groupBy = jest.fn().mockReturnThis()
   const setParameters = jest.fn().mockReturnThis()
-  const cache = jest.fn().mockReturnThis()
-  const getOne = jest.fn().mockResolvedValue(new Activity())
-  const getRawOne = jest.fn().mockResolvedValue({})
-  const getRawMany = jest.fn().mockResolvedValue([])
-  let getMany = jest.fn().mockResolvedValue([])
+  // const cache = jest.fn().mockReturnThis()
+  // const getOne = jest.fn().mockResolvedValue(new Activity())
+  // const getRawOne = jest.fn().mockResolvedValue({})
+  // const getRawMany = jest.fn().mockResolvedValue([])
+  // let getMany = jest.fn().mockResolvedValue([])
 
   const args = {
     wikiId: 'example-wiki-id',
