@@ -158,9 +158,6 @@ class ActivityRepository extends Repository<Activity> {
     query: string,
     fields: string[],
   ): Promise<Activity[]> {
-    console.log('Args:', args)
-    console.log('Query:', query)
-    console.log('Fields:', fields)
     return this.activityQueryBuilder(args, query, fields, 'all')
   }
 

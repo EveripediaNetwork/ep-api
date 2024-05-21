@@ -4,33 +4,22 @@ import { Test, TestingModule } from '@nestjs/testing'
 import ActivityRepository from './activity.repository'
 import ActivityService from './activity.service'
 import Activity from '../../Database/Entities/activity.entity'
-// import { ActivityByCategoryArgs } from './dto/activity.dto'
-// import { expectedQuery, selections } from './activity.service.spec'
 import { Count, UserArgs, WikiStats } from '../Wiki/wikiStats.dto'
 import { ActivityByCategoryArgs } from './dto/activity.dto'
 import { ActivityType } from '../general.args'
 
 describe('CategoryService', () => {
   let repository: ActivityRepository
-  // let service: ActivityService
   let moduleRef: TestingModule
 
   const select = jest.fn().mockReturnThis()
   const addSelect = jest.fn().mockReturnThis()
   const leftJoin = jest.fn().mockReturnThis()
-  // const leftJoinAndSelect = jest.fn().mockReturnThis()
   const where = jest.fn().mockReturnThis()
   const andWhere = jest.fn().mockReturnThis()
-  // const limit = jest.fn().mockReturnThis()
-  // const offset = jest.fn().mockReturnThis()
   const orderBy = jest.fn().mockReturnThis()
   const groupBy = jest.fn().mockReturnThis()
   const setParameters = jest.fn().mockReturnThis()
-  // const cache = jest.fn().mockReturnThis()
-  // const getOne = jest.fn().mockResolvedValue(new Activity())
-  // const getRawOne = jest.fn().mockResolvedValue({})
-  // const getRawMany = jest.fn().mockResolvedValue([])
-  // let getMany = jest.fn().mockResolvedValue([])
 
   const args = {
     wikiId: 'example-wiki-id',
@@ -39,7 +28,6 @@ describe('CategoryService', () => {
     lang: 'en',
   }
 
-  //   const expectedActivities = [new Activity()]
 
   let dataSource: {
     createEntityManager: jest.Mock
@@ -130,6 +118,7 @@ describe('CategoryService', () => {
       expect(result).toEqual(expectedResult)
       expect(repository.getActivities).toHaveBeenCalledWith(args, query, fields)
     })
+        
   })
 
   describe('getActivitiesByWikId', () => {
@@ -187,58 +176,12 @@ describe('CategoryService', () => {
       }
     `
       const fields = ['field1', 'field2']
-      const expectedActivities = [
-        {
-          id: undefined,
-          user: undefined,
-          content: [
-            {
-              id: undefined,
-              title: undefined,
-              author: { id: null },
-              user: { id: undefined },
-              block: undefined,
-              categories: undefined,
-              created: undefined,
-              images: undefined,
-              ipfs: undefined,
-              media: undefined,
-              metadata: undefined,
-              summary: undefined,
-              tags: undefined,
-              transactionHash: undefined,
-              updated: undefined,
-              version: undefined,
-              content: undefined,
-            },
-          ],
-          a_author: undefined,
-          a_block: undefined,
-          a_categories: undefined,
-          a_content: undefined,
-          a_created: undefined,
-          a_title: undefined,
-          a_transactionHash: undefined,
-          a_updated: undefined,
-          a_version: undefined,
-          block: undefined,
-          created_timestamp: undefined,
-          datetime: undefined,
-          forId: undefined,
-          ipfs: undefined,
-        },
-      ]
+      const expectedActivities = [new Activity(), new Activity()]
 
-      repository.createQueryBuilder = jest.fn().mockReturnValue({
-        select,
-        leftJoin,
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where,
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(expectedActivities),
-      })
+
+      repository.getActivitiesByUser = jest
+      .fn()
+      .mockResolvedValue(expectedActivities)
 
       const result = await repository.getActivitiesByUser(
         userArgs,
@@ -247,18 +190,10 @@ describe('CategoryService', () => {
       )
 
       expect(result).toEqual(expectedActivities)
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-      expect(leftJoin).toHaveBeenCalledWith(
-        'wiki',
-        'w',
-        'w."id" = activity.wikiId',
-      )
-      expect(where).toHaveBeenCalledWith(
-        'w."hidden" = false AND activity.user = :id',
-        {
-          lang: userArgs.lang,
-          id: userArgs.userId,
-        },
+      expect(repository.getActivitiesByUser).toHaveBeenCalledWith(
+        userArgs,
+        query,
+        fields,
       )
     })
   })
