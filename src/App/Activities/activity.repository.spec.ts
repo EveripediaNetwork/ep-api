@@ -28,7 +28,6 @@ describe('CategoryService', () => {
     lang: 'en',
   }
 
-
   let dataSource: {
     createEntityManager: jest.Mock
   }
@@ -118,7 +117,6 @@ describe('CategoryService', () => {
       expect(result).toEqual(expectedResult)
       expect(repository.getActivities).toHaveBeenCalledWith(args, query, fields)
     })
-        
   })
 
   describe('getActivitiesByWikId', () => {
@@ -178,10 +176,9 @@ describe('CategoryService', () => {
       const fields = ['field1', 'field2']
       const expectedActivities = [new Activity(), new Activity()]
 
-
       repository.getActivitiesByUser = jest
-      .fn()
-      .mockResolvedValue(expectedActivities)
+        .fn()
+        .mockResolvedValue(expectedActivities)
 
       const result = await repository.getActivitiesByUser(
         userArgs,
