@@ -121,16 +121,37 @@ describe('CategoryService', () => {
 
   describe('getActivitiesByWikId', () => {
     it('should return activities by wikiId', async () => {
+      const query = `
+      query {
+        activitiesByWikId(
+          lang: "en"
+          offset: 0
+          limit: 30
+          wikiId: "solana-sol"
+        ) {
+          id
+          block
+          type
+          datetime
+          ipfs
+          updated_timestamp
+          created_timestamp
+          wikiId
+        }
+      }
+    `
+    const fields = ['field1', 'field2']
+
       const expectedResult = [new Activity(), new Activity()]
 
       repository.getActivitiesByWikId = jest
         .fn()
         .mockResolvedValue(expectedResult)
 
-      const result = await repository.getActivitiesByWikId(args)
+      const result = await repository.getActivitiesByWikId(args, query, fields,)
 
       expect(result).toEqual(expectedResult)
-      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(args)
+      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(args, query, fields,)
     })
   })
   describe('getActivitiesByCategory', () => {
