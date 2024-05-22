@@ -84,6 +84,8 @@ class ActivityRepository extends Repository<Activity> {
       whereCondition = 'activity.language = :lang AND w."hidden" = false'
     } else if (condition === 'user') {
       whereCondition = 'w."hidden" = false AND activity.user = :id'
+    } else if (condition === 'wikiId') {
+      whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
     }
 
     const data = await this.createQueryBuilder('activity')
@@ -103,6 +105,7 @@ class ActivityRepository extends Repository<Activity> {
       .where(whereCondition, {
         lang: args.lang,
         id: args.userId,
+        wikiId: args.wikiId,
       })
 
       .limit(args.limit)
@@ -161,16 +164,12 @@ class ActivityRepository extends Repository<Activity> {
     return this.activityQueryBuilder(args, query, fields, 'all')
   }
 
-  async getActivitiesByWikId(args: ActivityArgs): Promise<Activity[]> {
-    return this.createQueryBuilder('activity')
-      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .where('activity.wikiId = :wikiId AND w."hidden" = false', {
-        wikiId: args.wikiId,
-      })
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
+  async getActivitiesByWikId(
+    args: ActivityArgs,
+    query: string,
+    fields: any[],
+  ): Promise<Activity[]> {
+    return this.activityQueryBuilder(args, query, fields, 'wikiId')
   }
 
   async getActivitiesByCategory(
