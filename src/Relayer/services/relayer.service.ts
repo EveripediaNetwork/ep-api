@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
+import AppService from '../../App/app.service'
 
 @Injectable()
 class RelayerService {
@@ -16,15 +17,12 @@ class RelayerService {
   private wikiInstance: any
 
   constructor(
+    private appService: AppService,
     private configService: ConfigService,
     private activityRepository: ActivityRepository,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
-  }
-
-  public apiLevel(): string | undefined {
-    return this.configService.get<string>('API_LEVEL')
   }
 
   private getRelayerInstance() {
@@ -42,7 +40,7 @@ class RelayerService {
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
-      this.apiLevel() !== 'prod'
+      this.appService.apiLevel() !== 'prod'
         ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
@@ -82,7 +80,7 @@ class RelayerService {
     }
     let result
 
-    if (this.apiLevel() !== 'prod') {
+    if (this.appService.apiLevel() !== 'prod') {
       const txConfig = {
         gasPrice: ethers.parseUnits('0.7', 'gwei'),
       }

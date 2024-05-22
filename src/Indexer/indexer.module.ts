@@ -16,6 +16,7 @@ import SentryMod from '../sentry/sentry.module'
 import AutoInjestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
+import AppService from '../App/app.service'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import RPCProviderService from './RPCProvider/RPCProvider.service'
   ],
   controllers: [],
   providers: [
+    AppService,
     GraphProviderService,
     HistoryProviderService,
     DBStoreService,
@@ -40,6 +42,7 @@ import RPCProviderService from './RPCProvider/RPCProvider.service'
     AutoInjestService,
     LockingService,
     RPCProviderService,
+    AppService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => new SentryInterceptor(),

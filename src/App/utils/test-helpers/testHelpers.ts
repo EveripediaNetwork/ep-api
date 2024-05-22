@@ -41,13 +41,14 @@ import AutoInjestService from '../auto-injest'
 import DiscordWebhookService from '../discordWebhookService'
 import TagRepository from '../../Tag/tag.repository'
 import RPCProviderService from '../../../Indexer/RPCProvider/RPCProvider.service'
+import AppService from '../../app.service'
 
 export const providerObjects = {
   validSlug: ValidSlug,
   runCommand: RunCommand,
   tagService: TagService,
+  appService: AppService,
   tagResolver: TagResolver,
-  tagRepository: TagRepository,
   wikiService: WikiService,
   userService: UserService,
   userResolver: UserResolver,
@@ -55,6 +56,7 @@ export const providerObjects = {
   wikiResolver: WikiResolver,
   eventEmitter2: EventEmitter2,
   configService: ConfigService,
+  tagRepository: TagRepository,
   tokenValidator: TokenValidator,
   dbStoreService: DBStoreService,
   webhookHandler: WebhookHandler,
@@ -92,8 +94,8 @@ export enum ProviderEnum {
   validSlug = 'validSlug',
   runCommand = 'runCommand',
   tagService = 'tagService',
+  appService = 'appService',
   tagResolver = 'tagResolver',
-  tagRepository = 'tagRepository',
   wikiService = 'wikiService',
   userService = 'userService',
   userResolver = 'userResolver',
@@ -102,6 +104,7 @@ export enum ProviderEnum {
   eventEmitter2 = 'eventEmitter2',
   configService = 'configService',
   tokenValidator = 'tokenValidator',
+  tagRepository = 'tagRepository',
   dbStoreService = 'dbStoreService',
   webhookHandler = 'webhookHandler',
   lockingService = 'lockingService',

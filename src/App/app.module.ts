@@ -64,6 +64,7 @@ import UploadController from './Upload/upload.controller'
 import EventsResolver from './Wiki/events.resolver'
 import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
+import AppService from './app.service'
 
 // istanbul ignore next
 @Module({
@@ -111,6 +112,7 @@ import EventsService from './Wiki/events.service'
   ],
   controllers: [UploadController],
   providers: [
+    AppService,
     SecurityTestingService,
     ConfigService,
     WikiResolver,

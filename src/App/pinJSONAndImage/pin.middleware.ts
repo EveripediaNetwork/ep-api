@@ -5,8 +5,8 @@ import { graphqlUploadExpress } from 'graphql-upload'
 class PinMiddleware implements NestMiddleware {
   use(req: any, res: any, next: () => void) {
     graphqlUploadExpress({
-      maxFieldSize: 1000000,
-      maxFileSize: 10000000,
+      maxFieldSize: 1000000, // 1MB
+      maxFileSize: 10000000, // 10MB
       maxFiles: 3,
     })(req, res, next)
   }
