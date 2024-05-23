@@ -4,33 +4,22 @@ import { Test, TestingModule } from '@nestjs/testing'
 import ActivityRepository from './activity.repository'
 import ActivityService from './activity.service'
 import Activity from '../../Database/Entities/activity.entity'
-// import { ActivityByCategoryArgs } from './dto/activity.dto'
-// import { expectedQuery, selections } from './activity.service.spec'
 import { Count, UserArgs, WikiStats } from '../Wiki/wikiStats.dto'
+import { ActivityByCategoryArgs } from './dto/activity.dto'
+import { ActivityType } from '../general.args'
 
 describe('CategoryService', () => {
   let repository: ActivityRepository
-  //   let service: ActivityService
   let moduleRef: TestingModule
 
-  //   const createQueryBuilder = jest.fn().mockReturnThis()
   const select = jest.fn().mockReturnThis()
   const addSelect = jest.fn().mockReturnThis()
   const leftJoin = jest.fn().mockReturnThis()
-  //   const leftJoinAndSelect = jest.fn().mockReturnThis()
   const where = jest.fn().mockReturnThis()
   const andWhere = jest.fn().mockReturnThis()
-  //   const cache = jest.fn().mockReturnThis()
-  //   const limit = jest.fn().mockReturnThis()
-  //   const offset = jest.fn().mockReturnThis()
   const orderBy = jest.fn().mockReturnThis()
   const groupBy = jest.fn().mockReturnThis()
   const setParameters = jest.fn().mockReturnThis()
-  //   const getOne = jest.fn().mockResolvedValue({})
-  //   const query = jest.fn().mockResolvedValue({})
-  //   const getRawOne = jest.fn().mockResolvedValue({})
-  //   const getRawMany = jest.fn().mockResolvedValue([])
-  //   let getMany = jest.fn().mockResolvedValue([])
 
   const args = {
     wikiId: 'example-wiki-id',
@@ -38,8 +27,6 @@ describe('CategoryService', () => {
     offset: 0,
     lang: 'en',
   }
-
-  //   const expectedActivities = [new Activity()]
 
   let dataSource: {
     createEntityManager: jest.Mock
@@ -60,7 +47,6 @@ describe('CategoryService', () => {
     }).compile()
 
     repository = moduleRef.get<ActivityRepository>(ActivityRepository)
-    // service = moduleRef.get<ActivityService>(ActivityService)
   })
 
   describe('countUserActivity', () => {
@@ -99,167 +85,167 @@ describe('CategoryService', () => {
     })
   })
 
-  //   describe('getActivities', () => {
-  //     it('should return a list of activities based on the provided arguments', async () => {
-  //       getMany = jest.fn().mockResolvedValue(expectedActivities)
+  describe('getActivities', () => {
+    it('should return a list of activities based on the provided arguments', async () => {
+      const query = `
+        activities(lang: "en", offset: 0, limit: 30) {
+          id
+          block
+          type
+          datetime
+          ipfs
+          updated_timestamp
+          created_timestamp
+          wikiId
+        }`
 
-  //       repository.createQueryBuilder = createQueryBuilder
-  //       createQueryBuilder.mockReturnValueOnce({
-  //         leftJoin,
-  //         leftJoinAndSelect,
-  //         where,
-  //         cache,
-  //         limit,
-  //         offset,
-  //         orderBy,
-  //         getMany,
-  //       })
+      const fields = [
+        'id',
+        'block',
+        'type',
+        'datetime',
+        'ipfs',
+        'updated_timestamp',
+        'created_timestamp',
+        'wikiId',
+      ]
 
-  //       const result = await repository.getActivities(args)
+      const expectedResult = [new Activity(), new Activity()]
 
-  //       expect(result).toEqual(expectedActivities)
+      repository.getActivities = jest.fn().mockResolvedValue(expectedResult)
+      const result = await repository.getActivities(args, query, fields)
+      expect(result).toEqual(expectedResult)
+      expect(repository.getActivities).toHaveBeenCalledWith(args, query, fields)
+    })
+  })
 
-  //       expect(createQueryBuilder).toHaveBeenCalledWith('activity')
-  //       expect(leftJoin).toHaveBeenCalledWith(
-  //         'wiki',
-  //         'w',
-  //         'w."id" = activity.wikiId',
-  //       )
-  //       expect(leftJoinAndSelect).toHaveBeenCalledWith('activity.user', 'user')
-  //       expect(where).toHaveBeenCalledWith(
-  //         'activity.language = :lang AND w."hidden" = false',
-  //         { lang: args.lang },
-  //       )
-  //       expect(cache).toHaveBeenCalledWith(
-  //         `activities_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}`,
-  //         60000,
-  //       )
-  //       expect(limit).toHaveBeenCalledWith(args.limit)
-  //       expect(offset).toHaveBeenCalledWith(args.offset)
-  //       expect(orderBy).toHaveBeenCalledWith('datetime', 'DESC')
-  //       expect(getMany).toHaveBeenCalledTimes(1)
-  //     })
-  //   })
+  describe('getActivitiesByWikId', () => {
+    it('should return activities by wikiId', async () => {
+      const query = `
+      query {
+        activitiesByWikId(
+          lang: "en"
+          offset: 0
+          limit: 30
+          wikiId: "solana-sol"
+        ) {
+          id
+          block
+          type
+          datetime
+          ipfs
+          updated_timestamp
+          created_timestamp
+          wikiId
+        }
+      }
+    `
+      const fields = ['field1', 'field2']
 
-  //   describe('getActivitiesByWikId', () => {
-  //     it('should return activities by wikiId', async () => {
-  //       repository.createQueryBuilder = jest.fn().mockReturnValue({
-  //         leftJoin,
-  //         where,
-  //         limit,
-  //         offset,
-  //         orderBy,
-  //         getMany: jest.fn().mockResolvedValue(expectedActivities),
-  //       })
-  //       const result = await repository.getActivitiesByWikId(args)
+      const expectedResult = [new Activity(), new Activity()]
 
-  //       expect(result).toEqual(expectedActivities)
+      repository.getActivitiesByWikId = jest
+        .fn()
+        .mockResolvedValue(expectedResult)
 
-  //       expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-  //       expect(repository.createQueryBuilder().leftJoin).toHaveBeenCalledWith(
-  //         'wiki',
-  //         'w',
-  //         'w."id" = activity.wikiId',
-  //       )
-  //       expect(where).toHaveBeenCalledWith(
-  //         'activity.wikiId = :wikiId AND w."hidden" = false',
-  //         { wikiId: args.wikiId },
-  //       )
-  //       expect(limit).toHaveBeenCalledWith(args.limit)
-  //       expect(offset).toHaveBeenCalledWith(args.offset)
-  //       expect(orderBy).toHaveBeenCalledWith('datetime', 'DESC')
-  //       expect(getMany).toHaveBeenCalled()
-  //     })
-  //   })
+      const result = await repository.getActivitiesByWikId(args, query, fields)
 
-  //   describe('getActivitiesByCategory', () => {
-  //     it('should return activities by wikiId', async () => {
-  //       const categoryAargs = {
-  //         catetory: 'cryptocurrencies',
-  //       } as unknown as ActivityByCategoryArgs
+      expect(result).toEqual(expectedResult)
+      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(
+        args,
+        query,
+        fields,
+      )
+    })
+  })
+  describe('getActivitiesByCategory', () => {
+    it('should return activities by category', async () => {
+      const categoryArgs: ActivityByCategoryArgs = {
+        category: 'example-category',
+        type: ActivityType.CREATED,
+        limit: 10,
+        offset: 0,
+      }
+      const expectedResult = [new Activity(), new Activity()]
 
-  //       repository.createQueryBuilder = jest.fn().mockReturnValue({
-  //         leftJoin,
-  //         where,
-  //         limit,
-  //         offset,
-  //         orderBy,
-  //         getMany: jest.fn().mockResolvedValue(expectedActivities),
-  //       })
+      repository.getActivitiesByCategory = jest
+        .fn()
+        .mockResolvedValue(expectedResult)
+      const result = await repository.getActivitiesByCategory(categoryArgs)
+      expect(result).toEqual(expectedResult)
+      expect(repository.getActivitiesByCategory).toHaveBeenCalledWith(
+        categoryArgs,
+      )
+    })
+  })
+  describe('getActivitiesByUser', () => {
+    it('should return activities by user', async () => {
+      const userArgs = {
+        userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
+        offset: 0,
+        limit: 10,
+        lang: 'en',
+      }
+      const query = `
+      query {
+        activitiesByUser {
+          id
+          user
+          content {
+            id
+            title
+          }
+        }
+      }
+    `
+      const fields = ['field1', 'field2']
+      const expectedActivities = [new Activity(), new Activity()]
 
-  //       const result = await repository.getActivitiesByCategory(categoryAargs)
+      repository.getActivitiesByUser = jest
+        .fn()
+        .mockResolvedValue(expectedActivities)
 
-  //       expect(result).toEqual(expectedActivities)
+      const result = await repository.getActivitiesByUser(
+        userArgs,
+        query,
+        fields,
+      )
 
-  //       expect(createQueryBuilder).toHaveBeenCalledWith('activity')
-  //       expect(leftJoin).toHaveBeenCalledWith(
-  //         'wiki',
-  //         'w',
-  //         'w."id" = activity.wikiId',
-  //       )
-  //       expect(leftJoin).toHaveBeenCalledWith(
-  //         'wiki_categories_category',
-  //         'c',
-  //         'c."categoryId" = :categoryId',
-  //         { categoryId: categoryAargs.category },
-  //       )
-  //       expect(limit).toHaveBeenCalledWith(args.limit)
-  //       expect(offset).toHaveBeenCalledWith(args.offset)
-  //       expect(orderBy).toHaveBeenCalledWith('datetime', 'DESC')
-  //       expect(getMany).toHaveBeenCalled()
-  //     })
-  //   })
+      expect(result).toEqual(expectedActivities)
+      expect(repository.getActivitiesByUser).toHaveBeenCalledWith(
+        userArgs,
+        query,
+        fields,
+      )
+    })
+  })
 
-  //   describe('getActivitiesByUser', () => {
-  //     it('should return activities by user', async () => {
-  //       const userArgs = {
-  //         userId: 'example-user-id',
-  //         offset: 0,
-  //         limit: 10,
-  //       }
+  describe('getActivitiesById', () => {
+    it('should return activity by ID', async () => {
+      const id = 'example-wiki-id'
+      const expectedActivity = new Activity()
 
-  //       jest.spyOn(service, 'createCustomQuery').mockResolvedValue(expectedQuery)
-  //       await service.createCustomQuery(
-  //         selections,
-  //         userArgs.userId,
-  //         userArgs.offset,
-  //         userArgs.limit,
-  //       )
+      repository.createQueryBuilder = jest.fn().mockReturnValue({
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(expectedActivity),
+      })
 
-  //       repository.query = jest.fn().mockResolvedValue(expectedActivities)
+      const result = await repository.getActivitiesById(id)
 
-  //       const result = await repository.getActivitiesByUser(userArgs, selections)
-
-  //       expect(result).toEqual(expectedActivities)
-  //       expect(service.createCustomQuery).toHaveBeenCalledWith(
-  //         selections,
-  //         userArgs.userId,
-  //         userArgs.offset,
-  //         userArgs.limit,
-  //       )
-  //       expect(repository.query).toHaveBeenCalledWith(expectedQuery)
-  //     })
-  //   })
-
-  //   describe('getActivitiesById', () => {
-  //     it('should return activity by ID', async () => {
-  //       const id = 'example-activity-id'
-  //       const expectedActivity = new Activity()
-  //       repository.createQueryBuilder = jest.fn().mockReturnValue({
-  //         leftJoin: jest.fn().mockReturnThis(),
-  //         where: jest.fn().mockReturnThis(),
-  //         getOne: jest.fn().mockResolvedValue(expectedActivity),
-  //       })
-  //       const result = await repository.getActivitiesById(id)
-  //       expect(result).toEqual(expectedActivity)
-  //       expect(createQueryBuilder).toHaveBeenCalledWith('activity')
-  //       expect(leftJoin).toHaveBeenCalledWith(
-  //         'wiki',
-  //         'w',
-  //         'w."id" = activity.wikiId',
-  //       )
-  //     })
-  //   })
+      expect(result).toEqual(expectedActivity)
+      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
+      expect(repository.createQueryBuilder().leftJoin).toHaveBeenCalledWith(
+        'wiki',
+        'w',
+        'w."id" = activity.wikiId',
+      )
+      expect(repository.createQueryBuilder().where).toHaveBeenCalledWith(
+        'activity.id = :id AND w."hidden" = false',
+        { id },
+      )
+    })
+  })
 
   describe('getActivitiesByWikiIdAndBlock', () => {
     it('should return activity by Wiki ID and block', async () => {
