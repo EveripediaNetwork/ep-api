@@ -140,7 +140,7 @@ describe('CategoryService', () => {
         }
       }
     `
-    const fields = ['field1', 'field2']
+      const fields = ['field1', 'field2']
 
       const expectedResult = [new Activity(), new Activity()]
 
@@ -148,10 +148,14 @@ describe('CategoryService', () => {
         .fn()
         .mockResolvedValue(expectedResult)
 
-      const result = await repository.getActivitiesByWikId(args, query, fields,)
+      const result = await repository.getActivitiesByWikId(args, query, fields)
 
       expect(result).toEqual(expectedResult)
-      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(args, query, fields,)
+      expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(
+        args,
+        query,
+        fields,
+      )
     })
   })
   describe('getActivitiesByCategory', () => {
