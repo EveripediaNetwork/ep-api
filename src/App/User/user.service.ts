@@ -54,26 +54,28 @@ class UserService {
   ): Promise<UserProfile | boolean | string> {
     const data: UserProfile = JSON.parse(profileInfo)
 
-    const id = this.tokenValidator.validateToken(token, data.id, false)
+    const validDateId = this.tokenValidator.validateToken(token, data.id, false)
 
     if (
-      !(await this.validateEnsAddr(data, id)) &&
-      id &&
-      id.toLowerCase() !== data.id.toLowerCase()
+      !(await this.validateEnsAddr(data, validDateId)) &&
+      validDateId &&
+      validDateId.toLowerCase() !== data.id.toLowerCase()
     ) {
       return false
     }
+
     const existsProfile = await (
       await this.profileRepository()
-    ).findOneBy({
-      id: data.id,
-    })
+    )
+      .createQueryBuilder()
+      .where('LOWER(id) = LOWER(:id)', { id: data.id })
+      .getOne()
 
     const existsUser = await (
       await this.userRepository()
     )
       .createQueryBuilder()
-      .where({ id: data.id })
+      .where('LOWER(id) = LOWER(:id)', { id: data.id })
       .getRawOne()
 
     const profile = (await this.profileRepository()).create({
@@ -101,13 +103,13 @@ class UserService {
       const newProfile = await (await this.profileRepository()).save(profile)
       return newProfile
     }
-
+    const { id, ...rest } = data
     const updateProfile = async () =>
       (await this.profileRepository())
         .createQueryBuilder()
         .update(UserProfile)
-        .set({ ...data })
-        .where('id = :id', { id: data.id })
+        .set({ ...rest })
+        .where('LOWER(id) = LOWER(:id)', { id: data.id })
         .execute()
 
     if (existsUser && existsProfile) {
