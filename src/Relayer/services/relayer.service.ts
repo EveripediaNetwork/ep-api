@@ -132,7 +132,7 @@ class RelayerService {
         txConfig,
       )
     } else {
-      const gas = await this.getUpdatedGas()
+      const gas = this.appService.privateSigner() ? await this.getUpdatedGas() : 50000
       result = await this.wikiInstance.postBySig(
         ipfs,
         userAddr,
@@ -141,7 +141,7 @@ class RelayerService {
         r,
         s,
         {
-          gasLimit: this.appService.privateSigner() ? gas : 50000,
+          gasLimit: gas,
         },
       )
     }
