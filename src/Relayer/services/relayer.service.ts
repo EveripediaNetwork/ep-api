@@ -29,7 +29,7 @@ class RelayerService {
     this.wikiInstance = this.getWikiContractInstance(this.signer)
   }
 
-  private getRelayerInstance() {
+  public getRelayerInstance() {
     const credentials = {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
@@ -44,12 +44,12 @@ class RelayerService {
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
-      this.appService.apiLevel() !== 'prod'
+      this.appService.apiLevel() !== 'prod' || this.appService.privateSigner()
         ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
           })
-
+    console.log(signer)
     return signer
   }
 
@@ -141,7 +141,7 @@ class RelayerService {
         r,
         s,
         {
-          gasPrice: gas,
+          gasLimit: this.appService.privateSigner() ? gas : 50000,
         },
       )
     }
