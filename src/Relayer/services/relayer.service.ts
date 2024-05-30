@@ -49,7 +49,6 @@ class RelayerService {
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
           })
-    console.log(signer)
     return signer
   }
 
