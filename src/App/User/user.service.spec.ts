@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
-import { DataSource } from 'typeorm'
+import { HttpException } from '@nestjs/common'
+import { DataSource, Repository } from 'typeorm'
 import UserService from './user.service'
 import TokenValidator from '../utils/validateToken'
 import User from '../../Database/Entities/user.entity'
@@ -11,6 +12,8 @@ describe('UserService', () => {
   let dataSource: Partial<DataSource>
   let configService: Partial<ConfigService>
   let tokenValidator: Partial<TokenValidator>
+  let profileRepository: Repository<UserProfile>
+  let userRepository: Repository<User>
 
   const mockQueryBuilder: any = {
     select: jest.fn().mockReturnThis(),
@@ -26,14 +29,16 @@ describe('UserService', () => {
     execute: jest.fn().mockReturnThis(),
     getMany: jest.fn().mockReturnThis(),
   }
+  const mockRepository = {
+    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+    findOne: jest.fn().mockReturnValue(null),
+    create: jest.fn().mockReturnValue({}),
+    save: jest.fn().mockReturnValue({}),
+  }
 
   beforeEach(async () => {
     dataSource = {
-      getRepository: jest.fn().mockReturnValue({
-        createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
-        create: jest.fn().mockReturnValue({}),
-        save: jest.fn().mockReturnValue({}),
-      }),
+      getRepository: jest.fn().mockReturnValue(mockRepository),
     }
 
     configService = {
@@ -53,12 +58,22 @@ describe('UserService', () => {
       ],
     }).compile()
 
-    userService = module.get<UserService>(UserService)
+    userService = new UserService(dataSource, configService, tokenValidator)
+    userRepository = module.get<DataSource>(DataSource).getRepository(User)
+    profileRepository = module.get<DataSource>(DataSource).getRepository(UserProfile)
   })
 
-  it('should be defined', () => {
-    expect(userService).toBeDefined()
-  })
+  const profileData = {
+    id: '1',
+    username: 'user',
+    bio: 'bio',
+    email: 'email@example.com',
+    avatar: 'avatar',
+    banner: 'banner',
+    links: [],
+    notifications: [],
+    advancedSettings: {},
+  }
 
   describe('createProfile', () => {
     it('should return false if validateEnsAddr returns false', async () => {
@@ -74,18 +89,6 @@ describe('UserService', () => {
       mockQueryBuilder.getOne.mockResolvedValueOnce(null)
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
 
-      const profileData = {
-        id: '1',
-        username: 'user',
-        bio: 'bio',
-        email: 'email@example.com',
-        avatar: 'avatar',
-        banner: 'banner',
-        links: [],
-        notifications: [],
-        advancedSettings: {},
-      }
-
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
@@ -97,18 +100,6 @@ describe('UserService', () => {
     it('should update and return the profile if it exists', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '1' })
-
-      const profileData = {
-        id: '1',
-        username: 'user',
-        bio: 'bio',
-        email: 'email@example.com',
-        avatar: 'avatar',
-        banner: 'banner',
-        links: [],
-        notifications: [],
-        advancedSettings: {},
-      }
 
       const result = await userService.createProfile(
         JSON.stringify(profileData),
@@ -123,18 +114,6 @@ describe('UserService', () => {
       mockQueryBuilder.getOne.mockResolvedValueOnce(null)
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
 
-      const profileData = {
-        id: '1',
-        username: 'user',
-        bio: 'bio',
-        email: 'email@example.com',
-        avatar: 'avatar',
-        banner: 'banner',
-        links: [],
-        notifications: [],
-        advancedSettings: {},
-      }
-
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
@@ -147,18 +126,6 @@ describe('UserService', () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce(null)
       mockQueryBuilder.getRawOne.mockResolvedValueOnce({ id: '1' })
-
-      const profileData = {
-        id: '1',
-        username: 'user',
-        bio: 'bio',
-        email: 'email@example.com',
-        avatar: 'avatar',
-        banner: 'banner',
-        links: [],
-        notifications: [],
-        advancedSettings: {},
-      }
 
       const result = await userService.createProfile(
         JSON.stringify(profileData),
@@ -173,24 +140,25 @@ describe('UserService', () => {
       mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '1' })
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
 
-      const profileData = {
-        id: '1',
-        username: 'user',
-        bio: 'bio',
-        email: 'email@example.com',
-        avatar: 'avatar',
-        banner: 'banner',
-        links: [],
-        notifications: [],
-        advancedSettings: {},
-      }
-
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
 
       expect(result).toEqual({ id: '1' })
+    })
+    it('should not duplicate user ID regardless of case', async () => {
+      jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
+      jest.spyOn(tokenValidator, 'validateToken').mockReturnValueOnce('1')
+      mockRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+
+      await userService.createProfile(JSON.stringify(profileData), 'token')
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'LOWER(id) = LOWER(:id)',
+        { id: '1' },
+      )
     })
   })
 
