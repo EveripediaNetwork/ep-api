@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
-import { HttpException } from '@nestjs/common'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource } from 'typeorm'
 import UserService from './user.service'
 import TokenValidator from '../utils/validateToken'
 import User from '../../Database/Entities/user.entity'
@@ -12,8 +11,6 @@ describe('UserService', () => {
   let dataSource: Partial<DataSource>
   let configService: Partial<ConfigService>
   let tokenValidator: Partial<TokenValidator>
-  let profileRepository: Repository<UserProfile>
-  let userRepository: Repository<User>
 
   const mockQueryBuilder: any = {
     select: jest.fn().mockReturnThis(),
@@ -58,9 +55,7 @@ describe('UserService', () => {
       ],
     }).compile()
 
-    userService = new UserService(dataSource, configService, tokenValidator)
-    userRepository = module.get<DataSource>(DataSource).getRepository(User)
-    profileRepository = module.get<DataSource>(DataSource).getRepository(UserProfile)
+    userService = module.get<UserService>(UserService)
   })
 
   const profileData = {
