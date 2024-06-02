@@ -5,6 +5,9 @@ import {
 } from '@openzeppelin/defender-relay-client/lib/ethers'
 import { ethers, JsonRpcProvider, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
+import { catchError, firstValueFrom } from 'rxjs'
+import { HttpService } from '@nestjs/axios'
+import { AxiosError } from 'axios'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
@@ -19,13 +22,14 @@ class RelayerService {
   constructor(
     private appService: AppService,
     private configService: ConfigService,
+    private httpService: HttpService,
     private activityRepository: ActivityRepository,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
   }
 
-  private getRelayerInstance() {
+  public getRelayerInstance() {
     const credentials = {
       apiKey: this.configService.get('RELAYER_API_KEY'),
       apiSecret: this.configService.get('RELAYER_API_SECRET'),
@@ -40,12 +44,11 @@ class RelayerService {
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
-      this.appService.apiLevel() !== 'prod'
+      this.appService.apiLevel() !== 'prod' || this.appService.privateSigner()
         ? new ethers.Wallet(PRIVATE_KEY, rpcProvider)
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
           })
-
     return signer
   }
 
@@ -55,6 +58,40 @@ class RelayerService {
       WikiAbi,
       signer,
     )
+  }
+
+  async getMaticGas(): Promise<string | null> {
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService
+          .get(
+            'https://api.polygonscan.com/api?module=gastracker&action=gasoracle',
+          )
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.error(error?.response?.data)
+              throw new Error('An error occured while fetching matic gas price')
+            }),
+          ),
+      )
+      const { FastGasPrice } = data.result
+      return FastGasPrice
+    } catch (error) {
+      console.error('Error in getGasPrice', error)
+      return null
+    }
+  }
+
+  async getUpdatedGas() {
+    const maticGas = (await this.getMaticGas()) || '40'
+
+    const gasInGwei = ethers.parseUnits(maticGas, 'gwei')
+
+    const gasBump = (gasInGwei * 20n) / 100n
+
+    const newValue = gasInGwei + gasBump
+
+    return newValue
   }
 
   public async relayTx(
@@ -78,8 +115,8 @@ class RelayerService {
         HttpStatus.TOO_MANY_REQUESTS,
       )
     }
-    let result
 
+    let result
     if (this.appService.apiLevel() !== 'prod') {
       const txConfig = {
         gasPrice: ethers.parseUnits('0.7', 'gwei'),
@@ -94,6 +131,9 @@ class RelayerService {
         txConfig,
       )
     } else {
+      const gas = this.appService.privateSigner()
+        ? await this.getUpdatedGas()
+        : 50000
       result = await this.wikiInstance.postBySig(
         ipfs,
         userAddr,
@@ -102,7 +142,7 @@ class RelayerService {
         r,
         s,
         {
-          gasLimit: 50000,
+          gasLimit: gas,
         },
       )
     }
