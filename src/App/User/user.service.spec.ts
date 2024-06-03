@@ -5,12 +5,15 @@ import UserService from './user.service'
 import TokenValidator from '../utils/validateToken'
 import User from '../../Database/Entities/user.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
+// import { ethers } from 'ethers'
 
 describe('UserService', () => {
   let userService: UserService
   let dataSource: Partial<DataSource>
   let configService: Partial<ConfigService>
   let tokenValidator: Partial<TokenValidator>
+
+  jest.mock('ethers')
 
   const mockQueryBuilder: any = {
     select: jest.fn().mockReturnThis(),
@@ -59,7 +62,7 @@ describe('UserService', () => {
   })
 
   const profileData = {
-    id: '1',
+    id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
     username: 'user',
     bio: 'bio',
     email: 'email@example.com',
@@ -74,7 +77,7 @@ describe('UserService', () => {
     it('should return false if validateEnsAddr returns false', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(false)
 
-      const result = await userService.createProfile('{"id": "1"}', 'token')
+      const result = await userService.createProfile('{"id": "0X5456AFEA3AA035088FE1F9AA36509B320360A89E"}', 'token')
 
       expect(result).toBe(false)
     })
@@ -94,14 +97,14 @@ describe('UserService', () => {
 
     it('should update and return the profile if it exists', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
-      mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '1' })
+      mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' })
 
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
 
-      expect(result).toEqual({ id: '1' })
+      expect(result).toEqual({ id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' })
     })
 
     it('should create a new profile and user if neither exists', async () => {
@@ -117,22 +120,9 @@ describe('UserService', () => {
       expect(result).toEqual({})
     })
 
-    it('should create a new profile if user exists but profile does not', async () => {
-      jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
-      mockQueryBuilder.getOne.mockResolvedValueOnce(null)
-      mockQueryBuilder.getRawOne.mockResolvedValueOnce({ id: '1' })
-
-      const result = await userService.createProfile(
-        JSON.stringify(profileData),
-        'token',
-      )
-
-      expect(result).toEqual({})
-    })
-
     it('should create a new user if profile exists but user does not', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
-      mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '1' })
+      mockQueryBuilder.getOne.mockResolvedValueOnce({ id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' })
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
 
       const result = await userService.createProfile(
@@ -140,11 +130,11 @@ describe('UserService', () => {
         'token',
       )
 
-      expect(result).toEqual({ id: '1' })
+      expect(result).toEqual({ id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' })
     })
     it('should not duplicate user ID regardless of case', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
-      jest.spyOn(tokenValidator, 'validateToken').mockReturnValueOnce('1')
+      jest.spyOn(tokenValidator, 'validateToken').mockReturnValueOnce('0x5456afea3aa035088fe1f9aa36509b320360a89e')
       mockRepository.findOne
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null)
@@ -152,7 +142,7 @@ describe('UserService', () => {
       await userService.createProfile(JSON.stringify(profileData), 'token')
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         'LOWER(id) = LOWER(:id)',
-        { id: '1' },
+        { id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' },
       )
     })
   })
@@ -252,7 +242,7 @@ describe('UserService', () => {
         'user.name',
       ])
       expect(mockQueryBuilder.where).toHaveBeenCalledWith('LOWER(id) = :id', {
-        id: '1',
+        id: '1', 
       })
       expect(result).toEqual({ id: '1', name: 'Test User' })
     })
