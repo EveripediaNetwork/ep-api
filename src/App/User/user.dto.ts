@@ -16,7 +16,7 @@ export class UserStateArgs {
 @ArgsType()
 export class UsersByIdArgs extends PaginationArgs {
   @Field(() => String)
-  @MinLength(3)
+  @MinLength(2)
   @Validate(ValidStringParams)
   id!: string
 }
