@@ -25,7 +25,7 @@ export class LangArgs extends PaginationArgs {
 export class TitleArgs extends LangArgs {
   @Field(() => String)
   @Validate(ValidStringParams)
-  @MinLength(3)
+  @MinLength(2)
   title!: string
 
   @Field(() => Boolean)
