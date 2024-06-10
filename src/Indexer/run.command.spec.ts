@@ -30,14 +30,14 @@ describe('RunCommand', () => {
   let iqInjest: AutoInjestService
   // let findMock: jest.Mock
 
-  let dataSourceMock: { getRepository: jest.Mock };
-  let repositoryMock: { find: jest.Mock };
+  let dataSourceMock: { getRepository: jest.Mock }
+  let repositoryMock: { find: jest.Mock }
 
   beforeEach(async () => {
     // findMock = jest.fn()
     dataSourceMock = {
       getRepository: jest.fn(() => repositoryMock),
-    };
+    }
     repositoryMock = {
       find: jest.fn(),
     }
@@ -128,7 +128,9 @@ describe('RunCommand', () => {
   describe('getMostRecentWiki', () => {
     it('should return the most recent wiki', async () => {
       const mockWiki = [{ updated: new Date() }] as Wiki[]
-      jest.spyOn(dataSource.getRepository(Wiki), 'find').mockResolvedValue(mockWiki)
+      jest
+        .spyOn(dataSource.getRepository(Wiki), 'find')
+        .mockResolvedValue(mockWiki)
       const result = await runCommand.getMostRecentWiki()
       expect(result).toEqual(mockWiki)
       expect(dataSource.getRepository(Wiki).find).toHaveBeenCalledWith({
@@ -146,7 +148,7 @@ describe('RunCommand', () => {
     //   })
     // })
   })
- 
+
   describe('getUnixtime', () => {
     it('should return the unixtime of the most recent wiki', async () => {
       const mockWiki = [
@@ -155,7 +157,9 @@ describe('RunCommand', () => {
         },
       ] as Wiki[]
       jest.spyOn(runCommand, 'getMostRecentWiki').mockResolvedValue(mockWiki)
-      const unixtime = Math.floor(new Date(mockWiki[0].updated).getTime() / 1000)
+      const unixtime = Math.floor(
+        new Date(mockWiki[0].updated).getTime() / 1000,
+      )
       const result = await runCommand.getUnixtime()
       expect(result).toEqual(unixtime)
       expect(runCommand.getMostRecentWiki).toHaveBeenCalled()
@@ -186,7 +190,7 @@ describe('RunCommand', () => {
   describe('saveToDB', () => {
     it('should save valid IPFS content to the database', async () => {
       const mockUser: User = {
-        id: '0x5456afea3aa035088fe1f9aa36509b320360a89e'
+        id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
       }
       const hash = {
         id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
@@ -194,7 +198,7 @@ describe('RunCommand', () => {
         createdAt: 1234567890,
         block: 1,
         transactionHash: '0x',
-        contentId: '0x'
+        contentId: '0x',
       }
       const content = {
         id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
@@ -221,7 +225,9 @@ describe('RunCommand', () => {
       jest.spyOn(ipfsGetter, 'getIPFSDataFromHash').mockResolvedValue(content)
       jest.spyOn(metaChanges, 'appendMetadata').mockResolvedValue(metadata)
       ;(getWikiSummary as jest.Mock).mockResolvedValue(summary)
-      jest.spyOn(validator, 'validate').mockResolvedValue({ status: true, message: 'Successful validation' })
+      jest
+        .spyOn(validator, 'validate')
+        .mockResolvedValue({ status: true, message: 'Successful validation' })
 
       await runCommand.saveToDB(hash, false, false, 'SUBGRAPH')
 
@@ -245,11 +251,15 @@ describe('RunCommand', () => {
         createdAt: 1234567890,
         block: 1,
         transactionHash: '0x',
-        contentId: '0x'
+        contentId: '0x',
       }
-      jest.spyOn(ipfsGetter, 'getIPFSDataFromHash').mockRejectedValue(new Error('IPFS error'))
+      jest
+        .spyOn(ipfsGetter, 'getIPFSDataFromHash')
+        .mockRejectedValue(new Error('IPFS error'))
 
-      await expect(runCommand.saveToDB(hash, false, false, 'SUBGRAPH')).resolves.toBeUndefined()
+      await expect(
+        runCommand.saveToDB(hash, false, false, 'SUBGRAPH'),
+      ).resolves.toBeUndefined()
       expect(ipfsGetter.getIPFSDataFromHash).toHaveBeenCalledWith(hash.id)
       expect(metaChanges.appendMetadata).not.toHaveBeenCalled()
       expect(validator.validate).not.toHaveBeenCalled()
@@ -260,7 +270,7 @@ describe('RunCommand', () => {
   describe('run', () => {
     // it('should call initiateIndexer with correct parameters', async () => {
     //   const hashes = [
-    //     { 
+    //     {
     //       id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
     //       userId: 'someUserId',
     //       createdAt: 1234567890,
@@ -275,14 +285,12 @@ describe('RunCommand', () => {
     //   jest.spyOn(process, 'exit').mockImplementation(() => {
     //     throw new Error('Process exit')
     //   })
-
     //   const options: CommandOptions = {
     //     loop: false,
     //     ipfsTime: false,
     //     mode: 'SUBGRAPH',
     //     unixtime: 1714551593,
     //   }
-
     //   try {
     //     await runCommand.run([], options)
     //   } catch (err: any) {
@@ -290,7 +298,6 @@ describe('RunCommand', () => {
     //       throw err
     //     }
     //   }
-
     //   expect(runCommand.getUnixtime).toHaveBeenCalled()
     //   expect(runCommand.getHashes).toHaveBeenCalledWith('SUBGRAPH', 1234567890, false)
     //   expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
@@ -313,9 +320,7 @@ describe('RunCommand', () => {
     //   ])
     //   jest.spyOn(runCommand, 'initiateIndexer').mockResolvedValue(undefined)
     //   jest.spyOn(global.process, 'exit').mockImplementation(() => undefined as never)
-
     //   await runCommand.run([], { loop: true, ipfsTime: true, mode: 'RPC', })
-
     //   expect(runCommand.getUnixtime).toHaveBeenCalled()
     //   expect(runCommand.getHashes).toHaveBeenCalledWith('RPC', 1234567890, true)
     //   expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
