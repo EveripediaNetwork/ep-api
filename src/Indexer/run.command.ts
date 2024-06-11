@@ -87,7 +87,7 @@ class RunCommand implements CommandRunner {
 
     if (loop) {
       newUnixtime = await this.getUnixtime()
-      const newHashes = await this.getHashes(mode, unixtime)
+      const newHashes = await this.getHashes(mode, newUnixtime)
       await this.initiateIndexer(newHashes, newUnixtime, mode, loop)
     }
   }
