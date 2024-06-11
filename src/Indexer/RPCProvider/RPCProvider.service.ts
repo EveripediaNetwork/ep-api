@@ -38,6 +38,7 @@ class RPCProviderService {
   }
 
   async getHashesFromLogs(
+    unixtime: number,
     blockNumber?: number,
     tx?: string,
   ): Promise<Hash[] | []> {
@@ -84,7 +85,7 @@ class RPCProviderService {
         const block = await provider.getBlock(log.blockHash)
 
         const parsedLog = contract.interface.parseLog(log)
-        if (block && parsedLog) {
+        if (block && parsedLog && block.timestamp >= unixtime) {
           const user = parsedLog.args[0]
           const ipfs = parsedLog.args[1]
 
