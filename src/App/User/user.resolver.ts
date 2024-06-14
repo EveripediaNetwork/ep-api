@@ -57,7 +57,7 @@ class UserResolver {
 
   @Query(() => [User])
   async usersById(@Args() args: UsersByIdArgs) {
-    return this.userService.getUsesrById(args)
+    return this.userService.getUsersById(args)
   }
 
   @Query(() => User, { nullable: true })

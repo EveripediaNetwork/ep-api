@@ -185,7 +185,7 @@ class UserService {
     return users ? profile.getMany() : profile.getOne()
   }
 
-  async getUsesrById(args: UsersByIdArgs): Promise<User[] | null> {
+  async getUsersById(args: UsersByIdArgs): Promise<User[] | null> {
     return (await this.userRepository())
       .createQueryBuilder()
       .where('LOWER("User".id) LIKE :id', {
