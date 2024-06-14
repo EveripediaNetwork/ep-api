@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 import AppService from '../App/app.service'
 import IPFSGetterService from './IPFSGetter/ipfs-getter.service'
-import GraphProviderService from './Provider/graph.service'
+import GraphProviderService, { Hash } from './Provider/graph.service'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 import DBStoreService from './Store/store.service'
 import IPFSValidatorService from './Validator/validator.service'
@@ -28,13 +28,18 @@ describe('RunCommand', () => {
   let dataSource: DataSource
   let metaChanges: MetadataChangesService
   let iqInjest: AutoInjestService
-  // let findMock: jest.Mock
+  let findMock: jest.Mock
 
-  let dataSourceMock: { getRepository: jest.Mock }
+  let dataSourceMock = {
+    getRepository: jest.fn(() => ({
+      find: findMock,
+    })),
+  }
+
   let repositoryMock: { find: jest.Mock }
 
   beforeEach(async () => {
-    // findMock = jest.fn()
+    findMock = jest.fn()
     dataSourceMock = {
       getRepository: jest.fn(() => repositoryMock),
     }
@@ -138,15 +143,22 @@ describe('RunCommand', () => {
         take: 1,
       })
     })
-    // it('should return an empty array when there are no wiki entries', async () => {
-    //   findMock.mockResolvedValueOnce([])
-    //   const result = await runCommand.getMostRecentWiki()
-    //   expect(result).toEqual([])
-    //   expect(findMock).toHaveBeenCalledWith({
-    //     order: { updated: 'DESC' },
-    //     take: 1,
-    //   })
-    // })
+    it('should return the last updated wiki', async () => {
+      const wikiEntries = [
+        { updated: new Date('2022-01-01T00:00:00Z') },
+        { updated: new Date('2023-01-01T00:00:00Z') },
+        { updated: new Date('2024-01-01T00:00:00Z') },
+      ] as Wiki[]
+      jest
+        .spyOn(dataSource.getRepository(Wiki), 'find')
+        .mockResolvedValue([wikiEntries[2]])
+      const result = await runCommand.getMostRecentWiki()
+      expect(result).toEqual([wikiEntries[2]])
+      expect(dataSource.getRepository(Wiki).find).toHaveBeenCalledWith({
+        order: { updated: 'DESC' },
+        take: 1,
+      })
+    })
   })
 
   describe('getUnixtime', () => {
@@ -164,18 +176,25 @@ describe('RunCommand', () => {
       expect(result).toEqual(unixtime)
       expect(runCommand.getMostRecentWiki).toHaveBeenCalled()
     })
-    // it('should return the correct unixtime when there are Wiki entries', async () => {
-    //   const wikiEntry = {
-    //     id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
-    //     updated: new Date('2024-06-01T00:00:00Z'),
-    //     title: 'Most Recent Wiki',
-    //     content: 'Content of the most recent wiki'
-    //   }
-    //   findMock.mockResolvedValueOnce([wikiEntry])
-    //   const result = await runCommand.getUnixtime()
-    //   const expectedUnixtime = Math.floor(new Date(wikiEntry.updated).getTime() / 1000)
-    //   expect(result).toBe(expectedUnixtime)
-    // })
+
+    it('should return the correct unixtime when there are Wiki entries', async () => {
+      const wikiEntry = {
+        id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
+        updated: new Date('2024-06-01T00:00:00Z'),
+        title: 'Most Recent Wiki',
+        content: 'Content of the most recent wiki',
+      }
+
+      jest.spyOn(runCommand, 'getMostRecentWiki').mockResolvedValue([wikiEntry])
+
+      const result = await runCommand.getUnixtime()
+      const expectedUnixtime = Math.floor(
+        new Date(wikiEntry.updated).getTime() / 1000,
+      )
+
+      expect(result).toBe(expectedUnixtime)
+      expect(runCommand.getMostRecentWiki).toHaveBeenCalled()
+    })
 
     it('should return TWENTY_FOUR_HOURS_AGO if no wikis are found', async () => {
       jest.spyOn(runCommand, 'getMostRecentWiki').mockResolvedValue([])
@@ -184,6 +203,24 @@ describe('RunCommand', () => {
 
       expect(result).toEqual(TWENTY_FOUR_HOURS_AGO)
       expect(runCommand.getMostRecentWiki).toHaveBeenCalled()
+    })
+  })
+  describe('getHashes', () => {
+    it('should return hashes from SUBGRAPH mode', async () => {
+      const mockHashes = [
+        { id: '0x1', userId: 'user1', createdAt: 1234567890 },
+      ] as Hash[]
+      jest
+        .spyOn(providerService, 'getIPFSHashesFromBlock')
+        .mockResolvedValue(mockHashes)
+
+      const result = await runCommand.getHashes('SUBGRAPH', 1234567890, false)
+
+      expect(result).toEqual(mockHashes)
+      expect(providerService.getIPFSHashesFromBlock).toHaveBeenCalledWith(
+        1234567890,
+        false,
+      )
     })
   })
 
@@ -268,69 +305,29 @@ describe('RunCommand', () => {
   })
 
   describe('run', () => {
-    // it('should call initiateIndexer with correct parameters', async () => {
-    //   const hashes = [
-    //     {
-    //       id: '0x5456afea3aa035088fe1f9aa36509b320360a89e',
-    //       userId: 'someUserId',
-    //       createdAt: 1234567890,
-    //       block: 1,
-    //       transactionHash: '0x',
-    //       contentId: '0x',
-    //     },
-    //   ]
-    //   jest.spyOn(runCommand, 'getUnixtime').mockResolvedValue(1234567890)
-    //   jest.spyOn(runCommand, 'getHashes').mockResolvedValue(hashes)
-    //   jest.spyOn(runCommand, 'initiateIndexer').mockResolvedValue(undefined)
-    //   jest.spyOn(process, 'exit').mockImplementation(() => {
-    //     throw new Error('Process exit')
-    //   })
-    //   const options: CommandOptions = {
-    //     loop: false,
-    //     ipfsTime: false,
-    //     mode: 'SUBGRAPH',
-    //     unixtime: 1714551593,
-    //   }
-    //   try {
-    //     await runCommand.run([], options)
-    //   } catch (err: any) {
-    //     if (err.message !== 'Process exit') {
-    //       throw err
-    //     }
-    //   }
-    //   expect(runCommand.getUnixtime).toHaveBeenCalled()
-    //   expect(runCommand.getHashes).toHaveBeenCalledWith('SUBGRAPH', 1234567890, false)
-    //   expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
-    //     hashes,
-    //     1234567890,
-    //     'SUBGRAPH',
-    //     false,
-    //     false,
-    //   )
-    // })
-    // it('should handle different options and environment variables', async () => {
-    //   process.env.API_LEVEL = 'dev'
-    //   jest.spyOn(runCommand, 'getUnixtime').mockResolvedValue(1234567890)
-    //   jest.spyOn(runCommand, 'getHashes').mockResolvedValue([
-    //     {
-    //       id: 'hash1',
-    //       userId: 'user1',
-    //       createdAt: 1234567890,
-    //     }
-    //   ])
-    //   jest.spyOn(runCommand, 'initiateIndexer').mockResolvedValue(undefined)
-    //   jest.spyOn(global.process, 'exit').mockImplementation(() => undefined as never)
-    //   await runCommand.run([], { loop: true, ipfsTime: true, mode: 'RPC', })
-    //   expect(runCommand.getUnixtime).toHaveBeenCalled()
-    //   expect(runCommand.getHashes).toHaveBeenCalledWith('RPC', 1234567890, true)
-    //   expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
-    //     [{ id: 'hash1', userId: 'user1', createdAt: 1234567890 }],
-    //     1234567890,
-    //     'RPC',
-    //     true,
-    //     true
-    //   )
-    //   expect(process.exit).toHaveBeenCalled()
-    // })
+    it('should handle different options and environment variables', async () => {
+      process.env.API_LEVEL = 'dev'
+      jest.spyOn(runCommand, 'getUnixtime').mockResolvedValue(1234567890)
+      jest
+        .spyOn(runCommand, 'getHashes')
+        .mockResolvedValue([
+          { id: 'hash1', userId: 'user1', createdAt: 1234567890 },
+        ])
+      jest.spyOn(runCommand, 'initiateIndexer').mockResolvedValue(undefined)
+      jest
+        .spyOn(global.process, 'exit')
+        .mockImplementation(() => undefined as never)
+      await runCommand.run([], { loop: true, ipfsTime: true, mode: 'RPC' })
+      expect(runCommand.getUnixtime).toHaveBeenCalled()
+      expect(runCommand.getHashes).toHaveBeenCalledWith('RPC', 1234567890, true)
+      expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
+        [{ id: 'hash1', userId: 'user1', createdAt: 1234567890 }],
+        1234567890,
+        'RPC',
+        true,
+        true,
+      )
+      expect(process.exit).toHaveBeenCalled()
+    })
   })
 })
