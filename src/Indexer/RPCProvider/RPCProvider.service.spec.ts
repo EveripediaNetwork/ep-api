@@ -77,14 +77,11 @@ describe('RPCProviderService', () => {
   })
 
   describe('getHashesFromLogs', () => {
-
     it('should return an empty array and log an error if fetching logs fails', async () => {
       const provider = {
         getLogs: jest.fn().mockRejectedValue('Provider error'),
       }
-      ;(ethers.JsonRpcProvider as jest.Mock).mockImplementation(
-        () => provider,
-      )
+      ;(ethers.JsonRpcProvider as jest.Mock).mockImplementation(() => provider)
 
       jest.spyOn(console, 'error').mockImplementation(() => {})
 
