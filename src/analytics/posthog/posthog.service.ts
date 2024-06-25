@@ -45,7 +45,6 @@ export class PostHogService {
           },
         },
       )
-      console.log('Event sent to PostHog:', response.data)
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
