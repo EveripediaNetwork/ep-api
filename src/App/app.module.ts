@@ -65,6 +65,9 @@ import EventsResolver from './Wiki/events.resolver'
 import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
+import { PosthogModule } from 'nestjs-posthog'
+import { PostHogService } from '../analytics/posthog/posthog.service'
+import { PosthogResolver } from '../analytics/posthog/posthog.resolver'
 
 // istanbul ignore next
 @Module({
@@ -157,6 +160,8 @@ import AppService from './app.service'
           ],
         }),
     },
+    PostHogService,
+    PosthogResolver,
   ],
 })
 class AppModule {
