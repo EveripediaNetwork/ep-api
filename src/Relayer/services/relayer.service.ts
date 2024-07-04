@@ -61,21 +61,25 @@ class RelayerService {
   }
 
   async getMaticGas(): Promise<string | null> {
+    const KEY = this.configService.get<string>('POLYGONSCAN_API_KEY') as string
     try {
       const { data } = await firstValueFrom(
         this.httpService
           .get(
-            'https://api.polygonscan.com/api?module=gastracker&action=gasoracle',
+            `https://api.polygonscan.com/api?module=gastracker&action=gasoracle&apikey=${KEY}`,
           )
           .pipe(
             catchError((error: AxiosError) => {
               console.error(error?.response?.data)
-              throw new Error('An error occured while fetching matic gas price')
+              throw new Error(
+                'An error occurred while fetching matic gas price',
+              )
             }),
           ),
       )
-      const { FastGasPrice } = data.result
-      return FastGasPrice
+
+      const fastGasPrice = data.result.FastGasPrice
+      return fastGasPrice
     } catch (error) {
       console.error('Error in getGasPrice', error)
       return null
@@ -85,13 +89,9 @@ class RelayerService {
   async getUpdatedGas() {
     const maticGas = (await this.getMaticGas()) || '40'
 
-    const gasInGwei = ethers.parseUnits(maticGas, 'gwei')
+    const gasBump = parseInt(maticGas, 10) * 1000 * 1.2
 
-    const gasBump = (gasInGwei * 20n) / 100n
-
-    const newValue = gasInGwei + gasBump
-
-    return newValue
+    return gasBump
   }
 
   public async relayTx(
