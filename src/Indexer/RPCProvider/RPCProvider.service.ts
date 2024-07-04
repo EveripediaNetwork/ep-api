@@ -45,13 +45,14 @@ class RPCProviderService {
     const contractAddress = this.configService.get<string>(
       'WIKI_CONTRACT_ADDRESS',
     ) as string
-
     const provider = new ethers.JsonRpcProvider(this.provider().URL)
     const contract = new ethers.Contract(contractAddress, WikiAbi, provider)
     let startBlock: string | number | undefined = blockNumber
 
     if (!startBlock) {
-      startBlock = await this.getBlockByTimestamp(this.provider().CHAIN)
+      const chain =
+        this.provider().CHAIN === 'matic' ? 'polygon' : this.provider().CHAIN
+      startBlock = await this.getBlockByTimestamp(chain)
     }
 
     if (tx && this.provider().CHAIN === 'iq') {
@@ -71,7 +72,6 @@ class RPCProviderService {
       const limitedLogs = logs.slice(1, 51) // Limit logs to 50
 
       const hashes: Hash[] = []
-
       for (const log of limitedLogs) {
         const hash: Hash = {
           id: '',
@@ -83,7 +83,6 @@ class RPCProviderService {
         }
 
         const block = await provider.getBlock(log.blockHash)
-
         const parsedLog = contract.interface.parseLog(log)
         if (block && parsedLog && block.timestamp >= unixtime) {
           const user = parsedLog.args[0]
@@ -101,7 +100,7 @@ class RPCProviderService {
       }
       return hashes
     } catch (e) {
-      console.error(e)
+      console.error('ERROR GETTING LOGS', e)
       return []
     }
   }

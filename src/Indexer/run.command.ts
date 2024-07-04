@@ -66,7 +66,7 @@ class RunCommand implements CommandRunner {
     let newUnixtime
 
     if (hashes.length === 0 && loop) {
-      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
 
       const newHashes = await this.getHashes(mode, unixtime)
       console.log(
@@ -178,7 +178,7 @@ class RunCommand implements CommandRunner {
         console.error(`${mode} mode: 🔥 Invalid IPFS: ${hash.id}`)
       }
       if (!webhook) {
-        await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
+        await new Promise(r => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
     } catch (ex) {
       console.error(`${mode} mode: 🛑 Invalid IPFS: ${hash.id}`)
@@ -213,8 +213,7 @@ class RunCommand implements CommandRunner {
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false
-    const mode =
-      process.env.API_LEVEL !== 'prod' ? 'RPC' : options?.mode || 'SUBGRAPH'
+    const mode = process.env.INDEXER_MODE || 'SUBGRAPH'
 
     if (options?.unixtime === undefined) {
       unixtime = await this.getUnixtime()
@@ -253,14 +252,6 @@ class RunCommand implements CommandRunner {
   })
   parseTimeBoolean(val: string): boolean {
     return JSON.parse(val)
-  }
-
-  @Option({
-    flags: '-m, --mode [string]',
-    description: 'Set to subgraph calls or rpc mode',
-  })
-  parseMode(val: string): string {
-    return String(val).toUpperCase()
   }
 }
 
