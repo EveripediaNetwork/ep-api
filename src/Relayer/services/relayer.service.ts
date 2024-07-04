@@ -61,7 +61,7 @@ class RelayerService {
   }
 
   async getMaticGas(): Promise<string | null> {
-     const KEY = this.configService.get<string>('ppolygonScanApiKey') as string
+    const KEY = this.configService.get<string>('ppolygonScanApiKey') as string
     try {
       const { data } = await firstValueFrom(
         this.httpService
