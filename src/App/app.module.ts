@@ -66,8 +66,6 @@ import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import { PosthogModule } from 'nestjs-posthog'
-import { PostHogService } from '../analytics/posthog/posthog.service'
-import { PosthogResolver } from '../analytics/posthog/posthog.resolver'
 
 // istanbul ignore next
 @Module({
@@ -94,6 +92,42 @@ import { PosthogResolver } from '../analytics/posthog/posthog.resolver'
           }),
         ],
       },
+    }),
+    PosthogModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const apiKey = configService.get<string>('POSTHOG_API_KEY')
+        const host = configService.get<string>('POSTHOG_API_URL')
+        if (!apiKey ||!host) {
+          throw new Error('Posthog configuration is missing apiKey or host')
+        }
+        return {
+          apiKey,
+          options: {
+            host,
+          },
+          mock: false,
+        }
+        },
+    }),
+    PosthogModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const apiKey = configService.get<string>('POSTHOG_API_KEY')
+        const host = configService.get<string>('POSTHOG_API_URL')
+        if (!apiKey ||!host) {
+          throw new Error('Posthog configuration is missing apiKey or host')
+        }
+        return {
+          apiKey,
+          options: {
+            host,
+          },
+          mock: false,
+        }
+        },
     }),
     SitemapModule,
     MailerModule,
@@ -160,8 +194,6 @@ import { PosthogResolver } from '../analytics/posthog/posthog.resolver'
           ],
         }),
     },
-    PostHogService,
-    PosthogResolver,
   ],
 })
 class AppModule {

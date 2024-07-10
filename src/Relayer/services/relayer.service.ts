@@ -12,6 +12,8 @@ import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
 import AppService from '../../App/app.service'
+import PostHog from 'posthog-node'
+import { PosthogService } from 'nestjs-posthog'
 
 @Injectable()
 class RelayerService {
@@ -24,9 +26,14 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
+    private posthog: any,
+    private posthogService: PosthogService,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
+    this.posthog = new PostHog(
+      this.configService.get<string>('POSTHOG_API_KEY') || '',
+    )
   }
 
   public getRelayerInstance() {
@@ -61,25 +68,21 @@ class RelayerService {
   }
 
   async getMaticGas(): Promise<string | null> {
-    const KEY = this.configService.get<string>('POLYGONSCAN_API_KEY') as string
     try {
       const { data } = await firstValueFrom(
         this.httpService
           .get(
-            `https://api.polygonscan.com/api?module=gastracker&action=gasoracle&apikey=${KEY}`,
+            'https://api.polygonscan.com/api?module=gastracker&action=gasoracle',
           )
           .pipe(
             catchError((error: AxiosError) => {
               console.error(error?.response?.data)
-              throw new Error(
-                'An error occurred while fetching matic gas price',
-              )
+              throw new Error('An error occured while fetching matic gas price')
             }),
           ),
       )
-
-      const fastGasPrice = data.result.FastGasPrice
-      return fastGasPrice
+      const { FastGasPrice } = data.result
+      return FastGasPrice
     } catch (error) {
       console.error('Error in getGasPrice', error)
       return null
@@ -89,9 +92,13 @@ class RelayerService {
   async getUpdatedGas() {
     const maticGas = (await this.getMaticGas()) || '40'
 
-    const gasBump = parseInt(maticGas, 10) * 1000 * 1.2
+    const gasInGwei = ethers.parseUnits(maticGas, 'gwei')
 
-    return gasBump
+    const gasBump = (gasInGwei * 20n) / 100n
+
+    const newValue = gasInGwei + gasBump
+
+    return newValue
   }
 
   public async relayTx(
@@ -146,6 +153,20 @@ class RelayerService {
         },
       )
     }
+
+    this.posthogService.capture({
+      distinctId: userAddr,
+      event: 'relayer event',
+      properties: {
+        ipfs,
+        userAddr,
+        deadline,
+        v,
+        r,
+        s,
+        result,
+      },
+    })
     return result
   }
 }
