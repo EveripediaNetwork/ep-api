@@ -111,24 +111,6 @@ import { PosthogModule } from 'nestjs-posthog'
         }
         },
     }),
-    PosthogModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const apiKey = configService.get<string>('POSTHOG_API_KEY')
-        const host = configService.get<string>('POSTHOG_API_URL')
-        if (!apiKey ||!host) {
-          throw new Error('Posthog configuration is missing apiKey or host')
-        }
-        return {
-          apiKey,
-          options: {
-            host,
-          },
-          mock: false,
-        }
-        },
-    }),
     SitemapModule,
     MailerModule,
     httpModule(20000),
