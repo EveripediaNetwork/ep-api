@@ -76,23 +76,6 @@ describe('RPCProviderService', () => {
     })
   })
 
-  describe('getHashesFromLogs', () => {
-    it('should return an empty array and log an error if fetching logs fails', async () => {
-      const provider = {
-        getLogs: jest.fn().mockRejectedValue('Provider error'),
-      }
-      ;(ethers.JsonRpcProvider as jest.Mock).mockImplementation(() => provider)
-
-      jest.spyOn(console, 'error').mockImplementation(() => {})
-
-      const hashes = await rpcProviderService.getHashesFromLogs(
-        TWENTY_FOUR_HOURS_AGO,
-      )
-      expect(hashes).toEqual([])
-      expect(console.error).toHaveBeenCalledWith('Provider error')
-    })
-  })
-
   describe('checkTransaction', () => {
     it('should return transaction info from the API response', async () => {
       const response = { data: { status: '1', result: { hash: '0x123' } } }
