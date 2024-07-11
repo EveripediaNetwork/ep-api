@@ -319,7 +319,11 @@ describe('RunCommand', () => {
         .mockImplementation(() => undefined as never)
       await runCommand.run([], { loop: true, ipfsTime: true, mode: 'RPC' })
       expect(runCommand.getUnixtime).toHaveBeenCalled()
-      expect(runCommand.getHashes).toHaveBeenCalledWith('SUBGRAPH', 1234567890, true)
+      expect(runCommand.getHashes).toHaveBeenCalledWith(
+        'SUBGRAPH',
+        1234567890,
+        true,
+      )
       expect(runCommand.initiateIndexer).toHaveBeenCalledWith(
         [{ id: 'hash1', userId: 'user1', createdAt: 1234567890 }],
         1234567890,
