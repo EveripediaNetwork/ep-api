@@ -26,6 +26,8 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
+    private posthog: any,
+    private posthogService: PosthogService,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
@@ -151,7 +153,19 @@ class RelayerService {
         },
       )
     }
-
+    this.posthogService.capture({
+      distinctId: userAddr,
+      event: 'relayer event',
+      properties: {
+        ipfs,
+        userAddr,
+        deadline,
+        v,
+        r,
+        s,
+        result,
+      },
+    })
     return result
   }
 }
