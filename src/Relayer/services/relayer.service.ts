@@ -26,14 +26,10 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
-    private posthog: any,
     private posthogService: PosthogService,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
-    this.posthog = new PostHog(
-      this.configService.get<string>('POSTHOG_API_KEY') || '',
-    )
   }
 
   public getRelayerInstance() {
