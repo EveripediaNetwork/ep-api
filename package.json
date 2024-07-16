@@ -172,7 +172,7 @@
     "testEnvironment": "node"
   },
   "engines": {
-    "node": "^14.13.1 || >=16.0.0",
+    "node": "^18.17.0 || >=20.15.1",
     "pnpm": ">=9.0.0",
     "npm": "please-use-pnpm"
   },
