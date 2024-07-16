@@ -67,7 +67,7 @@ import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import { PosthogModule } from 'nestjs-posthog'
 
-// istanbul ignore next
+// istanbul ignore nextyy
 @Module({
   imports: [
     ConfigModule.forRoot({
