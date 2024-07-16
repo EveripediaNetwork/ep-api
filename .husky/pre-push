@@ -1,7 +1,7 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn build:swc
-yarn format
-yarn test
-yarn rome ci ./src
+pnpm build:swc
+pnpm format
+pnpm test
+pnpm rome ci ./src

@@ -2,13 +2,13 @@
   "name": "ep-api",
   "private": true,
   "version": "0.0.1",
-  "description": "Everipedia API",
+  "description": "IQ.WIKI API",
   "scripts": {
     "prepare": "husky install",
     "prebuild": "rimraf dist",
-    "build": "nest build && yarn run copy:templates",
-    "format": "yarn rome format --write ./src",
-    "check": "yarn rome check ./src --apply",
+    "build": "nest build && pnpm run copy:templates",
+    "format": "pnpm rome format --write ./src",
+    "check": "pnpm rome check ./src --apply",
     "start": "nest start",
     "dev": "nest start --watch",
     "build:swc": "npx swc --copy-files --out-dir dist/src src",
@@ -23,8 +23,8 @@
     "console-mail:dev": "ts-node src/consoleMail.ts",
     "copy:templates": "mv ./dist/App/mailer/templates ./dist/src/App/mailer/ && rm -rf ./dist/App",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "typeorm:migrate": "yarn typeorm migration:generate -- -n",
-    "typeorm:run": "yarn typeorm migration:run",
+    "typeorm:migrate": "pnpm typeorm migration:generate -- -n",
+    "typeorm:run": "pnpm typeorm migration:run",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@apollo/utils.keyvaluecache": "^2.1.0",
+    "@apollo/server": "^4.10.4",
     "@elastic/ecs-winston-format": "^1.3.1",
     "@everipedia/iq-utils": "^0.2.7",
     "@everipedia/web3-signer": "^0.0.11",
@@ -62,10 +63,8 @@
     "@types/got": "^9.6.12",
     "@types/nodemailer": "^6.4.6",
     "@types/remove-markdown": "^0.3.1",
-    "apollo-server-express": "^3.6.3",
-    "apollo-server-fastify": "^3.7.0",
-    "apollo-server-plugin-base": "^3.6.3",
-    "apollo-server-types": "^3.6.3",
+    "apollo-server-express": "^3.13.0",
+    "apollo-server-fastify": "^3.13.0",
     "axios": "^1.3.1",
     "cache-manager": "^3.6.1",
     "cheerio": "^1.0.0-rc.12",
@@ -97,13 +96,13 @@
     "pm2": "^5.2.2",
     "reflect-metadata": "^0.1.13",
     "remove-markdown": "^0.5.0",
-    "rimraf": "^3.0.2",
+    "rimraf": "^6.0.1",
     "rxjs": "^7.5.2",
     "sharp": "^0.30.4",
     "sitemap": "^7.1.1",
     "slugify": "^1.6.5",
     "typeorm": "^0.3.12",
-    "viem": "^1.6.0",
+    "viem": "^2.17.4",
     "winston": "^3.8.2"
   },
   "devDependencies": {
@@ -117,7 +116,6 @@
     "@types/cron": "^2.0.1",
     "@types/dompurify": "^3.0.2",
     "@types/express": "^4.17.13",
-    "@types/graphql": "^14.5.0",
     "@types/graphql-upload": "^8.0.11",
     "@types/jest": "^29.5.3",
     "@types/jsdom": "^21.1.1",
@@ -175,8 +173,8 @@
   },
   "engines": {
     "node": "^14.13.1 || >=16.0.0",
-    "yarn": ">=1.22.0",
-    "npm": "please-use-yarn"
+    "pnpm": ">=9.0.0",
+    "npm": "please-use-pnpm"
   },
-  "packageManager": "yarn@1.22.5"
+  "packageManager": "pnpm@9.5.0"
 }

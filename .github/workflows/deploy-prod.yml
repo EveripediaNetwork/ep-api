@@ -16,7 +16,7 @@ jobs:
           script: |
             cd ep-api
             git pull
-            yarn
-            yarn build:swc
-            /home/ubuntu/.yarn/bin/pm2 update
+            pnpm i
+            pnpm build:swc
+            pm2 update
             

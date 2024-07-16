@@ -18,7 +18,7 @@ module.exports = {
     },
     {
       name: 'indexer-service',
-      script: 'yarn console indexer -l true',
+      script: 'pnpm console indexer -l true',
       args: 'indexer',
       watch: false,
       time: true,
@@ -33,7 +33,7 @@ module.exports = {
     },
     {
       name: 'notification-service',
-      script: 'yarn console-mail notifications -l true',
+      script: 'pnpm console-mail notifications -l true',
       args: 'notifications',
       watch: false,
       time: true,
