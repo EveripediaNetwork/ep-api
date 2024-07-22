@@ -14,6 +14,7 @@ import MarketCapService from './marketCap.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { of } from 'rxjs'
 
 describe('MarketCapService', () => {
   let marketCapService: MarketCapService
@@ -84,6 +85,35 @@ describe('MarketCapService', () => {
     wikiService = module.get<WikiService>(WikiService)
     wikiRepository = dataSource.getRepository(Wiki)
     cacheManager = module.get<Cache>(CACHE_MANAGER)
+  })
+
+  describe('cryptoMarketData', () => {
+    it('should fetch and process crypto market data', async () => {
+      const apiResponse = {
+        data: [
+          { id: 'btc', name: 'bitcoin', symbol: 'BTC', current_price: 60000 },
+        ],
+      }
+
+      jest
+        .spyOn(marketCapService as any, 'cgMarketDataApiCall')
+        .mockResolvedValue(apiResponse)
+      jest
+        .spyOn(marketCapService as any, 'findWiki')
+        .mockResolvedValue({ id: 'btc-wiki' })
+
+      const result = await (marketCapService as any).cryptoMarketData({
+        category: 'cryptocurrency',
+      })
+
+      expect(result).toBeInstanceOf(Array)
+      expect(result).toHaveLength(1)
+
+      const firstItem = await result[0]
+
+      expect(firstItem).toHaveProperty('tokenMarketData')
+      expect(firstItem.tokenMarketData.name).toBe('bitcoin')
+    })
   })
 
   describe('ranks', () => {
@@ -233,80 +263,35 @@ describe('MarketCapService', () => {
     })
   })
 
-  // describe('findWikiByCoingeckoUrl', () => {
-  //   it('should return a wiki if found', async () => {
-  //     const id = 'bitcoin'
-  //     const category = 'cryptocurrencies'
-  //     const expectedWiki = new Wiki()
+  describe('cgMarketDataApiCall', () => {
+    it('should make a successful API call', async () => {
+      const args: MarketCapInputs = {
+        limit: 10,
+        offset: 0,
+        kind: RankType.TOKEN,
+        founders: false,
+      }
 
-  //     jest.spyOn(wikiRepository, 'createQueryBuilder').mockReturnValue({
-  //       where: jest.fn().mockReturnThis(),
-  //       andWhere: jest.fn().mockReturnThis(),
-  //       innerJoinAndSelect: jest.fn().mockReturnThis(),
-  //       getOne: jest.fn().mockResolvedValueOnce(expectedWiki),
-  //     } as any)
+      const apiResponse = {
+        data: [
+          {
+            id: 'btc',
+          },
+        ],
+      }
 
-  //     const result = await marketCapService.findWikiByCoingeckoUrl(id, category)
+      ;(httpService.get as jest.Mock).mockReturnValue(of(apiResponse))
+      ;(configService.get as jest.Mock).mockReturnValue('apiKey')
 
-  //     expect(result).toEqual(expectedWiki)
-  //     expect(wikiRepository.createQueryBuilder).toHaveBeenCalledWith('wiki')
-  //     expect(wikiRepository.createQueryBuilder().where).toHaveBeenCalledWith(
-  //       'hidden = false',
-  //     )
-  //     expect(wikiRepository.createQueryBuilder().andWhere).toHaveBeenCalledWith(
-  //       expect.stringContaining(`exists (
-  //         select 1
-  //         from json_array_elements(wiki.metadata) as meta
-  //         where meta->>'id' = 'coingecko_profile' and meta->>'value' = :url
-  //       )`),
-  //       { url: `https://www.coingecko.com/en/coins/${id}` },
-  //     )
-  //     expect(
-  //       wikiRepository.createQueryBuilder().innerJoinAndSelect,
-  //     ).toHaveBeenCalledWith(
-  //       'wiki.categories',
-  //       'category',
-  //       'category.id = :categoryId',
-  //       { categoryId: category },
-  //     )
-  //   })
+      const result = await (marketCapService as any).cgMarketDataApiCall(args)
 
-  //   it('should return null if no wiki is found', async () => {
-  //     const id = 'nonexistent'
-  //     const category = 'cryptocurrencies'
-
-  //     jest.spyOn(wikiRepository, 'createQueryBuilder').mockReturnValue({
-  //       where: jest.fn().mockReturnThis(),
-  //       andWhere: jest.fn().mockReturnThis(),
-  //       innerJoinAndSelect: jest.fn().mockReturnThis(),
-  //       getOne: jest.fn().mockResolvedValueOnce(null),
-  //     } as any)
-
-  //     const result = await marketCapService.findWikiByCoingeckoUrl(id, category)
-
-  //     expect(result).toBeNull()
-  //     expect(wikiRepository.createQueryBuilder).toHaveBeenCalledWith('wiki')
-  //     expect(wikiRepository.createQueryBuilder().where).toHaveBeenCalledWith(
-  //       'hidden = false',
-  //     )
-  //     expect(wikiRepository.createQueryBuilder().andWhere).toHaveBeenCalledWith(
-  //       expect.stringContaining(
-  //         `exists (
-  //         select 1
-  //         from json_array_elements(wiki.metadata) as meta
-  //         where meta->>'id' = 'coingecko_profile' and meta->>'value' = :url
-  //       )`,
-  //       ),
-  //       { url: `https://www.coingecko.com/en/coins/${id}` },
-  //     )
-  //     expect(
-  //       wikiRepository.createQueryBuilder().innerJoinAndSelect,
-  //     ).toHaveBeenCalledWith(
-  //       'wiki.categories',
-  //       'category',
-  //       'category.id = :categoryId',
-  //       { categoryId: category },
-  //     )
-  //   })
-  // })
+      expect(result).toEqual(apiResponse)
+      expect(httpService.get).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: { 'x-cg-pro-api-key': 'apiKey' },
+        }),
+      )
+    })
+  })
 })

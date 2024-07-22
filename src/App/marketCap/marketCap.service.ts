@@ -208,7 +208,7 @@ class MarketCapService {
     const url =
       kind === RankType.TOKEN
         ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_des${paginate}`
-        : `${baseUrl}nfts/markets?order=h24_volume_usd_desc${paginate}`
+        : `${baseUrl}nfts/markets?order=h24_volume_usd_44edesc${paginate}`
 
     try {
       data = await this.httpService
