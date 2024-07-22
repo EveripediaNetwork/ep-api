@@ -279,7 +279,6 @@ describe('MarketCapService', () => {
           },
         ],
       }
-
       ;(httpService.get as jest.Mock).mockReturnValue(of(apiResponse))
       ;(configService.get as jest.Mock).mockReturnValue('apiKey')
 
