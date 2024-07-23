@@ -71,13 +71,11 @@ class ContentFeedbackService {
       return waitIP
     }
 
-    const rating = args.rating ?? 1
-
     const checkFeedback = await this.storeFeedback({
       ip: args.ip,
       input: args.input,
       output: args.output,
-      rating: rating,
+      rating: args.rating,
       userId: args.userId as string,
       contentId: args.contentId as string,
       message: args.message as string,
@@ -90,7 +88,7 @@ class ContentFeedbackService {
         ip: args.ip,
         urlId: args.contentId,
         user: args.userId,
-        rating: rating,
+        rating: args.rating,
         title: args.site,
         reportSubject: args.reportType,
         description: args.message,
