@@ -100,14 +100,14 @@ import { PosthogModule } from 'nestjs-posthog'
         const apiKey = configService.get<string>('POSTHOG_API_KEY')
         const host = configService.get<string>('POSTHOG_API_URL')
         if (!apiKey ||!host) {
-          throw new Error('Posthog configuration is missing apiKey or host')
+          console.error('Posthog configuration is missing apiKey or host')
         }
         return {
-          apiKey,
+          apiKey: apiKey || '',
           options: {
             host,
           },
-          mock: false,
+          mock: true,
         }
         },
     }),
