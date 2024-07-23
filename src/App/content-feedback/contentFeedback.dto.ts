@@ -45,7 +45,7 @@ export class ContentFeedbackArgs {
   @Min(1)
   @Max(5)
   @Field(() => Int, { nullable: true })
-  rating?: number
+  rating = 1
 
   @Field(() => String, { nullable: true })
   input?: string
