@@ -13,6 +13,7 @@ class FlagWikiArgs {
   @Validate(ValidStringParams)
   wikiId!: string
 
+  @Field(() => String)
   @Validate(ValidStringParams)
   userId!: string
 }
