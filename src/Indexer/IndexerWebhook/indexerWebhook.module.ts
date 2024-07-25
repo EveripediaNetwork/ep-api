@@ -1,4 +1,6 @@
 import { CacheModule, Module } from '@nestjs/common'
+import { PosthogModule, PosthogService } from 'nestjs-posthog'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import httpModule from '../../httpModule'
 import IndexerWebhookController from './controllers/indexerWebhook.controller'
 import { RevalidatePageService } from '../../App/revalidatePage/revalidatePage.service'
@@ -16,9 +18,24 @@ import RPCProviderService from '../RPCProvider/RPCProvider.service'
 import AppService from '../../App/app.service'
 
 @Module({
-  imports: [httpModule(10000), CacheModule.register({ ttl: 3600 })],
+  imports: [
+    httpModule(10000),
+    CacheModule.register({ ttl: 3600 }),
+    PosthogModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        apiKey: config.get<string>('POSTHOG_API_KEY') as string,
+        options: {
+          host: config.get<string>('POSTHOG_API_URL') as string,
+        },
+        mock: false,
+      }),
+    }),
+  ],
   controllers: [IndexerWebhookController],
   providers: [
+    PosthogService,
     IndexerWebhookService,
     GraphProviderService,
     DBStoreService,
@@ -31,7 +48,7 @@ import AppService from '../../App/app.service'
     AutoInjestService,
     LockingService,
     RPCProviderService,
-    AppService
+    AppService,
   ],
 })
 class IndexerWebhookModule {}

@@ -15,7 +15,6 @@ import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import WikiResolver from './Wiki/wiki.resolver'
-import { PosthogModule } from 'nestjs-posthog'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
 import TagResolver from './Tag/tag.resolver'
@@ -92,24 +91,6 @@ import AppService from './app.service'
           }),
         ],
       },
-    }),
-    PosthogModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const apiKey = configService.get<string>('POSTHOG_API_KEY')
-        const host = configService.get<string>('POSTHOG_API_URL')
-        if (!apiKey ||!host) {
-          console.error('Posthog configuration is missing apiKey or host')
-        }
-        return {
-          apiKey: apiKey || '',
-          options: {
-            host,
-          },
-          mock: true,
-        }
-        },
     }),
     SitemapModule,
     MailerModule,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, ILike, Repository } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
+import { PosthogService } from 'nestjs-posthog'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
 import User from '../../Database/Entities/user.entity'
@@ -22,6 +23,7 @@ class DBStoreService {
   constructor(
     private dataSource: DataSource,
     private revalidate: RevalidatePageService,
+    private posthogService: PosthogService,
   ) {}
 
   async existIPFS(newHash: string, oldHash?: string): Promise<boolean> {
@@ -211,6 +213,14 @@ class DBStoreService {
             type: Status.UPDATED,
           } as unknown as Activity),
         )
+        await this.captureEvent(
+          hash.id,
+          wiki.id,
+          user.id,
+          hash.block,
+          hash.transactionHash,
+          'UPDATE',
+        )
       }
 
       if (!ipfsTime) {
@@ -256,6 +266,14 @@ class DBStoreService {
       } as unknown as Activity),
     )
 
+    await this.captureEvent(
+      hash.id,
+      wiki.id,
+      user.id,
+      hash.block,
+      hash.transactionHash,
+    )
+
     if (!ipfsTime) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.STORE_WIKI,
@@ -266,6 +284,27 @@ class DBStoreService {
       )
     }
     return true
+  }
+
+  async captureEvent(
+    ipfs: string,
+    id: string,
+    userId: string,
+    block: number,
+    txhash: string,
+    type = 'CREATE',
+  ) {
+    await new Promise(resolve => setTimeout(resolve, 0))
+    this.posthogService.capture({
+      distinctId: ipfs,
+      event: `Indexer Wiki ${type}`,
+      properties: {
+        id,
+        user: userId,
+        block,
+        transactionHash: txhash,
+      },
+    })
   }
 }
 

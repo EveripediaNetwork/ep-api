@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { PosthogService } from 'nestjs-posthog'
 import { LockingService } from '../../IQHolders/IQHolders.dto'
 import SentryPlugin from '../../../sentry/sentryPlugin'
 import ActivityResolver from '../../Activities/activity.resolver'
@@ -58,6 +59,7 @@ export const providerObjects = {
   configService: ConfigService,
   tagRepository: TagRepository,
   tokenValidator: TokenValidator,
+  postHogService: PosthogService,
   dbStoreService: DBStoreService,
   webhookHandler: WebhookHandler,
   lockingService: LockingService,
@@ -103,6 +105,7 @@ export enum ProviderEnum {
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
   configService = 'configService',
+  posHogService = 'postHogService',
   tokenValidator = 'tokenValidator',
   tagRepository = 'tagRepository',
   dbStoreService = 'dbStoreService',

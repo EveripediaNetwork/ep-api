@@ -3,6 +3,7 @@ import { CacheModule } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TestingModule, Test } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
+import { PosthogModule } from 'nestjs-posthog'
 import IndexerWebhookService from './indexerWebhook.service'
 import { BlockData, decodeABI } from '../indexerWehhook.dto'
 import {
@@ -82,10 +83,17 @@ describe('IndexerWebhookService', () => {
           ttl: 3600,
           store: mockCacheStore,
         }),
+        PosthogModule.forRootAsync({
+          useFactory: () => ({
+            apiKey: 'key',
+            mock: true,
+          }),
+        }),
       ],
       providers: [
         ...getProviders([
           ProviderEnum.runCommand,
+          ProviderEnum.posHogService,
           ProviderEnum.graphProviderService,
           ProviderEnum.ipfsGetterService,
           ProviderEnum.ipfsValidatorService,

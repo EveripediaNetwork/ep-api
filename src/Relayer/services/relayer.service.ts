@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
 import { AxiosError } from 'axios'
-import { PosthogService } from 'nestjs-posthog'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
@@ -25,7 +24,6 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
-    private posthogService: PosthogService,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
@@ -148,19 +146,6 @@ class RelayerService {
         },
       )
     }
-    this.posthogService.capture({
-      distinctId: userAddr,
-      event: 'relayer event',
-      properties: {
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        result,
-      },
-    })
     return result
   }
 }
