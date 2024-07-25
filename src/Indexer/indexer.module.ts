@@ -1,8 +1,8 @@
 import { CacheModule, Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor } from '@ntegral/nestjs-sentry'
-import { PosthogService } from 'nestjs-posthog'
+import { PosthogModule, PosthogService } from 'nestjs-posthog'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
 import HistoryProviderService from './Provider/history.service'
@@ -18,7 +18,6 @@ import AutoInjestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 import AppService from '../App/app.service'
-import PosHogManager from '../posthog/posthog.module'
 
 @Module({
   imports: [
@@ -28,12 +27,22 @@ import PosHogManager from '../posthog/posthog.module'
     DatabaseModule,
     httpModule(20000),
     CacheModule.register({ ttl: 3600 }),
+    PosthogModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        apiKey: config.get<string>('POSTHOG_API_KEY') as string,
+        options: {
+          host: config.get<string>('POSTHOG_API_URL') as string,
+        },
+        mock: false,
+      }),
+    }),
     SentryMod,
   ],
   controllers: [],
   providers: [
     AppService,
-    PosHogManager,
     PosthogService,
     GraphProviderService,
     HistoryProviderService,
