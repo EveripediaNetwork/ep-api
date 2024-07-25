@@ -294,7 +294,7 @@ class DBStoreService {
     txhash: string,
     type = 'CREATE',
   ) {
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     this.posthogService.capture({
       distinctId: ipfs,
       event: `Indexer Wiki ${type}`,
