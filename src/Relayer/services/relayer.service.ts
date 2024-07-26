@@ -148,6 +148,7 @@ class RelayerService {
         },
       )
     }
+    try{
     this.posthogService.capture({
       distinctId: userAddr,
       event: 'relayer event',
@@ -161,6 +162,9 @@ class RelayerService {
         result,
       },
     })
+  } catch (error) {
+    console.error('Failed to capture event in Posthog:', error)
+  }
     return result
   }
 }
