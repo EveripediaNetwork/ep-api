@@ -27,6 +27,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
    ],
    exports: [PosthogModule]
 })
-
-
 export class PosthogConfigModule {}

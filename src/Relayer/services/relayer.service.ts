@@ -148,23 +148,23 @@ class RelayerService {
         },
       )
     }
-    try{
-    this.posthogService.capture({
-      distinctId: userAddr,
-      event: 'relayer event',
-      properties: {
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        result,
-      },
-    })
-  } catch (error) {
-    console.error('Failed to capture event in Posthog:', error)
-  }
+    try {
+      this.posthogService.capture({
+        distinctId: userAddr,
+        event: 'relayer event',
+        properties: {
+          ipfs,
+          userAddr,
+          deadline,
+          v,
+          r,
+          s,
+          result,
+        },
+      })
+    } catch (error) {
+      console.error('Failed to capture event in Posthog:', error)
+    }
     return result
   }
 }
