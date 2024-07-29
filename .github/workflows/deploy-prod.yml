@@ -18,6 +18,6 @@ jobs:
             git pull
             pnpm i
             pnpm build:swc
-            PATH=$PATH:home/${{ secrets.USERNAME_PROD }}/.npm-global/bin
+            export PATH=$PATH:home/${{ secrets.USERNAME_PROD }}/.npm-global/bin
             pm2 update
             
