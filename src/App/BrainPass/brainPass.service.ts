@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable new-cap */
 import { Injectable } from '@nestjs/common'
-import { ethers, getNumber } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import BrainPassDto, {
@@ -33,11 +33,11 @@ class BrainPassService {
   async decodeNFTEvent(log: TxData) {
     const data = await this.alchemyNotifyService.decodeLog(log, brainPassAbi)
     const decoded = {
-      tokenId: getNumber(data?.args._tokenId),
+      tokenId: BigNumber.from(data?.args._tokenId).toNumber(),
       owner: data?.args._owner,
-      passId: getNumber(data?.args._passId),
-      price: ethers.formatEther(
-        getNumber(Number(data?.args._price).toString()),
+      passId: BigNumber.from(data?.args._passId).toNumber(),
+      price: ethers.utils.formatEther(
+        BigNumber.from(Number(data?.args._price).toString()),
       ),
       passName: data?.args._passName,
       transactionName: data?.name as string,

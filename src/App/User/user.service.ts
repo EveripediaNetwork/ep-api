@@ -21,7 +21,7 @@ class UserService {
 
   private provider() {
     const apiKey = this.configService.get<string>('etherScanApiKey')
-    return new ethers.EtherscanProvider('mainnet', apiKey)
+    return new ethers.providers.EtherscanProvider('mainnet', apiKey)
   }
 
   async userRepository(): Promise<Repository<User>> {

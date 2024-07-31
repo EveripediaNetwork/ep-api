@@ -45,7 +45,7 @@ class RPCProviderService {
     const contractAddress = this.configService.get<string>(
       'WIKI_CONTRACT_ADDRESS',
     ) as string
-    const provider = new ethers.JsonRpcProvider(this.provider().URL)
+    const provider = new ethers.providers.JsonRpcProvider(this.provider().URL)
     const contract = new ethers.Contract(contractAddress, WikiAbi, provider)
     let startBlock: string | number | undefined = blockNumber
 
@@ -89,7 +89,7 @@ class RPCProviderService {
           const ipfs = parsedLog.args[1]
 
           hash.block = log.blockNumber
-          hash.contentId = `${log.transactionHash}-${log.index}`
+          hash.contentId = `${log.transactionHash}-${log.logIndex}`
           hash.transactionHash = log.transactionHash
           hash.id = ipfs
           hash.userId = user

@@ -3,7 +3,7 @@ import {
   DefenderRelayProvider,
   DefenderRelaySigner,
 } from '@openzeppelin/defender-relay-client/lib/ethers'
-import { ethers, JsonRpcProvider, Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
@@ -40,7 +40,7 @@ class RelayerService {
     const PRIVATE_KEY = this.configService.get<string>(
       'CUSTOM_RELAYER_SIGNER',
     ) as string
-    const rpcProvider = new JsonRpcProvider(PRIVATE_RPC)
+    const rpcProvider = new ethers.providers.JsonRpcProvider(PRIVATE_RPC)
     const relayerProvider = new DefenderRelayProvider(credentials)
 
     const signer =
@@ -49,6 +49,9 @@ class RelayerService {
         : new DefenderRelaySigner(credentials, relayerProvider, {
             speed: 'fast',
           })
+
+    const signerUsed = Object.keys(signer)[Object.keys(signer).length - 1]
+    console.log(signerUsed !== 'relayer' ? 'PRIVATE SIGNER' : 'RELAYER SIGNER')
     return signer
   }
 
@@ -119,7 +122,7 @@ class RelayerService {
     let result
     if (this.appService.apiLevel() !== 'prod') {
       const txConfig = {
-        gasPrice: ethers.parseUnits('0.7', 'gwei'),
+        gasPrice: ethers.utils.parseUnits('0.7', 'gwei'),
       }
       result = await this.wikiInstance.postBySig(
         ipfs,

@@ -60,8 +60,8 @@ class StakedIQService {
   }
 
   async getTVL(block?: string): Promise<number> {
-    const provider = new ethers.JsonRpcProvider(this.provider())
-    const iface = new ethers.Interface(erc20Abi)
+    const provider = new ethers.providers.JsonRpcProvider(this.provider())
+    const iface = new ethers.utils.Interface(erc20Abi)
     const iq = new ethers.Contract(this.address().iq, iface, provider)
 
     const value = block
