@@ -16,7 +16,7 @@ jobs:
           script: |
             cd ep-api
             git pull
-            pnpm i
+            pnpm install --frozen-lockfile
             pnpm build:swc
             /home/ubuntu/.npm-global/bin/pm2 update
             
