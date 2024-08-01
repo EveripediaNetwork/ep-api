@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
-import * as cheerio from 'cheerio'
+import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
@@ -17,19 +17,30 @@ import PinataService from '../../ExternalServices/pinata.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
 
+interface CgApiIdList {
+  id: string
+  symbol: string
+  name: string
+}
+
 const contentCheckDate = 1699269216 // 6/11/23
 @Injectable()
 class PinService {
+  private CG_API_KEY: string
+
   constructor(
     private dataSource: DataSource,
     private httpService: HttpService,
+    private configService: ConfigService,
     private pinateService: PinataService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private activityRepository: ActivityRepository,
     private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: WebhookHandler,
-  ) {}
+  ) {
+    this.CG_API_KEY = this.configService.get('COINGECKO_API_KEY') as string
+  }
 
   async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
@@ -134,7 +145,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -154,7 +165,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
@@ -185,34 +196,25 @@ class PinService {
     let apiId
     try {
       const response = await this.httpService
-        .get(url, {
-          responseType: 'text',
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0',
-            Accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            Connection: 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Cache-Control': 'max-age=0',
+        .get(
+          'https://pro-api.coingecko.com/api/v3/coins/list?include_platform=false',
+          {
+            headers: {
+              'x-cg-pro-api-key': this.CG_API_KEY,
+            },
           },
-        })
+        )
         .toPromise()
 
-      const html = response?.data
-      const $ = cheerio.load(html)
-      const button = $(
-        'button[data-action="click->application#copyToClipboard"][type="button"]',
-      )
-      const buttonText = button.text().trim()
-
-      apiId = buttonText
+      const coinsList: CgApiIdList[] = response?.data
+      const urlSplit = url.split('/')
+      const slugId = urlSplit[urlSplit.length - 1]
+      for (const coin of coinsList) {
+        if (coin.name.toLowerCase() === slugId.toLowerCase()) {
+          apiId = coin.id
+          break
+        }
+      }
     } catch (error) {
       console.error('Error fetching coingecko api id for wiki')
     }
