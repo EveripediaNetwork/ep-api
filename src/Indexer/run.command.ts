@@ -69,10 +69,10 @@ class RunCommand implements CommandRunner {
       await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
 
       const newHashes = await this.getHashes(mode, unixtime)
-      console.log(
+      console.info(
         `${mode} mode: 🔁 Running Indexer on Loop, checking for new hashes! 🔁`,
       )
-      console.log(`❕ Found ${newHashes.length} hashes!`)
+      console.info(`❕ Found ${newHashes.length} hashes!`)
 
       newUnixtime = await this.getUnixtime()
       await this.initiateIndexer(newHashes, newUnixtime, mode, loop)
@@ -153,7 +153,7 @@ class RunCommand implements CommandRunner {
         hash.userId,
       )
       if (stat.status) {
-        console.log(
+        console.info(
           `${mode} mode: ✅ Validated Wiki content! IPFS going through...`,
         )
         if (!reIndex) {

@@ -145,7 +145,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -165,7 +165,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
@@ -173,7 +173,7 @@ class PinService {
         newWiki.metadata[
           index
         ].value = `https://www.coingecko.com/en/coins/${apiId}`
-
+        console.info('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
           const matchedId = marketCapIdRepo.create({
             wikiId: wiki.id,

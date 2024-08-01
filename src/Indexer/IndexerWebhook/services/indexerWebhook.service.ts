@@ -26,7 +26,7 @@ class IndexerWebhookService {
       logs[0].transaction.status === 1 &&
       firstLevelNodeProcess()
     ) {
-      console.log('Signature verified 🎟️ for Wiki')
+      console.info('Signature verified 🎟️ for Wiki')
       const { transaction } = logs[0]
       const decodedLog = await this.alchemyNotifyService.decodeLog(
         transaction.logs[0],
@@ -46,7 +46,7 @@ class IndexerWebhookService {
         }
 
         await this.indexerCommand.saveToDB(newHash as Hash, true, false)
-        console.log('Indexing webhook Wiki event 📇')
+        console.info('Indexing webhook Wiki event 🪝')
       }
     }
   }

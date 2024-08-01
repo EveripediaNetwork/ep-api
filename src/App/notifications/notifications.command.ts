@@ -92,7 +92,7 @@ class NotificationsCommand implements CommandRunner {
       const newNotifications = await this.getPedingNotifications()
 
       console.log(
-        '🔁 Running EmailSend on Loop, checking for new notifications! 🔁',
+        '📨 Running EmailSend on Loop, checking for new notifications! 📨',
       )
       await this.initiateEmailSend(newNotifications, loop)
     }
