@@ -28,9 +28,9 @@ describe('PinResolver', () => {
     `${process.cwd()}/test/where.png`,
     `${process.cwd()}/uploads/where.png`,
   )
-    const configService = {
-      get: jest.fn(),
-    }
+  const configService = {
+    get: jest.fn(),
+  }
 
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
