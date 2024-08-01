@@ -28,6 +28,9 @@ describe('PinResolver', () => {
     `${process.cwd()}/test/where.png`,
     `${process.cwd()}/uploads/where.png`,
   )
+  const configService = {
+    get: jest.fn(),
+  }
 
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
@@ -50,6 +53,10 @@ describe('PinResolver', () => {
         },
         WebhookHandler,
         MetadataChangesService,
+        {
+          provide: ConfigService,
+          useValue: configService,
+        },
         {
           provide: DataSource,
           useValue: {
