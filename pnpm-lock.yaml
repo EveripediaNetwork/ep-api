@@ -110,9 +110,6 @@ importers:
       cache-manager:
         specifier: ^3.6.1
         version: 3.6.3
-      cheerio:
-        specifier: ^1.0.0-rc.12
-        version: 1.0.0-rc.12
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
