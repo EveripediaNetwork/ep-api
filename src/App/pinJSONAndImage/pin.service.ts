@@ -208,7 +208,7 @@ class PinService {
 
       const coinsList: CgApiIdList[] = response?.data
       const urlSplit = url.split('/')
-      const slugId = urlSplit[urlSplit.length - 1]
+      const slugId = urlSplit[5]
       for (const coin of coinsList) {
         if (coin.name.toLowerCase() === slugId.toLowerCase()) {
           apiId = coin.id
