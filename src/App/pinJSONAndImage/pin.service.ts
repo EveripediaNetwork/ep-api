@@ -145,7 +145,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -165,7 +165,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
@@ -210,7 +210,11 @@ class PinService {
       const urlSplit = url.split('/')
       const slugId = urlSplit[5]
       for (const coin of coinsList) {
-        if (coin.name.toLowerCase() === slugId.toLowerCase()) {
+        if (
+          (!slugId.includes('-') &&
+            coin.name.toLowerCase() === slugId.toLowerCase()) ||
+          slugId === coin.id
+        ) {
           apiId = coin.id
           break
         }
