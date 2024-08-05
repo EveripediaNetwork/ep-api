@@ -9,7 +9,7 @@ class PaginationArgs {
 
   @Field(() => Int)
   @Min(1)
-  @Max(50)
+  @Max(5000)
   limit = 30
 }
 
