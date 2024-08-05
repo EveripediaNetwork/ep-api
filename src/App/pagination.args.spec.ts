@@ -10,16 +10,16 @@ describe('PaginationArgs', () => {
     expect(args.limit).toEqual(30)
   })
 
-  it('should validate the limit to be within the range of 1 to 50', () => {
+  it('should validate the limit to be within the range of 1 to 5000', () => {
     args.limit = 0
     const errors = validateSync(args)
     expect(errors.length).toBeGreaterThan(0)
 
-    args.limit = 100
+    args.limit = 10000
     const errors2 = validateSync(args)
     expect(errors2.length).toBeGreaterThan(0)
 
-    args.limit = 25
+    args.limit = 2500
     const errors3 = validateSync(args)
     expect(errors3.length).toBe(0)
   })
