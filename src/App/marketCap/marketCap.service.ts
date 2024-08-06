@@ -51,7 +51,7 @@ class MarketCapService {
     const noCategoryId = marketCapId?.wikiId || id
 
     const wiki =
-      (await this.findWikiByCoingeckoUrl(id, category)) ||
+      (await this.findWikiByCoingeckoUrl(id, category, marketCapId?.wikiId)) ||
       (await wikiRepository
         .createQueryBuilder('wiki')
         .where('wiki.id = :id AND wiki.hidden = false', {
@@ -252,51 +252,61 @@ class MarketCapService {
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     try {
-      await marketCapIdRepository
-        .createQueryBuilder()
-        .insert()
-        .into(MarketCapIds)
-        .values(args)
-        .execute()
+      const existingRecord = await marketCapIdRepository.findOne({
+        where: { coingeckoId: args.coingeckoId },
+      })
+
+      if (existingRecord) {
+        await marketCapIdRepository.update(
+          { coingeckoId: args.coingeckoId },
+          { ...args },
+        )
+      } else {
+        await marketCapIdRepository.insert({
+          ...args,
+        })
+      }
       return true
     } catch (e) {
-      console.error(e)
+      console.error('Error in updateMistachIds:', e)
+      return false
     }
-    return false
   }
 
   async findWikiByCoingeckoUrl(
-    id: string,
+    coingeckoId: string,
     category: string,
+    id?: string,
   ): Promise<Wiki | null> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
-
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
     const coingeckoProfileUrl = `${baseCoingeckoUrl}/${
       category === 'cryptocurrencies' ? 'coins' : 'nft'
-    }/${id}`
-    const wiki = await wikiRepository
+    }/${coingeckoId}`
+
+    const queryBuilder = wikiRepository
       .createQueryBuilder('wiki')
-      .where('hidden = false')
+      .where('wiki.hidden = false')
       .andWhere(
-        `exists (
-            select 1
-            from json_array_elements(wiki.metadata) as meta
-            where meta->>'id' = 'coingecko_profile' and meta->>'value' = :url
-        )`,
-        {
-          url: coingeckoProfileUrl,
-        },
+        `EXISTS (
+        SELECT 1
+        FROM json_array_elements(wiki.metadata) AS meta
+        WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = :url
+      )`,
+        { url: coingeckoProfileUrl },
       )
       .innerJoinAndSelect(
         'wiki.categories',
         'category',
         'category.id = :categoryId',
-        {
-          categoryId: category,
-        },
+        { categoryId: category },
       )
-      .getOne()
+
+    if (id !== undefined) {
+      queryBuilder.andWhere('wiki.id = :wikiId', { wikiId: id })
+    }
+
+    const wiki = await queryBuilder.getOne()
     return wiki
   }
 }

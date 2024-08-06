@@ -145,7 +145,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -159,13 +159,16 @@ class PinService {
 
     if (!marketCapId || !marketCapId.linked) {
       const apiId = await this.getCgApiId(coingeckoUrl)
+      const coingeckoApiId = await marketCapIdRepo.findOneBy({
+        wikiId: wiki.id,
+      })
 
-      if (!apiId) {
+      if (!apiId || coingeckoApiId) {
         return { wikiObject: wiki, saveMatchedIdcallback: async () => {} }
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
@@ -175,17 +178,19 @@ class PinService {
         ].value = `https://www.coingecko.com/en/coins/${apiId}`
         console.info('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
-          const matchedId = marketCapIdRepo.create({
-            wikiId: wiki.id,
-            coingeckoId: apiId,
-            kind: RankType.TOKEN,
-            linked: false,
-          })
-
-          await marketCapIdRepo.save(matchedId)
+            const matchedId = marketCapIdRepo.create({
+              wikiId: wiki.id,
+              coingeckoId: apiId,
+              kind: RankType.TOKEN,
+              linked: false,
+            })
+            await marketCapIdRepo.save(matchedId)
         }
 
-        return { wikiObject: newWiki, saveMatchedIdcallback }
+        return {
+          wikiObject: newWiki,
+          saveMatchedIdcallback,
+        }
       }
     }
 
@@ -218,6 +223,7 @@ class PinService {
           slugId === coin.id
         ) {
           apiId = coin.id
+          console.log(apiId)
           break
         }
       }
