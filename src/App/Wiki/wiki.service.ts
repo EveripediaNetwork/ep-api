@@ -95,6 +95,15 @@ class WikiService {
     })
   }
 
+  async getWikiIdAndTitle(): Promise<Wiki[] | []> {
+    return (await this.repository())
+      .createQueryBuilder('wiki')
+      .select('id')
+      .addSelect('title')
+      .where('hidden = false')
+      .getRawMany()
+  }
+
   async getWikisByCategory(
     args: CategoryArgs,
     eventArgs?: EventArgs,
