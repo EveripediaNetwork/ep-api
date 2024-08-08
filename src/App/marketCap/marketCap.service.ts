@@ -27,6 +27,12 @@ const noContentWiki = {
   tags: [{ id: 'no-content' }],
 } as unknown as Partial<Wiki>
 
+interface RankPageWiki {
+  wiki: Wiki
+  founders: (Wiki | null)[]
+  blockchain: (Wiki | null)[]
+}
+
 @Injectable()
 class MarketCapService {
   constructor(
@@ -41,7 +47,10 @@ class MarketCapService {
     return this.configService.get('COINGECKO_API_KEY')
   }
 
-  private async findWiki(id: string, category: string) {
+  private async findWiki(
+    id: string,
+    category: string,
+  ): Promise<RankPageWiki | null> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     const marketCapId = await marketCapIdRepository.findOne({
@@ -76,7 +85,19 @@ class MarketCapService {
       ...wiki,
       tags: [...tag],
     }
-    return wiki && tag ? wikiAndTags : wiki
+    const wikiResult = wiki && tag ? wikiAndTags : wiki
+
+    const [founders, blockchain] = await Promise.all([
+      this.wikiService.getFullLinkedWikis(
+        wikiResult?.linkedWikis?.founders as string[],
+      ) || [],
+      this.wikiService.getFullLinkedWikis(
+        wikiResult?.linkedWikis?.blockchains as string[],
+      ) || [],
+    ])
+
+    const result = { wiki: wikiResult, founders, blockchain }
+    return result as RankPageWiki
   }
 
   private async getTags(id: string) {
@@ -94,13 +115,37 @@ class MarketCapService {
     )
   }
 
-  private async cryptoMarketData(args: MarketCapInputs) {
-    const { founders, category } = args
+  async getWikiData(
+    coinsData: Record<any, any> | undefined,
+    args: MarketCapInputs,
+  ): Promise<RankPageWiki[]> {
+    const kind = args.kind.toLowerCase()
+    const wikiPromises = coinsData?.data.map((element: any) =>
+      this.findWiki(element.id, kind),
+    )
+
+    let wikis: RankPageWiki[] | undefined = await this.cacheManager.get(
+      `wiki-${kind}-${args.limit}`,
+    )
+
+    if (!wikis) {
+      wikis = await Promise.all(wikiPromises)
+      this.cacheManager.set(`wiki-${kind}-${args.limit}`, wikis, {
+        ttl: 3600,
+      })
+    }
+    return wikis
+  }
+
+  async cryptoMarketData(args: MarketCapInputs) {
+    const { category } = args
     const categoryParam = category ? `category=${category}&` : ''
     const data = await this.cgMarketDataApiCall(args, categoryParam)
 
-    const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, 'cryptocurrencies')
+    const wikis = await this.getWikiData(data, args)
+
+    const result = data?.data.map(async (element: any, index: number) => {
+      const rankpageWiki = wikis[index]
 
       const tokenData = {
         image: element.image || '',
@@ -113,7 +158,7 @@ class MarketCapService {
         market_cap_change_24h: element.market_cap_change_24h || 0,
       }
 
-      if (!wiki) {
+      if (!rankpageWiki.wiki) {
         return {
           ...noContentWiki,
           id: tokenData.name,
@@ -125,15 +170,10 @@ class MarketCapService {
         }
       }
 
-      const founderWikis = founders
-        ? await this.wikiService.getFullLinkedWikis(
-            wiki.linkedWikis?.founders as string[],
-          )
-        : []
-
       const wikiAndCryptoMarketData = {
-        ...wiki,
-        founderWikis,
+        ...rankpageWiki.wiki,
+        founderWikis: rankpageWiki.founders,
+        blockchainWikis: rankpageWiki.blockchain,
         tokenMarketData: {
           hasWiki: true,
           ...tokenData,
@@ -145,12 +185,12 @@ class MarketCapService {
     return result
   }
 
-  private async nftMarketData(args: MarketCapInputs) {
-    const { founders } = args
+  async nftMarketData(args: MarketCapInputs) {
     const data = await this.cgMarketDataApiCall(args)
+    const wikis = await this.getWikiData(data, args)
 
-    const result = data?.data.map(async (element: any) => {
-      const wiki = await this.findWiki(element.id, 'nfts')
+    const result = data?.data.map(async (element: any, index: number) => {
+      const rankpageWiki = wikis[index]
       const nftData = {
         alias: null,
         name: element.name || '',
@@ -165,7 +205,7 @@ class MarketCapService {
         floor_price_in_usd_24h_percentage_change:
           element.floor_price_in_usd_24h_percentage_change || 0,
       }
-      if (!wiki) {
+      if (!rankpageWiki.wiki) {
         return {
           ...noContentWiki,
           id: nftData.name,
@@ -177,15 +217,10 @@ class MarketCapService {
         }
       }
 
-      const founderWikis = founders
-        ? await this.wikiService.getFullLinkedWikis(
-            wiki.linkedWikis?.founders as string[],
-          )
-        : []
-
       const wikiAndNftMarketData = {
-        ...wiki,
-        founderWikis,
+        ...rankpageWiki.wiki,
+        founderWikis: rankpageWiki.founders,
+        blockchainWikis: rankpageWiki.blockchain,
         nftMarketData: {
           hasWiki: true,
           ...nftData,
@@ -228,8 +263,8 @@ class MarketCapService {
     args: MarketCapInputs,
   ): Promise<TokenRankListData | NftRankListData> {
     const key = `finalResult/${args.kind}/${args.limit}/${args.offset}/${
-      args.founders
-    }${args.category ? `/${args.category}` : ''}`
+      args.category ? `/${args.category}` : ''
+    }`
 
     const finalCachedResult: any | undefined = await this.cacheManager.get(key)
 
