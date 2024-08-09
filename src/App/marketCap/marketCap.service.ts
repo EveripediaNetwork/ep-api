@@ -125,7 +125,7 @@ class MarketCapService {
     )
 
     let wikis: RankPageWiki[] | undefined = await this.cacheManager.get(
-      `wiki-${kind}-${args.limit}`,
+      `wiki-${kind}-${args.limit}-${args.category}`,
     )
 
     if (!wikis) {
