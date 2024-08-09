@@ -137,25 +137,46 @@ class MarketCapService {
     return wikis
   }
 
-  async cryptoMarketData(args: MarketCapInputs) {
-    const { category } = args
+  async marketData(args: MarketCapInputs) {
+    const { category, kind } = args
     const categoryParam = category ? `category=${category}&` : ''
     const data = await this.cgMarketDataApiCall(args, categoryParam)
-
     const wikis = await this.getWikiData(data, args)
 
-    const result = data?.data.map(async (element: any, index: number) => {
-      const rankpageWiki = wikis[index]
+    const processElement = (element: any, rankpageWiki: any) => {
+      const tokenData =
+        kind === RankType.TOKEN
+          ? {
+              image: element.image || '',
+              name: element.name || '',
+              alias: element.symbol || '',
+              current_price: element.current_price || 0,
+              market_cap: element.market_cap || 0,
+              market_cap_rank: element.market_cap_rank || 0,
+              price_change_24h: element.price_change_percentage_24h || 0,
+              market_cap_change_24h: element.market_cap_change_24h || 0,
+            }
+          : {
+              alias: null,
+              name: element.name || '',
+              image: element.image?.small || '',
+              native_currency: element.native_currency || '',
+              native_currency_symbol: element.native_currency_symbol || '',
+              floor_price_eth: element.floor_price?.native_currency || 0,
+              floor_price_usd: element.floor_price?.usd || 0,
+              market_cap_usd: element.market_cap?.usd || 0,
+              h24_volume_usd: element.volume_24h?.usd || 0,
+              h24_volume_native_currency:
+                element.volume_24h?.native_currency || 0,
+              floor_price_in_usd_24h_percentage_change:
+                element.floor_price_in_usd_24h_percentage_change || 0,
+            }
 
-      const tokenData = {
-        image: element.image || '',
-        name: element.name || '',
-        alias: element.symbol || '',
-        current_price: element.current_price || 0,
-        market_cap: element.market_cap || 0,
-        market_cap_rank: element.market_cap_rank || 0,
-        price_change_24h: element.price_change_percentage_24h || 0,
-        market_cap_change_24h: element.market_cap_change_24h || 0,
+      const marketData = {
+        [kind === RankType.TOKEN ? 'tokenMarketData' : 'nftMarketData']: {
+          hasWiki: !!rankpageWiki.wiki,
+          ...tokenData,
+        },
       }
 
       if (!rankpageWiki.wiki) {
@@ -163,71 +184,23 @@ class MarketCapService {
           ...noContentWiki,
           id: tokenData.name,
           title: tokenData.name,
-          tokenMarketData: {
-            hasWiki: false,
-            ...tokenData,
-          },
+          ...marketData,
         }
       }
 
-      const wikiAndCryptoMarketData = {
+      return {
         ...rankpageWiki.wiki,
         founderWikis: rankpageWiki.founders,
         blockchainWikis: rankpageWiki.blockchain,
-        tokenMarketData: {
-          hasWiki: true,
-          ...tokenData,
-        },
+        ...marketData,
       }
-      return wikiAndCryptoMarketData
-    })
+    }
 
-    return result
-  }
-
-  async nftMarketData(args: MarketCapInputs) {
-    const data = await this.cgMarketDataApiCall(args)
-    const wikis = await this.getWikiData(data, args)
-
-    const result = data?.data.map(async (element: any, index: number) => {
-      const rankpageWiki = wikis[index]
-      const nftData = {
-        alias: null,
-        name: element.name || '',
-        image: element.image.small || '',
-        native_currency: element.native_currency || '',
-        native_currency_symbol: element.native_currency_symbol || '',
-        floor_price_eth: element.floor_price.native_currency || 0,
-        floor_price_usd: element.floor_price.usd || 0,
-        market_cap_usd: element.market_cap.usd || 0,
-        h24_volume_usd: element.volume_24h.usd || 0,
-        h24_volume_native_currency: element.volume_24h.native_currency || 0,
-        floor_price_in_usd_24h_percentage_change:
-          element.floor_price_in_usd_24h_percentage_change || 0,
-      }
-      if (!rankpageWiki.wiki) {
-        return {
-          ...noContentWiki,
-          id: nftData.name,
-          title: nftData.name,
-          nftMarketData: {
-            hasWiki: false,
-            ...nftData,
-          },
-        }
-      }
-
-      const wikiAndNftMarketData = {
-        ...rankpageWiki.wiki,
-        founderWikis: rankpageWiki.founders,
-        blockchainWikis: rankpageWiki.blockchain,
-        nftMarketData: {
-          hasWiki: true,
-          ...nftData,
-        },
-      }
-      return wikiAndNftMarketData
-    })
+    const result = await Promise.all(
+      data?.data.map((element: any, index: number) =>
+        processElement(element, wikis[index]),
+      ),
+    )
 
     return result
   }
@@ -273,11 +246,9 @@ class MarketCapService {
     let result
 
     if (args.kind === RankType.NFT) {
-      result = (await this.nftMarketData(args)) as unknown as NftRankListData
+      result = (await this.marketData(args)) as unknown as NftRankListData
     } else {
-      result = (await this.cryptoMarketData(
-        args,
-      )) as unknown as TokenRankListData
+      result = (await this.marketData(args)) as unknown as TokenRankListData
     }
 
     await this.cacheManager.set(key, result, { ttl: 180 })
