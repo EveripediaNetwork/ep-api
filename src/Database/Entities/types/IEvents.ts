@@ -9,4 +9,3 @@ export interface IEvents {
   multiDateStart?: string
   multiDateEnd?: string
 }
-
