@@ -116,7 +116,6 @@ class DBStoreService {
       auxiliaryId: wiki.id,
     })
 
-
     const onEeventTable = await eventRepository.findOneBy({
       ...t,
       wikiId: wiki.id,
