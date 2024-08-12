@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { Field, ObjectType, registerEnumType } from '@nestjs/graphql'
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { EventType } from '@everipedia/iq-utils'
 import {
   Column,
@@ -15,6 +15,7 @@ registerEnumType(EventType, { name: 'EventType' })
 @ObjectType()
 @Entity()
 class Events {
+  @Field(() => ID, { nullable: true })
   @PrimaryGeneratedColumn('uuid')
   id!: string
 

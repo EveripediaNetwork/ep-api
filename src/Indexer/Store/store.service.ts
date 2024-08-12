@@ -17,6 +17,7 @@ import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import { eventWiki } from '../../App/Tag/tag.dto'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 @Injectable()
 class DBStoreService {
@@ -43,6 +44,7 @@ class DBStoreService {
     const languageRepository = this.dataSource.getRepository(Language)
     const userRepository = this.dataSource.getRepository(User)
     const tagRepository = this.dataSource.getRepository(Tag)
+    const eventRepository = this.dataSource.getRepository(Events)
     const categoryRepository = this.dataSource.getRepository(Category)
     const activityRepository = this.dataSource.getRepository(Activity)
     const marketCapIdRepo = this.dataSource.getRepository(MarketCapIds)
@@ -113,6 +115,13 @@ class DBStoreService {
     const existSub = await iqSubscriptionRepository.findOneBy({
       auxiliaryId: wiki.id,
     })
+
+
+    const onEeventTable = await eventRepository.findOneBy({
+      ...t,
+      wikiId: wiki.id,
+    })
+
     const newDate = new Date(Date.now())
     const incomingActivity = {
       wikiId: wiki.id,

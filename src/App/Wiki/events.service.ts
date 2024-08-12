@@ -223,6 +223,7 @@ class EventsService {
     let queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       .limit(args.limit)
