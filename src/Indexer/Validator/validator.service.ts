@@ -215,51 +215,6 @@ class IPFSValidatorService {
     }
 
     const checkMedia = (validatingWiki: WikiType) => {
-      //   if (!validatingWiki.media) return true
-
-      //   const size = validatingWiki.media.length
-      //     // Excess media, keep under 25
-
-      //   const contentCheck =  validatingWiki.media.every((m,  i)=> {
-      //     let isContentValid = true
-
-      //     if (
-      //       m.source === MediaSource.IPFS_IMG ||
-      //       m.source === MediaSource.IPFS_VID
-      //     ) {
-      //       isContentValid = m.id.length !== 46
-      //       // invalid id for ipfs image
-      //       if(m.id.length !== 46) {
-      //         console.log('invalid id for ipfs image', m.id, validatingWiki.media[i])
-      //       }
-      //     }
-
-      //     if (m.source === MediaSource.YOUTUBE) {
-      //       const validYTLinkReg =
-      //         /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
-      //       isContentValid =
-      //         m.id === `https://www.youtube.com/watch?v=${m.name}` &&
-      //         validYTLinkReg.test(m.id)
-      //     }
-      //     if (m.source === MediaSource.VIMEO) {
-      //       isContentValid = m.id === `https://vimeo.com/${m.name}`
-      //     }
-
-      //     if (m.type && !Object.values(MediaType).includes(m.type)) {
-      //       isContentValid = false
-      //     }
-      //     return isContentValid
-      //   })
-
-      //   const wikiMediasWithIcon = validatingWiki.media.filter(
-      //     m => m.type === MediaType.ICON,
-      //   )
-
-      //   const isValidMedia =
-      //     size <= 25 && contentCheck && wikiMediasWithIcon.length <= 1
-      //   if (!isValidMedia) message = ValidatorCodes.MEDIA
-      //   return isValidMedia
-
       if (!validatingWiki.media || validatingWiki.media.length === 0)
         return true
 
@@ -309,49 +264,6 @@ class IPFSValidatorService {
 
       return isValidMedia
     }
-
-    // const checkEvents = (validatingWiki: WikiType) => {
-    //   if (!validatingWiki.events) return true
-    //   let isValid = true
-
-    //   const checkDate = (str: string) => {
-    //     const date = new Date(str)
-    //     return date.toString() !== 'Invalid Date'
-    //   }
-
-    //   for (const event of validatingWiki.events) {
-    //     let isDateValid
-    //     if (event.type === EventType.MULTIDATE) {
-    //       isDateValid =
-    //         checkDate(event.multiDateStart as string) &&
-    //         checkDate(event.multiDateEnd as string)
-    //     } else {
-    //       isDateValid = checkDate(event.date)
-    //     }
-    //     const isLinkValid = event.link
-    //       ? isValidUrl(event.link) && event.link.length < 500
-    //       : true
-    //     const isDescriptionValid = event.description
-    //       ? event.description.length <= 255
-    //       : true
-    //     const isTitleValid = event.title ? event.title.length < 80 : true
-    //     const isTypeValid = Object.values(EventType).includes(event.type)
-
-    //     if (
-    //       !isDateValid ||
-    //       !isLinkValid ||
-    //       !isDescriptionValid ||
-    //       !isTitleValid ||
-    //       !isTypeValid
-    //     ) {
-    //       isValid = false
-    //       break
-    //     }
-    //   }
-
-    //   if (!isValid) message = ValidatorCodes.EVENTS
-    //   return isValid
-    // }
 
     const checkEvents = (validatingWiki: WikiType): boolean => {
       const checkDate = (str: string): boolean => {
