@@ -372,7 +372,7 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.MEDIA,
+      message: expect.stringContaining(ValidatorCodes.MEDIA),
     })
   })
 
@@ -398,7 +398,7 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.MEDIA,
+      message: expect.stringContaining(ValidatorCodes.MEDIA),
     })
   })
 
@@ -414,7 +414,7 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.EVENTS,
+      message: expect.stringContaining(ValidatorCodes.EVENTS),
     })
   })
 
@@ -430,7 +430,7 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.EVENTS,
+      message: expect.stringContaining(ValidatorCodes.EVENTS),
     })
   })
 
@@ -447,7 +447,7 @@ describe('PinResolver', () => {
     }
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.EVENTS,
+      message: expect.stringContaining(ValidatorCodes.EVENTS),
     })
   })
 
@@ -577,7 +577,7 @@ describe('PinResolver', () => {
 
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.MEDIA,
+      message: expect.stringContaining(ValidatorCodes.MEDIA),
     })
   })
 
@@ -746,7 +746,7 @@ describe('PinResolver', () => {
 
     expect(await ipfsValidatorService.validate(wiki, true)).toEqual({
       status: false,
-      message: ValidatorCodes.MEDIA,
+      message: expect.stringContaining(ValidatorCodes.MEDIA),
     })
   })
 })

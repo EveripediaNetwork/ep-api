@@ -11,6 +11,7 @@ import {
   whiteListedLinkNames,
   whiteListedDomains,
   EventType,
+  Media,
 } from '@everipedia/iq-utils'
 import { isValidUrl } from '../../App/utils/getWikiFields'
 import { WikiSummarySize } from '../../App/utils/getWikiSummary'
@@ -22,6 +23,37 @@ export type ValidatorResult = {
 
 @Injectable()
 class IPFSValidatorService {
+  private isValidIpfsMedia(media: Media) {
+    const isIpfsMedia =
+      media.source === MediaSource.IPFS_IMG ||
+      media.source === MediaSource.IPFS_VID
+    if (isIpfsMedia && media.id.length !== 46) {
+      return false
+    }
+    return true
+  }
+
+  private isValidYoutubeMedia(media: Media) {
+    if (media.source !== MediaSource.YOUTUBE) return true
+    const validYTLinkReg =
+      /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
+    return (
+      media.id === `https://www.youtube.com/watch?v=${media.name}` &&
+      validYTLinkReg.test(media.id)
+    )
+  }
+
+  private isValidVimeoMedia(media: Media) {
+    return (
+      media.source !== MediaSource.VIMEO ||
+      media.id === `https://vimeo.com/${media.name}`
+    )
+  }
+
+  private isValidMediaType(media: Media) {
+    return !media.type || Object.values(MediaType).includes(media.type)
+  }
+
   async validate(
     wiki: WikiType,
     validateJSON?: boolean,
@@ -41,6 +73,7 @@ class IPFSValidatorService {
         return true
       }
       if (!justCheck) message = ValidatorCodes.ID
+      // Slug ID > 60
       return false
     }
 
@@ -49,6 +82,7 @@ class IPFSValidatorService {
       if (resp) {
         return resp
       }
+      // invalid language - validatingWiki.language
       message = ValidatorCodes.LANGUAGE
       return resp
     }
@@ -57,6 +91,7 @@ class IPFSValidatorService {
       if (validatingWiki.content.split(' ').length >= 100) {
         return true
       }
+      // content words are < 100
       message = ValidatorCodes.WORDS
       return false
     }
@@ -65,6 +100,7 @@ class IPFSValidatorService {
       if (validatingWiki.categories.length === 1) {
         return true
       }
+      // Categories for a wiki must be only one
       message = ValidatorCodes.CATEGORY
       return false
     }
@@ -76,6 +112,7 @@ class IPFSValidatorService {
       if (validUser || validateJSON) {
         return true
       }
+      // User on wiki object differs from user log data or no user present
       message = ValidatorCodes.USER
       return false
     }
@@ -88,30 +125,37 @@ class IPFSValidatorService {
       ) {
         return true
       }
+      //  summary char length ${validatingWiki.summary.length} has execeeded limit
       message = ValidatorCodes.SUMMARY
       return false
     }
 
+    const checkTags = (validatingWiki: WikiType) => {
+      if (validatingWiki.tags.length <= 5) {
+        return true
+      }
+      message = ValidatorCodes.TAG
+      return false
+    }
+
     const checkImages = (validatingWiki: WikiType) => {
-      if (!validatingWiki.images) return false
-      if (
-        validatingWiki.images.length >= 1 &&
-        validatingWiki.images.length <= 5
-      ) {
-        let result = true
-        validatingWiki.images.forEach((image) => {
+      if (validatingWiki.images && validatingWiki.images.length <= 5) {
+        const allImagesValid = validatingWiki.images.every((image) => {
           const keys = Object.keys(image)
-          const key = keys.includes('id') && keys.includes('type')
-          result =
-            key &&
+          const hasRequiredKeys = keys.includes('id') && keys.includes('type')
+
+          return (
+            hasRequiredKeys &&
             image.id.length === 46 &&
             (image.type as string).includes('image')
+          )
         })
-        if (!result) {
-          message = ValidatorCodes.IMAGE
+
+        if (allImagesValid) {
+          return true
         }
-        return result
       }
+      message = ValidatorCodes.IMAGE
       return false
     }
 
@@ -170,96 +214,130 @@ class IPFSValidatorService {
       return false
     }
 
-    const checkTags = (validatingWiki: WikiType) => {
-      if (validatingWiki.tags.length <= 5) {
-        return true
-      }
-      message = ValidatorCodes.TAG
-      return false
-    }
-
     const checkMedia = (validatingWiki: WikiType) => {
-      if (!validatingWiki.media) return true
+      if (!validatingWiki.media || validatingWiki.media.length === 0)
+        return true
 
-      const size = validatingWiki.media.length
+      const subMessages: string[] = []
 
-      const contentCheck = validatingWiki.media.every((m) => {
-        let isContentValid = true
+      if (validatingWiki.media.length > 25) {
+        subMessages.push(
+          `Excess media: ${validatingWiki.media.length} (max 25)`,
+        )
+      }
 
-        if (
-          m.source === MediaSource.IPFS_IMG ||
-          m.source === MediaSource.IPFS_VID
-        ) {
-          isContentValid = m.id.length === 46
+      validatingWiki.media.forEach((media, index) => {
+        if (!this.isValidIpfsMedia(media)) {
+          subMessages.push(
+            `Invalid IPFS media ID at index ${index}: ${media.id}`,
+          )
         }
-
-        if (m.source === MediaSource.YOUTUBE) {
-          const validYTLinkReg =
-            /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|&v(?:i)?=))([^#&?]*).*/
-          isContentValid =
-            m.id === `https://www.youtube.com/watch?v=${m.name}` &&
-            validYTLinkReg.test(m.id)
+        if (!this.isValidYoutubeMedia(media)) {
+          subMessages.push(
+            `Invalid YouTube link at index ${index}: ${media.id}`,
+          )
         }
-        if (m.source === MediaSource.VIMEO) {
-          isContentValid = m.id === `https://vimeo.com/${m.name}`
+        if (!this.isValidVimeoMedia(media)) {
+          subMessages.push(`Invalid Vimeo link at index ${index}: ${media.id}`)
         }
-
-        if (m.type && !Object.values(MediaType).includes(m.type)) {
-          isContentValid = false
+        if (!this.isValidMediaType(media)) {
+          subMessages.push(
+            `Invalid media type at index ${index}: ${media.type}`,
+          )
         }
-        return isContentValid
       })
 
-      const wikiMediasWithIcon = validatingWiki.media.filter(
+      const iconCount = validatingWiki.media.filter(
         (m) => m.type === MediaType.ICON,
-      )
+      ).length
+      if (iconCount > 1) {
+        subMessages.push(`Too many icons: ${iconCount} (max 1)`)
+      }
 
-      const isValidMedia =
-        size <= 25 && contentCheck && wikiMediasWithIcon.length <= 1
-      if (!isValidMedia) message = ValidatorCodes.MEDIA
+      const isValidMedia = subMessages.length === 0
+
+      if (!isValidMedia) {
+        message = `${ValidatorCodes.MEDIA}\n\n${subMessages.join(
+          '\n',
+        )}` as ValidatorCodes
+      }
+
       return isValidMedia
     }
 
-    const checkEvents = (validatingWiki: WikiType) => {
-      if (!validatingWiki.events) return true
-      let isValid = true
-
-      const checkDate = (str: string) => {
+    const checkEvents = (validatingWiki: WikiType): boolean => {
+      const checkDate = (str: string): boolean => {
         const date = new Date(str)
         return date.toString() !== 'Invalid Date'
       }
 
-      for (const event of validatingWiki.events) {
-        let isDateValid
-        if (event.type === EventType.MULTIDATE) {
-          isDateValid =
-            checkDate(event.multiDateStart as string) &&
-            checkDate(event.multiDateEnd as string)
-        } else {
-          isDateValid = checkDate(event.date)
-        }
-        const isLinkValid = event.link
-          ? isValidUrl(event.link) && event.link.length < 500
-          : true
-        const isDescriptionValid = event.description
-          ? event.description.length <= 255
-          : true
-        const isTitleValid = event.title ? event.title.length < 80 : true
-        const isTypeValid = Object.values(EventType).includes(event.type)
+      if (!validatingWiki.events || validatingWiki.events.length === 0)
+        return true
 
-        if (
-          !isDateValid ||
-          !isLinkValid ||
-          !isDescriptionValid ||
-          !isTitleValid ||
-          !isTypeValid
-        ) {
-          isValid = false
-          break
+      const subMessages: string[] = []
+
+      validatingWiki.events.forEach((event, index) => {
+        const eventErrors: string[] = []
+
+        // Check date validity
+        if (event.type === EventType.MULTIDATE) {
+          if (!checkDate(event.multiDateStart as string)) {
+            eventErrors.push('Invalid multiDateStart')
+          }
+          if (!checkDate(event.multiDateEnd as string)) {
+            eventErrors.push('Invalid multiDateEnd')
+          }
+        } else if (!checkDate(event.date)) {
+          eventErrors.push('Invalid date')
         }
+
+        // Check link validity
+        if (event.link) {
+          if (!isValidUrl(event.link)) {
+            eventErrors.push('Invalid link URL')
+          } else if (event.link.length >= 500) {
+            eventErrors.push(
+              `Link too long: ${event.link.length} chars (max 500)`,
+            )
+          }
+        }
+
+        // Check description validity
+        if (event.description && event.description.length > 255) {
+          eventErrors.push(
+            `Description too long: ${event.description.length} chars (max 255)`,
+          )
+        }
+
+        // Check title validity
+        if (event.title && event.title.length >= 80) {
+          eventErrors.push(
+            `Title too long: ${event.title.length} chars (max 80})`,
+          )
+        }
+
+        // Check type validity
+        if (!Object.values(EventType).includes(event.type)) {
+          eventErrors.push(`Invalid event type: ${event.type}`)
+        }
+
+        if (eventErrors.length > 0) {
+          subMessages.push(
+            `Event at index ${index} has following errors:\n  ${eventErrors.join(
+              '\n  ',
+            )}`,
+          )
+        }
+      })
+
+      const isValid = subMessages.length === 0
+
+      if (!isValid) {
+        message = `${ValidatorCodes.EVENTS}\n${subMessages.join(
+          '\n',
+        )}` as ValidatorCodes
       }
 
-      if (!isValid) message = ValidatorCodes.EVENTS
       return isValid
     }
 
@@ -293,8 +371,8 @@ class IPFSValidatorService {
       checkWords(wiki) &&
       checkCategories(wiki) &&
       checkUser(wiki) &&
-      checkTags(wiki) &&
       checkSummary(wiki) &&
+      checkTags(wiki) &&
       checkImages(wiki) &&
       checkExternalUrls(wiki) &&
       checkMetadata(wiki) &&
