@@ -41,8 +41,8 @@ class DBStoreService {
       return
     }
 
-    const createEvents = wiki.events.filter(event => !event.id)
-    const updateEvents = wiki.events.filter(event => event.id)
+    const createEvents = wiki.events.filter((event) => !event.id)
+    const updateEvents = wiki.events.filter((event) => event.id)
 
     if (createEvents.length > 0) {
       const newEvents = eventRepository.create(createEvents)
@@ -50,13 +50,15 @@ class DBStoreService {
     }
 
     if (updateEvents.length > 0) {
-      const existingEventIds = updateEvents.map(event => event.id)
+      const existingEventIds = updateEvents.map((event) => event.id)
       const existingEvents = await eventRepository.findBy({
         id: In(existingEventIds),
       })
 
       for (const event of updateEvents) {
-        const existingEvent = existingEvents.find((e: { id: string }) => e.id === event.id)
+        const existingEvent = existingEvents.find(
+          (e: { id: string }) => e.id === event.id,
+        )
         if (existingEvent) {
           await eventRepository.update({ id: event.id }, event)
         }
@@ -328,7 +330,7 @@ class DBStoreService {
     txhash: string,
     type = 'CREATE',
   ) {
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     this.posthogService.capture({
       distinctId: ipfs,
       event: `Indexer Wiki ${type}`,
