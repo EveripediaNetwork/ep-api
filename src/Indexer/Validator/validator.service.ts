@@ -140,7 +140,7 @@ class IPFSValidatorService {
 
     const checkImages = (validatingWiki: WikiType) => {
       if (validatingWiki.images && validatingWiki.images.length <= 5) {
-        const allImagesValid = validatingWiki.images.every(image => {
+        const allImagesValid = validatingWiki.images.every((image) => {
           const keys = Object.keys(image)
           const hasRequiredKeys = keys.includes('id') && keys.includes('type')
 
@@ -162,7 +162,7 @@ class IPFSValidatorService {
     const checkExternalUrls = (validatingWiki: WikiType) => {
       const markdownLinks = validatingWiki.content.match(/\[(.*?)\]\((.*?)\)/g)
       let isValid = true
-      markdownLinks?.every(link => {
+      markdownLinks?.every((link) => {
         const linkMatch = link.match(/\[(.*?)\]\((.*?)\)/)
         const text = linkMatch?.[1]
         const url = linkMatch?.[2]
@@ -198,7 +198,7 @@ class IPFSValidatorService {
         ...Object.values(EditSpecificMetaIds),
       ]
 
-      const valueField = validatingWiki.metadata.every(e => {
+      const valueField = validatingWiki.metadata.every((e) => {
         ids.includes(e.id as unknown as CommonMetaIds | EditSpecificMetaIds)
         if (e.id !== CommonMetaIds.REFERENCES) {
           return e.value.length < 255
@@ -293,7 +293,7 @@ class IPFSValidatorService {
       })
 
       const iconCount = validatingWiki.media.filter(
-        m => m.type === MediaType.ICON,
+        (m) => m.type === MediaType.ICON,
       ).length
       if (iconCount > 1) {
         subMessages.push(`Too many icons: ${iconCount} (max 1)`)

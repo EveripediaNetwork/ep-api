@@ -145,7 +145,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      e => e.id === 'coingecko_profile',
+      (e) => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -168,7 +168,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        item => item.id === 'coingecko_profile',
+        (item) => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
