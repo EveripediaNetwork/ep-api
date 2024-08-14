@@ -129,7 +129,7 @@ class Wiki {
   @Column('json', { nullable: true })
   linkedWikis?: LinkedWikis
 
-//   @Field(() => [Events], { nullable: true })
+  //   @Field(() => [Events], { nullable: true })
   @Column('json', { nullable: true })
   events?: Events[]
 
