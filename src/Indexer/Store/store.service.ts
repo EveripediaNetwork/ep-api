@@ -41,16 +41,24 @@ class DBStoreService {
       return
     }
 
-    const createEvents = wiki.events.filter((event) => !event.id)
-    const updateEvents = wiki.events.filter((event) => event.id)
-
+    let createEvents = wiki.events.filter(event => !event.id)
+    const updateEvents = wiki.events.filter(event => event.id)
+    createEvents = createEvents.map(e => {
+      if (e.date.length === 7) {
+        return {
+          ...e,
+          date: `${e.date}-01`,
+        }
+      }
+      return e
+    })
     if (createEvents.length > 0) {
       const newEvents = eventRepository.create(createEvents)
       await eventRepository.save(newEvents)
     }
 
     if (updateEvents.length > 0) {
-      const existingEventIds = updateEvents.map((event) => event.id)
+      const existingEventIds = updateEvents.map(event => event.id)
       const existingEvents = await eventRepository.findBy({
         id: In(existingEventIds),
       })
@@ -330,7 +338,7 @@ class DBStoreService {
     txhash: string,
     type = 'CREATE',
   ) {
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise(resolve => setTimeout(resolve, 0))
     this.posthogService.capture({
       distinctId: ipfs,
       event: `Indexer Wiki ${type}`,
