@@ -153,10 +153,10 @@ class WikiService {
     const endDate = (eventArgs as EventArgs)?.endDate as string
 
     let order
-
+    // TODO: events order fuse, join wikievents
     switch (args.order || eventArgs?.order) {
       case 'date':
-        order = this.orderFuse(args.direction, 'wiki')
+        order = this.orderFuse(args.direction)
         break
       case 'id':
         order = 'wiki.id'
@@ -201,10 +201,10 @@ class WikiService {
     return this.applyDateFilter(baseQuery, dates) as SelectQueryBuilder<Wiki>
   }
 
-  orderFuse(direction: Direction, table: string) {
-    return `COALESCE(${table}.events->0->>'date', ${table}.events->0->>'${
+  orderFuse(direction: Direction) {
+    return `COALESCE("wikiEvents".date, "wikiEvents"."${
       direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-    }')`
+    }")`
   }
 
   applyDateFilter(
@@ -220,43 +220,24 @@ class WikiService {
 
     if (typeof queryBuilder !== 'string') {
       return queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.orWhere("wiki.events->0->>'type' IS NULL").orWhere(
-            "wiki.events->0->>'type' = 'DEFAULT'",
-          )
-          if (endDate) {
-            qb.andWhere("wiki.events->0->>'date' BETWEEN :start AND :end", {
-              start: startDate,
-              end: endDate,
-            }).orWhere(
-              new Brackets((qb2) => {
-                qb2
-                  .where("wiki.events->0->>'type' = 'MULTIDATE'")
-                  .andWhere(
-                    ":start <= wiki.events->0->>'multiDateStart'  AND wiki.events->0->>'multiDateStart' <= :end",
-                    {
-                      start: startDate,
-                      end: endDate,
-                    },
-                  )
-                  .orWhere(
-                    ":start <= wiki.events->0->>'multiDateEnd'  AND wiki.events->0->>'multiDateEnd' <= :end",
-                    {
-                      start: startDate,
-                      end: endDate,
-                    },
-                  )
-              }),
+        new Brackets((query) => {
+          if (args.startDate && !args.endDate) {
+            query.andWhere(
+              'wikiEvents.date >= :start OR wikiEvents.multiDateStart >= :start',
+              { start: startDate },
             )
-          } else {
-            qb.andWhere("wiki.events->0->>'date' >= :start", {
-              start: args.startDate,
-            }).orWhere("wiki.events->0->>'type' = 'MULTIDATE'")
-            qb.andWhere(
-              `:start >= wiki.events->0->>'multiDateStart' AND :start <= wiki.events->0->>'multiDateEnd'`,
-              {
-                start: startDate,
-              },
+          }
+          if (args.endDate) {
+            query.andWhere(
+              `
+            CASE
+                WHEN wikiEvents.date IS NOT NULL THEN 
+                    wikiEvents.date BETWEEN :start AND :end
+                ELSE 
+                    wikiEvents.multiDateStart <= :end AND wikiEvents.multiDateEnd >= :start
+            END
+        `,
+              { end: endDate, start: startDate },
             )
           }
         }),
@@ -266,41 +247,21 @@ class WikiService {
     const dateCondition =
       args.endDate && params
         ? `
-        (
-           wiki.events->0->>'type' = 'DEFAULT' AND
-           wiki.events->0->>'date' BETWEEN $${params.length - 1} AND $${
-            params.length
-          }
-        )
-         OR 
-        (
-            wiki.events->0->>'type' = 'MULTIDATE' 
-            AND (
-                $${params.length - 1} <= wiki.events->0->>'multiDateStart'  
-                AND wiki.events->0->>'multiDateStart' <= $${params.length}
-                OR 
-                $${params.length - 1} <= wiki.events->0->>'multiDateEnd'  
-                AND wiki.events->0->>'multiDateEnd' <= $${params.length}
-            )
-        )
+            CASE
+                WHEN "wikiEvents".date IS NOT NULL THEN 
+                    "wikiEvents".date BETWEEN $5 AND $6
+                ELSE 
+                    "wikiEvents"."multiDateStart" <= $6 AND "wikiEvents"."multiDateEnd" >= $5
+            END
             `
         : `
           (
-            wiki.events->0->>'type' = 'DEFAULT' AND
-            wiki.events->0->>'date' >= $${params?.length}
-          )
-          OR
-          (
-            wiki.events->0->>'type' = 'MULTIDATE' 
-            AND (
-                $${params?.length} >= wiki.events->0->>'multiDateStart'  AND $${params?.length} <= wiki.events->0->>'multiDateEnd' 
-            )
+            "wikiEvents".date >= $5 OR "wikiEvents"."multiDateStart" >= $5
           )
             `
-
     return `
             AND (
-                wiki.events->0->>'type' IS NULL 
+                "wikiEvents".type IS NOT NULL 
                 OR 
                 ${dateCondition}
             )
@@ -532,15 +493,17 @@ class WikiService {
   async getPopularEvents(args: EventDefaultArgs) {
     let query = (await this.repository())
       .createQueryBuilder('wiki')
-
       .innerJoin('wiki.tags', 'tag')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .andWhere('wiki.hidden = false')
-      .orderBy('views', args.direction)
-      .limit(args.limit)
-      .offset(args.offset)
 
-    query = this.applyDateFilter(query, args) as SelectQueryBuilder<Wiki>
+    this.applyDateFilter(query, args) as SelectQueryBuilder<Wiki>
+
+    if (args.order === 'date') {
+      query = query.addOrderBy(this.orderFuse(args.direction), args.direction)
+    }
+    query.addOrderBy('views', 'DESC').limit(args.limit).offset(args.offset)
 
     return query.getMany()
   }

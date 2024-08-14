@@ -27,7 +27,7 @@ class EventsService {
 
       switch (args.order) {
         case 'date':
-          order = this.wikiService.orderFuse(args.direction, 'wiki')
+          order = this.wikiService.orderFuse(args.direction)
           break
         case 'id':
           order = 'wiki.id'
@@ -36,9 +36,10 @@ class EventsService {
           order = args.order
       }
 
-      let queryBuilder = repository
+      const queryBuilder = repository
         .createQueryBuilder('wiki')
         .leftJoinAndSelect('wiki.tags', 'tag')
+        .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
         .where('LOWER(tag.id) IN (:...tags)', {
           tags: ids.map((tag) => tag.toLowerCase()),
         })
@@ -53,17 +54,13 @@ class EventsService {
       }
 
       if (ids.length === 1) {
-        queryBuilder = this.wikiService.applyDateFilter(
+        this.wikiService.applyDateFilter(
           queryBuilder,
           args,
         ) as SelectQueryBuilder<Wiki>
       }
 
-      const result = await queryBuilder.getMany()
-      if (!result || !Array.isArray(result)) {
-        throw new Error('Result is undefined or not an array')
-      }
-      return result
+      return await queryBuilder.getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error
@@ -79,24 +76,26 @@ class EventsService {
 
     const order =
       args.order === 'date'
-        ? this.wikiService.orderFuse(args.direction, 'subquery')
+        ? this.wikiService.orderFuse(args.direction)
         : `"subquery"."${args.order}"`
 
     let mainQuery = `
-    SELECT "subquery".*
-    FROM (
-        SELECT
-            "wiki".*,
-            "tag"."id" AS "tagid",
-            COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
-        FROM "wiki" "wiki"
-        INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
-        INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
-        WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
-  `
+        SELECT "subquery".*
+        FROM (
+            SELECT
+                "wiki".*,
+                "wikiEvents".*,
+                "tag"."id" AS "tagid",
+                COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
+            FROM "wiki" "wiki"
+            INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
+            INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
+            WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
+        ) AS "subquery"
+        LEFT JOIN "events" "wikiEvents" ON "wikiEvents"."wikiId" = "subquery"."id"
+    `
 
     const queryEnd = `
-    ) AS "subquery"
       WHERE LOWER("subquery"."tagid") = LOWER($2) and "subquery"."wikiCount" > 1
       ORDER BY ${order} ${args.direction}
       OFFSET $3
@@ -215,14 +214,16 @@ class EventsService {
 
   async getEventsByLocationOrBlockchain(args: any, blockchain = false) {
     const repository = this.dataSource.getRepository(Wiki)
+    // TODO: events order fuse, join wikievents
     const order =
       args.order === 'date'
-        ? this.wikiService.orderFuse(args.direction, 'wiki')
+        ? this.wikiService.orderFuse(args.direction)
         : `wiki."${args.order}"`
 
     let queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       .limit(args.limit)
