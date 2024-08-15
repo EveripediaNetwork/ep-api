@@ -196,6 +196,7 @@ class WikiService {
   ): SelectQueryBuilder<Wiki> {
     const baseQuery = query
       .innerJoin('wiki.tags', 'tag')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .andWhere('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
 
     return this.applyDateFilter(baseQuery, dates) as SelectQueryBuilder<Wiki>
