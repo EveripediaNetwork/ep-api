@@ -31,31 +31,22 @@ class MarketCapResolver {
   @Mutation(() => Boolean)
   async linkWikiToRankData(
     @Args() args: RankPageIdInputs,
-    @Args('wikiId') wikiId: string,
-    @Args('coingeckoId') coingeckoId: string,
-    @Args('kind') kind: string,
   ): Promise<boolean> {
     try {
-      let finalWikiId = wikiId
-      if(wikiId.includes('https')){
-        finalWikiId = wikiId.split('/wiki/').pop() || ''
+      let wikiId = args.wikiId
+      if (wikiId.includes('https')) {
+        wikiId = wikiId.split('/wiki/').pop() || ''
       }
-      
-      if(!finalWikiId) {
-        console.error('Invalid wiki ID')
-        return false
-      }
-      const enumKind = RankType[kind as keyof typeof RankType]
 
-      if (!enumKind) {
-        console.error('Invalid kind')
+      if (!wikiId) {
+        console.error('Invalid wiki ID')
         return false
       }
 
       await this.marketCapService.updateMistachIds({
-        wikiId: finalWikiId,
-        coingeckoId: coingeckoId,
-        kind: enumKind,
+        wikiId: wikiId,
+        coingeckoId: args.coingeckoId,
+        kind: args.kind,
       })
 
       return true
