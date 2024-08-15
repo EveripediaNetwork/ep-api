@@ -128,7 +128,6 @@ export class MarketCapInputs extends PaginationArgs {
 @ArgsType()
 export class RankPageIdInputs {
   @Field(() => String)
-  @Validate(ValidStringParams)
   wikiId!: string
 
   @Field(() => String)
