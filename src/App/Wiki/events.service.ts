@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import {  DataSource, SelectQueryBuilder } from 'typeorm'
+import { DataSource, SelectQueryBuilder } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -28,14 +28,14 @@ class EventsService {
         .offset(args.offset)
 
       if (ids.length > 1) {
-        queryBuilder.where(qb => {
+        queryBuilder.where((qb) => {
           const subQuery = qb
             .subQuery()
             .select('subWiki.id')
             .from(Wiki, 'subWiki')
             .innerJoin('subWiki.tags', 'subTag')
             .where('LOWER(subTag.id) = ANY(:tagIds)', {
-              tagIds: ids.map(tag => tag.toLowerCase()),
+              tagIds: ids.map((tag) => tag.toLowerCase()),
             })
             .andWhere('subWiki.hidden = :hidden', { hidden: false })
             .groupBy('subWiki.id')
@@ -47,12 +47,10 @@ class EventsService {
         queryBuilder.where('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       }
 
-
       this.wikiService.applyDateFilter(
         queryBuilder,
         args,
       ) as SelectQueryBuilder<Wiki>
-
 
       switch (args.order) {
         case 'date':
@@ -74,7 +72,6 @@ class EventsService {
       throw error
     }
   }
-
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
     const ast = gql`
