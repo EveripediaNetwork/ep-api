@@ -15,6 +15,7 @@ export default class SentryMiddleware implements NestMiddleware {
       dsn: this.configService.get<string>('SENTRY_DSN'),
       tracesSampleRate: 0.3,
       integrations: [new Tracing.Integrations.Apollo()],
+      ignoreErrors: ['RangeError'],
     })
 
     process.setMaxListeners(0)

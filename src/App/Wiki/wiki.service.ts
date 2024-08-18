@@ -99,9 +99,7 @@ class WikiService {
     const wikiIdsList: { id: string; title: string }[] | undefined =
       await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('id')
       .addSelect('title')
@@ -130,9 +128,6 @@ class WikiService {
         lang,
         status: false,
       })
-      .limit(limit)
-      .offset(offset)
-      .orderBy('wiki.updated', 'DESC')
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
@@ -141,7 +136,24 @@ class WikiService {
       })
     }
 
-    return query.getMany()
+    switch (args.order || eventArgs?.order) {
+      case 'date':
+        this.eventDateOrder(query, args.direction || eventArgs?.direction)
+        break
+
+      case 'id':
+        query.orderBy('wiki.id', args.direction || eventArgs?.direction)
+        break
+
+      default:
+        query.orderBy(
+          args.order || eventArgs?.order,
+          args.direction || eventArgs?.direction,
+        )
+        break
+    }
+
+    return query.limit(limit).offset(offset).getMany()
   }
 
   async getWikisByTitle(
@@ -152,18 +164,6 @@ class WikiService {
     const startDate = (eventArgs as EventArgs)?.startDate as string
     const endDate = (eventArgs as EventArgs)?.endDate as string
 
-    let order
-    // TODO: events order fuse, join wikievents
-    switch (args.order || eventArgs?.order) {
-      case 'date':
-        order = this.orderFuse(args.direction)
-        break
-      case 'id':
-        order = 'wiki.id'
-        break
-      default:
-        order = args.order || eventArgs?.order
-    }
     const title = `%${args.title.replace(/[\W_]+/g, '%').toLowerCase()}%`
 
     let query = (await this.repository())
@@ -176,9 +176,6 @@ class WikiService {
           hidden: false,
         },
       )
-      .limit(limit)
-      .offset(offset)
-      .orderBy(order, args.direction || eventArgs?.direction)
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
@@ -187,7 +184,24 @@ class WikiService {
       })
     }
 
-    return query.getMany()
+    switch (args.order || eventArgs?.order) {
+      case 'date':
+        this.eventDateOrder(query, args.direction || eventArgs?.direction)
+        break
+
+      case 'id':
+        query.orderBy('wiki.id', args.direction || eventArgs?.direction)
+        break
+
+      default:
+        query.orderBy(
+          args.order || eventArgs?.order,
+          args.direction || eventArgs?.direction,
+        )
+        break
+    }
+
+    return query.limit(limit).offset(offset).getMany()
   }
 
   eventsFilter(
@@ -202,35 +216,51 @@ class WikiService {
     return this.applyDateFilter(baseQuery, dates) as SelectQueryBuilder<Wiki>
   }
 
-  orderFuse(direction: Direction) {
-    return `COALESCE("wikiEvents".date, "wikiEvents"."${
-      direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-    }")`
+  eventDateOrder(query: SelectQueryBuilder<Wiki>, direction: Direction) {
+    query.addSelect(
+      `(SELECT 
+              MAX(COALESCE("we".date, "we"."${
+                direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
+              }"))
+            FROM 
+              "events" "we" 
+            WHERE 
+              "we"."wikiId" = "wiki"."id"
+          )`,
+      'latest_event_date',
+    )
+
+    query.addOrderBy('latest_event_date', direction)
+
+    query.addOrderBy(
+      `COALESCE("wikiEvents".date, "wikiEvents"."${
+        direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
+      }")`,
+      direction,
+      'NULLS LAST',
+    )
   }
 
   applyDateFilter(
-    queryBuilder: SelectQueryBuilder<Wiki> | string,
+    queryBuilder: SelectQueryBuilder<Wiki>,
     args: any,
-    params?: any[],
-  ): SelectQueryBuilder<Wiki> | string {
+  ): SelectQueryBuilder<Wiki> {
     if (!args.startDate) {
       return queryBuilder
     }
 
     const { startDate, endDate } = args
-
-    if (typeof queryBuilder !== 'string') {
-      return queryBuilder.andWhere(
-        new Brackets((query) => {
-          if (args.startDate && !args.endDate) {
-            query.andWhere(
-              'wikiEvents.date >= :start OR wikiEvents.multiDateStart >= :start',
-              { start: startDate },
-            )
-          }
-          if (args.endDate) {
-            query.andWhere(
-              `
+    return queryBuilder.andWhere(
+      new Brackets(query => {
+        if (args.startDate && !args.endDate) {
+          query.andWhere(
+            'wikiEvents.date >= :start OR wikiEvents.multiDateStart >= :other',
+            { start: startDate, other: startDate },
+          )
+        }
+        if (args.endDate) {
+          query.andWhere(
+            `
             CASE
                 WHEN wikiEvents.date IS NOT NULL THEN 
                     wikiEvents.date BETWEEN :start AND :end
@@ -238,35 +268,11 @@ class WikiService {
                     wikiEvents.multiDateStart <= :end AND wikiEvents.multiDateEnd >= :start
             END
         `,
-              { end: endDate, start: startDate },
-            )
-          }
-        }),
-      )
-    }
-
-    const dateCondition =
-      args.endDate && params
-        ? `
-            CASE
-                WHEN "wikiEvents".date IS NOT NULL THEN 
-                    "wikiEvents".date BETWEEN $5 AND $6
-                ELSE 
-                    "wikiEvents"."multiDateStart" <= $6 AND "wikiEvents"."multiDateEnd" >= $5
-            END
-            `
-        : `
-          (
-            "wikiEvents".date >= $5 OR "wikiEvents"."multiDateStart" >= $5
+            { end: endDate, start: startDate },
           )
-            `
-    return `
-            AND (
-                "wikiEvents".type IS NOT NULL 
-                OR 
-                ${dateCondition}
-            )
-        `
+        }
+      }),
+    )
   }
 
   async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
@@ -376,9 +382,7 @@ class WikiService {
           : []
 
       for (const promotedWiki of promotedWikis) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: 0 })
@@ -386,9 +390,7 @@ class WikiService {
           .execute()
       }
 
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: args.level })
@@ -401,9 +403,7 @@ class WikiService {
 
   async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -433,9 +433,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -461,9 +459,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
@@ -488,11 +484,11 @@ class WikiService {
         fullLinkedWikis.push(f)
       }
     }
-    return fullLinkedWikis.filter((item) => item !== null)
+    return fullLinkedWikis.filter(item => item !== null)
   }
 
   async getPopularEvents(args: EventDefaultArgs) {
-    let query = (await this.repository())
+    const query = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('wiki.tags', 'tag')
       .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
@@ -502,7 +498,7 @@ class WikiService {
     this.applyDateFilter(query, args) as SelectQueryBuilder<Wiki>
 
     if (args.order === 'date') {
-      query = query.addOrderBy(this.orderFuse(args.direction), args.direction)
+      this.eventDateOrder(query, args.direction)
     }
     query.addOrderBy('views', 'DESC').limit(args.limit).offset(args.offset)
 
