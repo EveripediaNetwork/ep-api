@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
+import { DataSource, SelectQueryBuilder } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -9,9 +9,6 @@ import User from '../../Database/Entities/user.entity'
 import { EventArgs, eventTag, hasField } from './wiki.dto'
 import WikiService from './wiki.service'
 
-function nullFilter(arr: any[]) {
-  return arr.filter((item: undefined) => item !== undefined)
-}
 @Injectable()
 class EventsService {
   constructor(
@@ -22,105 +19,58 @@ class EventsService {
   async events(ids: string[], args: EventArgs) {
     try {
       const repository = this.dataSource.getRepository(Wiki)
+      const queryBuilder = repository
+        .createQueryBuilder('wiki')
+        .innerJoin('wiki.tags', 'tag')
+        .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
+        .where('subWiki.hidden = :hidden', { hidden: false })
+        .limit(args.limit)
+        .offset(args.offset)
 
-      let order
+      if (ids.length > 1) {
+        queryBuilder.where((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('subWiki.id')
+            .from(Wiki, 'subWiki')
+            .innerJoin('subWiki.tags', 'subTag')
+            .where('LOWER(subTag.id) = ANY(:tagIds)', {
+              tagIds: ids.map((tag) => tag.toLowerCase()),
+            })
+            .andWhere('subWiki.hidden = :hidden', { hidden: false })
+            .groupBy('subWiki.id')
+            .having('COUNT(DISTINCT subTag.id) > 1')
+            .getQuery()
+          return `wiki.id IN ${subQuery}`
+        })
+      } else {
+        queryBuilder.where('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
+      }
+
+      this.wikiService.applyDateFilter(
+        queryBuilder,
+        args,
+      ) as SelectQueryBuilder<Wiki>
 
       switch (args.order) {
         case 'date':
-          order = this.wikiService.orderFuse(args.direction, 'wiki')
+          this.wikiService.eventDateOrder(queryBuilder, args.direction)
           break
+
         case 'id':
-          order = 'wiki.id'
+          queryBuilder.orderBy('wiki.id', args.direction)
           break
+
         default:
-          order = args.order
+          queryBuilder.orderBy(args.order, args.direction)
+          break
       }
 
-      let queryBuilder = repository
-        .createQueryBuilder('wiki')
-        .leftJoinAndSelect('wiki.tags', 'tag')
-        .where('LOWER(tag.id) IN (:...tags)', {
-          tags: ids.map((tag) => tag.toLowerCase()),
-        })
-        .andWhere('wiki.hidden = false')
-        .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
-        .limit(args.limit)
-        .offset(args.offset)
-        .orderBy(order, args.direction)
-
-      if (ids.length > 1) {
-        return await this.queryWikisWithMultipleTags(repository, ids, args)
-      }
-
-      if (ids.length === 1) {
-        queryBuilder = this.wikiService.applyDateFilter(
-          queryBuilder,
-          args,
-        ) as SelectQueryBuilder<Wiki>
-      }
-
-      const result = await queryBuilder.getMany()
-      if (!result || !Array.isArray(result)) {
-        throw new Error('Result is undefined or not an array')
-      }
-      return result
+      return await queryBuilder.getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error
     }
-  }
-
-  private async queryWikisWithMultipleTags(
-    repository: Repository<Wiki>,
-    ids: string[],
-    args: EventArgs,
-  ) {
-    const lowerCaseIds = ids.map((tag) => tag.toLowerCase())
-
-    const order =
-      args.order === 'date'
-        ? this.wikiService.orderFuse(args.direction, 'subquery')
-        : `"subquery"."${args.order}"`
-
-    let mainQuery = `
-    SELECT "subquery".*
-    FROM (
-        SELECT
-            "wiki".*,
-            "tag"."id" AS "tagid",
-            COUNT("wiki"."id") OVER (PARTITION BY "wiki"."id") AS "wikiCount"
-        FROM "wiki" "wiki"
-        INNER JOIN "wiki_tags_tag" "wiki_tag" ON "wiki_tag"."wikiId" = "wiki"."id"
-        INNER JOIN "tag" "tag" ON "tag"."id" = "wiki_tag"."tagId"
-        WHERE LOWER("tag"."id")  = ANY($1::text[]) AND "wiki"."hidden" = false
-  `
-
-    const queryEnd = `
-    ) AS "subquery"
-      WHERE LOWER("subquery"."tagid") = LOWER($2) and "subquery"."wikiCount" > 1
-      ORDER BY ${order} ${args.direction}
-      OFFSET $3
-      LIMIT $4`
-
-    const params = nullFilter([
-      lowerCaseIds,
-      eventTag,
-      args.offset,
-      args.limit,
-      args.startDate,
-      args.endDate,
-    ])
-
-    mainQuery = !args.startDate
-      ? (this.wikiService.applyDateFilter(mainQuery, args, params) as string)
-      : (mainQuery += this.wikiService.applyDateFilter(
-          mainQuery,
-          args,
-          params,
-        ) as string)
-    mainQuery += queryEnd
-
-    return repository.query(mainQuery, params)
   }
 
   async resolveWikiRelations(wikis: Wiki[], query: string): Promise<Wiki[]> {
@@ -215,19 +165,21 @@ class EventsService {
 
   async getEventsByLocationOrBlockchain(args: any, blockchain = false) {
     const repository = this.dataSource.getRepository(Wiki)
-    const order =
-      args.order === 'date'
-        ? this.wikiService.orderFuse(args.direction, 'wiki')
-        : `wiki."${args.order}"`
 
     let queryBuilder = repository
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.tags', 'tag')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.hidden = false')
       .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       .limit(args.limit)
       .offset(args.offset)
-      .orderBy(order, args.direction)
+
+    if (args.order === 'date') {
+      this.wikiService.eventDateOrder(queryBuilder, args.direction)
+    } else {
+      queryBuilder.orderBy(args.order, args.direction)
+    }
 
     if (blockchain) {
       const sub = `LOWER(:blockchain) IN (

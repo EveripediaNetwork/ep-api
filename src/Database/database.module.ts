@@ -20,6 +20,7 @@ import HiIQHolder from './Entities/hiIQHolder.entity'
 import IQHolderAddress from './Entities/iqHolderAddress.entity'
 import IQHolder from './Entities/iqHolder.entity'
 import MarketCapIds from './Entities/marketCapIds.entity'
+import Events from './Entities/Event.entity'
 
 @Module({
   imports: [
@@ -51,11 +52,12 @@ import MarketCapIds from './Entities/marketCapIds.entity'
           HiIQHolderAddress,
           IQHolder,
           IQHolderAddress,
-          MarketCapIds
+          MarketCapIds,
+          Events,
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        logging: ["error"]
+        logging: ['error'],
       }),
       inject: [ConfigService],
     }),

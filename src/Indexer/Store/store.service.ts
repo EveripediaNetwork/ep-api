@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, ILike, Repository } from 'typeorm'
+import { DataSource, ILike, In, Repository } from 'typeorm'
 import { Wiki as WikiType } from '@everipedia/iq-utils'
 import { PosthogService } from 'nestjs-posthog'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -17,6 +17,7 @@ import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import { eventWiki } from '../../App/Tag/tag.dto'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 @Injectable()
 class DBStoreService {
@@ -34,6 +35,45 @@ class DBStoreService {
     return oldHash === newHash && existActivity !== null
   }
 
+  async processWikiEvents(wiki: WikiType) {
+    const eventRepository = this.dataSource.getRepository(Events)
+    if (!wiki.events || wiki.events.length === 0) {
+      return
+    }
+
+    let createEvents = wiki.events.filter((event) => !event.id)
+    const updateEvents = wiki.events.filter((event) => event.id)
+    createEvents = createEvents.map((e) => {
+      if (e.date.length === 7) {
+        return {
+          ...e,
+          date: `${e.date}-01`,
+        }
+      }
+      return e
+    })
+    if (createEvents.length > 0) {
+      const newEvents = eventRepository.create(createEvents)
+      await eventRepository.save(newEvents)
+    }
+
+    if (updateEvents.length > 0) {
+      const existingEventIds = updateEvents.map((event) => event.id)
+      const existingEvents = await eventRepository.findBy({
+        id: In(existingEventIds),
+      })
+
+      for (const event of updateEvents) {
+        const existingEvent = existingEvents.find(
+          (e: { id: string }) => e.id === event.id,
+        )
+        if (existingEvent) {
+          await eventRepository.update({ id: event.id }, event)
+        }
+      }
+    }
+  }
+
   async storeWiki(
     wiki: WikiType,
     hash: Hash,
@@ -43,6 +83,7 @@ class DBStoreService {
     const languageRepository = this.dataSource.getRepository(Language)
     const userRepository = this.dataSource.getRepository(User)
     const tagRepository = this.dataSource.getRepository(Tag)
+
     const categoryRepository = this.dataSource.getRepository(Category)
     const activityRepository = this.dataSource.getRepository(Activity)
     const marketCapIdRepo = this.dataSource.getRepository(MarketCapIds)
@@ -113,6 +154,9 @@ class DBStoreService {
     const existSub = await iqSubscriptionRepository.findOneBy({
       auxiliaryId: wiki.id,
     })
+
+    await this.processWikiEvents(wiki)
+
     const newDate = new Date(Date.now())
     const incomingActivity = {
       wikiId: wiki.id,
@@ -195,7 +239,7 @@ class DBStoreService {
       existWiki.images = wiki.images || []
       existWiki.media = wiki.media || []
       existWiki.linkedWikis = wiki.linkedWikis
-      existWiki.events = wiki.events
+      existWiki.events = wiki.events || []
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id
