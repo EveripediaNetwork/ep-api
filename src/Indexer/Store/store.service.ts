@@ -239,7 +239,7 @@ class DBStoreService {
       existWiki.images = wiki.images || []
       existWiki.media = wiki.media || []
       existWiki.linkedWikis = wiki.linkedWikis
-      existWiki.events = wiki.events 
+      existWiki.events = wiki.events
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id

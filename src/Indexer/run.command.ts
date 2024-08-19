@@ -156,7 +156,10 @@ class RunCommand implements CommandRunner {
           `${mode} mode: ✅ Validated Wiki content! IPFS going through...`,
         )
         if (!reIndex) {
-          await this.dbStoreService.storeWiki(completeWiki as unknown as Wiki, hash)
+          await this.dbStoreService.storeWiki(
+            completeWiki as unknown as Wiki,
+            hash,
+          )
           if (
             this.appService.apiLevel() === 'prod' ||
             this.appService.apiLevel() === 'dev'
