@@ -9,13 +9,10 @@ import {
 import MarketCapService from './marketCap.service'
 
 function extractSlug(url: string) {
-  // Remove trailing slash if it exists
   const urlReg = url.replace(/\/$/, '')
 
-  // Split the URL by '/'
   const parts = urlReg.split('/')
 
-  // Return the last part
   return parts[parts.length - 1]
 }
 
