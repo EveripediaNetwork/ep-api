@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, ILike, In, Repository } from 'typeorm'
-import { Wiki as WikiType } from '@everipedia/iq-utils'
+import { LanguagesISOEnum } from '@everipedia/iq-utils'
 import { PosthogService } from 'nestjs-posthog'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Language from '../../Database/Entities/language.entity'
@@ -35,7 +35,7 @@ class DBStoreService {
     return oldHash === newHash && existActivity !== null
   }
 
-  async processWikiEvents(wiki: WikiType) {
+  async processWikiEvents(wiki: Wiki) {
     const eventRepository = this.dataSource.getRepository(Events)
     if (!wiki.events || wiki.events.length === 0) {
       return
@@ -44,7 +44,7 @@ class DBStoreService {
     let createEvents = wiki.events.filter((event) => !event.id)
     const updateEvents = wiki.events.filter((event) => event.id)
     createEvents = createEvents.map((e) => {
-      if (e.date.length === 7) {
+      if (e?.date?.length === 7) {
         return {
           ...e,
           date: `${e.date}-01`,
@@ -75,7 +75,7 @@ class DBStoreService {
   }
 
   async storeWiki(
-    wiki: WikiType,
+    wiki: Wiki,
     hash: Hash,
     ipfsTime?: boolean,
   ): Promise<boolean> {
@@ -103,7 +103,7 @@ class DBStoreService {
     let user = await userRepository.findOneBy({ id: ILike(wiki.user.id) })
     const author = await userRepository.findOneBy({
       id: ILike(
-        oldWiki ? (wiki.author.id as string) : (wiki.user.id as string),
+        oldWiki ? (wiki?.author?.id as string) : (wiki.user.id as string),
       ),
     })
 
@@ -115,11 +115,11 @@ class DBStoreService {
     }
 
     let language = await languageRepository.findOneBy({
-      id: wiki.language,
+      id: wiki.language as unknown as LanguagesISOEnum,
     })
     if (!language) {
       language = languageRepository.create({
-        id: wiki.language,
+        id: wiki.language as unknown as LanguagesISOEnum,
       })
       language = await languageRepository.save(language)
     }
@@ -239,7 +239,7 @@ class DBStoreService {
       existWiki.images = wiki.images || []
       existWiki.media = wiki.media || []
       existWiki.linkedWikis = wiki.linkedWikis
-      existWiki.events = wiki.events || []
+      existWiki.events = wiki.events 
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
       existWiki.ipfs = hash.id

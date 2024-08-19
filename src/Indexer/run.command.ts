@@ -1,6 +1,5 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { DataSource } from 'typeorm'
-import { Wiki as WikiType } from '@everipedia/iq-utils'
 import * as fs from 'fs/promises'
 import GraphProviderService, {
   Hash,
@@ -157,7 +156,7 @@ class RunCommand implements CommandRunner {
           `${mode} mode: ✅ Validated Wiki content! IPFS going through...`,
         )
         if (!reIndex) {
-          await this.dbStoreService.storeWiki(completeWiki as WikiType, hash)
+          await this.dbStoreService.storeWiki(completeWiki as unknown as Wiki, hash)
           if (
             this.appService.apiLevel() === 'prod' ||
             this.appService.apiLevel() === 'dev'
@@ -166,7 +165,7 @@ class RunCommand implements CommandRunner {
           }
         } else {
           await this.dbStoreService.storeWiki(
-            completeWiki as WikiType,
+            completeWiki as unknown as Wiki,
             hash,
             true,
           )
