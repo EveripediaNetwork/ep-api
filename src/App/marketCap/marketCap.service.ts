@@ -148,6 +148,7 @@ class MarketCapService {
         kind === RankType.TOKEN
           ? {
               image: element.image || '',
+              id: element.id,
               name: element.name || '',
               alias: element.symbol || '',
               current_price: element.current_price || 0,
@@ -158,6 +159,7 @@ class MarketCapService {
             }
           : {
               alias: null,
+              id: element.id,
               name: element.name || '',
               image: element.image?.small || '',
               native_currency: element.native_currency || '',
