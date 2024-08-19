@@ -20,6 +20,9 @@ class MarketDataGenerals {
   alias?: string
 
   @Field()
+  id!: string
+
+  @Field()
   hasWiki!: boolean
 
   @Field()
@@ -128,7 +131,6 @@ export class MarketCapInputs extends PaginationArgs {
 @ArgsType()
 export class RankPageIdInputs {
   @Field(() => String)
-  @Validate(ValidStringParams)
   wikiId!: string
 
   @Field(() => String)

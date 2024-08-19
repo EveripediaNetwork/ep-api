@@ -8,6 +8,14 @@ import {
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
 
+function extractSlug(url: string) {
+  const urlReg = url.replace(/\/$/, '')
+
+  const parts = urlReg.split('/')
+
+  return parts[parts.length - 1]
+}
+
 @Resolver(() => MarketRankData)
 class MarketCapResolver {
   constructor(private marketCapService: MarketCapService) {}
@@ -19,11 +27,35 @@ class MarketCapResolver {
     return this.marketCapService.ranks(args)
   }
 
-  @Mutation(() => Boolean )
-  async rankPageIds(
-    @Args() args: RankPageIdInputs,
-  ): Promise<boolean> {
+  @Mutation(() => Boolean)
+  async rankPageIds(@Args() args: RankPageIdInputs): Promise<boolean> {
     return this.marketCapService.updateMistachIds(args)
+  }
+
+  @Mutation(() => Boolean)
+  async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
+    try {
+      let { wikiId } = args
+      if (wikiId.includes('https')) {
+        wikiId = extractSlug(wikiId)
+      }
+
+      if (!wikiId) {
+        console.error('Invalid wiki ID')
+        return false
+      }
+
+      await this.marketCapService.updateMistachIds({
+        wikiId,
+        coingeckoId: args.coingeckoId,
+        kind: args.kind,
+      })
+
+      return true
+    } catch (error) {
+      console.error(error)
+      return false
+    }
   }
 }
 
