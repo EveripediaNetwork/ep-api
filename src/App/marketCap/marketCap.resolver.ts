@@ -4,11 +4,20 @@ import {
   MarketRankData,
   NftRankListData,
   RankPageIdInputs,
-  RankType,
   TokenRankListData,
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
-// import { WikiUrl } from '../Wiki/wiki.dto'
+
+function extractSlug(url: string) {
+  // Remove trailing slash if it exists
+  const urlReg = url.replace(/\/$/, '')
+
+  // Split the URL by '/'
+  const parts = urlReg.split('/')
+
+  // Return the last part
+  return parts[parts.length - 1]
+}
 
 @Resolver(() => MarketRankData)
 class MarketCapResolver {
@@ -21,21 +30,17 @@ class MarketCapResolver {
     return this.marketCapService.ranks(args)
   }
 
-  @Mutation(() => Boolean )
-  async rankPageIds(
-    @Args() args: RankPageIdInputs,
-  ): Promise<boolean> {
+  @Mutation(() => Boolean)
+  async rankPageIds(@Args() args: RankPageIdInputs): Promise<boolean> {
     return this.marketCapService.updateMistachIds(args)
   }
 
   @Mutation(() => Boolean)
-  async linkWikiToRankData(
-    @Args() args: RankPageIdInputs,
-  ): Promise<boolean> {
+  async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
     try {
-      let wikiId = args.wikiId
+      let { wikiId } = args
       if (wikiId.includes('https')) {
-        wikiId = wikiId.split('/wiki/').pop() || ''
+        wikiId = extractSlug(wikiId)
       }
 
       if (!wikiId) {
@@ -44,7 +49,7 @@ class MarketCapResolver {
       }
 
       await this.marketCapService.updateMistachIds({
-        wikiId: wikiId,
+        wikiId,
         coingeckoId: args.coingeckoId,
         kind: args.kind,
       })
