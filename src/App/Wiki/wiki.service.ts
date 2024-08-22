@@ -58,10 +58,20 @@ class WikiService {
   }
 
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
-    return (await this.repository()).findOneBy({
-      language: { id: args.lang },
-      id: args.id,
-    })
+
+    const wiki = await(await this.repository())
+      .createQueryBuilder('wiki')
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents') // Load related wikiEvents with alias
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.id = :id', { id: args.id })
+      .getOne()
+
+    return wiki
+    // return (await this.repository()).findOneBy({
+    //   language: { id: args.lang },
+    //   id: args.id,
+
+    // })
   }
 
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, ILike, In, Repository } from 'typeorm'
+import { DataSource, ILike, Repository } from 'typeorm'
 import { LanguagesISOEnum } from '@everipedia/iq-utils'
 import { PosthogService } from 'nestjs-posthog'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -9,15 +9,11 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import {
-  RevalidateEndpoints,
-  RevalidatePageService,
-} from '../../App/revalidatePage/revalidatePage.service'
+import { RevalidateEndpoints, RevalidatePageService } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import { eventWiki } from '../../App/Tag/tag.dto'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
-import Events from '../../Database/Entities/Event.entity'
 
 @Injectable()
 class DBStoreService {
@@ -33,45 +29,6 @@ class DBStoreService {
       ipfs: newHash,
     })
     return oldHash === newHash && existActivity !== null
-  }
-
-  async processWikiEvents(wiki: Wiki) {
-    const eventRepository = this.dataSource.getRepository(Events)
-    if (!wiki.events || wiki.events.length === 0) {
-      return
-    }
-
-    let createEvents = wiki.events.filter((event) => !event.id)
-    const updateEvents = wiki.events.filter((event) => event.id)
-    createEvents = createEvents.map((e) => {
-      if (e?.date?.length === 7) {
-        return {
-          ...e,
-          date: `${e.date}-01`,
-        }
-      }
-      return e
-    })
-    if (createEvents.length > 0) {
-      const newEvents = eventRepository.create(createEvents)
-      await eventRepository.save(newEvents)
-    }
-
-    if (updateEvents.length > 0) {
-      const existingEventIds = updateEvents.map((event) => event.id)
-      const existingEvents = await eventRepository.findBy({
-        id: In(existingEventIds),
-      })
-
-      for (const event of updateEvents) {
-        const existingEvent = existingEvents.find(
-          (e: { id: string }) => e.id === event.id,
-        )
-        if (existingEvent) {
-          await eventRepository.update({ id: event.id }, event)
-        }
-      }
-    }
   }
 
   async storeWiki(
@@ -154,8 +111,6 @@ class DBStoreService {
     const existSub = await iqSubscriptionRepository.findOneBy({
       auxiliaryId: wiki.id,
     })
-
-    await this.processWikiEvents(wiki)
 
     const newDate = new Date(Date.now())
     const incomingActivity = {

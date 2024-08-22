@@ -28,14 +28,14 @@ class EventsService {
         .offset(args.offset)
 
       if (ids.length > 1) {
-        queryBuilder.where((qb) => {
+        queryBuilder.where(qb => {
           const subQuery = qb
             .subQuery()
             .select('subWiki.id')
             .from(Wiki, 'subWiki')
             .innerJoin('subWiki.tags', 'subTag')
             .where('LOWER(subTag.id) = ANY(:tagIds)', {
-              tagIds: ids.map((tag) => tag.toLowerCase()),
+              tagIds: ids.map(tag => tag.toLowerCase()),
             })
             .andWhere('subWiki.hidden = :hidden', { hidden: false })
             .groupBy('subWiki.id')

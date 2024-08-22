@@ -2,7 +2,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
-import { DataSource } from 'typeorm'
+import { DataSource, In } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
@@ -16,6 +16,8 @@ import ActivityRepository from '../Activities/activity.repository'
 import PinataService from '../../ExternalServices/pinata.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
+import Wiki from '../../Database/Entities/wiki.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 interface CgApiIdList {
   id: string
@@ -70,7 +72,7 @@ class PinService {
     const { wikiObject, saveMatchedIdcallback } =
       await this.handleCoingekoApiId(wiki)
 
-    const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
+    let wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
     const isDataValid = await this.validator.validate(wikiData, true)
 
@@ -120,6 +122,27 @@ class PinService {
       )
     }
 
+    const { createdEvents, updatedEvents } = await this.updateEventsTable(
+      wiki as unknown as Wiki,
+    )
+
+    if (createdEvents.length !== 0) {
+      const updatedEventObjects = wiki.events?.map(obj => {
+        if (obj.id === undefined) {
+          const matchingObj = this.findMatchingObject(createdEvents, obj)
+          if (matchingObj) {
+            return { ...obj, id: matchingObj.id }
+          }
+        }
+        return obj
+      })
+
+      wikiData = {
+        ...wikiData,
+        events: updatedEventObjects,
+      }
+    }
+
     const payload = {
       pinataMetadata: {
         name: wikiData.content !== undefined ? wikiData.title : 'image',
@@ -136,7 +159,101 @@ class PinService {
       await saveMatchedIdcallback()
       return res
     } catch (e) {
+      await this.revertEventChanges(createdEvents, updatedEvents)
       return e
+    }
+  }
+
+  findMatchingObject(objects: any, objectWithoutId: any) {
+    return objects.find((obj: { [x: string]: any }) => {
+      for (const key in objectWithoutId) {
+        if (obj[key] !== objectWithoutId[key]) {
+          return false
+        }
+      }
+      return true
+    })
+  }
+
+  areObjectsEqual(obj1: any, obj2: any): boolean {
+    const keys1 = Object.keys(obj1)
+    const keys2 = Object.keys(obj2)
+    if (keys1.length !== keys2.length) {
+      return false
+    }
+    for (const key of keys1) {
+      if (obj1[key] !== obj2[key]) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  async updateEventsTable(
+    wiki: Wiki,
+  ): Promise<{ createdEvents: Events[]; updatedEvents: Events[] }> {
+    const repository = this.dataSource.getRepository(Events)
+    if (!wiki.events || wiki.events.length === 0) {
+      return { createdEvents: [], updatedEvents: [] }
+    }
+
+    let createEvents = wiki.events.filter(event => !event.id)
+    const updateEvents = wiki.events.filter(event => event.id)
+
+    createEvents = createEvents.map(e => {
+      if (e?.date?.length === 7) {
+        return {
+          ...e,
+          wikiId: wiki.id,
+          date: `${e.date}-01`,
+        }
+      }
+      return {
+        ...e,
+        wikiId: wiki.id,
+      }
+    })
+
+    let createdEvents: Events[] = []
+    const updatedEvents: Events[] = []
+
+    if (createEvents.length > 0) {
+      const newEvents = repository.create(createEvents)
+      const savedEvents = await repository.save(newEvents)
+      createdEvents = savedEvents
+    }
+    if (updateEvents.length > 0) {
+      const existingEventIds = updateEvents.map(event => event.id)
+      const existingEvents = await repository.findBy({
+        id: In(existingEventIds),
+      })
+
+      for (const event of updateEvents) {
+        const existingEvent = existingEvents.find(
+          (e: { id: string }) => e.id === event.id,
+        )
+
+        if (existingEvent && !this.areObjectsEqual(existingEvent, event)) {
+          await repository.update({ id: event.id }, event)
+          updatedEvents.push(event)
+        }
+      }
+    }
+    return { createdEvents, updatedEvents }
+  }
+
+  async revertEventChanges(
+    ids: Array<{ id: string }>,
+    updatedEvents: Events[],
+  ): Promise<void> {
+    const repository = this.dataSource.getRepository(Events)
+    const idValues = ids.map(obj => obj.id)
+    await repository.delete({ id: In(idValues) })
+    if (updatedEvents.length !== 0) {
+      for (const event of updatedEvents) {
+        await repository.update({ id: event.id }, event)
+      }
     }
   }
 
@@ -145,7 +262,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -168,7 +285,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {
