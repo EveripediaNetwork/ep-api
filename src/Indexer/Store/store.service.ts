@@ -9,7 +9,10 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import { RevalidateEndpoints, RevalidatePageService } from '../../App/revalidatePage/revalidatePage.service'
+import {
+  RevalidateEndpoints,
+  RevalidatePageService,
+} from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import { eventWiki } from '../../App/Tag/tag.dto'

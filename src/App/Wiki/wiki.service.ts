@@ -58,8 +58,9 @@ class WikiService {
   }
 
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
-
-    const wiki = await(await this.repository())
+    const wiki = await (
+      await this.repository()
+    )
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents') // Load related wikiEvents with alias
       .where('wiki.languageId = :lang', { lang: args.lang })
