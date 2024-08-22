@@ -244,7 +244,7 @@ class PinService {
   }
 
   async revertEventChanges(
-    ids: {id: string}[],
+    ids: { id: string }[],
     updatedEvents: Events[],
   ): Promise<void> {
     const repository = this.dataSource.getRepository(Events)
