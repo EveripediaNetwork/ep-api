@@ -122,12 +122,11 @@ class PinService {
       )
     }
 
-    const { createdEvents, updatedEvents } = await this.updateEventsTable(
-      wiki as unknown as Wiki,
-    )
+    const { createdEvents, updatedEvents, deletedEvents } =
+      await this.updateEventsTable(wiki as unknown as Wiki)
 
     if (createdEvents.length !== 0) {
-      const updatedEventObjects = wiki.events?.map((obj) => {
+      const updatedEventObjects = wiki.events?.map(obj => {
         if (obj.id === undefined) {
           const matchingObj = this.findMatchingObject(createdEvents, obj)
           if (matchingObj) {
@@ -159,7 +158,7 @@ class PinService {
       await saveMatchedIdcallback()
       return res
     } catch (e) {
-      await this.revertEventChanges(createdEvents, updatedEvents)
+      await this.revertEventChanges(createdEvents, updatedEvents, deletedEvents)
       return e
     }
   }
@@ -190,18 +189,21 @@ class PinService {
     return true
   }
 
-  async updateEventsTable(
-    wiki: Wiki,
-  ): Promise<{ createdEvents: Events[]; updatedEvents: Events[] }> {
+  async updateEventsTable(wiki: Wiki): Promise<{
+    createdEvents: Events[]
+    updatedEvents: Events[]
+    deletedEvents: Events[]
+  }> {
     const repository = this.dataSource.getRepository(Events)
     if (!wiki.events || wiki.events.length === 0) {
-      return { createdEvents: [], updatedEvents: [] }
+      return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
 
-    let createEvents = wiki.events.filter((event) => !event.id)
-    const updateEvents = wiki.events.filter((event) => event.id)
+    let createEvents = wiki.events.filter(event => !event.id)
+    const updateEvents = wiki.events.filter(event => event.id)
+    const deleteEvents = wiki.events.filter(event => event.action === 'DELETE')
 
-    createEvents = createEvents.map((e) => {
+    createEvents = createEvents.map(e => {
       if (e?.date?.length === 7) {
         return {
           ...e,
@@ -217,6 +219,7 @@ class PinService {
 
     let createdEvents: Events[] = []
     const updatedEvents: Events[] = []
+    const deletedEvents: Events[] = []
 
     if (createEvents.length > 0) {
       const newEvents = repository.create(createEvents)
@@ -224,7 +227,7 @@ class PinService {
       createdEvents = savedEvents
     }
     if (updateEvents.length > 0) {
-      const existingEventIds = updateEvents.map((event) => event.id)
+      const existingEventIds = updateEvents.map(event => event.id)
       const existingEvents = await repository.findBy({
         id: In(existingEventIds),
       })
@@ -239,21 +242,36 @@ class PinService {
           updatedEvents.push(event)
         }
       }
+
+      if (deleteEvents.length !== 0) {
+        const idValues = deleteEvents.map(obj => obj.id)
+        await repository.delete({ id: In(idValues) })
+        deleteEvents.push(...deleteEvents)
+      }
     }
-    return { createdEvents, updatedEvents }
+    return { createdEvents, updatedEvents, deletedEvents }
   }
 
   async revertEventChanges(
     ids: { id: string }[],
     updatedEvents: Events[],
+    deletedEvents: Events[],
   ): Promise<void> {
     const repository = this.dataSource.getRepository(Events)
-    const idValues = ids.map((obj) => obj.id)
+    const idValues = ids.map(obj => obj.id)
     await repository.delete({ id: In(idValues) })
     if (updatedEvents.length !== 0) {
       for (const event of updatedEvents) {
         await repository.update({ id: event.id }, event)
       }
+    }
+    if (deletedEvents.length !== 0) {
+      await repository
+        .createQueryBuilder()
+        .insert()
+        .into(Events)
+        .values([...deletedEvents])
+        .execute()
     }
   }
 
@@ -262,7 +280,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -285,7 +303,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {

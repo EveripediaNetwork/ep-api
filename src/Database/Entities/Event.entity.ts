@@ -53,6 +53,9 @@ class Events {
   @Field(() => Wiki, { nullable: true })
   @ManyToOne(() => Wiki, wiki => wiki.wikiEvents, { lazy: true })
   wiki!: Relation<Wiki>
+
+  @Field(() => String, { nullable: true })
+  action?: string
 }
 
 export default Events
