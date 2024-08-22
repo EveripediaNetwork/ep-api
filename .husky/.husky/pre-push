@@ -1,5 +1,7 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-pnpm build:swc
 pnpm test
+pnpm rome ci ./src
+pnpm format
+pnpm build:swc
