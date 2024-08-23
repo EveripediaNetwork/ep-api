@@ -8995,7 +8995,7 @@ snapshots:
 
   '@pm2/pm2-version-check@1.0.4':
     dependencies:
-      debug: 4.3.4(supports-color@9.2.1)
+      debug: 4.3.6
     transitivePeerDependencies:
       - supports-color
 
