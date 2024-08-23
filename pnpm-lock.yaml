@@ -18,8 +18,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       '@everipedia/iq-utils':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.4.1
+        version: 0.4.1
       '@everipedia/web3-signer':
         specifier: ^0.0.11
         version: 0.0.11(bufferutil@4.0.8)(typescript@4.7.4)(utf-8-validate@5.0.10)
@@ -917,8 +917,8 @@ packages:
   '@ethersproject/wordlists@5.7.0':
     resolution: {integrity: sha512-S2TFNJNfHWVHNE6cNDjbVlZ6MgE17MIxMbMg2zv3wn+3XSJGosL1m9ZVv3GXCf/2ymSsQ+hRI5IzoMJTG6aoVA==}
 
-  '@everipedia/iq-utils@0.4.0':
-    resolution: {integrity: sha512-RmJLDXux7H8mZJUgiaJwpMDAi1Vbe27Hfm+4MR+dOYe+JWjzbZ7zrm3Sulz6r2PQoyVCbGLqPQXu4wfRaHVqlw==}
+  '@everipedia/iq-utils@0.4.1':
+    resolution: {integrity: sha512-bn31gNTvO5A+Ps1NuFxYRjnUpPCiplySjA25vinrrpGNHuMXn0GfaRWb5vlbHx+1Ab/88yNmJsPg6UiQXZMNeQ==}
     engines: {node: '>=10'}
 
   '@everipedia/web3-signer@0.0.11':
@@ -8174,7 +8174,7 @@ snapshots:
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
 
-  '@everipedia/iq-utils@0.4.0': {}
+  '@everipedia/iq-utils@0.4.1': {}
 
   '@everipedia/web3-signer@0.0.11(bufferutil@4.0.8)(typescript@4.7.4)(utf-8-validate@5.0.10)':
     dependencies:
