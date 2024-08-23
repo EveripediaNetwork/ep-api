@@ -224,17 +224,23 @@ class PinService {
     const deletedEvents: Events[] = []
 
     if (createEvents.length > 0) {
-      const newEvents = repository.create(createEvents)
+      const eventsToBeCreated = createEvents.map(({ action, ...rest }) => ({
+        ...rest,
+      }))
+      const newEvents = repository.create(eventsToBeCreated)
       const savedEvents = await repository.save(newEvents)
       createdEvents = savedEvents
     }
     if (updateEvents.length > 0) {
-      const existingEventIds = updateEvents.map((event) => event.id)
+      const eventsToBeUpdated = updateEvents.map(({ action, ...rest }) => ({
+        ...rest,
+      }))
+      const existingEventIds = eventsToBeUpdated.map((event) => event.id)
       const existingEvents = await repository.findBy({
         id: In(existingEventIds),
       })
 
-      for (const event of updateEvents) {
+      for (const event of eventsToBeUpdated) {
         const existingEvent = existingEvents.find(
           (e: { id: string }) => e.id === event.id,
         )
@@ -246,9 +252,12 @@ class PinService {
       }
 
       if (deleteEvents.length !== 0) {
-        const idValues = deleteEvents.map((obj) => obj.id)
+        const eventsToBeDeleted = deleteEvents.map(({ action, ...rest }) => ({
+          ...rest,
+        }))
+        const idValues = eventsToBeDeleted.map((obj) => obj.id)
         await repository.delete({ id: In(idValues) })
-        deleteEvents.push(...deleteEvents)
+        deleteEvents.push(...eventsToBeDeleted)
       }
     }
     return { createdEvents, updatedEvents, deletedEvents }
