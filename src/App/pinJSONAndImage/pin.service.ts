@@ -204,9 +204,7 @@ class PinService {
     }
 
     let createEvents = wiki.events.filter((event) => event.action === 'CREATE')
-    const updateEvents = wiki.events.filter(
-      (event) => event.action === 'EDIT',
-    )
+    const updateEvents = wiki.events.filter((event) => event.action === 'EDIT')
     const deleteEvents = wiki.events.filter(
       (event) => event.action === 'DELETE',
     )
