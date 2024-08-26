@@ -1,7 +1,12 @@
+/* eslint-disable guard-for-in */
 /* eslint-disable new-cap */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
-import { ValidatorCodes, Wiki as WikiType } from '@everipedia/iq-utils'
+import {
+  EventAction,
+  ValidatorCodes,
+  Wiki as WikiType,
+} from '@everipedia/iq-utils'
 import { DataSource, In } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -123,26 +128,25 @@ class PinService {
     }
 
     const { createdEvents, updatedEvents, deletedEvents } =
-      await this.updateEventsTable(wiki as unknown as Wiki)
+      await this.updateEventsTable(wikiData as unknown as Wiki)
 
     if (createdEvents.length !== 0) {
-      const eventObjects = wiki.events?.map((obj) => {
-        if (obj.action === 'CREATE') {
-          const matchingObj = this.findMatchingObject(createdEvents, obj)
+      const eventObjects = wikiData.events?.map((obj) => {
+        if (obj.action === EventAction.CREATE) {
+          const { id, action, ...rest } = obj
+          const matchingObj = this.findMatchingObject(createdEvents, {
+            ...rest,
+          })
           if (matchingObj) {
-            return { ...obj, id: matchingObj.id }
+            return { ...rest, id: matchingObj.id }
           }
         }
         return obj
       })
 
-      const updatedEventObjects = eventObjects?.map(({ action, ...rest }) => ({
-        ...rest,
-      }))
-
       wikiData = {
         ...wikiData,
-        events: updatedEventObjects,
+        events: eventObjects,
       }
     }
 
@@ -178,21 +182,6 @@ class PinService {
     })
   }
 
-  areObjectsEqual(obj1: any, obj2: any): boolean {
-    const keys1 = Object.keys(obj1)
-    const keys2 = Object.keys(obj2)
-    if (keys1.length !== keys2.length) {
-      return false
-    }
-    for (const key of keys1) {
-      if (obj1[key] !== obj2[key]) {
-        return false
-      }
-    }
-
-    return true
-  }
-
   async updateEventsTable(wiki: Wiki): Promise<{
     createdEvents: Events[]
     updatedEvents: Events[]
@@ -203,10 +192,14 @@ class PinService {
       return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
 
-    let createEvents = wiki.events.filter((event) => event.action === 'CREATE')
-    const updateEvents = wiki.events.filter((event) => event.action === 'EDIT')
+    let createEvents = wiki.events.filter(
+      (event) => event.action === EventAction.CREATE,
+    )
+    const updateEvents = wiki.events.filter(
+      (event) => event.action === EventAction.EDIT,
+    )
     const deleteEvents = wiki.events.filter(
-      (event) => event.action === 'DELETE',
+      (event) => event.action === EventAction.DELETE,
     )
 
     createEvents = createEvents.map((e) => {
@@ -239,30 +232,33 @@ class PinService {
       const eventsToBeUpdated = updateEvents.map(({ action, ...rest }) => ({
         ...rest,
       }))
+
       const existingEventIds = eventsToBeUpdated.map((event) => event.id)
       const existingEvents = await repository.findBy({
         id: In(existingEventIds),
       })
 
-      for (const event of eventsToBeUpdated) {
-        const existingEvent = existingEvents.find(
-          (e: { id: string }) => e.id === event.id,
+      for (const existingEvent of existingEvents) {
+        const eventToUpdate = eventsToBeUpdated.find(
+          (e: { id: string }) => e.id === existingEvent.id,
         )
-
-        if (existingEvent && !this.areObjectsEqual(existingEvent, event)) {
-          await repository.update({ id: event.id }, event)
-          updatedEvents.push(event)
+        if (
+          eventToUpdate &&
+          existingEvent &&
+          !this.findMatchingObject([existingEvent], eventToUpdate)
+        ) {
+          await repository.update({ id: existingEvent.id }, eventToUpdate)
+          updatedEvents.push(existingEvent)
         }
       }
-
-      if (deleteEvents.length !== 0) {
-        const eventsToBeDeleted = deleteEvents.map(({ action, ...rest }) => ({
-          ...rest,
-        }))
-        const idValues = eventsToBeDeleted.map((obj) => obj.id)
-        await repository.delete({ id: In(idValues) })
-        deleteEvents.push(...eventsToBeDeleted)
-      }
+    }
+    if (deleteEvents.length !== 0) {
+      const eventsToBeDeleted = deleteEvents.map(({ action, ...rest }) => ({
+        ...rest,
+      }))
+      const idValues = eventsToBeDeleted.map((obj) => obj.id)
+      await repository.delete({ id: In(idValues) })
+      deletedEvents.push(...eventsToBeDeleted)
     }
     return { createdEvents, updatedEvents, deletedEvents }
   }
@@ -275,6 +271,7 @@ class PinService {
     const repository = this.dataSource.getRepository(Events)
     const idValues = createdIds.map((obj) => obj.id)
     await repository.delete({ id: In(idValues) })
+
     if (updatedEvents.length !== 0) {
       for (const event of updatedEvents) {
         await repository.update({ id: event.id }, event)
