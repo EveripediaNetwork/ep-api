@@ -22,6 +22,7 @@ import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
+import Explorer from '../../Database/Entities/explorer.entity'
 
 @Injectable()
 class WikiService {
@@ -383,6 +384,30 @@ class WikiService {
         updated: 'DESC',
       },
     })
+  }
+
+  async getExplorers(explorer: string) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    return repo
+      .createQueryBuilder('explorer')
+      .where('LOWER(explorer.id) LIKE LOWER(:id)', { id: `%${explorer}%` })
+      .getMany()
+  }
+
+  async addExplorer(args: Explorer) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const existExplorer = await repo.findOneBy({ ...args })
+    if (!args.baseUrl.startsWith('https')) {
+      return false
+    }
+
+    if (existExplorer) {
+      await repo.update({ id: args.id }, args)
+    }
+
+    const newExplorer = repo.create(args)
+    await repo.save(newExplorer)
+    return true
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
