@@ -127,7 +127,7 @@ class PinService {
 
     if (createdEvents.length !== 0) {
       const eventObjects = wiki.events?.map((obj) => {
-        if (obj.id === undefined) {
+        if (obj.action === 'CREATE') {
           const matchingObj = this.findMatchingObject(createdEvents, obj)
           if (matchingObj) {
             return { ...obj, id: matchingObj.id }
