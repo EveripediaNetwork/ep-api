@@ -145,7 +145,7 @@ class WikiService {
     args: CategoryArgs,
     eventArgs?: EventArgs,
   ): Promise<Wiki[] | []> {
-    const { lang, limit, offset } = eventArgs || args
+    const { lang, limit, offset, tagIds } = eventArgs || args
     const startDate = (eventArgs as EventArgs)?.startDate as string
     const endDate = (eventArgs as EventArgs)?.endDate as string
 
@@ -158,6 +158,29 @@ class WikiService {
         lang,
         status: false,
       })
+
+    if (tagIds) {
+      query.innerJoin('wiki.tags', 'tag')
+      if (tagIds.length > 1) {
+        query.andWhere((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('subWiki.id')
+            .from(Wiki, 'subWiki')
+            .innerJoin('subWiki.tags', 'subTag')
+            .where('LOWER(subTag.id) = ANY(:tagIds)', {
+              tagIds: tagIds.map((tag) => tag.toLowerCase()),
+            })
+            .andWhere('subWiki.hidden = :hidden', { hidden: false })
+            .groupBy('subWiki.id')
+            .having('COUNT(DISTINCT subTag.id) > 1')
+            .getQuery()
+          return `wiki.id IN ${subQuery}`
+        })
+      } else {
+        query.andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: tagIds[0] })
+      }
+    }
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
