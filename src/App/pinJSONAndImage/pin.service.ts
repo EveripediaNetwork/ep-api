@@ -17,7 +17,7 @@ import PinataService from '../../ExternalServices/pinata.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
-import Events from '../../Database/Entities/event.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 interface CgApiIdList {
   id: string
@@ -126,7 +126,7 @@ class PinService {
       await this.updateEventsTable(wiki as unknown as Wiki)
 
     if (createdEvents.length !== 0) {
-      const updatedEventObjects = wiki.events?.map((obj) => {
+      const updatedEventObjects = wiki.events?.map(obj => {
         if (obj.id === undefined) {
           const matchingObj = this.findMatchingObject(createdEvents, obj)
           if (matchingObj) {
@@ -199,15 +199,11 @@ class PinService {
       return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
 
-    let createEvents = wiki.events.filter((event) => event.action === 'CREATE')
-    const updateEvents = wiki.events.filter(
-      (event) => event.action === 'UPDATE',
-    )
-    const deleteEvents = wiki.events.filter(
-      (event) => event.action === 'DELETE',
-    )
+    let createEvents = wiki.events.filter(event => event.action === 'CREATE')
+    const updateEvents = wiki.events.filter(event => event.action === 'UPDATE')
+    const deleteEvents = wiki.events.filter(event => event.action === 'DELETE')
 
-    createEvents = createEvents.map((e) => {
+    createEvents = createEvents.map(e => {
       if (e?.date?.length === 7) {
         return {
           ...e,
@@ -237,7 +233,7 @@ class PinService {
       const eventsToBeUpdated = updateEvents.map(({ action, ...rest }) => ({
         ...rest,
       }))
-      const existingEventIds = eventsToBeUpdated.map((event) => event.id)
+      const existingEventIds = eventsToBeUpdated.map(event => event.id)
       const existingEvents = await repository.findBy({
         id: In(existingEventIds),
       })
@@ -257,7 +253,7 @@ class PinService {
         const eventsToBeDeleted = deleteEvents.map(({ action, ...rest }) => ({
           ...rest,
         }))
-        const idValues = eventsToBeDeleted.map((obj) => obj.id)
+        const idValues = eventsToBeDeleted.map(obj => obj.id)
         await repository.delete({ id: In(idValues) })
         deleteEvents.push(...eventsToBeDeleted)
       }
@@ -271,7 +267,7 @@ class PinService {
     deletedEvents: Events[],
   ): Promise<void> {
     const repository = this.dataSource.getRepository(Events)
-    const idValues = createdIds.map((obj) => obj.id)
+    const idValues = createdIds.map(obj => obj.id)
     await repository.delete({ id: In(idValues) })
     if (updatedEvents.length !== 0) {
       for (const event of updatedEvents) {
@@ -298,7 +294,7 @@ class PinService {
     saveMatchedIdcallback: () => Promise<void | MarketCapIds>
   }> {
     const coingeckoProfileMetadata = wiki.metadata.find(
-      (e) => e.id === 'coingecko_profile',
+      e => e.id === 'coingecko_profile',
     )
 
     if (!coingeckoProfileMetadata) {
@@ -321,7 +317,7 @@ class PinService {
       }
 
       const index = wiki.metadata.findIndex(
-        (item) => item.id === 'coingecko_profile',
+        item => item.id === 'coingecko_profile',
       )
 
       if (index !== -1) {

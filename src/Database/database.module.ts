@@ -20,7 +20,7 @@ import HiIQHolder from './Entities/hiIQHolder.entity'
 import IQHolderAddress from './Entities/iqHolderAddress.entity'
 import IQHolder from './Entities/iqHolder.entity'
 import MarketCapIds from './Entities/marketCapIds.entity'
-import Events from './Entities/event.entity'
+import Events from './Entities/Event.entity'
 
 @Module({
   imports: [
