@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import {
-  Brackets,
-  DataSource,
-  MoreThan,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm'
+import { Brackets, DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -62,17 +56,12 @@ class WikiService {
       await this.repository()
     )
       .createQueryBuilder('wiki')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents') // Load related wikiEvents with alias
+      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
       .getOne()
 
     return wiki
-    // return (await this.repository()).findOneBy({
-    //   language: { id: args.lang },
-    //   id: args.id,
-
-    // })
   }
 
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {
@@ -91,19 +80,47 @@ class WikiService {
     })
   }
 
-  async getPromotedWikis(args: LangArgs): Promise<Wiki[] | []> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        promoted: MoreThan(0),
-        hidden: false,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        promoted: args.direction,
-      },
-    })
+  filterFeaturedEvents(
+    queryBuilder: SelectQueryBuilder<Wiki>,
+    featuredEvents: boolean,
+  ) {
+    if (!featuredEvents) {
+      queryBuilder
+        .andWhere((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('taggedWiki.id')
+            .from(Wiki, 'taggedWiki')
+            .leftJoin('taggedWiki.tags', 'excludedTag')
+            .where('LOWER(excludedTag.id) = LOWER(:eventTag)')
+            .getQuery()
+          return `wiki.id NOT IN ${subQuery}`
+        })
+        .setParameter('eventTag', eventTag)
+    } else {
+      queryBuilder
+        .innerJoin('wiki.tags', 'tag')
+        .andWhere('LOWER(tag.id) = LOWER(:eventTag)', { eventTag })
+    }
+  }
+
+  async getPromotedWikis(
+    args: LangArgs,
+    featuredEvents = false,
+  ): Promise<Wiki[] | []> {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    queryBuilder
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.promoted > 0')
+      .andWhere('wiki.hidden = false')
+      .orderBy('wiki.promoted', args.direction)
+      .skip(args.offset)
+      .take(args.limit)
+
+    this.filterFeaturedEvents(queryBuilder, featuredEvents)
+
+    return queryBuilder.getMany()
   }
 
   async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
@@ -383,18 +400,22 @@ class WikiService {
   }
 
   async promoteWiki(args: PromoteWikiArgs): Promise<Wiki | null> {
-    const wiki = (await this.repository()).findOneBy({ id: args.id })
-    if (args.level <= 10) {
-      const promotedWikis =
-        args.level > 0
-          ? await (
-              await this.repository()
-            ).find({
-              where: { promoted: args.level },
-            })
-          : []
+    const { id, level, featuredEvents } = args
+    const wiki = (await this.repository()).findOneBy({ id })
 
-      for (const promotedWiki of promotedWikis) {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    if (level <= 10) {
+      if (level > 0) {
+        queryBuilder
+          .andWhere('wiki.promoted = :level', { level })
+          .andWhere('wiki.hidden = false')
+
+        this.filterFeaturedEvents(queryBuilder, featuredEvents)
+      }
+      const promotedWiki = await queryBuilder.getOne()
+
+      if (promotedWiki) {
         await (
           await this.repository()
         )
@@ -410,8 +431,8 @@ class WikiService {
       )
         .createQueryBuilder()
         .update(Wiki)
-        .set({ promoted: args.level })
-        .where('id = :id', { id: args.id })
+        .set({ promoted: level })
+        .where('id = :id', { id })
         .execute()
       return wiki
     }

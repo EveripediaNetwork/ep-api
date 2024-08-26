@@ -17,7 +17,7 @@ import PinataService from '../../ExternalServices/pinata.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
-import Events from '../../Database/Entities/Event.entity'
+import Events from '../../Database/Entities/event.entity'
 
 interface CgApiIdList {
   id: string
@@ -199,8 +199,10 @@ class PinService {
       return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
 
-    let createEvents = wiki.events.filter((event) => !event.id)
-    const updateEvents = wiki.events.filter((event) => event.id)
+    let createEvents = wiki.events.filter((event) => event.action === 'CREATE')
+    const updateEvents = wiki.events.filter(
+      (event) => event.action === 'UPDATE',
+    )
     const deleteEvents = wiki.events.filter(
       (event) => event.action === 'DELETE',
     )

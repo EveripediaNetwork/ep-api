@@ -50,6 +50,14 @@ class Events {
   @Column('varchar', { nullable: true })
   link?: string
 
+  @Field(() => String, { nullable: true })
+  @Column('varchar', { nullable: true })
+  continent?: string
+
+  @Field(() => String, { nullable: true })
+  @Column('varchar', { nullable: true })
+  country?: string
+
   @Field(() => Wiki, { nullable: true })
   @ManyToOne(() => Wiki, wiki => wiki.wikiEvents, { lazy: true })
   wiki!: Relation<Wiki>

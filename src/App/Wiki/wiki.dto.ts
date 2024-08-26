@@ -53,6 +53,9 @@ export class ByIdArgs {
 export class PromoteWikiArgs extends ByIdArgs {
   @Field(() => Int)
   level = 0
+
+  @Field(() => Boolean)
+  featuredEvents = false
 }
 
 @ObjectType()

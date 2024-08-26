@@ -26,7 +26,7 @@ import Metadata from './metadata.entity'
 import Media from './types/IMedia'
 import Image from './image.entity'
 import LinkedWikis from './types/ILinkedWikis'
-import Events from './Event.entity'
+import Events from './event.entity'
 
 @ObjectType()
 @Entity()
