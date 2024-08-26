@@ -126,7 +126,7 @@ class PinService {
       await this.updateEventsTable(wiki as unknown as Wiki)
 
     if (createdEvents.length !== 0) {
-      const updatedEventObjects = wiki.events?.map((obj) => {
+      const eventObjects = wiki.events?.map((obj) => {
         if (obj.id === undefined) {
           const matchingObj = this.findMatchingObject(createdEvents, obj)
           if (matchingObj) {
@@ -135,6 +135,10 @@ class PinService {
         }
         return obj
       })
+
+      const updatedEventObjects =  eventObjects?.map(({ action, ...rest }) => ({
+        ...rest,
+      }))
 
       wikiData = {
         ...wikiData,
@@ -226,7 +230,7 @@ class PinService {
     const deletedEvents: Events[] = []
 
     if (createEvents.length > 0) {
-      const eventsToBeCreated = createEvents.map(({ action, ...rest }) => ({
+      const eventsToBeCreated = createEvents.map(({ action, id, ...rest }) => ({
         ...rest,
       }))
       const newEvents = repository.create(eventsToBeCreated)
