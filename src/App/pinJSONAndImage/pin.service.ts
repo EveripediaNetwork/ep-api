@@ -136,7 +136,7 @@ class PinService {
         return obj
       })
 
-      const updatedEventObjects =  eventObjects?.map(({ action, ...rest }) => ({
+      const updatedEventObjects = eventObjects?.map(({ action, ...rest }) => ({
         ...rest,
       }))
 
