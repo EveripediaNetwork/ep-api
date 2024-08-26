@@ -37,6 +37,10 @@ export class CategoryArgs extends LangArgs {
   @Field(() => String)
   @Validate(ValidStringParams)
   category!: string
+
+  @Field(() => [String], { nullable: true })
+  @Validate(ValidStringParams)
+  tagIds?: string[]
 }
 
 @ArgsType()
