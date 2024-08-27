@@ -547,7 +547,7 @@ class WikiService {
     const fullLinkedWikis: (Wiki | null)[] = []
     if (ids && ids.length > 0) {
       for (const id of ids) {
-        const f = await this.findWiki({ id } as ByIdArgs)
+        const f = await this.findWiki({ id, lang: 'en' })
         fullLinkedWikis.push(f)
       }
     }

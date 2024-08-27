@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { DataSource } from 'typeorm'
@@ -23,6 +25,7 @@ const noContentWiki = {
   ipfs: 'no-content',
   created: new Date(),
   media: [],
+  events: [],
   images: [],
   tags: [{ id: 'no-content' }],
 } as unknown as Partial<Wiki>
@@ -63,12 +66,14 @@ class MarketCapService {
       (await this.findWikiByCoingeckoUrl(id, category, marketCapId?.wikiId)) ||
       (await wikiRepository
         .createQueryBuilder('wiki')
+        .leftJoinAndSelect('wiki.wikiEvents', 'events')
         .where('wiki.id = :id AND wiki.hidden = false', {
           id: noCategoryId,
         })
         .getOne()) ||
       (await wikiRepository
         .createQueryBuilder('wiki')
+        .leftJoinAndSelect('wiki.wikiEvents', 'events')
         .innerJoinAndSelect(
           'wiki.categories',
           'category',
@@ -86,7 +91,6 @@ class MarketCapService {
       tags: [...tag],
     }
     const wikiResult = wiki && tag ? wikiAndTags : wiki
-
     const [founders, blockchain] = await Promise.all([
       this.wikiService.getFullLinkedWikis(
         wikiResult?.linkedWikis?.founders as string[],
@@ -192,6 +196,7 @@ class MarketCapService {
 
       return {
         ...rankpageWiki.wiki,
+        events: rankpageWiki.wiki.__wikiEvents__,
         founderWikis: rankpageWiki.founders,
         blockchainWikis: rankpageWiki.blockchain,
         ...marketData,
@@ -303,6 +308,7 @@ class MarketCapService {
       )`,
         { url: coingeckoProfileUrl },
       )
+      .innerJoinAndSelect('wiki.wikiEvents', 'events')
       .innerJoinAndSelect(
         'wiki.categories',
         'category',
