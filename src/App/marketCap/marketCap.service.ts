@@ -12,6 +12,7 @@ import {
   NftRankListData,
   RankPageIdInputs,
   RankType,
+  TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -38,16 +39,26 @@ interface RankPageWiki {
 
 @Injectable()
 class MarketCapService {
+  private RANK_LIMIT = 1000
+
+  private API_KEY: string
+
+  private RANK_LIST = 'default-list'
+
+  private RANK_STABLECOINS_LIST = 'stablecoins-list'
+
+  private RANK_AI_LIST = 'ai-coins-list'
+
+  private RANK_NFT_LIST = 'nft-list'
+
   constructor(
     private dataSource: DataSource,
     private httpService: HttpService,
     private configService: ConfigService,
     private wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
-
-  private apiKey() {
-    return this.configService.get('COINGECKO_API_KEY')
+  ) {
+    this.API_KEY = this.configService.get('COINGECKO_API_KEY') as string
   }
 
   private async findWiki(
@@ -121,31 +132,31 @@ class MarketCapService {
 
   async getWikiData(
     coinsData: Record<any, any> | undefined,
-    args: MarketCapInputs,
+    kind: RankType,
+    category?: string,
   ): Promise<RankPageWiki[]> {
-    const kind = args.kind.toLowerCase()
-    const wikiPromises = coinsData?.data.map((element: any) =>
+    kind.toLowerCase()
+    const wikiPromises = coinsData?.map((element: any) =>
       this.findWiki(element.id, kind),
     )
 
     let wikis: RankPageWiki[] | undefined = await this.cacheManager.get(
-      `wiki-${kind}-${args.limit}-${args.category}`,
+      `wiki-${kind}-${category || ''}`,
     )
 
     if (!wikis) {
       wikis = await Promise.all(wikiPromises)
-      this.cacheManager.set(`wiki-${kind}-${args.limit}`, wikis, {
+      this.cacheManager.set(`wiki-${kind}`, wikis, {
         ttl: 3600,
       })
     }
     return wikis
   }
 
-  async marketData(args: MarketCapInputs) {
-    const { category, kind } = args
+  async marketData(kind: RankType, category?: TokenCategory) {
     const categoryParam = category ? `category=${category}&` : ''
-    const data = await this.cgMarketDataApiCall(args, categoryParam)
-    const wikis = await this.getWikiData(data, args)
+    const data = await this.cgMarketDataApiCall(kind, categoryParam)
+    const wikis = await this.getWikiData(data, kind, category)
 
     const processElement = (element: any, rankpageWiki: any) => {
       const tokenData =
@@ -204,7 +215,7 @@ class MarketCapService {
     }
 
     const result = await Promise.all(
-      data?.data.map((element: any, index: number) =>
+      data?.map((element: any, index: number) =>
         processElement(element, wikis[index]),
       ),
     )
@@ -213,53 +224,88 @@ class MarketCapService {
   }
 
   async cgMarketDataApiCall(
-    args: MarketCapInputs,
+    kind: RankType,
     categoryParam?: string,
   ): Promise<Record<any, any> | undefined> {
-    const { limit, offset, kind } = args
-    let data
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const paginate = `&per_page=${limit}&page=${offset === 0 ? 1 : offset}`
-    const url =
-      kind === RankType.TOKEN
-        ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_des${paginate}`
-        : `${baseUrl}nfts/markets?order=h24_volume_usd_desc${paginate}`
+    const perPage = 250
+    const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
+    const allData = []
 
     try {
-      data = await this.httpService
-        .get(url, {
-          headers: {
-            'x-cg-pro-api-key': this.apiKey(),
-          },
-        })
-        .toPromise()
+      for (let page = 1; page <= totalPages; page += 1) {
+        const url =
+          kind === RankType.TOKEN
+            ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${perPage}&page=${page}`
+            : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${perPage}&page=${page}`
+
+        const response = await this.httpService
+          .get(url, {
+            headers: {
+              'x-cg-pro-api-key': this.API_KEY,
+            },
+          })
+          .toPromise()
+
+        if (response?.data) {
+          allData.push(...response.data)
+        }
+      }
     } catch (err: any) {
       console.error(err.message)
     }
-    return data
+    return allData.slice(0, this.RANK_LIMIT)
   }
 
   async ranks(
     args: MarketCapInputs,
+    search = false,
   ): Promise<TokenRankListData | NftRankListData> {
-    const key = `finalResult/${args.kind}/${args.limit}/${args.offset}/${
-      args.category ? `/${args.category}` : ''
-    }`
-
-    const finalCachedResult: any | undefined = await this.cacheManager.get(key)
-
-    if (finalCachedResult) return finalCachedResult
-
+    const key = this.getCacheKey(args)
     let result
-
-    if (args.kind === RankType.NFT) {
-      result = (await this.marketData(args)) as unknown as NftRankListData
+    const finalCachedResult: any | undefined = await this.cacheManager.get(key)
+    if (finalCachedResult) {
+      result = finalCachedResult
     } else {
-      result = (await this.marketData(args)) as unknown as TokenRankListData
+      const data = await this.marketData(args.kind, args.category)
+
+      result =
+        args.kind === RankType.NFT
+          ? (data as unknown as NftRankListData)
+          : (data as unknown as TokenRankListData)
+
+      await this.cacheManager.set(key, result, { ttl: 180 })
     }
 
-    await this.cacheManager.set(key, result, { ttl: 180 })
-    return result
+    return search ? result : result.slice(args.offset, args.offset + args.limit)
+  }
+
+  getCacheKey(args: MarketCapInputs) {
+    let key
+    switch (args.kind) {
+      case RankType.TOKEN:
+        switch (args.category) {
+          case TokenCategory.STABLE_COINS:
+            key = this.RANK_STABLECOINS_LIST
+            break
+          case TokenCategory.AI:
+            key = this.RANK_AI_LIST
+            break
+          default:
+            key = this.RANK_LIST
+            break
+        }
+        break
+
+      case RankType.NFT:
+        key = this.RANK_NFT_LIST
+        break
+      default:
+        key = this.RANK_LIST
+        break
+    }
+
+    return key
   }
 
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
@@ -284,6 +330,27 @@ class MarketCapService {
       console.error('Error in updateMistachIds:', e)
       return false
     }
+  }
+
+  async wildcardSearch(args: MarketCapInputs) {
+    if (!args.search) return []
+    const cache = (await this.ranks(args, true)) as unknown as (
+      | TokenRankListData
+      | NftRankListData
+    )[]
+
+    const lowerSearchTerm = args.search.toLowerCase()
+
+    return cache.filter((item: any) => {
+      const nftMatch =
+        item.nftMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
+        item.nftMarketData?.name.toLowerCase().includes(lowerSearchTerm)
+      const tokenMatch =
+        item.tokenMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
+        item.tokenMarketData?.name.toLowerCase().includes(lowerSearchTerm)
+
+      return (nftMatch as NftRankListData) || (tokenMatch as TokenRankListData)
+    })
   }
 
   async findWikiByCoingeckoUrl(

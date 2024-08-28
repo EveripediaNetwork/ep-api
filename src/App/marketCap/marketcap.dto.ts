@@ -133,6 +133,10 @@ export class MarketCapInputs extends PaginationArgs {
   @Field(() => TokenCategory, { nullable: true })
   @Validate(ValidStringParams)
   category?: TokenCategory
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  search?: string
 }
 
 @ArgsType()

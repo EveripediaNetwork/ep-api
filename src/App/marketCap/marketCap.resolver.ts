@@ -32,6 +32,13 @@ class MarketCapResolver {
     return this.marketCapService.updateMistachIds(args)
   }
 
+  @Query(() => [MarketRankData], { nullable: 'items' })
+  async searchRank(
+    @Args() args: MarketCapInputs,
+  ): Promise<(NftRankListData | TokenRankListData)[]> {
+    return this.marketCapService.wildcardSearch(args)
+  }
+
   @Mutation(() => Boolean)
   async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
     try {
