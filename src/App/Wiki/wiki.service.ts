@@ -307,10 +307,11 @@ class WikiService {
       new Brackets((query) => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
-            'wikiEvents.date >= :start OR wikiEvents.multiDateStart >= :other',
+            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd)',
             { start: startDate, other: startDate },
           )
         }
+
         if (args.endDate) {
           query.andWhere(
             `
