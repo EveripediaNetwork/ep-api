@@ -7,7 +7,6 @@ import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
-import { MarketRankData } from './marketcap.dto'
 import {
   MarketCapInputs,
   NftRankListData,
@@ -224,39 +223,12 @@ class MarketCapService {
     return result
   }
 
-  //   async cgMarketDataApiCall(
-  //     kind: RankType,
-  //     categoryParam?: string,
-  //   ): Promise<Record<any, any> | undefined> {
-  //     let data
-  //     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-
-  //     const url =
-  //       kind === RankType.TOKEN
-  //         ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_des&per_page=${this.RANK_LIMIT}`
-  //         : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${this.RANK_LIMIT}`
-
-  //     try {
-  //       data = await this.httpService
-  //         .get(url, {
-  //           headers: {
-  //             'x-cg-pro-api-key': this.API_KEY,
-  //           },
-  //         })
-  //         .toPromise()
-  //     } catch (err: any) {
-  //       console.error(err.message)
-  //     }
-
-  //     return data
-  //   }
-
   async cgMarketDataApiCall(
     kind: RankType,
     categoryParam?: string,
   ): Promise<Record<any, any> | undefined> {
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const perPage = 250 // Max allowed per page
+    const perPage = 250
     const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
     const allData = []
 
@@ -282,7 +254,6 @@ class MarketCapService {
     } catch (err: any) {
       console.error(err.message)
     }
-    console.log(allData.length)
     return allData.slice(0, this.RANK_LIMIT)
   }
 
