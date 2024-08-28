@@ -93,6 +93,7 @@ import WikiController from './Wiki/controllers/wiki.controller'
         ],
       },
     }),
+    CacheModule,
     SitemapModule,
     MailerModule,
     httpModule(20000),
