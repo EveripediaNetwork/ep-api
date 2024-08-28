@@ -19,7 +19,7 @@ export class CacheService {
 
   private async fetchCache() {
     try {
-      const response = await axios.get('https://localhost:7500/graphql')
+      const response = await axios.get('https://')
       this.cache = response.data
       this.broadcastCache()
     } catch (error) {
