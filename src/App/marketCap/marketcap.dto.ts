@@ -10,6 +10,7 @@ import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import ValidStringParams from '../utils/customValidator'
+import Events from '../../Database/Entities/Event.entity'
 
 @ObjectType()
 class MarketDataGenerals {
@@ -78,12 +79,18 @@ export class TokenListData extends MarketDataGenerals {
 export class TokenRankListData extends Wiki {
   @Field(() => TokenListData, { nullable: true })
   tokenMarketData?: TokenListData
+
+  @Field(() => [Events], { nullable: true })
+  events?: Events[]
 }
 
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })
   nftMarketData?: NftListData
+
+  @Field(() => [Events], { nullable: true })
+  events?: Events[]
 }
 
 export const MarketRankData = createUnionType({

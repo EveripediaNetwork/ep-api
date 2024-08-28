@@ -77,7 +77,7 @@ class PinService {
     const { wikiObject, saveMatchedIdcallback } =
       await this.handleCoingekoApiId(wiki)
 
-    let wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
+    const wikiData = await this.metadataChanges.removeEditMetadata(wikiObject)
 
     const isDataValid = await this.validator.validate(wikiData, true)
 
@@ -131,7 +131,7 @@ class PinService {
       await this.updateEventsTable(wikiData as unknown as Wiki)
 
     if (createdEvents.length !== 0) {
-      const eventObjects = wikiData.events?.map((obj) => {
+      wikiData.events?.map((obj) => {
         if (obj.action === EventAction.CREATE) {
           const { id, action, ...rest } = obj
           const matchingObj = this.findMatchingObject(createdEvents, {
@@ -143,15 +143,12 @@ class PinService {
         }
         return obj
       })
-
-      wikiData = {
-        ...wikiData,
-        events: eventObjects,
-      }
     }
-    wikiData.events?.map(({ action, ...rest }) => ({
-      ...rest,
-    }))
+
+    wikiData.events = wikiData.events
+      ?.filter(({ action }) => action !== EventAction.DELETE)
+      .map(({ action, ...rest }) => rest)
+
     const payload = {
       pinataMetadata: {
         name: wikiData.content !== undefined ? wikiData.title : 'image',
