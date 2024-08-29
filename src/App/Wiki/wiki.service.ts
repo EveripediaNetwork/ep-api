@@ -110,6 +110,15 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
+    
+
+    const wikis: Wiki[] | undefined = await this.cacheManager.get(
+      'promotedWikis',
+    )
+    if (wikis) {
+      return wikis
+    }
+
     queryBuilder
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.promoted > 0')
@@ -120,7 +129,13 @@ class WikiService {
 
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
-    return queryBuilder.getMany()
+    const promotedWikis = await queryBuilder.getMany()
+
+    this.cacheManager.set('promotedWikis', promotedWikis, {
+      ttl: 3600,
+    })
+
+    return promotedWikis
   }
 
   async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
