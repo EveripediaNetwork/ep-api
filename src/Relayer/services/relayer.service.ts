@@ -92,9 +92,9 @@ class RelayerService {
   async getUpdatedGas() {
     const maticGas = (await this.getMaticGas()) || '40'
 
-    const gasBump = parseInt(maticGas, 10) * 1000 * 1.2
+    const gasBump = parseInt(maticGas, 10) * 1.2
 
-    return gasBump
+    return String(gasBump)
   }
 
   public async relayTx(
@@ -138,7 +138,7 @@ class RelayerService {
 
       const txConfig = this.appService.privateSigner()
         ? {
-            gasPrice: gas,
+            gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
             gasLimit: 50000,
           }
         : {
