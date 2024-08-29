@@ -57,7 +57,8 @@ class WikiResolver {
   @Query(() => [Wiki])
   async promotedWikis(
     @Args() args: LangArgs,
-    @Args('featuredEvents', { type: () => Boolean }) featuredEvents = false,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
   ) {
     return this.wikiService.getPromotedWikis(args, featuredEvents)
   }
@@ -122,7 +123,8 @@ class WikiResolver {
   async hideWiki(
     @Args() args: ByIdArgs,
     @Context() ctx: any,
-    @Args('featuredEvents', { type: () => Boolean }) featuredEvents = false,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
   ) {
     const cacheId = ctx.req.ip + args.id
 
