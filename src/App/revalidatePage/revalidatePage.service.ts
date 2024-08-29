@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
+import { Cron } from '@nestjs/schedule'
 
 export enum RevalidateEndpoints {
   HIDE_WIKI = 'hideWiki',
@@ -29,6 +30,7 @@ export interface RevalidateStatus {
 
 @Injectable()
 export class RevalidatePageService {
+  private failedUrls: string[] = []
   constructor(
     private httpService: HttpService,
     private dataSource: DataSource,
@@ -67,9 +69,26 @@ export class RevalidatePageService {
         'Error revalidating path',
         e.response?.config?.url || e.message,
       )
+      this.failedUrls.push(e.response?.config?.url)
     }
 
     return true
+  }
+
+  @Cron('*/5****')
+  async retryFailedUrl() {
+    if (this.failedUrls.length > 0) {
+      console.log('Retrying failed URLs...')
+      for (const failedUrl of this.failedUrls) {
+        try {
+          await this.httpService.get(failedUrl).toPromise()
+          console.log(`Successfully revalidated: ${failedUrl}`)
+          this.failedUrls = this.failedUrls.filter((url) => url !== failedUrl)
+        } catch (e) {
+          console.error('Retry failed for URL:', failedUrl)
+        }
+      }
+    }
   }
 
   async revalidatePage(
