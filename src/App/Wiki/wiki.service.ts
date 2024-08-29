@@ -463,9 +463,7 @@ class WikiService {
     return null
   }
 
-  async hideWiki(
-    args: ByIdArgs,
-  ): Promise<Wiki | null> {
+  async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
@@ -476,12 +474,10 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
-    const currentPromotions = await this.getPromotedWikis(
-      {
-        id: 'en',
-        direction: 'ASC',
-      } as unknown as LangArgs,
-    )
+    const currentPromotions = await this.getPromotedWikis({
+      id: 'en',
+      direction: 'ASC',
+    } as unknown as LangArgs)
 
     if (currentPromotions.length > 0) {
       for (let index = 0; index < currentPromotions.length; index += 1) {
