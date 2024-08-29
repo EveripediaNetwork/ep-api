@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
 import { AxiosError } from 'axios'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
@@ -97,6 +98,7 @@ class RelayerService {
     return gasBump
   }
 
+  @Cron(CronExpression.EVERY_5_SECONDS)
   public async relayTx(
     ipfs: string,
     userAddr: string,
@@ -134,9 +136,17 @@ class RelayerService {
         txConfig,
       )
     } else {
-      const gas = this.appService.privateSigner()
-        ? await this.getUpdatedGas()
-        : 50000
+      const gas = await this.getUpdatedGas()
+
+      const txConfig = this.appService.privateSigner()
+        ? {
+            gasPrice: gas,
+            gasLimit: 50000,
+          }
+        : {
+            gasLimit: 50000,
+          }
+
       result = await this.wikiInstance.postBySig(
         ipfs,
         userAddr,
@@ -144,9 +154,7 @@ class RelayerService {
         v,
         r,
         s,
-        {
-          gasLimit: gas,
-        },
+        txConfig,
       )
     }
     return result
