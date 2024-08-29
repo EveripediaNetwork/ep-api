@@ -110,8 +110,6 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
-    
-
     const wikis: Wiki[] | undefined = await this.cacheManager.get(
       'promotedWikis',
     )
