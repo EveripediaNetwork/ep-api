@@ -55,12 +55,8 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  async promotedWikis(
-    @Args() args: LangArgs,
-    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
-    featuredEvents: boolean,
-  ) {
-    return this.wikiService.getPromotedWikis(args, featuredEvents)
+  async promotedWikis(@Args() args: LangArgs) {
+    return this.wikiService.getPromotedWikis(args)
   }
 
   @Query(() => [Wiki])
@@ -120,15 +116,10 @@ class WikiResolver {
 
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
-  async hideWiki(
-    @Args() args: ByIdArgs,
-    @Context() ctx: any,
-    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
-    featuredEvents: boolean,
-  ) {
+  async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-    const wiki = await this.wikiService.hideWiki(args, featuredEvents)
+    const wiki = await this.wikiService.hideWiki(args)
 
     if (wiki) {
       await this.revalidate.revalidatePage(

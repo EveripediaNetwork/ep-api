@@ -106,7 +106,7 @@ class WikiService {
 
   async getPromotedWikis(
     args: LangArgs,
-    featuredEvents: boolean,
+    featuredEvents = false,
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
@@ -465,7 +465,6 @@ class WikiService {
 
   async hideWiki(
     args: ByIdArgs,
-    featuredEvents: boolean,
   ): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (
@@ -482,7 +481,6 @@ class WikiService {
         id: 'en',
         direction: 'ASC',
       } as unknown as LangArgs,
-      featuredEvents,
     )
 
     if (currentPromotions.length > 0) {
