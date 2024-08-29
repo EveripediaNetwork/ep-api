@@ -98,7 +98,6 @@ class RelayerService {
     return gasBump
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
   public async relayTx(
     ipfs: string,
     userAddr: string,
