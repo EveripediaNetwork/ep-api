@@ -358,6 +358,7 @@ class MarketCapService {
     category: string,
     id?: string,
   ): Promise<Wiki | null> {
+    return null
     const wikiRepository = this.dataSource.getRepository(Wiki)
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
     const coingeckoProfileUrl = `${baseCoingeckoUrl}/${
