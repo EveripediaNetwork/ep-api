@@ -92,9 +92,9 @@ class RelayerService {
   async getUpdatedGas() {
     const maticGas = (await this.getMaticGas()) || '40'
 
-    const gasBump = parseInt(maticGas, 10) * 1.2
+    const gasBump = String(Math.round(parseInt(maticGas, 10) * 1.2))
 
-    return String(gasBump)
+    return gasBump
   }
 
   public async relayTx(
