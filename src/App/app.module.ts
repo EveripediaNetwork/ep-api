@@ -66,6 +66,7 @@ import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
+import { PosthogModule } from 'nestjs-posthog'
 
 // istanbul ignore next
 @Module({
@@ -92,6 +93,24 @@ import WikiController from './Wiki/controllers/wiki.controller'
           }),
         ],
       },
+    }),
+    PosthogModule.forRootAsync({
+    imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const apiKey = configService.get<string>('POSTHOG_API_KEY')
+        const host = configService.get<string>('POSTHOG_API_URL')
+        if (!apiKey ||!host) {
+          console.error('Posthog configuration is missing apiKey or host')
+        }
+        return {
+          apiKey: apiKey || '',
+          options: {
+            host,
+          },
+          mock: true,
+        }
+        },
     }),
     SitemapModule,
     MailerModule,

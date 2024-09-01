@@ -12,6 +12,7 @@ import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
 import AppService from '../../App/app.service'
+import { PosthogService } from 'nestjs-posthog'
 
 @Injectable()
 class RelayerService {
@@ -24,6 +25,7 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
+    private posthogService: PosthogService,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
@@ -120,40 +122,62 @@ class RelayerService {
     }
 
     let result
-    if (this.appService.apiLevel() !== 'prod') {
-      const txConfig = {
-        gasPrice: ethers.utils.parseUnits('0.7', 'gwei'),
+    try {
+      if (this.appService.apiLevel() !== 'prod') {
+        const txConfig = {
+          gasPrice: ethers.utils.parseUnits('0.7', 'gwei'),
+        }
+        result = await this.wikiInstance.postBySig(
+          ipfs,
+          userAddr,
+          deadline,
+          v,
+          r,
+          s,
+          txConfig,
+        )
+      } else {
+        const gas = await this.getUpdatedGas()
+
+        const txConfig = this.appService.privateSigner()
+          ? {
+              gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
+              gasLimit: 50000,
+            }
+          : {
+              gasLimit: 50000,
+            }
+
+        result = await this.wikiInstance.postBySig(
+          ipfs,
+          userAddr,
+          deadline,
+          v,
+          r,
+          s,
+          txConfig,
+        )
       }
-      result = await this.wikiInstance.postBySig(
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        txConfig,
-      )
-    } else {
-      const gas = await this.getUpdatedGas()
-
-      const txConfig = this.appService.privateSigner()
-        ? {
-            gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
-            gasLimit: 50000,
-          }
-        : {
-            gasLimit: 50000,
-          }
-
-      result = await this.wikiInstance.postBySig(
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        txConfig,
-      )
+      this.posthogService.capture({
+        distinctId: userAddr,
+        event: 'Successful Transaction',
+        properties: {
+          ipfs,
+          userAddr,
+          result,
+        },
+      })
+    } catch (error) {
+      this.posthogService.capture({
+        distinctId: userAddr,
+        event: 'Failed Transaction',
+        properties: {
+          ipfs,
+          userAddr,
+          error,
+        },
+      })
+      throw error
     }
     return result
   }
