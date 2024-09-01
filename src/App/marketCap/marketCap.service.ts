@@ -39,7 +39,7 @@ interface RankPageWiki {
 
 @Injectable()
 class MarketCapService {
-  private RANK_LIMIT = 1000
+  private RANK_LIMIT = 500
 
   private API_KEY: string
 
@@ -228,7 +228,7 @@ class MarketCapService {
     categoryParam?: string,
   ): Promise<Record<any, any> | undefined> {
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const perPage = 250
+    const perPage = 50
     const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
     const allData = []
 
@@ -358,6 +358,7 @@ class MarketCapService {
     category: string,
     id?: string,
   ): Promise<Wiki | null> {
+    return null
     const wikiRepository = this.dataSource.getRepository(Wiki)
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
     const coingeckoProfileUrl = `${baseCoingeckoUrl}/${

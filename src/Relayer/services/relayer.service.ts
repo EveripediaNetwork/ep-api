@@ -92,7 +92,7 @@ class RelayerService {
   async getUpdatedGas() {
     const maticGas = (await this.getMaticGas()) || '40'
 
-    const gasBump = parseInt(maticGas, 10) * 1000 * 1.2
+    const gasBump = String(Math.round(parseInt(maticGas, 10) * 1.2))
 
     return gasBump
   }
@@ -134,9 +134,17 @@ class RelayerService {
         txConfig,
       )
     } else {
-      const gas = this.appService.privateSigner()
-        ? await this.getUpdatedGas()
-        : 50000
+      const gas = await this.getUpdatedGas()
+
+      const txConfig = this.appService.privateSigner()
+        ? {
+            gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
+            gasLimit: 50000,
+          }
+        : {
+            gasLimit: 50000,
+          }
+
       result = await this.wikiInstance.postBySig(
         ipfs,
         userAddr,
@@ -144,9 +152,7 @@ class RelayerService {
         v,
         r,
         s,
-        {
-          gasLimit: gas,
-        },
+        txConfig,
       )
     }
     return result

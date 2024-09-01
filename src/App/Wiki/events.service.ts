@@ -188,26 +188,20 @@ class EventsService {
       queryBuilder.andWhere(sub, {
         blockchain: args.blockchain,
       })
-    } else {
-      const conditions = []
-      if (args.country) {
-        conditions.push("elem->>'value' ILIKE '%' || :country || '%'")
-      }
-      if (args.continent) {
-        conditions.push("elem->>'value' ILIKE '%' || :continent || '%'")
-      }
-      const subqueryCondition =
-        conditions.length > 0 ? `AND (${conditions.join(' AND ')})` : ''
-
-      const sub = `
-            EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements(metadata::jsonb) AS elem
-                WHERE elem->>'id' = 'location' ${subqueryCondition}
-            )
-        `
-      queryBuilder.andWhere(sub, {
+    } else if (args.country && args.continent) {
+      queryBuilder.andWhere(
+        'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent',
+        {
+          country: args.country,
+          continent: args.continent,
+        },
+      )
+    } else if (args.country) {
+      queryBuilder.andWhere('wikiEvents.country ILIKE :country', {
         country: args.country,
+      })
+    } else if (args.continent) {
+      queryBuilder.andWhere('wikiEvents.continent ILIKE :continent', {
         continent: args.continent,
       })
     }
