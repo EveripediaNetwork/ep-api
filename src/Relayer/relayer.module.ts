@@ -5,9 +5,10 @@ import RelayerResolver from './resolvers/relayer.resolver'
 import httpModule from '../httpModule'
 import ActivityModule from '../App/Activities/activity.module'
 import AppService from '../App/app.service'
+import { POSTHOG_MODULE_OPTIONS, PosthogModule } from 'nestjs-posthog'
 
 @Module({
-  imports: [httpModule(10000), ActivityModule],
+  imports: [httpModule(10000), ActivityModule, PosthogModule],
   controllers: [RelayerController],
   providers: [RelayerService, RelayerResolver, AppService],
 })
