@@ -83,11 +83,11 @@ class MarketCapService {
         .createQueryBuilder('wiki')
         .select('wiki.id')
         .addSelect('wiki.title')
+        .addSelect('wiki.ipfs')
+        .addSelect('wiki.images')
 
       const wikiQuery = baseQuery
         .clone()
-        .addSelect('wiki.ipfs')
-        .addSelect('wiki.images')
         .addSelect('wiki.metadata')
         .addSelect('wiki.created')
         .addSelect('wiki.linkedWikis')
