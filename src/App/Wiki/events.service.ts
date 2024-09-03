@@ -32,7 +32,7 @@ class EventsService {
           })
           .having('COUNT(DISTINCT tag."id") > 1')
       } else {
-        queryBuilder.andWhere('LOWER(tag.id) != LOWER(:ev)', { ev: eventTag })
+        queryBuilder.andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       }
 
       this.wikiService.applyDateFilter(
