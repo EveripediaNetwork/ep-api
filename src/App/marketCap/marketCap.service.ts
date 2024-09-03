@@ -324,7 +324,6 @@ class MarketCapService {
 
   async ranks(
     args: MarketCapInputs,
-    search = false,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
     const data = await this.marketData(args)
 
@@ -390,7 +389,7 @@ class MarketCapService {
 
   async wildcardSearch(args: MarketCapInputs) {
     if (!args.search) return []
-    const cache = (await this.ranks(args, true)) as unknown as (
+    const cache = (await this.ranks(args)) as unknown as (
       | TokenRankListData
       | NftRankListData
     )[]
