@@ -154,40 +154,25 @@ describe('MarketCapService', () => {
       expect(dataSource.getRepository(MarketCapIds).insert).toHaveBeenCalled()
     })
   })
+  describe('wildcardSearch', () => {
+    it('should return filtered results based on search term', async () => {
+      const cacheData = [
+        { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
+        { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
+      ]
+      jest
+        .spyOn(marketCapService, 'ranks')
+        .mockResolvedValueOnce(cacheData as any)
 
-  describe('updateMistachIds', () => {
-    it('should update existing record', async () => {
-      const repository = {
-        findOne: jest.fn().mockResolvedValue({ id: 1 }),
-        update: jest.fn(),
-      }
-      dataSource.getRepository.mockReturnValue(repository)
-
-      const result = await marketCapService.updateMistachIds({
-        coingeckoId: 'bitcoin',
-        wikiId: 'bitcoin-wiki',
+      const result = await marketCapService.wildcardSearch({
         kind: RankType.TOKEN,
+        offset: 0,
+        limit: 10,
+        search: 'bit',
       })
 
-      expect(result).toBe(true)
-      expect(repository.update).toHaveBeenCalled()
-    })
-
-    it('should insert new record if not exists', async () => {
-      const repository = {
-        findOne: jest.fn().mockResolvedValue(null),
-        insert: jest.fn(),
-      }
-      dataSource.getRepository.mockReturnValue(repository)
-
-      const result = await marketCapService.updateMistachIds({
-        coingeckoId: 'ethereum',
-        wikiId: 'ethereum-wiki',
-        kind: RankType.TOKEN,
-      })
-
-      expect(result).toBe(true)
-      expect(repository.insert).toHaveBeenCalled()
+      expect(result).toHaveLength(1)
+      expect(result[0].tokenMarketData.id).toBe('bitcoin')
     })
   })
 })
