@@ -333,7 +333,7 @@ class MarketCapService {
         ? (data as unknown as NftRankListData[])
         : (data as unknown as TokenRankListData[])
 
-    return search ? result : result.slice(args.offset, args.offset + args.limit)
+    return result
   }
 
   getCacheKey(args: MarketCapInputs) {
