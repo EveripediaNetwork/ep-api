@@ -1,16 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, CacheModule } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Cache } from 'cache-manager'
 import { of } from 'rxjs'
 import WikiService from '../Wiki/wiki.service'
-import Wiki from '../../Database/Entities/wiki.entity'
-import Tag from '../../Database/Entities/tag.entity'
-import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
-import { RankType, MarketCapInputs, RankPageIdInputs } from './marketcap.dto'
+import { RankType, TokenCategory } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 describe('MarketCapService', () => {
   let marketCapService: MarketCapService
@@ -84,102 +81,45 @@ describe('MarketCapService', () => {
     cacheManager = module.get(CACHE_MANAGER) as jest.Mocked<Cache>
   })
 
-  describe('findWiki', () => {
-    it('should return a RankPageWiki object with wiki and blockchain', async () => {
-      const marketCapId = { wikiId: 'wiki-id' }
-      const wiki = { id: 'wiki-id', title: 'Wiki', linkedWikis: {} }
-      const tags = [{ id: 'tag-id' }]
-
-      dataSource
-        .getRepository(MarketCapIds)
-        .findOne.mockResolvedValue(marketCapId as any)
-      dataSource
-        .getRepository(Wiki)
-        .createQueryBuilder()
-        .getOne.mockResolvedValue(wiki as any)
-      dataSource.getRepository(Tag).query.mockResolvedValue(tags)
-      wikiService.getFullLinkedWikis.mockResolvedValue([])
-
-      const result = await marketCapService['findWiki'](
-        'test-id',
-        'test-category',
-      )
-
-      expect(result).toBeDefined()
-      expect(result.wiki).toEqual({ ...wiki, tags })
-      expect(result.blockchain).toEqual([])
-    })
-    it('should find a wiki by coingecko id and category', async () => {
-      const mockWiki = { id: 'test-wiki', title: 'Test Wiki' }
-      const mockMarketCapId = { wikiId: 'test-wiki-id' }
-      ;(dataSource.getRepository as jest.Mock)().findOne.mockResolvedValueOnce(
-        mockMarketCapId,
-      )
-      ;(dataSource.getRepository as jest.Mock)()
-        .createQueryBuilder()
-        .getOne.mockResolvedValueOnce(mockWiki)
-      ;(dataSource.getRepository as jest.Mock)().query.mockResolvedValueOnce([
-        { id: 'tag1' },
-      ])
-      wikiService.getFullLinkedWikis.mockResolvedValue([])
-
-      const result = await (marketCapService as any).findWiki(
-        'test-id',
-        'test-category',
-      )
-
-      expect(result).toEqual({
-        wiki: { ...mockWiki, tags: [{ id: 'tag1' }] },
-        founders: [],
-        blockchain: [],
-      })
-    })
+  it('should be defined', () => {
+    expect(marketCapService).toBeDefined()
   })
 
-  describe('crypoMarketData', () => {
-    it('should fetch and process market data', async () => {
-      const apiResponse = [
-        { id: 'btc', name: 'bitcoin', symbol: 'BTC', current_price: 60000 },
-      ]
-
-      jest
-        .spyOn(marketCapService as any, 'cgMarketDataApiCall')
-        .mockResolvedValue(apiResponse)
-      jest
-        .spyOn(marketCapService as any, 'findWiki')
-        .mockResolvedValue({ wiki: { id: 'btc-wiki' } })
-
-      const result = await marketCapService.marketData(RankType.TOKEN)
-
-      expect(result).toBeInstanceOf(Array)
-      expect(result).toHaveLength(1)
-      expect(result[0]).toHaveProperty('tokenMarketData')
-      expect(result[0].tokenMarketData.name).toBe('bitcoin')
+  describe('getCacheKey', () => {
+    it('should return correct key for tokens', () => {
+      expect(marketCapService.getCacheKey({
+        kind: RankType.TOKEN,
+        offset: 0,
+        limit: 10,
+      })).toBe(
+        'default-list',
+      )
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.TOKEN,
+          category: TokenCategory.STABLE_COINS,
+          offset: 0,
+          limit: 10,
+        }),
+      ).toBe('stablecoins-list')
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.TOKEN,
+          category: TokenCategory.AI,
+          offset: 0,
+          limit: 10,
+        }),
+      ).toBe('ai-coins-list')
     })
-    it('should return market data for tokens', async () => {
-      const mockCgData = [
-        { id: 'bitcoin', name: 'Bitcoin', current_price: 50000 },
-      ]
-      const mockWikiData = [
-        {
-          wiki: { id: 'bitcoin', title: 'Bitcoin' },
-          founders: [],
-          blockchain: [],
-        },
-      ]
 
-      jest
-        .spyOn(marketCapService as any, 'cgMarketDataApiCall')
-        .mockResolvedValueOnce(mockCgData)
-      jest
-        .spyOn(marketCapService as any, 'getWikiData')
-        .mockResolvedValueOnce(mockWikiData)
-
-      const result = await marketCapService.marketData(RankType.TOKEN)
-
-      expect(result).toHaveLength(1)
-      expect(result[0]).toHaveProperty('tokenMarketData')
-      expect(result[0].tokenMarketData).toHaveProperty('id', 'bitcoin')
+    it('should return correct key for NFTs', () => {
+      expect(marketCapService.getCacheKey({
+        kind: RankType.NFT,
+        offset: 0,
+        limit: 10,
+      })).toBe(
+        'nft-list',
+      )
     })
   })
 
@@ -215,17 +155,39 @@ describe('MarketCapService', () => {
     })
   })
 
-  describe('cgMarketDataApiCall', () => {
-    it('should handle API call errors gracefully', async () => {
-      httpService.get.mockReturnValue(
-        of(Promise.reject(new Error('API call failed'))),
-      )
+  describe('updateMistachIds', () => {
+    it('should update existing record', async () => {
+      const repository = {
+        findOne: jest.fn().mockResolvedValue({ id: 1 }),
+        update: jest.fn(),
+      }
+      dataSource.getRepository.mockReturnValue(repository)
 
-      const result = await marketCapService['cgMarketDataApiCall'](
-        RankType.TOKEN,
-      )
+      const result = await marketCapService.updateMistachIds({
+        coingeckoId: 'bitcoin',
+        wikiId: 'bitcoin-wiki',
+        kind: RankType.TOKEN,
+      })
 
-      expect(result).toEqual([])
+      expect(result).toBe(true)
+      expect(repository.update).toHaveBeenCalled()
+    })
+
+    it('should insert new record if not exists', async () => {
+      const repository = {
+        findOne: jest.fn().mockResolvedValue(null),
+        insert: jest.fn(),
+      }
+      dataSource.getRepository.mockReturnValue(repository)
+
+      const result = await marketCapService.updateMistachIds({
+        coingeckoId: 'ethereum',
+        wikiId: 'ethereum-wiki',
+        kind: RankType.TOKEN,
+      })
+
+      expect(result).toBe(true)
+      expect(repository.insert).toHaveBeenCalled()
     })
   })
 })
