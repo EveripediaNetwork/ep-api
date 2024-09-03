@@ -73,7 +73,7 @@ import WikiController from './Wiki/controllers/wiki.controller'
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600, max: 10000, isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,

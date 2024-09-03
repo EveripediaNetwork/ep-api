@@ -133,7 +133,7 @@ export default class WebhookHandler {
           {
             color: 0xff9900,
             title: `📢   Wiki report on ${payload?.urlId}  📢`,
-            url: `${this.getWebpageUrl()}wiki/${payload?.urlId}`,
+            url: `${this.getWebpageUrl()}/wiki/${payload?.urlId}`,
             description: `${payload?.description}`,
             footer: {
               text: `Flagged by ${user?.username || 'user'}`,
