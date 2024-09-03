@@ -110,6 +110,13 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
+    const wikis: Wiki[] | undefined = await this.cacheManager.get(
+      'promotedWikis',
+    )
+    if (wikis) {
+      return wikis
+    }
+
     queryBuilder
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.promoted > 0')
@@ -120,7 +127,13 @@ class WikiService {
 
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
-    return queryBuilder.getMany()
+    const promotedWikis = await queryBuilder.getMany()
+
+    this.cacheManager.set('promotedWikis', promotedWikis, {
+      ttl: 3600,
+    })
+
+    return promotedWikis
   }
 
   async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
@@ -270,20 +283,20 @@ class WikiService {
   }
 
   eventDateOrder(query: SelectQueryBuilder<Wiki>, direction: Direction) {
-    query.addSelect(
-      `(SELECT 
-              MAX(COALESCE("we".date, "we"."${
-                direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-              }"))
-            FROM 
-              "events" "we" 
-            WHERE 
-              "we"."wikiId" = "wiki"."id"
-          )`,
-      'latest_event_date',
-    )
+    // query.addSelect(
+    //   `(SELECT
+    //           MAX(COALESCE("we".date, "we"."${
+    //             direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
+    //           }"))
+    //         FROM
+    //           "events" "we"
+    //         WHERE
+    //           "we"."wikiId" = "wiki"."id"
+    //       )`,
+    //   'latest_event_date',
+    // )
 
-    query.addOrderBy('latest_event_date', direction)
+    // query.addOrderBy('latest_event_date', direction)
 
     query.addOrderBy(
       `COALESCE("wikiEvents".date, "wikiEvents"."${
@@ -307,7 +320,7 @@ class WikiService {
       new Brackets((query) => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
-            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd)',
+            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd) OR (wikiEvents.multiDateStart >= :other)',
             { start: startDate, other: startDate },
           )
         }
