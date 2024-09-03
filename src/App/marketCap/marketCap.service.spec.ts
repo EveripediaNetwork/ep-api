@@ -87,13 +87,13 @@ describe('MarketCapService', () => {
 
   describe('getCacheKey', () => {
     it('should return correct key for tokens', () => {
-      expect(marketCapService.getCacheKey({
-        kind: RankType.TOKEN,
-        offset: 0,
-        limit: 10,
-      })).toBe(
-        'default-list',
-      )
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.TOKEN,
+          offset: 0,
+          limit: 10,
+        }),
+      ).toBe('default-list')
       expect(
         marketCapService.getCacheKey({
           kind: RankType.TOKEN,
@@ -113,13 +113,13 @@ describe('MarketCapService', () => {
     })
 
     it('should return correct key for NFTs', () => {
-      expect(marketCapService.getCacheKey({
-        kind: RankType.NFT,
-        offset: 0,
-        limit: 10,
-      })).toBe(
-        'nft-list',
-      )
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.NFT,
+          offset: 0,
+          limit: 10,
+        }),
+      ).toBe('nft-list')
     })
   })
 
