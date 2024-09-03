@@ -6,7 +6,7 @@ import { Cache } from 'cache-manager'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { Cron } from '@nestjs/schedule'
+import { Cron, CronExpression } from '@nestjs/schedule'
 
 export enum RevalidateEndpoints {
   HIDE_WIKI = 'hideWiki',
@@ -75,7 +75,7 @@ export class RevalidatePageService {
     return true
   }
 
-  @Cron('*/5****')
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async retryFailedUrl() {
     if (this.failedUrls.length > 0) {
       console.log('Retrying failed URLs...')
