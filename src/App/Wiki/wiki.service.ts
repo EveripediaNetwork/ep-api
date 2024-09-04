@@ -121,7 +121,9 @@ class WikiService {
 
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
-    return queryBuilder.getMany()
+    const promotedWikis = await queryBuilder.getMany()
+
+    return promotedWikis
   }
 
   async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
@@ -271,20 +273,20 @@ class WikiService {
   }
 
   eventDateOrder(query: SelectQueryBuilder<Wiki>, direction: Direction) {
-    query.addSelect(
-      `(SELECT 
-              MAX(COALESCE("we".date, "we"."${
-                direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-              }"))
-            FROM 
-              "events" "we" 
-            WHERE 
-              "we"."wikiId" = "wiki"."id"
-          )`,
-      'latest_event_date',
-    )
+    // query.addSelect(
+    //   `(SELECT
+    //           MAX(COALESCE("we".date, "we"."${
+    //             direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
+    //           }"))
+    //         FROM
+    //           "events" "we"
+    //         WHERE
+    //           "we"."wikiId" = "wiki"."id"
+    //       )`,
+    //   'latest_event_date',
+    // )
 
-    query.addOrderBy('latest_event_date', direction)
+    // query.addOrderBy('latest_event_date', direction)
 
     query.addOrderBy(
       `COALESCE("wikiEvents".date, "wikiEvents"."${
@@ -308,10 +310,11 @@ class WikiService {
       new Brackets((query) => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
-            'wikiEvents.date >= :start OR wikiEvents.multiDateStart >= :other',
+            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd) OR (wikiEvents.multiDateStart >= :other)',
             { start: startDate, other: startDate },
           )
         }
+
         if (args.endDate) {
           query.andWhere(
             `
@@ -372,18 +375,24 @@ class WikiService {
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
-  async getWikisHidden(args: LangArgs): Promise<Wiki[] | []> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        hidden: true,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
-    })
+  async getWikisHidden(
+    args: LangArgs,
+    featuredEvents = false,
+  ): Promise<Wiki[] | []> {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    queryBuilder
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.hidden = true')
+      .orderBy('wiki.updated', 'DESC')
+      .skip(args.offset)
+      .take(args.limit)
+
+    this.filterFeaturedEvents(queryBuilder, featuredEvents)
+
+    const hiddenWikis = await queryBuilder.getMany()
+
+    return hiddenWikis
   }
 
   async getExplorers(explorer: string) {
@@ -487,7 +496,10 @@ class WikiService {
     return null
   }
 
-  async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
+  async hideWiki(
+    args: ByIdArgs,
+    featuredEvents: boolean,
+  ): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
@@ -498,10 +510,13 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
-    const currentPromotions = await this.getPromotedWikis({
-      id: 'en',
-      direction: 'ASC',
-    } as unknown as LangArgs)
+    const currentPromotions = await this.getPromotedWikis(
+      {
+        id: 'en',
+        direction: 'ASC',
+      } as unknown as LangArgs,
+      featuredEvents,
+    )
 
     if (currentPromotions.length > 0) {
       for (let index = 0; index < currentPromotions.length; index += 1) {
@@ -572,7 +587,7 @@ class WikiService {
     const fullLinkedWikis: (Wiki | null)[] = []
     if (ids && ids.length > 0) {
       for (const id of ids) {
-        const f = await this.findWiki({ id } as ByIdArgs)
+        const f = await this.findWiki({ id, lang: 'en' })
         fullLinkedWikis.push(f)
       }
     }

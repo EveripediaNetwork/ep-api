@@ -23,13 +23,20 @@ class MarketCapResolver {
   @Query(() => [MarketRankData], { nullable: 'items' })
   async rankList(
     @Args() args: MarketCapInputs,
-  ): Promise<NftRankListData | TokenRankListData> {
+  ): Promise<(NftRankListData | TokenRankListData)[]> {
     return this.marketCapService.ranks(args)
   }
 
   @Mutation(() => Boolean)
   async rankPageIds(@Args() args: RankPageIdInputs): Promise<boolean> {
     return this.marketCapService.updateMistachIds(args)
+  }
+
+  @Query(() => [MarketRankData], { nullable: 'items' })
+  async searchRank(
+    @Args() args: MarketCapInputs,
+  ): Promise<(NftRankListData | TokenRankListData)[]> {
+    return this.marketCapService.wildcardSearch(args)
   }
 
   @Mutation(() => Boolean)

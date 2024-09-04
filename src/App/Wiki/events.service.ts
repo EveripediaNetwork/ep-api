@@ -22,29 +22,17 @@ class EventsService {
       const queryBuilder = repository
         .createQueryBuilder('wiki')
         .innerJoin('wiki.tags', 'tag')
-        .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
-        .where('subWiki.hidden = :hidden', { hidden: false })
-        .limit(args.limit)
-        .offset(args.offset)
+        .leftJoin('wiki.wikiEvents', 'wikiEvents')
+        .where('wiki.hidden = :hidden', { hidden: false })
 
       if (ids.length > 1) {
-        queryBuilder.where((qb) => {
-          const subQuery = qb
-            .subQuery()
-            .select('subWiki.id')
-            .from(Wiki, 'subWiki')
-            .innerJoin('subWiki.tags', 'subTag')
-            .where('LOWER(subTag.id) = ANY(:tagIds)', {
-              tagIds: ids.map((tag) => tag.toLowerCase()),
-            })
-            .andWhere('subWiki.hidden = :hidden', { hidden: false })
-            .groupBy('subWiki.id')
-            .having('COUNT(DISTINCT subTag.id) > 1')
-            .getQuery()
-          return `wiki.id IN ${subQuery}`
-        })
+        queryBuilder
+          .andWhere('LOWER(tag.id) IN (:...ids)', {
+            ids: ids.map((id) => id.toLowerCase()),
+          })
+          .having('COUNT(DISTINCT tag."id") > 1')
       } else {
-        queryBuilder.where('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
+        queryBuilder.andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       }
 
       this.wikiService.applyDateFilter(
@@ -66,7 +54,11 @@ class EventsService {
           break
       }
 
-      return await queryBuilder.getMany()
+      return await queryBuilder
+        .groupBy('wiki.id')
+        .limit(args.limit)
+        .offset(args.offset)
+        .getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error
@@ -188,26 +180,20 @@ class EventsService {
       queryBuilder.andWhere(sub, {
         blockchain: args.blockchain,
       })
-    } else {
-      const conditions = []
-      if (args.country) {
-        conditions.push("elem->>'value' ILIKE '%' || :country || '%'")
-      }
-      if (args.continent) {
-        conditions.push("elem->>'value' ILIKE '%' || :continent || '%'")
-      }
-      const subqueryCondition =
-        conditions.length > 0 ? `AND (${conditions.join(' AND ')})` : ''
-
-      const sub = `
-            EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements(metadata::jsonb) AS elem
-                WHERE elem->>'id' = 'location' ${subqueryCondition}
-            )
-        `
-      queryBuilder.andWhere(sub, {
+    } else if (args.country && args.continent) {
+      queryBuilder.andWhere(
+        'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent',
+        {
+          country: args.country,
+          continent: args.continent,
+        },
+      )
+    } else if (args.country) {
+      queryBuilder.andWhere('wikiEvents.country ILIKE :country', {
         country: args.country,
+      })
+    } else if (args.continent) {
+      queryBuilder.andWhere('wikiEvents.continent ILIKE :continent', {
         continent: args.continent,
       })
     }
