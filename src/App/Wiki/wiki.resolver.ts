@@ -33,6 +33,7 @@ import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
+import Explorer from '../../Database/Entities/explorer.entity'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -108,6 +109,17 @@ class WikiResolver {
   @Query(() => Count)
   async categoryTotal(@Args() args: CategoryArgs) {
     return this.wikiService.getCategoryTotal(args)
+  }
+
+  @Query(() => [Explorer])
+  async searchExplorers(@Args() args: ByIdArgs) {
+    return this.wikiService.getExplorers(args.id)
+  }
+
+  @Mutation(() => Boolean, { nullable: true })
+  @UseGuards(AuthGuard)
+  async updateExplorers(@Args() args: Explorer) {
+    return this.wikiService.addExplorer(args)
   }
 
   @Mutation(() => Wiki, { nullable: true })
