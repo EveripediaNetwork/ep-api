@@ -85,8 +85,12 @@ class WikiResolver {
 
   @Query(() => [Wiki])
   @UseGuards(AuthGuard)
-  async wikisHidden(@Args() args: LangArgs) {
-    return this.wikiService.getWikisHidden(args)
+  async wikisHidden(
+    @Args() args: LangArgs,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
+  ) {
+    return this.wikiService.getWikisHidden(args, featuredEvents)
   }
 
   @Query(() => [WikiUrl])

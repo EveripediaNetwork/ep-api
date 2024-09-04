@@ -374,18 +374,24 @@ class WikiService {
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
-  async getWikisHidden(args: LangArgs): Promise<Wiki[] | []> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        hidden: true,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
-    })
+  async getWikisHidden(
+    args: LangArgs,
+    featuredEvents = false,
+  ): Promise<Wiki[] | []> {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    queryBuilder
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.hidden = true')
+      .orderBy('wiki.updated', 'DESC')
+      .skip(args.offset)
+      .take(args.limit)
+
+    this.filterFeaturedEvents(queryBuilder, featuredEvents)
+
+    const hiddenWikis = await queryBuilder.getMany()
+
+    return hiddenWikis
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
