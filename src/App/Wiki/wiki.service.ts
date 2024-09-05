@@ -22,6 +22,7 @@ import { DateArgs, Count } from './wikiStats.dto'
 import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
+import Explorer from '../../Database/Entities/explorer.entity'
 
 @Injectable()
 class WikiService {
@@ -110,13 +111,6 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
-    const wikis: Wiki[] | undefined = await this.cacheManager.get(
-      'promotedWikis',
-    )
-    if (wikis) {
-      return wikis
-    }
-
     queryBuilder
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.promoted > 0')
@@ -128,10 +122,6 @@ class WikiService {
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
     const promotedWikis = await queryBuilder.getMany()
-
-    this.cacheManager.set('promotedWikis', promotedWikis, {
-      ttl: 3600,
-    })
 
     return promotedWikis
   }
@@ -385,18 +375,48 @@ class WikiService {
     return this.validSlug.validateSlug(slugs[0]?.id)
   }
 
-  async getWikisHidden(args: LangArgs): Promise<Wiki[] | []> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        hidden: true,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: {
-        updated: 'DESC',
-      },
-    })
+  async getWikisHidden(
+    args: LangArgs,
+    featuredEvents = false,
+  ): Promise<Wiki[] | []> {
+    const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
+
+    queryBuilder
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.hidden = true')
+      .orderBy('wiki.updated', 'DESC')
+      .skip(args.offset)
+      .take(args.limit)
+
+    this.filterFeaturedEvents(queryBuilder, featuredEvents)
+
+    const hiddenWikis = await queryBuilder.getMany()
+
+    return hiddenWikis
+  }
+
+  async getExplorers(explorer: string) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    return repo
+      .createQueryBuilder('explorer')
+      .where('LOWER(explorer.id) LIKE LOWER(:id)', { id: `%${explorer}%` })
+      .getMany()
+  }
+
+  async addExplorer(args: Explorer) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const existExplorer = await repo.findOneBy({ ...args })
+    if (!args.baseUrl.startsWith('https')) {
+      return false
+    }
+
+    if (existExplorer) {
+      await repo.update({ id: args.id }, args)
+    }
+
+    const newExplorer = repo.create(args)
+    await repo.save(newExplorer)
+    return true
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
@@ -476,7 +496,10 @@ class WikiService {
     return null
   }
 
-  async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
+  async hideWiki(
+    args: ByIdArgs,
+    featuredEvents: boolean,
+  ): Promise<Wiki | null> {
     const wiki = (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
@@ -487,10 +510,13 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
-    const currentPromotions = await this.getPromotedWikis({
-      id: 'en',
-      direction: 'ASC',
-    } as unknown as LangArgs)
+    const currentPromotions = await this.getPromotedWikis(
+      {
+        id: 'en',
+        direction: 'ASC',
+      } as unknown as LangArgs,
+      featuredEvents,
+    )
 
     if (currentPromotions.length > 0) {
       for (let index = 0; index < currentPromotions.length; index += 1) {
