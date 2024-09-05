@@ -24,6 +24,7 @@ class EventsService {
         .innerJoin('wiki.tags', 'tag')
         .leftJoin('wiki.wikiEvents', 'wikiEvents')
         .where('wiki.hidden = :hidden', { hidden: false })
+        .groupBy('wiki.id')
 
       if (ids.length > 1) {
         queryBuilder
@@ -43,6 +44,9 @@ class EventsService {
       switch (args.order) {
         case 'date':
           this.wikiService.eventDateOrder(queryBuilder, args.direction)
+          queryBuilder
+            .addGroupBy('wikiEvents.date')
+            .addGroupBy('wikiEvents.multiDateStart')
           break
 
         case 'id':
@@ -55,9 +59,6 @@ class EventsService {
       }
 
       return await queryBuilder
-        .groupBy('wiki.id')
-        .addGroupBy('wikiEvents.date')
-        .addGroupBy('wikiEvents.multiDateStart')
         .limit(args.limit)
         .offset(args.offset)
         .getMany()
