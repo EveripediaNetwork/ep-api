@@ -56,6 +56,8 @@ class EventsService {
 
       return await queryBuilder
         .groupBy('wiki.id')
+        .addGroupBy('wikiEvents.date')
+        .addGroupBy('wikiEvents.multiDateStart')
         .limit(args.limit)
         .offset(args.offset)
         .getMany()
