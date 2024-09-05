@@ -58,10 +58,7 @@ class EventsService {
           break
       }
 
-      return await queryBuilder
-        .limit(args.limit)
-        .offset(args.offset)
-        .getMany()
+      return await queryBuilder.limit(args.limit).offset(args.offset).getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error
