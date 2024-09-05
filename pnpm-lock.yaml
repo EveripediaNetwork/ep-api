@@ -45,7 +45,7 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@nestjs/common@9.3.12(cache-manager@3.6.3)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(reflect-metadata@0.1.13)(rxjs@7.5.4)
       '@nestjs/core':
-        specifier: ^8.3.1
+        specifier: ^8.1.1
         version: 8.3.1(@nestjs/common@9.3.12(cache-manager@3.6.3)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4)
       '@nestjs/event-emitter':
         specifier: ^1.3.1
@@ -104,6 +104,9 @@ importers:
       apollo-server-fastify:
         specifier: ^3.13.0
         version: 3.13.0(fastify@3.29.0)(graphql@16.3.0)
+      arweave:
+        specifier: ^1.15.1
+        version: 1.15.1
       axios:
         specifier: ^1.6.5
         version: 1.6.5
@@ -2369,6 +2372,9 @@ packages:
   archy@1.0.0:
     resolution: {integrity: sha512-Xg+9RwCg/0p32teKdGMPTPnVXKD0w3DfHnFTficozsAgsvq2XenPJq/MYpzzQ/v8zrOyJn6Ds39VA4JIDwFfqw==}
 
+  arconnect@0.4.2:
+    resolution: {integrity: sha512-Jkpd4QL3TVqnd3U683gzXmZUVqBUy17DdJDuL/3D9rkysLgX6ymJ2e+sR+xyZF5Rh42CBqDXWNMmCjBXeP7Gbw==}
+
   arg@4.1.3:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
 
@@ -2404,8 +2410,15 @@ packages:
     resolution: {integrity: sha512-08u6rVyi1Lj7oqWbS9nUxliETrtIROT4XGTA4D/LWGten6E3ocm7cy9SIrmNHOL5XVbVuckUp3X6Xyg8/zpvHA==}
     engines: {node: '>= 0.4'}
 
+  arweave@1.15.1:
+    resolution: {integrity: sha512-rT7FOwqdudd5npqp4xOYdDT2035LtpcqePjwirh4wjRiEtVsz1FZkRiM2Yj+fOAwYzOm/hNG0GDOipDSaiEGGQ==}
+    engines: {node: '>=18'}
+
   asap@2.0.6:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
+
+  asn1.js@5.4.1:
+    resolution: {integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==}
 
   assert-never@1.2.1:
     resolution: {integrity: sha512-TaTivMB6pYI1kXwrFlEhLeGfOqoDNdTxjCdwRfFFkEA30Eu+k48W34nlok2EYWJfFFzqaEmichdNM7th6M5HNw==}
@@ -6671,9 +6684,6 @@ packages:
   tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  tslib@2.6.3:
-    resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
-
   tslib@2.7.0:
     resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
 
@@ -7484,11 +7494,11 @@ snapshots:
   '@aws-sdk/types@3.495.0':
     dependencies:
       '@smithy/types': 2.9.0
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@aws-sdk/util-utf8-browser@3.259.0':
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@babel/code-frame@7.22.5':
     dependencies:
@@ -7720,7 +7730,7 @@ snapshots:
 
   '@emnapi/runtime@1.2.0':
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.7.0
     optional: true
 
   '@eslint/eslintrc@1.2.0':
@@ -8216,13 +8226,13 @@ snapshots:
     dependencies:
       '@graphql-tools/utils': 8.8.0(graphql@16.3.0)
       graphql: 16.3.0
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@graphql-tools/merge@8.3.6(graphql@16.3.0)':
     dependencies:
       '@graphql-tools/utils': 8.12.0(graphql@16.3.0)
       graphql: 16.3.0
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@graphql-tools/mock@8.5.1(graphql@16.3.0)':
     dependencies:
@@ -8237,7 +8247,7 @@ snapshots:
       '@graphql-tools/merge': 8.3.0(graphql@16.3.0)
       '@graphql-tools/utils': 8.8.0(graphql@16.3.0)
       graphql: 16.3.0
-      tslib: 2.6.2
+      tslib: 2.7.0
       value-or-promise: 1.0.11
 
   '@graphql-tools/schema@9.0.4(graphql@16.3.0)':
@@ -8245,7 +8255,7 @@ snapshots:
       '@graphql-tools/merge': 8.3.6(graphql@16.3.0)
       '@graphql-tools/utils': 8.12.0(graphql@16.3.0)
       graphql: 16.3.0
-      tslib: 2.6.2
+      tslib: 2.7.0
       value-or-promise: 1.0.11
 
   '@graphql-tools/utils@8.12.0(graphql@16.3.0)':
@@ -8256,7 +8266,7 @@ snapshots:
   '@graphql-tools/utils@8.8.0(graphql@16.3.0)':
     dependencies:
       graphql: 16.3.0
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@humanwhocodes/config-array@0.9.3':
     dependencies:
@@ -8883,7 +8893,7 @@ snapshots:
     dependencies:
       chalk: 4.1.2
       consola: 2.15.3
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
 
@@ -8914,7 +8924,7 @@ snapshots:
       async-retry: 1.3.3
       axios: 1.6.5
       lodash: 4.17.21
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
     transitivePeerDependencies:
       - debug
       - encoding
@@ -8939,7 +8949,7 @@ snapshots:
 
   '@pinata/sdk@2.1.0':
     dependencies:
-      axios: 0.21.4(debug@4.3.2)
+      axios: 0.21.4(debug@4.3.4)
       form-data: 2.5.1
       is-ipfs: 0.6.3
       path: 0.12.7
@@ -9129,7 +9139,7 @@ snapshots:
 
   '@smithy/types@2.9.0':
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@sqltools/formatter@1.2.5': {}
 
@@ -9913,6 +9923,10 @@ snapshots:
 
   archy@1.0.0: {}
 
+  arconnect@0.4.2:
+    dependencies:
+      arweave: 1.15.1
+
   arg@4.1.3: {}
 
   arg@5.0.2: {}
@@ -9952,7 +9966,21 @@ snapshots:
       define-properties: 1.1.4
       es-abstract: 1.20.1
 
+  arweave@1.15.1:
+    dependencies:
+      arconnect: 0.4.2
+      asn1.js: 5.4.1
+      base64-js: 1.5.1
+      bignumber.js: 9.1.2
+
   asap@2.0.6: {}
+
+  asn1.js@5.4.1:
+    dependencies:
+      bn.js: 4.12.0
+      inherits: 2.0.4
+      minimalistic-assert: 1.0.1
+      safer-buffer: 2.1.2
 
   assert-never@1.2.1: {}
 
@@ -9960,7 +9988,7 @@ snapshots:
 
   ast-types@0.13.4:
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   astral-regex@2.0.0: {}
 
@@ -10019,19 +10047,19 @@ snapshots:
 
   axios@0.24.0:
     dependencies:
-      follow-redirects: 1.15.5(debug@4.3.2)
+      follow-redirects: 1.15.5(debug@4.3.4)
     transitivePeerDependencies:
       - debug
 
   axios@0.26.0:
     dependencies:
-      follow-redirects: 1.15.5(debug@4.3.2)
+      follow-redirects: 1.15.5(debug@4.3.4)
     transitivePeerDependencies:
       - debug
 
   axios@1.6.5:
     dependencies:
-      follow-redirects: 1.15.5(debug@4.3.2)
+      follow-redirects: 1.15.5(debug@4.3.4)
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -10362,7 +10390,7 @@ snapshots:
       htmlparser2: 6.1.0
       parse5: 6.0.1
       parse5-htmlparser2-tree-adapter: 6.0.1
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   cheerio@1.0.0-rc.12:
     dependencies:
@@ -12359,7 +12387,7 @@ snapshots:
 
   isomorphic-unfetch@3.1.0:
     dependencies:
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
@@ -15189,9 +15217,6 @@ snapshots:
 
   tslib@2.6.2: {}
 
-  tslib@2.6.3:
-    optional: true
-
   tslib@2.7.0: {}
 
   tsutils@3.21.0(typescript@4.7.4):
@@ -15424,7 +15449,7 @@ snapshots:
       escape-goat: 3.0.0
       htmlparser2: 4.1.0
       mime: 2.6.0
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
       valid-data-url: 3.0.1
     transitivePeerDependencies:
       - encoding
