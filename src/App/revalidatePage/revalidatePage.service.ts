@@ -70,7 +70,11 @@ export class RevalidatePageService {
         'Error revalidating path',
         e.response?.config?.url || e.message,
       )
-      this.failedUrls.push({url: e.response?.config?.url, retries: 0, nextRetry: new Date(),})
+      this.failedUrls.push({
+        url: e.response?.config?.url,
+        retries: 0,
+        nextRetry: new Date(),
+      })
     }
 
     return true
