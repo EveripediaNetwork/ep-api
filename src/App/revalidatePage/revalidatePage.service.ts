@@ -30,7 +30,8 @@ export interface RevalidateStatus {
 
 @Injectable()
 export class RevalidatePageService {
-  private failedUrls: string[] = []
+  private failedUrls: { url: string; retries: number; nextRetry: Date }[] = []
+  private maxRetries = 5
   constructor(
     private httpService: HttpService,
     private dataSource: DataSource,
@@ -69,7 +70,7 @@ export class RevalidatePageService {
         'Error revalidating path',
         e.response?.config?.url || e.message,
       )
-      this.failedUrls.push(e.response?.config?.url)
+      this.failedUrls.push({url: e.response?.config?.url, retries: 0, nextRetry: new Date(),})
     }
 
     return true
@@ -77,17 +78,34 @@ export class RevalidatePageService {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async retryFailedUrl() {
+    const now = new Date()
     if (this.failedUrls.length > 0) {
       console.log('Retrying failed URLs...')
-      for (const failedUrl of this.failedUrls) {
-        try {
-          await this.httpService.get(failedUrl).toPromise()
-          console.log(`Successfully revalidated: ${failedUrl}`)
-          this.failedUrls = this.failedUrls.filter((url) => url !== failedUrl)
-        } catch (e) {
-          console.error('Retry failed for URL:', failedUrl)
-        }
-      }
+      const updatedUrls = await Promise.all(
+        this.failedUrls.map(async (failedUrlObj) => {
+          if (
+            failedUrlObj.retries >= this.maxRetries ||
+            failedUrlObj.nextRetry > now
+          ) {
+            return failedUrlObj
+          }
+          try {
+            await this.httpService.get(failedUrlObj.url).toPromise()
+            console.log(`Successfully revalidated: ${failedUrlObj.url}`)
+            return null
+          } catch (e) {
+            console.error('Retry failed for URL:', failedUrlObj.url)
+            return {
+              url: failedUrlObj.url,
+              retries: failedUrlObj.retries + 1,
+              nextRetry: new Date(
+                now.getTime() + Math.pow(2, failedUrlObj.retries) * 1000,
+              ),
+            }
+          }
+        }),
+      )
+      this.failedUrls = this.failedUrls.filter(Boolean)
     }
   }
 
