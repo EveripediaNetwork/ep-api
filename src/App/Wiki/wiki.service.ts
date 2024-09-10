@@ -500,7 +500,7 @@ class WikiService {
     args: ByIdArgs,
     featuredEvents: boolean,
   ): Promise<Wiki | null> {
-    const wiki = (await this.repository()).findOneBy({ id: args.id })
+    const wiki = await (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
     )
@@ -535,7 +535,7 @@ class WikiService {
   }
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
-    const wiki = (await this.repository()).findOneBy({ id: args.id })
+    const wiki = await (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
     )

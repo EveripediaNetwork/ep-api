@@ -145,14 +145,14 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.hideWiki(args, featuredEvents)
-
+    const tags = (await wiki?.tags) || []
     if (wiki) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.HIDE_WIKI,
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
@@ -165,6 +165,7 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.unhideWiki(args)
+    const tags = (await wiki?.tags) || []
 
     if (wiki) {
       await this.revalidate.revalidatePage(
@@ -172,7 +173,7 @@ class WikiResolver {
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
