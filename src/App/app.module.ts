@@ -67,9 +67,7 @@ import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import { BlogService } from './Blog/blog.service'
-import { BlogController } from './Blog/blog.controller'
 import { BlogModule } from './Blog/blog.module'
-import { ArweaveModule } from './Blog/areave.module'
 import { BlogResolver } from './Blog/blog.resolver'
 
 // istanbul ignore next
@@ -99,7 +97,6 @@ import { BlogResolver } from './Blog/blog.resolver'
       },
     }),
     SitemapModule,
-    ArweaveModule,
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
@@ -118,7 +115,7 @@ import { BlogResolver } from './Blog/blog.resolver'
     BlogModule,
     SentryMod,
   ],
-  controllers: [UploadController, WikiController, BlogController],
+  controllers: [UploadController, WikiController],
   providers: [
     AppService,
     SecurityTestingService,

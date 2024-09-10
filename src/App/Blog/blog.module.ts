@@ -1,13 +1,20 @@
-import { Module } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { BlogController } from './blog.controller'
 import { BlogService } from './blog.service'
-import { ArweaveService } from './arweave.service'
+import { HttpModule } from '@nestjs/axios'
+import { BlogResolver } from './blog.resolver'
 
 @Module({
-    imports: [ConfigModule],
-    controllers: [BlogController],
-    providers: [BlogService, ArweaveService],
+    imports: [
+        CacheModule.register
+        ({
+        ttl: 60 * 5,
+        max: 100,
+    }),
+    ConfigModule,
+    HttpModule,
+],
+    providers: [BlogService, BlogResolver],
     exports: [BlogService],
 })
 export class BlogModule {}

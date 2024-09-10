@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Blog, FormatedBlogType, EntryPath, RawTransactions } from './blog.dto'
+import {
+  Blog,
+  FormatedBlogType,
+  RawTransactions,
+  EntryPathOutput,
+  EntryPathInput,
+  RawTransactionsInput,
+  BlogTagInput,
+  BlockInput,
+} from './blog.dto'
 import slugify from 'slugify'
 import { HttpService } from '@nestjs/axios'
 
@@ -18,7 +27,7 @@ export class BlogService {
   ): Promise<FormatedBlogType> {
     return {
       title: blog.title || '',
-      slug: slugify(blog.title || ''),
+      slug: blog.title ? slugify(blog.title) : transactionId,
       body: blog.body || '',
       digest: blog.digest || '',
       contributor: blog.contributor || '',
@@ -73,34 +82,46 @@ export class BlogService {
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
   }
 
-  getEntryPaths(rawTransactions: RawTransactions): EntryPath[] {
+  async getEntryPaths(
+    rawTransactions: RawTransactionsInput,
+  ): Promise<EntryPathOutput[]> {
+    if (!rawTransactions.transactions || !rawTransactions.transactions.edges) {
+      return []
+    }
+
     return rawTransactions.transactions.edges
       .map(({ node }) => {
-        const tags = Object.fromEntries(
-          node.tags.map((tag: BlogTag) => [tag.name, tag.value]),
-        )
+        if (!node || !node.block || !node.tags) {
+          return null
+        }
 
-        if (!node || !node.block) return null
+        const tags = Object.fromEntries(
+          node.tags.map((tag: BlogTagInput) => [tag.name, tag.value]),
+        )
+        const slug = tags['Original-Content-Digest']
+        if (!slug) {
+          return null
+        }
 
         return {
-          slug: tags['Original-Content-Digest'],
+          slug,
           path: node.id,
-          timestamp: node.block.timestamp,
+          timestamp: (node.block as BlockInput).timestamp,
         }
       })
-      .filter(
-        (entry): entry is EntryPath => entry !== null && entry.slug !== '',
-      )
-      .reduce((acc: EntryPath[], current) => {
+      .filter((entry): entry is EntryPathOutput => entry !== null)
+      .reduce((acc: EntryPathOutput[], current) => {
         const existingEntry = acc.find((entry) => entry.slug === current.slug)
-        if (!existingEntry) return [...acc, current]
+        if (!existingEntry) {
+          return [...acc, current]
+        }
 
         existingEntry.timestamp = current.timestamp
         return acc
       }, [])
   }
 
-  async getBlogEntriesFormatted(entryPaths: EntryPath[]): Promise<Blog[]> {
+  async getBlogEntriesFormatted(entryPaths: EntryPathInput[]): Promise<Blog[]> {
     const entries = await Promise.all(
       entryPaths.map((entry) => this.mapEntry(entry)),
     )
@@ -116,6 +137,10 @@ export class BlogService {
 
   private async fetchBlogsFromAccount(account: string): Promise<Blog[]> {
     const mirrorApiUrl = this.configService.get<string>('MIRROR_API_URL')
+
+    if (!mirrorApiUrl) {
+      throw new Error('Mirror API url is not found')
+    }
     const response = await this.httpService
       .post(mirrorApiUrl, {
         query: `
@@ -140,7 +165,7 @@ export class BlogService {
     return response?.data?.data?.entries || []
   }
 
-  private async mapEntry(entry: EntryPath): Promise<Blog | null> {
+  private async mapEntry(entry: EntryPathInput): Promise<Blog | null> {
     try {
       const response = await this.httpService
         .get(`${this.configService.get('BLOG_DATA_API')}/${entry.path}`)
@@ -165,6 +190,35 @@ export class BlogService {
       return null
     } catch (error) {
       console.error(`Error mapping entry: ${entry.path}`, error)
+      return null
+    }
+  }
+
+  async fetchBlogByTransactionId(
+    transactionId: string,
+  ): Promise<Partial<Blog> | null> {
+    try {
+      const response = await this.httpService
+        .get(`${this.configService.get('BLOG_DATA_API')}/${transactionId}`)
+        .toPromise()
+      const data = response?.data
+
+      if (data) {
+        const {
+          content: { title, body },
+          digest,
+          authorship: { contributor },
+        } = data
+
+        return { title, body, digest, contributor }
+      }
+
+      return null
+    } catch (error) {
+      console.error(
+        `Error fetching blog by transaction ID: ${transactionId}`,
+        error,
+      )
       return null
     }
   }

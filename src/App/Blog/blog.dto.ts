@@ -1,4 +1,4 @@
-import { Field, ObjectType, Int } from '@nestjs/graphql'
+import { Field, ObjectType, Int, InputType } from '@nestjs/graphql'
 
 @ObjectType()
 export class Project {
@@ -12,6 +12,12 @@ export class Block {
   timestamp: number = 1
 }
 
+@InputType()
+export class BlockInput {
+  @Field(() => Int)
+  timestamp: number = 1
+}
+
 @ObjectType()
 export class BlogTag {
   @Field(() => String)
@@ -19,6 +25,27 @@ export class BlogTag {
 
   @Field(() => String)
   value: string = ''
+}
+
+@InputType()
+export class BlogTagInput {
+  @Field(() => String)
+  name: string = ''
+
+  @Field(() => String)
+  value: string = ''
+}
+
+@InputType()
+export class TransactionNodeInput {
+  @Field(() => String)
+  id: string = ''
+
+  @Field(() => [BlogTagInput])
+  tags: BlogTagInput[] = []
+
+  @Field(() => BlockInput, { nullable: true })
+  block?: BlockInput
 }
 
 @ObjectType()
@@ -31,6 +58,24 @@ export class TransactionNode {
 
   @Field(() => Block, { nullable: true })
   block?: Block
+}
+
+@InputType()
+export class TransactionEdgeInput {
+  @Field(() => TransactionNodeInput)
+  node?: TransactionNodeInput
+}
+
+@InputType()
+export class TransactionsInput {
+  @Field(() => [TransactionEdgeInput])
+  edges: TransactionEdgeInput[] = []
+}
+
+@InputType()
+export class RawTransactionsInput {
+  @Field(() => TransactionsInput)
+  transactions?: TransactionsInput
 }
 
 @ObjectType()
@@ -51,7 +96,7 @@ export class Publisher {
   project?: Project
 }
 
-@ObjectType()
+@InputType()
 export class RawTransactions {
   @Field(() => Transactions)
   transactions?: Transactions
@@ -83,15 +128,27 @@ export class Blog {
   @Field(() => String, { nullable: true })
   cover_image?: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => Int, { nullable: true })
   publishedAtTimestamp?: number
 
   @Field(() => String, { nullable: true })
   slug?: string
 }
 
+@InputType()
+export class EntryPathInput {
+  @Field(() => String)
+  slug: string = ''
+
+  @Field(() => String)
+  path: string = ''
+
+  @Field(() => Int)
+  timestamp: number = 0
+}
+
 @ObjectType()
-export class EntryPath {
+export class EntryPathOutput {
   @Field(() => String)
   slug: string = ''
 
