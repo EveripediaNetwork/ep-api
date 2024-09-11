@@ -14,73 +14,51 @@ export class BlogResolver {
   constructor(private readonly blogService: BlogService) {}
 
   @Query(() => [FormatedBlogType], { name: 'blogs', nullable: 'items' })
-  async getBlogs(): Promise<FormatedBlogType[]> {
+  async getBlogs(
+    @Args('slug', { nullable: true }) slug?: string,
+    @Args('transactionId', { nullable: true }) transactionId?: string,
+    @Args('timestamp', { type: () => Int, nullable: true }) timestamp?: number,
+    @Args('rawTransactions', { nullable: true }) rawTransactions?: RawTransactionsInput,
+    @Args('entryPaths', { type: () => [EntryPathInput], nullable: true }) entryPaths?: EntryPathInput[],
+  ): Promise<
+    FormatedBlogType[] | FormatedBlogType | EntryPathOutput[] | Blog[]
+  > {
     try {
-      return await this.blogService.getBlogsFromAccounts()
-    } catch (error) {
-      throw new BadRequestException('Failed to fetch blogs')
-    }
-  }
-
-  @Query(() => FormatedBlogType, { nullable: true })
-  async getBlogBySlug(@Args('slug') slug: string) {
-    try {
-      const blogs = await this.blogService.getBlogsFromAccounts()
-      const blog = blogs.find((blog) => blog.slug === slug)
-      if (!blog) {
-        throw new NotFoundException(`Blog with slug ${slug} not found`)
+      if (slug) {
+        const blogs = await this.blogService.getBlogsFromAccounts()
+        const blog = blogs.find((blog) => blog.slug === slug)
+        if (!blog) {
+          throw new NotFoundException(`Blog with slug ${slug} not found`)
+        }
+        return blog
       }
-      return blog
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error
-      }
-      throw new BadRequestException('Failed to fetch blog')
-    }
-  }
 
-  @Query(() => FormatedBlogType)
-  async formatBlogEntry(
-    @Args('transactionId') transactionId: string,
-    @Args('timestamp', { type: () => Int }) timestamp: number,
-  ): Promise<FormatedBlogType> {
-    try {
-      const blog = await this.blogService.fetchBlogByTransactionId(
-        transactionId,
-      )
-      if (!blog) {
-        throw new NotFoundException(
-          `Blog with transaction ID ${transactionId} not found`,
+      if (transactionId && timestamp) {
+        const blog = await this.blogService.fetchBlogByTransactionId(
+          transactionId,
         )
+        if (!blog) {
+          throw new NotFoundException(
+            `Blog with transaction ID ${transactionId} not found`,
+          )
+        }
+        return this.blogService.formatEntry(blog, transactionId, timestamp)
       }
-      return this.blogService.formatEntry(blog, transactionId, timestamp)
+
+      if (rawTransactions) {
+        return this.blogService.getEntryPaths(rawTransactions)
+      }
+
+      if (entryPaths) {
+        return this.blogService.getBlogEntriesFormatted(entryPaths)
+      }
+
+      return this.blogService.getBlogsFromAccounts()
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error
       }
-      throw new BadRequestException('Failed to format blog entry')
-    }
-  }
-
-  @Query(() => [EntryPathOutput])
-  async getEntryPaths(
-    @Args('rawTransactions') rawTransactions: RawTransactionsInput,
-  ): Promise<EntryPathOutput[]> {
-    try {
-      return await this.blogService.getEntryPaths(rawTransactions)
-    } catch (error) {
-      throw new BadRequestException('Failed to fetch entry paths')
-    }
-  }
-
-  @Query(() => [Blog], { nullable: 'items' })
-  async getBlogEntriesFormatted(
-    @Args('entryPaths', { type: () => [EntryPathInput] }) entryPaths: EntryPathInput[],
-  ): Promise<Blog[]> {
-    try {
-      return await this.blogService.getBlogEntriesFormatted(entryPaths)
-    } catch (error) {
-      throw new BadRequestException('Failed to fetch formatted blog entries')
+      throw new BadRequestException('Failed to fetch or process blog data')
     }
   }
 }
