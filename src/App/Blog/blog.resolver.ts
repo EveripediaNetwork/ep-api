@@ -10,7 +10,7 @@ import {
 } from './blog.dto'
 
 @Resolver(() => FormatedBlogType)
- class BlogResolver {
+class BlogResolver {
   constructor(private readonly blogService: BlogService) {}
 
   @Query(() => [FormatedBlogType], { name: 'blogs', nullable: 'items' })
@@ -42,7 +42,11 @@ import {
             `Blog with transaction ID ${transactionId} not found`,
           )
         }
-        return await this.blogService.formatEntry(blog, transactionId, timestamp)
+        return await this.blogService.formatEntry(
+          blog,
+          transactionId,
+          timestamp,
+        )
       }
 
       if (rawTransactions) {

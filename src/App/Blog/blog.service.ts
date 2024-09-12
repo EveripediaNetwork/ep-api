@@ -68,11 +68,11 @@ class BlogService {
     const allBlogs = await Promise.all(
       accounts
         .filter((account): account is string => !!account)
-        .map(async account => {
+        .map(async (account) => {
           const entries = await this.fetchBlogsFromAccount(account)
           return entries
-            .filter(entry => entry.publishedAtTimestamp !== undefined)
-            .map(b => this.formatBlog(b))
+            .filter((entry) => entry.publishedAtTimestamp !== undefined)
+            .map((b) => this.formatBlog(b))
         }),
     )
 
@@ -110,7 +110,7 @@ class BlogService {
       })
       .filter((entry): entry is EntryPathOutput => entry !== null)
       .reduce((acc: EntryPathOutput[], current) => {
-        const existingEntry = acc.find(entry => entry.slug === current.slug)
+        const existingEntry = acc.find((entry) => entry.slug === current.slug)
         if (!existingEntry) {
           return [...acc, current]
         }
@@ -122,13 +122,13 @@ class BlogService {
 
   async getBlogEntriesFormatted(entryPaths: EntryPathInput[]): Promise<Blog[]> {
     const entries = await Promise.all(
-      entryPaths.map(entry => this.mapEntry(entry)),
+      entryPaths.map((entry) => this.mapEntry(entry)),
     )
     return entries
       .filter((entry): entry is Blog => entry !== null)
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
       .reduce((acc: Blog[], current) => {
-        const existingEntry = acc.find(entry => entry.slug === current.slug)
+        const existingEntry = acc.find((entry) => entry.slug === current.slug)
         if (!existingEntry) return [...acc, current]
         return acc
       }, [])
