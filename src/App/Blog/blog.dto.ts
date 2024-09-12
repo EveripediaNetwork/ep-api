@@ -49,14 +49,11 @@ export class TransactionNode extends BaseEntity {
   block?: Block
 }
 
-
 @ObjectType()
 export class TransactionEdge {
   @Field(() => TransactionNode)
   node?: TransactionNode
 }
-
-
 
 @ObjectType()
 export class Transactions {
@@ -64,13 +61,11 @@ export class Transactions {
   edges: TransactionEdge[] = []
 }
 
-
 @ObjectType()
 export class Publisher {
   @Field(() => Project, { nullable: true })
   project?: Project
 }
-
 
 @ObjectType()
 export class RawTransactions {

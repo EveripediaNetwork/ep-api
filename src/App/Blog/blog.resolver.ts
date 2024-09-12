@@ -28,7 +28,7 @@ class BlogResolver {
     try {
       if (slug) {
         const blogs = await this.blogService.getBlogsFromAccounts()
-        const blog = blogs.find(blog => blog.slug === slug)
+        const blog = blogs.find((blog) => blog.slug === slug)
         if (!blog) {
           throw new NotFoundException(`Blog with slug ${slug} not found`)
         }
