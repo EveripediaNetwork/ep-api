@@ -1,4 +1,10 @@
-import { Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
   Blog,
@@ -9,13 +15,17 @@ import {
   RawTransactionsInput,
   BlogTagInput,
   BlockInput,
+  BlogInput,
 } from './blog.dto'
 import slugify from 'slugify'
 import { HttpService } from '@nestjs/axios'
+import { Cache } from 'cache-manager'
 
 @Injectable()
 export class BlogService {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private configService: ConfigService,
     private httpService: HttpService,
   ) {}
@@ -220,6 +230,51 @@ export class BlogService {
         error,
       )
       return null
+    }
+  }
+
+  async getBlogs(blogInput: BlogInput): Promise<any> {
+    try {
+      const cacheKey = JSON.stringify(blogInput)
+      const cachedData = await this.cacheManager.get(cacheKey)
+
+      if (cachedData) {
+        return cachedData
+      }
+
+      let result
+      if (blogInput.slug) {
+        result = await this.getBlogsFromAccounts()
+        const blog = result.find((blog) => blog.slug === blogInput.slug)
+        if (!blog)
+          throw new NotFoundException(
+            `Blog with slug ${blogInput.slug} not found`,
+          )
+      } else if (blogInput.transaction && blogInput.timestamp) {
+        result = await this.fetchBlogByTransactionId(blogInput.transaction)
+        if (!result)
+          throw new NotFoundException(
+            `Blog with transaction ID ${blogInput.transaction} not found`,
+          )
+        result = this.formatEntry(
+          result,
+          blogInput.transaction,
+          blogInput.timestamp,
+        )
+      } else if (blogInput.rawTransactions) {
+        result = await this.getEntryPaths(blogInput.rawTransactions)
+      } else if (blogInput.entryPaths) {
+        result = await this.getBlogEntriesFormatted(blogInput.entryPaths)
+      } else {
+        result = await this.getBlogsFromAccounts()
+      }
+
+      await this.cacheManager.set(cacheKey, result, { ttl: 300 })
+
+      return result
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error
+      throw new BadRequestException('Failed to fetch or process blog data')
     }
   }
 }

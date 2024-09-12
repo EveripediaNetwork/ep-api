@@ -136,6 +136,23 @@ export class Blog {
 }
 
 @InputType()
+export class BlogInput {
+  @Field(() => Int, { nullable: true })
+  timestamp?: number
+
+  @Field(() => String, { nullable: true })
+  transaction?: string
+
+  @Field(() => [EntryPathInput], { nullable: true })
+  entryPaths?: EntryPathInput[]
+
+  @Field(() => RawTransactionsInput, { nullable: true })
+  rawTransactions?: RawTransactionsInput
+
+  @Field(() => String, { nullable: true })
+  slug?: string
+}
+@InputType()
 export class EntryPathInput {
   @Field(() => String)
   slug: string = ''
