@@ -3,10 +3,10 @@ import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { Cron, CronExpression } from '@nestjs/schedule'
 
 export enum RevalidateEndpoints {
   HIDE_WIKI = 'hideWiki',
@@ -31,7 +31,9 @@ export interface RevalidateStatus {
 @Injectable()
 export class RevalidatePageService {
   private failedUrls: { url: string; retries: number; nextRetry: Date }[] = []
-  private maxRetries = 5
+
+  private maxRetries = 3
+
   constructor(
     private httpService: HttpService,
     private dataSource: DataSource,
@@ -85,12 +87,15 @@ export class RevalidatePageService {
     const now = new Date()
     if (this.failedUrls.length > 0) {
       console.log('Retrying failed URLs...')
-      const updatedUrls = await Promise.all(
+      await Promise.all(
         this.failedUrls.map(async (failedUrlObj) => {
-          if (
-            failedUrlObj.retries >= this.maxRetries ||
-            failedUrlObj.nextRetry > now
-          ) {
+          if (failedUrlObj.retries >= this.maxRetries) {
+            console.log(
+              `URL ${failedUrlObj.url} has reached max retries. Ignoring.`,
+            )
+            return null
+          }
+          if (failedUrlObj.nextRetry > now) {
             return failedUrlObj
           }
           try {
@@ -103,7 +108,7 @@ export class RevalidatePageService {
               url: failedUrlObj.url,
               retries: failedUrlObj.retries + 1,
               nextRetry: new Date(
-                now.getTime() + Math.pow(2, failedUrlObj.retries) * 1000,
+                now.getTime() + 2 ** failedUrlObj.retries * 1000,
               ),
             }
           }
