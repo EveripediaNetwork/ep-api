@@ -1,17 +1,9 @@
-import { Resolver, Query, Args, Int } from '@nestjs/graphql'
-import { BlogService } from './blog.service'
-import {
-  Blog,
-  BlogInput,
-  EntryPathInput,
-  EntryPathOutput,
-  FormatedBlogType,
-  RawTransactionsInput,
-} from './blog.dto'
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { Resolver, Query, Args } from '@nestjs/graphql'
+import BlogService from './blog.service'
+import { BlogInput, FormatedBlogType } from './blog.dto'
 
 @Resolver(() => FormatedBlogType)
-export class BlogResolver {
+class BlogResolver {
   constructor(private readonly blogService: BlogService) {}
 
   @Query(() => [FormatedBlogType], { name: 'blogs', nullable: 'items' })
@@ -21,3 +13,5 @@ export class BlogResolver {
     return this.blogService.getBlogs(args)
   }
 }
+
+export default BlogResolver

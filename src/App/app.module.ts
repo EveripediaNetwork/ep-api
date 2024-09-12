@@ -66,9 +66,9 @@ import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
-import { BlogService } from './Blog/blog.service'
-import { BlogModule } from './Blog/blog.module'
-import { BlogResolver } from './Blog/blog.resolver'
+import BlogService from './Blog/blog.service'
+import BlogModule from './Blog/blog.module'
+import BlogResolver from './Blog/blog.resolver'
 
 // istanbul ignore next
 @Module({

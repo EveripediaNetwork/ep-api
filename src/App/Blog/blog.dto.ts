@@ -1,106 +1,7 @@
-import { Field, ObjectType, Int, InputType } from '@nestjs/graphql'
-
-@ObjectType()
-export class Project {
-  @Field(() => String, { nullable: true })
-  address?: string
-}
-
-@ObjectType()
-export class Block {
-  @Field(() => Int)
-  timestamp: number = 1
-}
-
-@InputType()
-export class BlockInput {
-  @Field(() => Int)
-  timestamp: number = 1
-}
-
-@ObjectType()
-export class BlogTag {
-  @Field(() => String)
-  name: string = ''
-
-  @Field(() => String)
-  value: string = ''
-}
-
-@InputType()
-export class BlogTagInput {
-  @Field(() => String)
-  name: string = ''
-
-  @Field(() => String)
-  value: string = ''
-}
-
-@InputType()
-export class TransactionNodeInput {
-  @Field(() => String)
-  id: string = ''
-
-  @Field(() => [BlogTagInput])
-  tags: BlogTagInput[] = []
-
-  @Field(() => BlockInput, { nullable: true })
-  block?: BlockInput
-}
-
-@ObjectType()
-export class TransactionNode {
-  @Field(() => String)
-  id: string = ''
-
-  @Field(() => [BlogTag])
-  tags: BlogTag[] = []
-
-  @Field(() => Block, { nullable: true })
-  block?: Block
-}
-
-@InputType()
-export class TransactionEdgeInput {
-  @Field(() => TransactionNodeInput)
-  node?: TransactionNodeInput
-}
-
-@InputType()
-export class TransactionsInput {
-  @Field(() => [TransactionEdgeInput])
-  edges: TransactionEdgeInput[] = []
-}
-
-@InputType()
-export class RawTransactionsInput {
-  @Field(() => TransactionsInput)
-  transactions?: TransactionsInput
-}
-
-@ObjectType()
-export class TransactionEdge {
-  @Field(() => TransactionNode)
-  node?: TransactionNode
-}
-
-@ObjectType()
-export class Transactions {
-  @Field(() => [TransactionEdge])
-  edges: TransactionEdge[] = []
-}
-
-@ObjectType()
-export class Publisher {
-  @Field(() => Project, { nullable: true })
-  project?: Project
-}
-
-@InputType()
-export class RawTransactions {
-  @Field(() => Transactions)
-  transactions?: Transactions
-}
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql'
+import { Publisher } from './project.dto'
+import { EntryPathInput } from './entryPath.dto'
+import { RawTransactionsInput } from './transaction.dto'
 
 @ObjectType()
 export class Blog {
@@ -152,29 +53,6 @@ export class BlogInput {
   @Field(() => String, { nullable: true })
   slug?: string
 }
-@InputType()
-export class EntryPathInput {
-  @Field(() => String)
-  slug: string = ''
-
-  @Field(() => String)
-  path: string = ''
-
-  @Field(() => Int)
-  timestamp: number = 0
-}
-
-@ObjectType()
-export class EntryPathOutput {
-  @Field(() => String)
-  slug: string = ''
-
-  @Field(() => String)
-  path: string = ''
-
-  @Field(() => Int)
-  timestamp: number = 0
-}
 
 @ObjectType()
 export class FormatedBlogType {
@@ -182,13 +60,13 @@ export class FormatedBlogType {
   title?: string
 
   @Field(() => String)
-  slug: string = ''
+  slug = ''
 
   @Field(() => String, { nullable: true })
   digest?: string
 
   @Field(() => String)
-  contributor: string = ''
+  contributor = ''
 
   @Field(() => Int, { nullable: true })
   timestamp?: number
@@ -197,7 +75,7 @@ export class FormatedBlogType {
   cover_image?: string | null
 
   @Field(() => Int)
-  image_sizes: number = 1
+  image_sizes = 1
 
   @Field(() => String, { nullable: true })
   body?: string

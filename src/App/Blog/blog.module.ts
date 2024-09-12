@@ -1,8 +1,8 @@
 import { CacheModule, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { BlogService } from './blog.service'
 import { HttpModule } from '@nestjs/axios'
-import { BlogResolver } from './blog.resolver'
+import BlogService from './blog.service'
+import BlogResolver from './blog.resolver'
 
 @Module({
     imports: [
@@ -17,4 +17,4 @@ import { BlogResolver } from './blog.resolver'
     providers: [BlogService, BlogResolver],
     exports: [BlogService],
 })
-export class BlogModule {}
+export default class BlogModule {}

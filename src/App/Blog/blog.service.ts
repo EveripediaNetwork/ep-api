@@ -6,23 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import {
-  Blog,
-  FormatedBlogType,
-  RawTransactions,
-  EntryPathOutput,
-  EntryPathInput,
-  RawTransactionsInput,
-  BlogTagInput,
-  BlockInput,
-  BlogInput,
-} from './blog.dto'
 import slugify from 'slugify'
 import { HttpService } from '@nestjs/axios'
 import { Cache } from 'cache-manager'
+import { Blog, BlogInput, FormatedBlogType } from './blog.dto'
+import { RawTransactionsInput } from './transaction.dto'
+import { EntryPathInput, EntryPathOutput } from './entryPath.dto'
+import { BlockInput, BlogTagInput } from './block.dto'
 
 @Injectable()
-export class BlogService {
+class BlogService {
   constructor(
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
@@ -46,13 +39,14 @@ export class BlogService {
       cover_image: blog.body
         ? (blog.body
             .split('\n\n')[0]
-            .match(/!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m) || [])?.[1]
-        : null,
+            .match(/!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m) || [])?.[1] ||
+          undefined
+        : undefined,
       image_sizes: 50,
     }
   }
 
-  formatBlog(blog: Blog, hasBody: boolean = false): FormatedBlogType {
+  formatBlog(blog: Blog): FormatedBlogType {
     const formattedBlog: FormatedBlogType = {
       title: blog.title || '',
       slug: slugify(blog.title || ''),
@@ -62,8 +56,9 @@ export class BlogService {
       cover_image: blog.body
         ? (blog.body
             .split('\n\n')[0]
-            .match(/!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m) || [])?.[1]
-        : null,
+            .match(/!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m) || [])?.[1] ||
+          undefined
+        : undefined,
       image_sizes: 50,
     }
 
@@ -83,7 +78,7 @@ export class BlogService {
           const entries = await this.fetchBlogsFromAccount(account)
           return entries
             .filter((entry) => entry.publishedAtTimestamp !== undefined)
-            .map((b) => this.formatBlog(b, true))
+            .map((b) => this.formatBlog(b))
         }),
     )
 
@@ -177,8 +172,12 @@ export class BlogService {
 
   private async mapEntry(entry: EntryPathInput): Promise<Blog | null> {
     try {
+      const blogAPIUrl = this.configService.get<string>('BLOG_DATA_API')
+      if (!blogAPIUrl) {
+        throw new Error('BLOG_DATA_API URL not found')
+      }
       const response = await this.httpService
-        .get(`${this.configService.get('BLOG_DATA_API')}/${entry.path}`)
+        .get(`${blogAPIUrl}/${entry.path}`)
         .toPromise()
       const data = response?.data
 
@@ -190,11 +189,11 @@ export class BlogService {
           transactionId,
         } = data
 
-        return this.formatEntry(
+        return (await this.formatEntry(
           { title, body, digest, contributor, transaction: transactionId },
           entry.slug,
           entry.timestamp || 0,
-        ) as Promise<Blog>
+        )) as Blog
       }
 
       return null
@@ -245,32 +244,36 @@ export class BlogService {
       let result
       if (blogInput.slug) {
         result = await this.getBlogsFromAccounts()
-        const blog = result.find((blog) => blog.slug === blogInput.slug)
-        if (!blog)
+        const blog = result.find((BLOG) => BLOG.slug === blogInput.slug)
+        if (!blog) {
           throw new NotFoundException(
             `Blog with slug ${blogInput.slug} not found`,
           )
-      } else if (blogInput.transaction && blogInput.timestamp) {
+        }
+        return blog
+      }
+      if (blogInput.transaction && blogInput.timestamp) {
         result = await this.fetchBlogByTransactionId(blogInput.transaction)
         if (!result)
           throw new NotFoundException(
             `Blog with transaction ID ${blogInput.transaction} not found`,
           )
-        result = this.formatEntry(
+        result = await this.formatEntry(
           result,
           blogInput.transaction,
           blogInput.timestamp,
         )
-      } else if (blogInput.rawTransactions) {
-        result = await this.getEntryPaths(blogInput.rawTransactions)
-      } else if (blogInput.entryPaths) {
-        result = await this.getBlogEntriesFormatted(blogInput.entryPaths)
-      } else {
-        result = await this.getBlogsFromAccounts()
+        return result
       }
-
-      await this.cacheManager.set(cacheKey, result, { ttl: 300 })
-
+      if (blogInput.rawTransactions) {
+        result = await this.getEntryPaths(blogInput.rawTransactions)
+        return result
+      }
+      if (blogInput.entryPaths) {
+        result = await this.getBlogEntriesFormatted(blogInput.entryPaths)
+        return result
+      }
+      result = await this.getBlogsFromAccounts()
       return result
     } catch (error) {
       if (error instanceof NotFoundException) throw error
@@ -278,3 +281,5 @@ export class BlogService {
     }
   }
 }
+
+export default BlogService
