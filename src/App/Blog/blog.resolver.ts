@@ -1,12 +1,12 @@
 import { Resolver, Query, Args, Int } from '@nestjs/graphql'
 import { BadRequestException, NotFoundException } from '@nestjs/common'
-import { BlogService } from './blog.service'
+import BlogService from './blog.service'
 import {
   Blog,
   EntryPathInput,
   EntryPathOutput,
   FormatedBlogType,
-  RawTransactionsInput,
+  RawTransactions,
 } from './blog.dto'
 
 @Resolver(() => FormatedBlogType)
@@ -18,15 +18,17 @@ class BlogResolver {
     @Args('slug', { nullable: true }) slug?: string,
     @Args('transactionId', { nullable: true }) transactionId?: string,
     @Args('timestamp', { type: () => Int, nullable: true }) timestamp?: number,
-    @Args('rawTransactions', { nullable: true }) rawTransactions?: RawTransactionsInput,
-    @Args('entryPaths', { type: () => [EntryPathInput], nullable: true }) entryPaths?: EntryPathInput[],
+    @Args('rawTransactions', { nullable: true })
+    rawTransactions?: RawTransactions,
+    @Args('entryPaths', { type: () => [EntryPathInput], nullable: true })
+    entryPaths?: EntryPathInput[],
   ): Promise<
     FormatedBlogType[] | FormatedBlogType | EntryPathOutput[] | Blog[]
   > {
     try {
       if (slug) {
         const blogs = await this.blogService.getBlogsFromAccounts()
-        const blog = blogs.find((blog) => blog.slug === slug)
+        const blog = blogs.find(blog => blog.slug === slug)
         if (!blog) {
           throw new NotFoundException(`Blog with slug ${slug} not found`)
         }

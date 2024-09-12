@@ -49,14 +49,6 @@ export class TransactionNode extends BaseEntity {
   block?: Block
 }
 
-@InputType()
-export class TransactionNodeInput extends BaseEntity {
-  @Field(() => [BlogTagInput])
-  tags: BlogTagInput[] = []
-
-  @Field(() => BlockInput, { nullable: true })
-  block?: BlockInput
-}
 
 @ObjectType()
 export class TransactionEdge {
@@ -64,11 +56,7 @@ export class TransactionEdge {
   node?: TransactionNode
 }
 
-@InputType()
-export class TransactionEdgeInput {
-  @Field(() => TransactionNodeInput)
-  node?: TransactionNodeInput
-}
+
 
 @ObjectType()
 export class Transactions {
@@ -76,11 +64,6 @@ export class Transactions {
   edges: TransactionEdge[] = []
 }
 
-@InputType()
-export class TransactionsInput {
-  @Field(() => [TransactionEdgeInput])
-  edges: TransactionEdgeInput[] = []
-}
 
 @ObjectType()
 export class Publisher {
@@ -88,11 +71,6 @@ export class Publisher {
   project?: Project
 }
 
-@InputType()
-export class RawTransactionsInput {
-  @Field(() => TransactionsInput)
-  transactions?: TransactionsInput
-}
 
 @ObjectType()
 export class RawTransactions {

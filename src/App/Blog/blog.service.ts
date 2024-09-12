@@ -7,9 +7,9 @@ import {
   FormatedBlogType,
   EntryPathOutput,
   EntryPathInput,
-  RawTransactionsInput,
   BlogTagInput,
   BlockInput,
+  RawTransactions,
 } from './blog.dto'
 
 @Injectable()
@@ -82,7 +82,7 @@ class BlogService {
   }
 
   async getEntryPaths(
-    rawTransactions: RawTransactionsInput,
+    rawTransactions: RawTransactions,
   ): Promise<EntryPathOutput[]> {
     if (!rawTransactions.transactions || !rawTransactions.transactions.edges) {
       return []
