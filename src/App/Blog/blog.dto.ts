@@ -1,4 +1,23 @@
-import { Field, ObjectType, Int, InputType } from '@nestjs/graphql'
+/* eslint-disable max-classes-per-file */
+import { Field, ObjectType, InputType, Int } from '@nestjs/graphql'
+
+@ObjectType()
+class BaseEntity {
+  @Field(() => String)
+  id = ''
+}
+
+@ObjectType()
+class BaseNameValue {
+  @Field(() => String)
+  name = ''
+
+  @Field(() => String)
+  value = ''
+}
+
+@InputType()
+class BaseNameValueInput extends BaseNameValue {}
 
 @ObjectType()
 export class Project {
@@ -9,50 +28,20 @@ export class Project {
 @ObjectType()
 export class Block {
   @Field(() => Int)
-  timestamp: number = 1
+  timestamp = 1
 }
 
 @InputType()
-export class BlockInput {
-  @Field(() => Int)
-  timestamp: number = 1
-}
+export class BlockInput extends Block {}
 
 @ObjectType()
-export class BlogTag {
-  @Field(() => String)
-  name: string = ''
-
-  @Field(() => String)
-  value: string = ''
-}
+export class BlogTag extends BaseNameValue {}
 
 @InputType()
-export class BlogTagInput {
-  @Field(() => String)
-  name: string = ''
-
-  @Field(() => String)
-  value: string = ''
-}
-
-@InputType()
-export class TransactionNodeInput {
-  @Field(() => String)
-  id: string = ''
-
-  @Field(() => [BlogTagInput])
-  tags: BlogTagInput[] = []
-
-  @Field(() => BlockInput, { nullable: true })
-  block?: BlockInput
-}
+export class BlogTagInput extends BaseNameValueInput {}
 
 @ObjectType()
-export class TransactionNode {
-  @Field(() => String)
-  id: string = ''
-
+export class TransactionNode extends BaseEntity {
   @Field(() => [BlogTag])
   tags: BlogTag[] = []
 
@@ -61,21 +50,12 @@ export class TransactionNode {
 }
 
 @InputType()
-export class TransactionEdgeInput {
-  @Field(() => TransactionNodeInput)
-  node?: TransactionNodeInput
-}
+export class TransactionNodeInput extends BaseEntity {
+  @Field(() => [BlogTagInput])
+  tags: BlogTagInput[] = []
 
-@InputType()
-export class TransactionsInput {
-  @Field(() => [TransactionEdgeInput])
-  edges: TransactionEdgeInput[] = []
-}
-
-@InputType()
-export class RawTransactionsInput {
-  @Field(() => TransactionsInput)
-  transactions?: TransactionsInput
+  @Field(() => BlockInput, { nullable: true })
+  block?: BlockInput
 }
 
 @ObjectType()
@@ -84,10 +64,22 @@ export class TransactionEdge {
   node?: TransactionNode
 }
 
+@InputType()
+export class TransactionEdgeInput {
+  @Field(() => TransactionNodeInput)
+  node?: TransactionNodeInput
+}
+
 @ObjectType()
 export class Transactions {
   @Field(() => [TransactionEdge])
   edges: TransactionEdge[] = []
+}
+
+@InputType()
+export class TransactionsInput {
+  @Field(() => [TransactionEdgeInput])
+  edges: TransactionEdgeInput[] = []
 }
 
 @ObjectType()
@@ -97,6 +89,12 @@ export class Publisher {
 }
 
 @InputType()
+export class RawTransactionsInput {
+  @Field(() => TransactionsInput)
+  transactions?: TransactionsInput
+}
+
+@ObjectType()
 export class RawTransactions {
   @Field(() => Transactions)
   transactions?: Transactions
@@ -135,29 +133,20 @@ export class Blog {
   slug?: string
 }
 
-@InputType()
-export class EntryPathInput {
-  @Field(() => String)
-  slug: string = ''
-
-  @Field(() => String)
-  path: string = ''
-
-  @Field(() => Int)
-  timestamp: number = 0
-}
-
 @ObjectType()
 export class EntryPathOutput {
   @Field(() => String)
-  slug: string = ''
+  slug = ''
 
   @Field(() => String)
-  path: string = ''
+  path = ''
 
   @Field(() => Int)
-  timestamp: number = 0
+  timestamp = 0
 }
+
+@InputType()
+export class EntryPathInput extends EntryPathOutput {}
 
 @ObjectType()
 export class FormatedBlogType {
@@ -165,13 +154,13 @@ export class FormatedBlogType {
   title?: string
 
   @Field(() => String)
-  slug: string = ''
+  slug = ''
 
   @Field(() => String, { nullable: true })
   digest?: string
 
   @Field(() => String)
-  contributor: string = ''
+  contributor = ''
 
   @Field(() => Int, { nullable: true })
   timestamp?: number
@@ -180,7 +169,7 @@ export class FormatedBlogType {
   cover_image?: string | null
 
   @Field(() => Int)
-  image_sizes: number = 1
+  image_sizes = 1
 
   @Field(() => String, { nullable: true })
   body?: string

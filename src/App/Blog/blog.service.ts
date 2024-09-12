@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import slugify from 'slugify'
+import { HttpService } from '@nestjs/axios'
 import {
   Blog,
   FormatedBlogType,
-  RawTransactions,
   EntryPathOutput,
   EntryPathInput,
   RawTransactionsInput,
   BlogTagInput,
   BlockInput,
 } from './blog.dto'
-import slugify from 'slugify'
-import { HttpService } from '@nestjs/axios'
 
 @Injectable()
-export class BlogService {
+class BlogService {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
@@ -42,7 +41,7 @@ export class BlogService {
     }
   }
 
-  formatBlog(blog: Blog, hasBody: boolean = false): FormatedBlogType {
+  formatBlog(blog: Blog): FormatedBlogType {
     const formattedBlog: FormatedBlogType = {
       title: blog.title || '',
       slug: slugify(blog.title || ''),
@@ -69,11 +68,11 @@ export class BlogService {
     const allBlogs = await Promise.all(
       accounts
         .filter((account): account is string => !!account)
-        .map(async (account) => {
+        .map(async account => {
           const entries = await this.fetchBlogsFromAccount(account)
           return entries
-            .filter((entry) => entry.publishedAtTimestamp !== undefined)
-            .map((b) => this.formatBlog(b, true))
+            .filter(entry => entry.publishedAtTimestamp !== undefined)
+            .map(b => this.formatBlog(b))
         }),
     )
 
@@ -111,7 +110,7 @@ export class BlogService {
       })
       .filter((entry): entry is EntryPathOutput => entry !== null)
       .reduce((acc: EntryPathOutput[], current) => {
-        const existingEntry = acc.find((entry) => entry.slug === current.slug)
+        const existingEntry = acc.find(entry => entry.slug === current.slug)
         if (!existingEntry) {
           return [...acc, current]
         }
@@ -123,13 +122,13 @@ export class BlogService {
 
   async getBlogEntriesFormatted(entryPaths: EntryPathInput[]): Promise<Blog[]> {
     const entries = await Promise.all(
-      entryPaths.map((entry) => this.mapEntry(entry)),
+      entryPaths.map(entry => this.mapEntry(entry)),
     )
     return entries
       .filter((entry): entry is Blog => entry !== null)
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
       .reduce((acc: Blog[], current) => {
-        const existingEntry = acc.find((entry) => entry.slug === current.slug)
+        const existingEntry = acc.find(entry => entry.slug === current.slug)
         if (!existingEntry) return [...acc, current]
         return acc
       }, [])
@@ -180,11 +179,11 @@ export class BlogService {
           transactionId,
         } = data
 
-        return this.formatEntry(
+        return await (this.formatEntry(
           { title, body, digest, contributor, transaction: transactionId },
           entry.slug,
           entry.timestamp || 0,
-        ) as Promise<Blog>
+        ) as Promise<Blog>)
       }
 
       return null
@@ -223,3 +222,5 @@ export class BlogService {
     }
   }
 }
+
+export default BlogService
