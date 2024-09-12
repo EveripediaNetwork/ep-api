@@ -69,7 +69,6 @@ class UserResolver {
   @Query(() => Boolean)
   @UseGuards(AuthGuard)
   async isAdmin() {
-    console.log()
     return true
   }
 
