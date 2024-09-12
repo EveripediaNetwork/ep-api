@@ -122,7 +122,6 @@ class WikiService {
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
     const promotedWikis = await queryBuilder.getMany()
-
     return promotedWikis
   }
 
@@ -462,38 +461,38 @@ class WikiService {
 
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
-    if (level <= 10) {
-      if (level > 0) {
-        queryBuilder
-          .andWhere('wiki.promoted = :level', { level })
-          .andWhere('wiki.hidden = false')
+    if (level > 0) {
+      queryBuilder
+        .andWhere('wiki.promoted = :level', { level })
+        .andWhere('wiki.hidden = false')
 
-        this.filterFeaturedEvents(queryBuilder, featuredEvents)
-      }
-      const promotedWiki = await queryBuilder.getOne()
+      this.filterFeaturedEvents(queryBuilder, featuredEvents)
+    }
+    const promotedWiki = await queryBuilder.getOne()
 
-      if (promotedWiki) {
-        await (
-          await this.repository()
-        )
-          .createQueryBuilder()
-          .update(Wiki)
-          .set({ promoted: 0 })
-          .where('id = :id', { id: promotedWiki.id })
-          .execute()
-      }
-
+    if (promotedWiki) {
       await (
         await this.repository()
       )
         .createQueryBuilder()
         .update(Wiki)
-        .set({ promoted: level })
-        .where('id = :id', { id })
+        .set({ promoted: 0 })
+        .where('id = :id', { id: promotedWiki.id })
         .execute()
-      return wiki
     }
-    return null
+
+    await (
+      await this.repository()
+    )
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ promoted: level })
+      .where('id = :id', { id })
+      .execute()
+
+    await this.reOrderPromotedwikis(featuredEvents)
+
+    return wiki
   }
 
   async hideWiki(
@@ -510,9 +509,14 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
+    await this.reOrderPromotedwikis(featuredEvents)
+    return wiki
+  }
+
+  async reOrderPromotedwikis(featuredEvents: boolean) {
     const currentPromotions = await this.getPromotedWikis(
       {
-        id: 'en',
+        lang: 'en',
         direction: 'ASC',
       } as unknown as LangArgs,
       featuredEvents,
@@ -530,8 +534,6 @@ class WikiService {
           .execute()
       }
     }
-
-    return wiki
   }
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
