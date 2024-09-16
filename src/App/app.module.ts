@@ -69,6 +69,10 @@ import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
 import BlogModule from './Blog/blog.module'
 import BlogResolver from './Blog/blog.resolver'
+import ArweaveModule from './Blog/areave.module'
+import ArweaveService from './Blog/arweave.service'
+import MirrorApiService from './Blog/mirrorApi.service'
+import MirrorApiModule from './Blog/mirrorApi.module'
 
 // istanbul ignore next
 @Module({
@@ -114,6 +118,8 @@ import BlogResolver from './Blog/blog.resolver'
     DiscordModule,
     BlogModule,
     SentryMod,
+    ArweaveModule,
+    MirrorApiModule,
   ],
   controllers: [UploadController, WikiController],
   providers: [
@@ -151,6 +157,8 @@ import BlogResolver from './Blog/blog.resolver'
     EventsResolver,
     EventsService,
     BlogResolver,
+    ArweaveService,
+    MirrorApiService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

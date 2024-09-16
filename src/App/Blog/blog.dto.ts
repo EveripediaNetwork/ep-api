@@ -1,91 +1,131 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql'
-import { Publisher } from './project.dto'
-import { EntryPathInput } from './entryPath.dto'
-import { RawTransactionsInput } from './transaction.dto'
+/* eslint-disable max-classes-per-file */
+import { ObjectType, Field, Int } from '@nestjs/graphql'
 
 @ObjectType()
-export class Blog {
-  @Field(() => String, { nullable: true })
-  title?: string
-
-  @Field(() => String, { nullable: true })
-  body?: string
-
-  @Field(() => String, { nullable: true })
-  digest?: string
-
-  @Field(() => String, { nullable: true })
-  contributor?: string
-
-  @Field(() => Publisher, { nullable: true })
-  publisher?: Publisher
-
-  @Field(() => Int, { nullable: true })
-  timestamp?: number
-
-  @Field(() => String, { nullable: true })
-  transaction?: string
-
-  @Field(() => String, { nullable: true })
-  cover_image?: string
-
-  @Field(() => Int, { nullable: true })
-  publishedAtTimestamp?: number
-
-  @Field(() => String, { nullable: true })
-  slug?: string
+export class Address {
+  @Field()
+  address!: string
 }
 
-@InputType()
-export class BlogInput {
-  @Field(() => Int, { nullable: true })
-  timestamp?: number
-
-  @Field(() => String, { nullable: true })
-  transaction?: string
-
-  @Field(() => [EntryPathInput], { nullable: true })
-  entryPaths?: EntryPathInput[]
-
-  @Field(() => RawTransactionsInput, { nullable: true })
-  rawTransactions?: RawTransactionsInput
-
-  @Field(() => String, { nullable: true })
-  slug?: string
+@ObjectType()
+export class Project {
+  @Field()
+  project!: Address
 }
 
 @ObjectType()
 export class FormatedBlogType {
-  @Field(() => String, { nullable: true })
-  title?: string
+  @Field()
+  title!: string
 
-  @Field(() => String)
-  slug = ''
+  @Field()
+  slug!: string
 
-  @Field(() => String, { nullable: true })
-  digest?: string
-
-  @Field(() => String)
-  contributor = ''
-
-  @Field(() => Int, { nullable: true })
-  timestamp?: number
-
-  @Field(() => String, { nullable: true })
-  cover_image?: string | null
-
-  @Field(() => Int)
-  image_sizes = 1
-
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   body?: string
 
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   excerpt?: string
 
-  @Field(() => String, { nullable: true })
+  @Field()
+  digest!: string
+
+  @Field()
+  contributor!: string
+
+  @Field({ nullable: true })
+  timestamp?: number | undefined
+
+  @Field()
+  cover_image?: string
+
+  @Field()
+  image_sizes!: number
+}
+
+@ObjectType()
+export class Blog extends FormatedBlogType {
+  @Field({ nullable: true })
+  timestamp?: number
+
+  @Field({ nullable: true })
+  publishedAtTimestamp?: number
+
+  @Field({ nullable: true })
   transaction?: string
 
-  @Field(() => Int, { nullable: true })
-  publishedAtTimestamp?: number
+  @Field({ nullable: true })
+  publisher?: Project
+}
+
+@ObjectType()
+export class EntryPathPicked {
+  @Field({ nullable: true })
+  slug!: string
+
+  @Field({ nullable: true })
+  timestamp?: number
+}
+
+@ObjectType()
+export class EntryPath extends EntryPathPicked {
+  @Field()
+  path!: string
+}
+
+@ObjectType()
+export class BlogTag {
+  @Field()
+  name!: string
+
+  @Field()
+  value!: string
+}
+
+@ObjectType()
+export class Block {
+  @Field(() => Int)
+  timestamp!: number
+}
+
+@ObjectType()
+export class BlogNode {
+  @Field()
+  id!: string
+
+  @Field(() => Block)
+  block!: Block | null
+
+  @Field(() => [BlogTag])
+  tags!: BlogTag[]
+}
+
+@ObjectType()
+export class TransactionEdge {
+  @Field(() => BlogNode)
+  node!: BlogNode | null
+}
+
+@ObjectType()
+export class TransactionsEdges {
+  @Field(() => [TransactionEdge])
+  edges!: TransactionEdge[]
+}
+
+@ObjectType()
+export class RawTransactions {
+  @Field(() => TransactionsEdges)
+  transactions!: TransactionsEdges
+}
+
+@ObjectType()
+export class BlogPostType {
+  @Field({ nullable: true })
+  maxW?: string
+
+  @Field(() => Blog)
+  post!: Blog
+
+  @Field(() => Int)
+  key!: number
 }
