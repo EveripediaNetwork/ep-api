@@ -87,7 +87,7 @@ export class RevalidatePageService {
     const now = new Date()
     if (this.failedUrls.length > 0) {
       console.log('Retrying failed URLs...')
-      await Promise.all(
+      const updatedFailedUrls = await Promise.all(
         this.failedUrls.map(async (failedUrlObj) => {
           if (failedUrlObj.retries >= this.maxRetries) {
             console.log(
@@ -114,7 +114,7 @@ export class RevalidatePageService {
           }
         }),
       )
-      this.failedUrls = this.failedUrls.filter(Boolean)
+      this.failedUrls = updatedFailedUrls.filter((url): url is NonNullable<typeof url> => url !== null && url.retries < this.maxRetries)
     }
   }
 
