@@ -8,7 +8,7 @@ import { Blog } from './blog.dto'
 class BlogResolver {
   private BLOG_CACHE_KEY = 'blog-cache'
 
-  private CACHE_TTL = 3600
+  private CACHE_TTL = 5000
 
   constructor(
     private readonly blogService: BlogService,
@@ -22,7 +22,7 @@ class BlogResolver {
 
     if (!blogs) {
       blogs = await this.blogService.getBlogsFromAccounts()
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 3600 })
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 5000 })
     }
 
     return blogs
