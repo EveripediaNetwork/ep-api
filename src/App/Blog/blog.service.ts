@@ -110,7 +110,7 @@ class BlogService {
 
   async refreshCache(): Promise<void> {
     const blogs = await this.getBlogsFromAccounts()
-    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 3600 })
+    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 5000 })
   }
 
   async getEntryPaths(rawTransactions: RawTransactions): Promise<EntryPath[]> {
