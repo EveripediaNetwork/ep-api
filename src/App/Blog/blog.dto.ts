@@ -45,7 +45,6 @@ export class FormatedBlogType {
 
 @ObjectType()
 export class Blog extends FormatedBlogType {
-
   @Field({ nullable: true })
   publishedAtTimestamp?: number
 
