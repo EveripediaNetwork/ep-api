@@ -34,9 +34,9 @@ export class FormatedBlogType {
   contributor!: string
 
   @Field({ nullable: true })
-  timestamp?: number | undefined
+  timestamp?: number
 
-  @Field()
+  @Field({ nullable: true })
   cover_image?: string
 
   @Field()
@@ -45,8 +45,6 @@ export class FormatedBlogType {
 
 @ObjectType()
 export class Blog extends FormatedBlogType {
-  @Field({ nullable: true })
-  timestamp?: number
 
   @Field({ nullable: true })
   publishedAtTimestamp?: number
@@ -60,7 +58,7 @@ export class Blog extends FormatedBlogType {
 
 @ObjectType()
 export class EntryPathPicked {
-  @Field({ nullable: true })
+  @Field()
   slug!: string
 
   @Field({ nullable: true })
