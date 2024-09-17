@@ -34,6 +34,7 @@ import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
 import Explorer from '../../Database/Entities/explorer.entity'
+import PaginationArgs from '../pagination.args'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -113,7 +114,12 @@ class WikiResolver {
 
   @Query(() => [Explorer])
   async searchExplorers(@Args() args: ByIdArgs) {
-    return this.wikiService.getExplorers(args.id)
+    return this.wikiService.searchExplorers(args.id)
+  }
+
+  @Query(() => [Explorer])
+  async explorers(@Args() args: PaginationArgs) {
+    return this.wikiService.getExplorers(args)
   }
 
   @Mutation(() => Boolean, { nullable: true })
@@ -145,14 +151,14 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.hideWiki(args, featuredEvents)
-
+    const tags = (await wiki?.tags) || []
     if (wiki) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.HIDE_WIKI,
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
@@ -165,6 +171,7 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.unhideWiki(args)
+    const tags = (await wiki?.tags) || []
 
     if (wiki) {
       await this.revalidate.revalidatePage(
@@ -172,7 +179,7 @@ class WikiResolver {
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }

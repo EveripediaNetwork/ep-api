@@ -23,6 +23,7 @@ import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
+import PaginationArgs from '../pagination.args'
 
 @Injectable()
 class WikiService {
@@ -122,7 +123,6 @@ class WikiService {
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
     const promotedWikis = await queryBuilder.getMany()
-
     return promotedWikis
   }
 
@@ -395,11 +395,20 @@ class WikiService {
     return hiddenWikis
   }
 
-  async getExplorers(explorer: string) {
+  async searchExplorers(explorer: string) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     return repo
       .createQueryBuilder('explorer')
       .where('LOWER(explorer.id) LIKE LOWER(:id)', { id: `%${explorer}%` })
+      .getMany()
+  }
+
+  async getExplorers(args: PaginationArgs) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    return repo
+      .createQueryBuilder('explorer')
+      .skip(args.offset)
+      .take(args.limit)
       .getMany()
   }
 
@@ -462,45 +471,45 @@ class WikiService {
 
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
-    if (level <= 10) {
-      if (level > 0) {
-        queryBuilder
-          .andWhere('wiki.promoted = :level', { level })
-          .andWhere('wiki.hidden = false')
+    if (level > 0) {
+      queryBuilder
+        .andWhere('wiki.promoted = :level', { level })
+        .andWhere('wiki.hidden = false')
 
-        this.filterFeaturedEvents(queryBuilder, featuredEvents)
-      }
-      const promotedWiki = await queryBuilder.getOne()
+      this.filterFeaturedEvents(queryBuilder, featuredEvents)
+    }
+    const promotedWiki = await queryBuilder.getOne()
 
-      if (promotedWiki) {
-        await (
-          await this.repository()
-        )
-          .createQueryBuilder()
-          .update(Wiki)
-          .set({ promoted: 0 })
-          .where('id = :id', { id: promotedWiki.id })
-          .execute()
-      }
-
+    if (promotedWiki) {
       await (
         await this.repository()
       )
         .createQueryBuilder()
         .update(Wiki)
-        .set({ promoted: level })
-        .where('id = :id', { id })
+        .set({ promoted: 0 })
+        .where('id = :id', { id: promotedWiki.id })
         .execute()
-      return wiki
     }
-    return null
+
+    await (
+      await this.repository()
+    )
+      .createQueryBuilder()
+      .update(Wiki)
+      .set({ promoted: level })
+      .where('id = :id', { id })
+      .execute()
+
+    await this.reOrderPromotedwikis(featuredEvents)
+
+    return wiki
   }
 
   async hideWiki(
     args: ByIdArgs,
     featuredEvents: boolean,
   ): Promise<Wiki | null> {
-    const wiki = (await this.repository()).findOneBy({ id: args.id })
+    const wiki = await (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
     )
@@ -510,9 +519,14 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
+    await this.reOrderPromotedwikis(featuredEvents)
+    return wiki
+  }
+
+  async reOrderPromotedwikis(featuredEvents: boolean) {
     const currentPromotions = await this.getPromotedWikis(
       {
-        id: 'en',
+        lang: 'en',
         direction: 'ASC',
       } as unknown as LangArgs,
       featuredEvents,
@@ -530,12 +544,10 @@ class WikiService {
           .execute()
       }
     }
-
-    return wiki
   }
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
-    const wiki = (await this.repository()).findOneBy({ id: args.id })
+    const wiki = await (await this.repository()).findOneBy({ id: args.id })
     await (
       await this.repository()
     )

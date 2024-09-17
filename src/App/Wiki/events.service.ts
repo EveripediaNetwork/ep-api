@@ -24,6 +24,7 @@ class EventsService {
         .innerJoin('wiki.tags', 'tag')
         .leftJoin('wiki.wikiEvents', 'wikiEvents')
         .where('wiki.hidden = :hidden', { hidden: false })
+        .groupBy('wiki.id')
 
       if (ids.length > 1) {
         queryBuilder
@@ -43,6 +44,9 @@ class EventsService {
       switch (args.order) {
         case 'date':
           this.wikiService.eventDateOrder(queryBuilder, args.direction)
+          queryBuilder
+            .addGroupBy('wikiEvents.date')
+            .addGroupBy('wikiEvents.multiDateStart')
           break
 
         case 'id':
@@ -54,11 +58,7 @@ class EventsService {
           break
       }
 
-      return await queryBuilder
-        .groupBy('wiki.id')
-        .limit(args.limit)
-        .offset(args.offset)
-        .getMany()
+      return await queryBuilder.limit(args.limit).offset(args.offset).getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error
