@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { firstValueFrom } from 'rxjs'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -28,16 +29,9 @@ export interface RevalidateStatus {
   path: Routes
 }
 
-interface FailedUrlData {
-  retries: number
-  nextRetry: Date
-}
-
 @Injectable()
 export class RevalidatePageService {
-  private failedUrls: Map<string, FailedUrlData> = new Map()
-
-  private maxRetries = 3
+  private failedUrls = new Map()
 
   constructor(
     private httpService: HttpService,
@@ -73,7 +67,7 @@ export class RevalidatePageService {
     ]
 
     await Promise.all(
-      urlsToRevalidate.map(async (urlToRevalidate) => {
+      urlsToRevalidate.map(async urlToRevalidate => {
         try {
           await this.httpService.get(urlToRevalidate).toPromise()
         } catch (e: any) {
@@ -82,46 +76,36 @@ export class RevalidatePageService {
             e.response?.config?.url || e.message,
             urlToRevalidate,
           )
-          this.failedUrls.set(urlToRevalidate, {
-            retries: this.maxRetries,
-            nextRetry: new Date(),
-          })
+          this.failedUrls.set(urlToRevalidate, 3)
         }
       }),
     )
     return true
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async retryFailedUrl() {
-    const now = new Date()
-    const failedUrlEntries = Array.from(this.failedUrls.entries())
-    if (this.failedUrls.size > 0) {
-      console.log('No failed URLs, testing revalidation...')
-      for (const [url, urlData] of failedUrlEntries) {
-        if (urlData.nextRetry <= now) {
-          try {
-            await this.httpService.get(url).toPromise()
-            console.log(`Successfully revalidated: ${url}`)
-            this.failedUrls.delete(url)
-          } catch (e) {
-            console.error('Retry failed for URL:', url)
-            const newRetries = urlData.retries - 1
-            if (newRetries <= 0) {
-              console.log(
-                `URL ${url} has no more retries left. Removing from retry list.`,
+    for (const [k, v] of this.failedUrls) {
+      if (v > 0) {
+        try {
+          await Promise.all(
+            k.map(async (url: string) => {
+              const { data } = await firstValueFrom(
+                this.httpService.get(url).pipe(),
               )
-              this.failedUrls.delete(url)
-            } else {
-              this.failedUrls.set(url, {
-                retries: newRetries,
-                nextRetry: new Date(
-                  now.getTime() + 2 ** (this.maxRetries - newRetries) * 1000,
-                ),
-              })
-            }
-          }
+
+              if (data && data.revalidated === true) {
+                console.log(`♻️ ♻️ Successfully revalidated: ${url}`)
+              }
+            }),
+          )
+
+          this.failedUrls.delete(k)
+        } catch (error: any) {
+          this.failedUrls.set(k, v - 1)
         }
+      } else {
+        this.failedUrls.delete(k)
       }
     }
   }
