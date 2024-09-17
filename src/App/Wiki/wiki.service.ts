@@ -23,6 +23,7 @@ import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
+import PaginationArgs from '../pagination.args'
 
 @Injectable()
 class WikiService {
@@ -394,11 +395,20 @@ class WikiService {
     return hiddenWikis
   }
 
-  async getExplorers(explorer: string) {
+  async searchExplorers(explorer: string) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     return repo
       .createQueryBuilder('explorer')
       .where('LOWER(explorer.id) LIKE LOWER(:id)', { id: `%${explorer}%` })
+      .getMany()
+  }
+
+  async getExplorers(args: PaginationArgs) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    return repo
+      .createQueryBuilder('explorer')
+      .skip(args.offset)
+      .take(args.limit)
       .getMany()
   }
 
