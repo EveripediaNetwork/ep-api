@@ -28,9 +28,14 @@ export interface RevalidateStatus {
   path: Routes
 }
 
+interface FailedUrlData {
+  retries: number
+  nextRetry: Date
+}
+
 @Injectable()
 export class RevalidatePageService {
-  private failedUrls: { url: string; retries: number; nextRetry: Date }[] = []
+  private failedUrls: Map<string, FailedUrlData> = new Map()
 
   private maxRetries = 3
 
@@ -61,60 +66,63 @@ export class RevalidatePageService {
       path += `/${id}`
     }
 
-    try {
-      await Promise.all([
-        this.httpService.get(`${revalidateUrl}&path=/en${path}`).toPromise(),
-        this.httpService.get(`${revalidateUrl}&path=/zh${path}`).toPromise(),
-        this.httpService.get(`${revalidateUrl}&path=/ko${path}`).toPromise(),
-      ])
-    } catch (e: any) {
-      console.error(
-        'Error revalidating path',
-        e.response?.config?.url || e.message,
-      )
-      this.failedUrls.push({
-        url: e.response?.config?.url,
-        retries: 0,
-        nextRetry: new Date(),
-      })
-    }
+    const urlsToRevalidate = [
+      `${revalidateUrl}&path=/en${path}`,
+      `${revalidateUrl}&path=/zh${path}`,
+      `${revalidateUrl}&path=/ko${path}`,
+    ]
 
+    await Promise.all(
+      urlsToRevalidate.map(async (urlToRevalidate) => {
+        try {
+          await this.httpService.get(urlToRevalidate).toPromise()
+        } catch (e: any) {
+          console.error(
+            'Error revalidating path',
+            e.response?.config?.url || e.message,
+            urlToRevalidate,
+          )
+          this.failedUrls.set(urlToRevalidate, {
+            retries: this.maxRetries,
+            nextRetry: new Date(),
+          })
+        }
+      }),
+    )
     return true
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async retryFailedUrl() {
     const now = new Date()
-    if (this.failedUrls.length > 0) {
-      console.log('Retrying failed URLs...')
-      const updatedFailedUrls = await Promise.all(
-        this.failedUrls.map(async (failedUrlObj) => {
-          if (failedUrlObj.retries >= this.maxRetries) {
-            console.log(
-              `URL ${failedUrlObj.url} has reached max retries. Ignoring.`,
-            )
-            return null
-          }
-          if (failedUrlObj.nextRetry > now) {
-            return failedUrlObj
-          }
+    const failedUrlEntries = Array.from(this.failedUrls.entries())
+    if (this.failedUrls.size > 0) {
+      console.log('No failed URLs, testing revalidation...')
+      for (const [url, urlData] of failedUrlEntries) {
+        if (urlData.nextRetry <= now) {
           try {
-            await this.httpService.get(failedUrlObj.url).toPromise()
-            console.log(`Successfully revalidated: ${failedUrlObj.url}`)
-            return null
+            await this.httpService.get(url).toPromise()
+            console.log(`Successfully revalidated: ${url}`)
+            this.failedUrls.delete(url)
           } catch (e) {
-            console.error('Retry failed for URL:', failedUrlObj.url)
-            return {
-              url: failedUrlObj.url,
-              retries: failedUrlObj.retries + 1,
-              nextRetry: new Date(
-                now.getTime() + 2 ** failedUrlObj.retries * 1000,
-              ),
+            console.error('Retry failed for URL:', url)
+            const newRetries = urlData.retries - 1
+            if (newRetries <= 0) {
+              console.log(
+                `URL ${url} has no more retries left. Removing from retry list.`,
+              )
+              this.failedUrls.delete(url)
+            } else {
+              this.failedUrls.set(url, {
+                retries: newRetries,
+                nextRetry: new Date(
+                  now.getTime() + 2 ** (this.maxRetries - newRetries) * 1000,
+                ),
+              })
             }
           }
-        }),
-      )
-      this.failedUrls = updatedFailedUrls.filter((url): url is NonNullable<typeof url> => url !== null && url.retries < this.maxRetries)
+        }
+      }
     }
   }
 
