@@ -177,6 +177,7 @@ class MarketCapService {
   async getWikiData(
     coinsData: Record<any, any> | undefined,
     kind: RankType,
+    delay = false,
   ): Promise<RankPageWiki[]> {
     const k = kind.toLowerCase()
 
@@ -193,6 +194,9 @@ class MarketCapService {
         const batchWikis = await Promise.all(batchPromises)
 
         allWikis.push(...batchWikis)
+        if (delay) {
+          await new Promise((r) => setTimeout(r, 2000))
+        }
       }
     }
 
