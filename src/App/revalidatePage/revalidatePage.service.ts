@@ -67,7 +67,7 @@ export class RevalidatePageService {
     ]
 
     await Promise.all(
-      urlsToRevalidate.map(async urlToRevalidate => {
+      urlsToRevalidate.map(async (urlToRevalidate) => {
         try {
           await this.httpService.get(urlToRevalidate).toPromise()
         } catch (e: any) {
