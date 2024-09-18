@@ -3,7 +3,6 @@ import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER, CacheModule } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { of } from 'rxjs'
 import WikiService from '../Wiki/wiki.service'
 import { RankType, TokenCategory } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
@@ -12,11 +11,6 @@ import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 describe('MarketCapService', () => {
   let marketCapService: MarketCapService
   let dataSource: jest.Mocked<DataSource>
-  let httpService: jest.Mocked<HttpService>
-  let configService: jest.Mocked<ConfigService>
-  let wikiService: jest.Mocked<WikiService>
-  let cacheManager: jest.Mocked<Cache>
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -75,10 +69,6 @@ describe('MarketCapService', () => {
 
     marketCapService = module.get<MarketCapService>(MarketCapService)
     dataSource = module.get(DataSource) as jest.Mocked<DataSource>
-    httpService = module.get(HttpService) as jest.Mocked<HttpService>
-    configService = module.get(ConfigService) as jest.Mocked<ConfigService>
-    wikiService = module.get(WikiService) as jest.Mocked<WikiService>
-    cacheManager = module.get(CACHE_MANAGER) as jest.Mocked<Cache>
   })
 
   it('should be defined', () => {
@@ -155,24 +145,40 @@ describe('MarketCapService', () => {
     })
   })
   describe('wildcardSearch', () => {
+    const cacheData = [
+      { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
+      { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
+      { nftMarketData: { id: 'coin', name: 'Coin' } },
+    ]
     it('should return filtered results based on search term', async () => {
-      const cacheData = [
-        { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
-        { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
-      ]
       jest
         .spyOn(marketCapService, 'ranks')
         .mockResolvedValueOnce(cacheData as any)
 
       const result = await marketCapService.wildcardSearch({
         kind: RankType.TOKEN,
+        category: TokenCategory.STABLE_COINS,
         offset: 0,
         limit: 10,
         search: 'bit',
       })
 
       expect(result).toHaveLength(1)
-      expect(result[0].tokenMarketData.id).toBe('bitcoin')
+      expect(result[0]).toEqual({
+        tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' },
+      })
+    })
+
+    it('should return empty array for non-matching search term', async () => {
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        category: TokenCategory.STABLE_COINS,
+        offset: 0,
+        limit: 10,
+        search: 'iq',
+      })
+
+      expect(result).toHaveLength(0)
     })
   })
 })
