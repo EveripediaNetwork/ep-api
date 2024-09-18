@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
-import { gql } from 'graphql-request'
-import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { gql } from 'graphql-request'
 import { Blog } from './blog.dto'
 
 @Injectable()
@@ -22,26 +22,38 @@ class MirrorApiService {
       'https://mirror.xyz'
   }
 
-  async getBlogs(digest: string): Promise<Blog[]> {
+  async getBlogs(address: string): Promise<Blog[]> {
     const query = gql`
-      query GetBlogs($projectAddress: String!) {
-      entries(projectAddress: $projectAddress) {
-          _id
-          body
-          digest
-          timestamp
-          title
-          publishedAtTimestamp
-          arweaveTransactionRequest {
-            transactionId
-          }
-            publisher {
-            project {
-            _id
-              address
-            }
-          }
+      query Entries($projectAddress: String!) {
+        entries(projectAddress: $projectAddress) {
+          ...entryDetails
         }
+      }
+
+      fragment entryDetails on entry {
+        _id
+        body
+        digest
+        timestamp
+        title
+        publishedAtTimestamp
+        arweaveTransactionRequest {
+          transactionId
+        }
+        publisher {
+          ...publisherDetails
+        }
+      }
+
+      fragment publisherDetails on PublisherType {
+        project {
+          ...projectDetails
+        }
+      }
+
+      fragment projectDetails on ProjectType {
+        _id
+        address
       }
     `
     const headers = {
@@ -53,12 +65,11 @@ class MirrorApiService {
         this.apiUrl,
         {
           query,
-          variables: { digest },
+          variables: { projectAddress: address },
         },
         { headers },
       )
       .toPromise()
-
     return response?.data?.data?.entries || []
   }
 }

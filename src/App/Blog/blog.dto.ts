@@ -86,36 +86,6 @@ export class Block {
 }
 
 @ObjectType()
-export class BlogNode {
-  @Field()
-  id!: string
-
-  @Field(() => Block)
-  block!: Block | null
-
-  @Field(() => [BlogTag])
-  tags!: BlogTag[]
-}
-
-@ObjectType()
-export class TransactionEdge {
-  @Field(() => BlogNode)
-  node!: BlogNode | null
-}
-
-@ObjectType()
-export class TransactionsEdges {
-  @Field(() => [TransactionEdge])
-  edges!: TransactionEdge[]
-}
-
-@ObjectType()
-export class RawTransactions {
-  @Field(() => TransactionsEdges)
-  transactions!: TransactionsEdges
-}
-
-@ObjectType()
 export class BlogPostType {
   @Field({ nullable: true })
   maxW?: string

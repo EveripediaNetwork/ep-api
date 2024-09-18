@@ -1,31 +1,54 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
-import { HttpService } from '@nestjs/axios'
-import { DataSource } from 'typeorm'
+import Arweave from 'arweave'
 import slugify from 'slugify'
-import ArweaveService from './arweave.service'
-import {
-  Blog,
-  BlogTag,
-  EntryPath,
-  FormatedBlogType,
-  RawTransactions,
-} from './blog.dto'
+import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
+
+const arweave = Arweave.init({
+  host: 'arweave.net',
+  protocol: 'https',
+  port: 443,
+  timeout: 5000,
+})
+
+export type BlogNode = {
+  id: string
+  block: {
+    timestamp: number
+  }
+  tags: BlogTag[]
+}
+
+export type RawTransactions = {
+  transactions: {
+    edges: {
+      node: BlogNode
+    }[]
+  }
+}
 
 @Injectable()
 class BlogService {
+  private EVERIPEDIA_BLOG_ACCOUNT2: string
+
+  private EVERIPEDIA_BLOG_ACCOUNT3: string
+
   private BLOG_CACHE_KEY = 'blog-cache'
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private dataSource: DataSource,
-    private httpService: HttpService,
     private configService: ConfigService,
-    private arweaveService: ArweaveService,
     private readonly mirrorApiService: MirrorApiService,
-  ) {}
+  ) {
+    this.EVERIPEDIA_BLOG_ACCOUNT2 = this.configService.get(
+      'EVERIPEDIA_BLOG_ACCOUNT2',
+    ) as string
+    this.EVERIPEDIA_BLOG_ACCOUNT3 = this.configService.get(
+      'EVERIPEDIA_BLOG_ACCOUNT3',
+    ) as string
+  }
 
   async formatEntry(
     blog: Partial<Blog>,
@@ -38,6 +61,7 @@ class BlogService {
       body: blog.body || '',
       digest: blog.digest || '',
       contributor: blog.contributor || '',
+      transaction: transactionId,
       timestamp,
       cover_image: blog.body
         ? (blog.body
@@ -75,37 +99,26 @@ class BlogService {
 
   async getBlogsFromAccounts(): Promise<Blog[]> {
     const accounts = [
-      this.configService.get<string>('BLOG_ACCOUNT_2'),
-      this.configService.get<string>('BLOG_ACCOUNT_3'),
+      this.EVERIPEDIA_BLOG_ACCOUNT2,
+      this.EVERIPEDIA_BLOG_ACCOUNT3,
     ]
 
-    console.log(`Fetching blogs from accounts: ${accounts}`)
-
-    const blogPromises = accounts.map(async (account) => {
-      try {
-        if (!account) return []
-        const entries = await this.mirrorApiService.getBlogs(account)
-        return (
-          entries
-            ?.filter((entry) => entry.publishedAtTimestamp)
-            .map((b: Blog) => this.formatBlog(b, true)) || []
-        )
-      } catch (error) {
-        console.log(`Error fetching blogs for account ${account}:`, error)
-        return []
-      }
-    })
-
-    const allBlogs = (await Promise.all(blogPromises)).flat()
-
-    allBlogs.sort((a, b) => {
-      const Data =
-        new Date(b.timestamp ?? '').valueOf() -
-        new Date(a.timestamp ?? '').valueOf()
-      return Data
-    })
-
-    return allBlogs
+    return Promise.all(
+      accounts.map(async (account) => {
+        try {
+          if (!account) return []
+          const entries = await this.mirrorApiService.getBlogs(account)
+          return (
+            entries
+              ?.filter((entry) => entry.publishedAtTimestamp)
+              .map((b: Blog) => this.formatBlog(b, true)) || []
+          )
+        } catch (error) {
+          console.log(`Error fetching blogs for account ${account}:`, error)
+          return []
+        }
+      }),
+    ).then((blogArrays) => blogArrays.flat())
   }
 
   async refreshCache(): Promise<void> {
@@ -113,47 +126,37 @@ class BlogService {
     await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 5000 })
   }
 
-  async getEntryPaths(rawTransactions: RawTransactions): Promise<EntryPath[]> {
-    if (!rawTransactions.transactions || !rawTransactions.transactions.edges) {
-      return []
-    }
-
-    return rawTransactions.transactions.edges
+  async getEntryPaths({ transactions }: RawTransactions): Promise<EntryPath[]> {
+    return transactions.edges
       .map(({ node }) => {
-        if (!node || !node.block || !node.tags) {
-          return { slug: '', path: '', timestamp: 0 }
-        }
-
         const tags = Object.fromEntries(
           node.tags.map((tag: BlogTag) => [tag.name, tag.value]),
         )
-        const slug = tags['Original-Content-Digest']
-        if (!slug) {
-          return null
-        }
+
+        if (!node || !node.block) return { slug: '', path: '', timestamp: 0 }
 
         return {
-          slug,
+          slug: tags['Original-Content-Digest'],
           path: node.id,
           timestamp: node.block.timestamp,
         }
       })
-      .filter((entry) => entry?.slug && entry?.slug !== '')
+      .filter((entry) => entry.slug && entry.slug !== '')
       .reduce((acc: EntryPath[], current) => {
         const x = acc.findIndex(
-          (entry: EntryPath) => entry.slug === current?.slug,
+          (entry: EntryPath) => entry.slug === current.slug,
         )
         if (x === -1) return acc.concat([current])
 
-        acc[x].timestamp = current?.timestamp
+        acc[x].timestamp = current.timestamp
 
         return acc
       }, [])
   }
 
-  async mapEntry(entry: EntryPath): Promise<Blog | null> {
+  async mapEntry(entry: EntryPath) {
     try {
-      const result = await this.arweaveService.getData(entry.path, {
+      const result = await arweave.transactions.getData(entry.path, {
         decode: true,
         string: true,
       })
@@ -172,11 +175,14 @@ class BlogService {
           entry.slug,
           entry.timestamp || 0,
         )
-        if (!formattedEntry.cover_image) formattedEntry.cover_image = undefined
+
+        if (!formattedEntry.cover_image) {
+          return null
+        }
+
         return formattedEntry
       }
-
-      return null
+      return undefined
     } catch (_error) {
       console.error(`Error mapping entry: ${entry.path}`, _error)
       return null
@@ -189,9 +195,8 @@ class BlogService {
     )
     return entries
       .sort((a, b) => {
-        if (a && b) {
-          return (b.timestamp || 0) - (a.timestamp || 0)
-        }
+        if (a && b) return (b.timestamp || 0) - (a.timestamp || 0)
+
         return 0
       })
       .reduce((acc: Blog[], current) => {
