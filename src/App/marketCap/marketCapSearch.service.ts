@@ -11,9 +11,7 @@ class MarketCapSearch implements OnModuleInit {
 
   private pm2Ids = new Map()
 
-  constructor(
-    private marketCapService: MarketCapService,
-  ) {}
+  constructor(private marketCapService: MarketCapService) {}
 
   async onModuleInit() {
     if (Number(process.env.pm_id) === 0) {
