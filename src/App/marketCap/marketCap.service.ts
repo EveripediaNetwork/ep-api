@@ -83,11 +83,11 @@ class MarketCapService {
         .createQueryBuilder('wiki')
         .select('wiki.id')
         .addSelect('wiki.title')
+        .addSelect('wiki.ipfs')
+        .addSelect('wiki.images')
 
       const wikiQuery = baseQuery
         .clone()
-        .addSelect('wiki.ipfs')
-        .addSelect('wiki.images')
         .addSelect('wiki.metadata')
         .addSelect('wiki.created')
         .addSelect('wiki.linkedWikis')
@@ -324,7 +324,6 @@ class MarketCapService {
 
   async ranks(
     args: MarketCapInputs,
-    search = false,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
     const data = await this.marketData(args)
 
@@ -333,7 +332,7 @@ class MarketCapService {
         ? (data as unknown as NftRankListData[])
         : (data as unknown as TokenRankListData[])
 
-    return search ? result : result.slice(args.offset, args.offset + args.limit)
+    return result
   }
 
   getCacheKey(args: MarketCapInputs) {
@@ -390,7 +389,7 @@ class MarketCapService {
 
   async wildcardSearch(args: MarketCapInputs) {
     if (!args.search) return []
-    const cache = (await this.ranks(args, true)) as unknown as (
+    const cache = (await this.ranks(args)) as unknown as (
       | TokenRankListData
       | NftRankListData
     )[]

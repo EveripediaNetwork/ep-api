@@ -23,7 +23,7 @@ class MarketCapResolver {
   @Query(() => [MarketRankData], { nullable: 'items' })
   async rankList(
     @Args() args: MarketCapInputs,
-  ): Promise<NftRankListData | TokenRankListData> {
+  ): Promise<(NftRankListData | TokenRankListData)[]> {
     return this.marketCapService.ranks(args)
   }
 
