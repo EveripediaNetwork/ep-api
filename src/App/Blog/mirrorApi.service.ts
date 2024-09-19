@@ -6,9 +6,9 @@ import { Blog } from './blog.dto'
 
 @Injectable()
 class MirrorApiService {
-  private apiUrl: string
+  private readonly apiUrl: string
 
-  private origin: string
+  private readonly origin: string
 
   constructor(
     private readonly httpService: HttpService,
@@ -20,6 +20,18 @@ class MirrorApiService {
     this.origin =
       this.configService.get<string>('MIRROR_API_ORIGIN') ||
       'https://mirror.xyz'
+  }
+
+  private async executeQuery<T>(
+    query: string,
+    variables: Record<string, any>,
+  ): Promise<T> {
+    const headers = { Origin: this.origin }
+    const response = await this.httpService
+      .post(this.apiUrl, { query, variables }, { headers })
+      .toPromise()
+
+    return response?.data?.data || {}
   }
 
   async getBlogs(address: string): Promise<Blog[]> {
@@ -56,21 +68,49 @@ class MirrorApiService {
         address
       }
     `
-    const headers = {
-      Origin: this.origin,
-    }
 
-    const response = await this.httpService
-      .post(
-        this.apiUrl,
-        {
-          query,
-          variables: { projectAddress: address },
-        },
-        { headers },
-      )
-      .toPromise()
-    return response?.data?.data?.entries || []
+    const result = await this.executeQuery<{ entries: Blog[] }>(query, {
+      projectAddress: address,
+    })
+    return result.entries || []
+  }
+
+  async getBlog(digest: string): Promise<Blog> {
+    const query = gql`
+      query EntryWritingNFT($digest: String!) {
+        entry(digest: $digest) {
+          ...entryDetails
+        }
+      }
+
+      fragment entryDetails on entry {
+        _id
+        body
+        digest
+        timestamp
+        title
+        arweaveTransactionRequest {
+          transactionId
+        }
+        publisher {
+          ...publisherDetails
+        }
+      }
+
+      fragment publisherDetails on PublisherType {
+        project {
+          ...projectDetails
+        }
+      }
+
+      fragment projectDetails on ProjectType {
+        _id
+        address
+      }
+    `
+
+    const result = await this.executeQuery<{ entry: Blog }>(query, { digest })
+    return result.entry || null
   }
 }
 

@@ -103,27 +103,37 @@ class BlogService {
       this.EVERIPEDIA_BLOG_ACCOUNT3,
     ]
 
-    return Promise.all(
-      accounts.map(async (account) => {
-        try {
-          if (!account) return []
-          const entries = await this.mirrorApiService.getBlogs(account)
-          return (
-            entries
-              ?.filter((entry) => entry.publishedAtTimestamp)
-              .map((b: Blog) => this.formatBlog(b, true)) || []
-          )
-        } catch (error) {
-          console.log(`Error fetching blogs for account ${account}:`, error)
-          return []
-        }
-      }),
-    ).then((blogArrays) => blogArrays.flat())
+    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    if (!blogs) {
+      blogs = await Promise.all(
+        accounts.map(async (account) => {
+          try {
+            if (!account) return []
+            const entries = await this.mirrorApiService.getBlogs(account)
+            return (
+              entries
+                ?.filter((entry) => entry.publishedAtTimestamp)
+                .map((b: Blog) => this.formatBlog(b, true)) || []
+            )
+          } catch (error) {
+            console.log(`Error fetching blogs for account ${account}:`, error)
+            return []
+          }
+        }),
+      ).then((blogArrays) => blogArrays.flat())
+    }
+    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
+    return blogs as Blog[]
   }
 
-  async refreshCache(): Promise<void> {
-    const blogs = await this.getBlogsFromAccounts()
-    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 5000 })
+  async getBlogByDigest(digest: string): Promise<Blog> {
+    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+
+    const blog =
+      blogs?.find((e: Blog) => e.digest === digest) ??
+      (await this.mirrorApiService.getBlog(digest))
+
+    return this.formatBlog(blog as Blog, true)
   }
 
   async getEntryPaths({ transactions }: RawTransactions): Promise<EntryPath[]> {
