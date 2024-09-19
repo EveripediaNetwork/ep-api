@@ -28,10 +28,18 @@ export class WikiUserStats extends Count {
 @ArgsType()
 export class DateArgs {
   @Field(() => Int)
-  startDate = Math.round(new Date().setDate(new Date().getDate() - 7) / 1000)
+  startDate: number
 
   @Field(() => Int)
-  endDate = Math.round(Date.now() / 1000)
+  endDate: number
+
+  constructor() {
+    const currentDate = new Date()
+    this.startDate = Math.round(
+      currentDate.setDate(currentDate.getDate() - 7) / 1000,
+    )
+    this.endDate = Math.round(Date.now() / 1000)
+  }
 }
 
 @ArgsType()
