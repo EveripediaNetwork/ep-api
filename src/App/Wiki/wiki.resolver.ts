@@ -122,10 +122,16 @@ class WikiResolver {
     return this.wikiService.getExplorers(args)
   }
 
+  @Mutation(() => Explorer, { nullable: true })
+  @UseGuards(AuthGuard)
+  async addExplorer(@Args() args: Explorer) {
+    return this.wikiService.addExplorer(args)
+  }
+
   @Mutation(() => Boolean, { nullable: true })
   @UseGuards(AuthGuard)
-  async updateExplorers(@Args() args: Explorer) {
-    return this.wikiService.addExplorer(args)
+  async updateExplorer(@Args() args: Explorer) {
+    return this.wikiService.updateExplorer(args)
   }
 
   @Mutation(() => Wiki, { nullable: true })
