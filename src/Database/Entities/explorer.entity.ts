@@ -13,7 +13,15 @@ class Explorer {
 
   @Field(() => String)
   @Column('varchar')
+  explorer!: string
+
+  @Field(() => String)
+  @Column('varchar')
   baseUrl!: string
+
+  @Field(() => Boolean)
+  @Column('boolean', { default: false })
+  hidden!: boolean
 }
 
 export default Explorer

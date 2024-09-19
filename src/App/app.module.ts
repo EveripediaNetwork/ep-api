@@ -66,6 +66,10 @@ import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
+import BlogService from './Blog/blog.service'
+import BlogModule from './Blog/blog.module'
+import BlogResolver from './Blog/blog.resolver'
+import MirrorApiService from './Blog/mirrorApi.service'
 
 // istanbul ignore next
 @Module({
@@ -109,6 +113,7 @@ import WikiController from './Wiki/controllers/wiki.controller'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
+    BlogModule,
     SentryMod,
   ],
   controllers: [UploadController, WikiController],
@@ -143,8 +148,11 @@ import WikiController from './Wiki/controllers/wiki.controller'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    BlogService,
     EventsResolver,
     EventsService,
+    BlogResolver,
+    MirrorApiService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

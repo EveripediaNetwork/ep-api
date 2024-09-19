@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { Brackets, DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
+import slugify from 'slugify'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { orderWikis, updateDates } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
@@ -415,16 +416,32 @@ class WikiService {
   async addExplorer(args: Explorer) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     const existExplorer = await repo.findOneBy({ ...args })
-    if (!args.baseUrl.startsWith('https')) {
+    if (!args.baseUrl.startsWith('https') || existExplorer) {
+      return null
+    }
+    const slugId = slugify(args.explorer, {
+      lower: true,
+      strict: true,
+      remove: /[*+~.()'"!:@]/g,
+    })
+
+    const newExplorer = repo.create({
+      ...args,
+      id: slugId,
+    })
+    await repo.save(newExplorer)
+    return newExplorer
+  }
+
+  async updateExplorer(args: Explorer) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const existExplorer = await repo.findOneBy({ id: args.id })
+
+    if (!existExplorer) {
       return false
     }
 
-    if (existExplorer) {
-      await repo.update({ id: args.id }, args)
-    }
-
-    const newExplorer = repo.create(args)
-    await repo.save(newExplorer)
+    await repo.update({ id: args.id }, args)
     return true
   }
 
