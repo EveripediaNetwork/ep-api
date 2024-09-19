@@ -54,9 +54,7 @@ class WikiService {
   }
 
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
-    const wiki = await (
-      await this.repository()
-    )
+    const wiki = await (await this.repository())
       .createQueryBuilder('wiki')
       .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.languageId = :lang', { lang: args.lang })
@@ -88,7 +86,7 @@ class WikiService {
   ) {
     if (!featuredEvents) {
       queryBuilder
-        .andWhere((qb) => {
+        .andWhere(qb => {
           const subQuery = qb
             .subQuery()
             .select('taggedWiki.id')
@@ -130,9 +128,7 @@ class WikiService {
     const wikiIdsList: { id: string; title: string }[] | undefined =
       await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('id')
       .addSelect('title')
@@ -165,14 +161,14 @@ class WikiService {
     if (tagIds) {
       query.innerJoin('wiki.tags', 'tag')
       if (tagIds.length > 1) {
-        query.andWhere((qb) => {
+        query.andWhere(qb => {
           const subQuery = qb
             .subQuery()
             .select('subWiki.id')
             .from(Wiki, 'subWiki')
             .innerJoin('subWiki.tags', 'subTag')
             .where('LOWER(subTag.id) = ANY(:tagIds)', {
-              tagIds: tagIds.map((tag) => tag.toLowerCase()),
+              tagIds: tagIds.map(tag => tag.toLowerCase()),
             })
             .andWhere('subWiki.hidden = :hidden', { hidden: false })
             .groupBy('subWiki.id')
@@ -307,7 +303,7 @@ class WikiService {
 
     const { startDate, endDate } = args
     return queryBuilder.andWhere(
-      new Brackets((query) => {
+      new Brackets(query => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
             'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd) OR (wikiEvents.multiDateStart >= :other)',
@@ -415,16 +411,24 @@ class WikiService {
   async addExplorer(args: Explorer) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     const existExplorer = await repo.findOneBy({ ...args })
-    if (!args.baseUrl.startsWith('https')) {
-      return false
-    }
-
-    if (existExplorer) {
-      await repo.update({ id: args.id }, args)
+    if (!args.baseUrl.startsWith('https') || existExplorer) {
+      return null
     }
 
     const newExplorer = repo.create(args)
     await repo.save(newExplorer)
+    return newExplorer
+  }
+
+  async updateExplorer(args: Explorer) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const existExplorer = await repo.findOneBy({ id: args.id })
+
+    if (!existExplorer) {
+      return false
+    }
+
+    await repo.update({ id: args.id }, args)
     return true
   }
 
@@ -481,9 +485,7 @@ class WikiService {
     const promotedWiki = await queryBuilder.getOne()
 
     if (promotedWiki) {
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: 0 })
@@ -491,9 +493,7 @@ class WikiService {
         .execute()
     }
 
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ promoted: level })
@@ -510,9 +510,7 @@ class WikiService {
     featuredEvents: boolean,
   ): Promise<Wiki | null> {
     const wiki = await (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -548,9 +546,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = await (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -576,9 +572,7 @@ class WikiService {
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
     const count: any | undefined = await this.cacheManager.get(args.category)
     if (count) return count
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')
@@ -603,7 +597,7 @@ class WikiService {
         fullLinkedWikis.push(f)
       }
     }
-    return fullLinkedWikis.filter((item) => item !== null)
+    return fullLinkedWikis.filter(item => item !== null)
   }
 
   async getPopularEvents(args: EventDefaultArgs) {
