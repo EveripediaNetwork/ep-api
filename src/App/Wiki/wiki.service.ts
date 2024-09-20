@@ -591,9 +591,10 @@ class WikiService {
   }
 
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
-    const count: any | undefined = await this.cacheManager.get(args.category)
+    const tagAndCatergory = `category_${args.category}_tags_${args.tagIds?.join('_') || 'none'}`
+    const count: any | undefined = await this.cacheManager.get(tagAndCatergory)
     if (count) return count
-    const response = await (
+    const query = await (
       await this.repository()
     )
       .createQueryBuilder('wiki')
@@ -606,7 +607,14 @@ class WikiService {
         { category: args.category },
       )
       .where('wiki.hidden = false')
-      .getRawOne()
+
+      if (args.tagIds && args.tagIds.length > 0) {
+        query
+        .innerJoin('wiki.tags', 'tag')
+        .andWhere('tag.id IN (:...tagIds)', { tagIds: args.tagIds})
+      }
+      
+      const response = await query.getRawOne()
     await this.cacheManager.set(args.category, response, { ttl: 3600 })
     return response
   }
