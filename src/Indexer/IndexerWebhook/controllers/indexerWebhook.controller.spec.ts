@@ -53,7 +53,7 @@ describe('IndexerWebhookController', () => {
       providers: [
         ...getProviders([
           ProviderEnum.runCommand,
-          ProviderEnum.posHogService,
+          ProviderEnum.postHogService,
           ProviderEnum.graphProviderService,
           ProviderEnum.ipfsGetterService,
           ProviderEnum.ipfsValidatorService,

@@ -8,11 +8,11 @@ import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
 import { AxiosError } from 'axios'
+import { PosthogService } from 'nestjs-posthog'
 import WikiAbi from '../utils/wiki.abi'
 import USER_ACTIVITY_LIMIT from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
 import AppService from '../../App/app.service'
-import { PosthogService } from 'nestjs-posthog'
 
 @Injectable()
 class RelayerService {

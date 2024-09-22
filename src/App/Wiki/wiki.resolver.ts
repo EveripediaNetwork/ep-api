@@ -33,6 +33,8 @@ import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
+import Explorer from '../../Database/Entities/explorer.entity'
+import PaginationArgs from '../pagination.args'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -55,8 +57,12 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  async promotedWikis(@Args() args: LangArgs) {
-    return this.wikiService.getPromotedWikis(args)
+  async promotedWikis(
+    @Args() args: LangArgs,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
+  ) {
+    return this.wikiService.getPromotedWikis(args, featuredEvents)
   }
 
   @Query(() => [Wiki])
@@ -81,8 +87,12 @@ class WikiResolver {
 
   @Query(() => [Wiki])
   @UseGuards(AuthGuard)
-  async wikisHidden(@Args() args: LangArgs) {
-    return this.wikiService.getWikisHidden(args)
+  async wikisHidden(
+    @Args() args: LangArgs,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
+  ) {
+    return this.wikiService.getWikisHidden(args, featuredEvents)
   }
 
   @Query(() => [WikiUrl])
@@ -102,6 +112,28 @@ class WikiResolver {
     return this.wikiService.getCategoryTotal(args)
   }
 
+  @Query(() => [Explorer])
+  async searchExplorers(@Args() args: ByIdArgs) {
+    return this.wikiService.searchExplorers(args.id)
+  }
+
+  @Query(() => [Explorer])
+  async explorers(@Args() args: PaginationArgs) {
+    return this.wikiService.getExplorers(args)
+  }
+
+  @Mutation(() => Explorer, { nullable: true })
+  @UseGuards(AuthGuard)
+  async addExplorer(@Args() args: Explorer) {
+    return this.wikiService.addExplorer(args)
+  }
+
+  @Mutation(() => Boolean, { nullable: true })
+  @UseGuards(AuthGuard)
+  async updateExplorer(@Args() args: Explorer) {
+    return this.wikiService.updateExplorer(args)
+  }
+
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
   async promoteWiki(@Args() args: PromoteWikiArgs, @Context() ctx: any) {
@@ -116,18 +148,23 @@ class WikiResolver {
 
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
-  async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
+  async hideWiki(
+    @Args() args: ByIdArgs,
+    @Context() ctx: any,
+    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
+    featuredEvents: boolean,
+  ) {
     const cacheId = ctx.req.ip + args.id
 
-    const wiki = await this.wikiService.hideWiki(args)
-
+    const wiki = await this.wikiService.hideWiki(args, featuredEvents)
+    const tags = (await wiki?.tags) || []
     if (wiki) {
       await this.revalidate.revalidatePage(
         RevalidateEndpoints.HIDE_WIKI,
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
@@ -140,6 +177,7 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.unhideWiki(args)
+    const tags = (await wiki?.tags) || []
 
     if (wiki) {
       await this.revalidate.revalidatePage(
@@ -147,7 +185,7 @@ class WikiResolver {
         undefined,
         wiki.id,
         wiki.promoted,
-        eventWiki(wiki.tags),
+        eventWiki(tags),
       )
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }

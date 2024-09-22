@@ -14,6 +14,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
+import { PosthogModule } from 'nestjs-posthog'
 import WikiResolver from './Wiki/wiki.resolver'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
@@ -66,7 +67,10 @@ import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
-import { PosthogModule } from 'nestjs-posthog'
+import BlogService from './Blog/blog.service'
+import BlogModule from './Blog/blog.module'
+import BlogResolver from './Blog/blog.resolver'
+import MirrorApiService from './Blog/mirrorApi.service'
 
 // istanbul ignore next
 @Module({
@@ -74,7 +78,7 @@ import { PosthogModule } from 'nestjs-posthog'
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600, max: 10000, isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       debug: true,
@@ -128,6 +132,7 @@ import { PosthogModule } from 'nestjs-posthog'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
+    BlogModule,
     SentryMod,
   ],
   controllers: [UploadController, WikiController],
@@ -162,8 +167,11 @@ import { PosthogModule } from 'nestjs-posthog'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    BlogService,
     EventsResolver,
     EventsService,
+    BlogResolver,
+    MirrorApiService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

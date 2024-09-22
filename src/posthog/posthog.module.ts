@@ -17,4 +17,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
     }),
   ],
 })
-export default class PosHogManager {}
+export default class PostHogManager {}

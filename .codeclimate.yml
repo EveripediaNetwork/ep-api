@@ -24,3 +24,20 @@ checks:
   return-statements:
     config:
       threshold: 4
+plugins:
+  duplication:
+    enabled: true
+    config:
+      languages:
+        typescript:
+          patterns:
+            - "**/*.ts"
+          exclude_patterns:
+            - "**/*.d.ts"
+          mass_threshold: 65
+          filters:
+            - "(.*?)@(Module|Controller|Injectable|Catch|ExceptionFilter|Middleware|NestMiddleware|Pipe|UsePipes|UseGuards|UseInterceptors|UseFilters)\\(.*?\\)"
+            - "(.*?)@(Get|Post|Put|Delete|Patch|Options|Head|All)\\(.*?\\)"
+            - "(.*?)@(Param|Query|Body|Headers|Req|Res)\\(.*?\\)"
+            - "(.*?)@(ObjectType|InputType|Headers|Req|Res)\\(.*?\\)"
+            - "(.*?)@Field\\((.*?) => (.*?)\\)"
