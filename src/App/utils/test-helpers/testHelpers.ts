@@ -105,7 +105,7 @@ export enum ProviderEnum {
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
   configService = 'configService',
-  posHogService = 'postHogService',
+  postHogService = 'postHogService',
   tokenValidator = 'tokenValidator',
   tagRepository = 'tagRepository',
   dbStoreService = 'dbStoreService',
