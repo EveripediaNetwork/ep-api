@@ -111,6 +111,7 @@ describe('WikiSubscriptionService', () => {
         delete: jest.fn().mockReturnThis(),
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue({ affected: 1 }),
       }
 
@@ -135,7 +136,14 @@ describe('WikiSubscriptionService', () => {
       expect(tokenValidatorMock).toHaveBeenCalledWith(token, id, false)
       expect(createQueryBuilderMock.delete).toHaveBeenCalled()
       expect(createQueryBuilderMock.from).toHaveBeenCalledWith(IqSubscription)
-      expect(createQueryBuilderMock.where).toHaveBeenCalledWith(expectedData)
+      expect(createQueryBuilderMock.where).toHaveBeenCalledWith(
+        'LOWER(userId) = LOWER(:userId)',
+        { userId: expectedData.userId },
+      )
+      expect(createQueryBuilderMock.andWhere).toHaveBeenCalledWith({
+        subscriptionType: expectedData.subscriptionType,
+        auxiliaryId: expectedData.auxiliaryId,
+      })
       expect(createQueryBuilderMock.execute).toHaveBeenCalled()
     })
 
