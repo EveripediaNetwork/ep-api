@@ -37,6 +37,85 @@ class RPCProviderService {
     }
   }
 
+  async processLogs(
+    provider: ethers.providers.JsonRpcProvider,
+    contract: ethers.Contract,
+    filter: any,
+    unixtime: number,
+  ): Promise<Hash[]> {
+    const logs = await provider.getLogs(filter)
+    console.log(`Total logs: ${logs.length}`)
+
+    const batchSize = 50
+    const batches = []
+    const batchResults = []
+
+    for (let i = 0; i < logs.length; i += batchSize) {
+      const start = i === 0 ? 1 : i
+      const end = start + batchSize
+      batches.push(logs.slice(start, end))
+      if (batches.length === 5 || i === logs.length - 1) {
+        const batchPromises = batches.map((batch, index) =>
+          this.processLogBatch(provider, contract, batch, unixtime, index),
+        )
+        const results = await Promise.all(batchPromises)
+        batchResults.push(...results)
+      }
+    }
+
+    if (batches.length > 0) {
+      const batchPromises = batches.map((batch, index) =>
+        this.processLogBatch(provider, contract, batch, unixtime, index),
+      )
+      const results = await Promise.all(batchPromises)
+      batchResults.push(...results)
+    }
+
+    return batchResults.flat().filter((hash): hash is Hash => hash !== null)
+  }
+
+  async processLogBatch(
+    provider: ethers.providers.JsonRpcProvider,
+    contract: ethers.Contract,
+    batchLogs: any[],
+    unixtime: number,
+    batchIndex: number,
+  ): Promise<Hash[]> {
+    console.log(`Processing batch ${batchIndex + 1}: ${batchLogs.length} logs`)
+
+    const logPromises = batchLogs.map((log) =>
+      this.processLog(provider, contract, log, unixtime),
+    )
+    const results = await Promise.all(logPromises)
+    return results.filter((result): result is Hash => result !== null)
+  }
+
+  async processLog(
+    provider: ethers.providers.JsonRpcProvider,
+    contract: ethers.Contract,
+    log: any,
+    unixtime: number,
+  ): Promise<Hash | null> {
+    const block = await provider.getBlock(log.blockHash)
+    const parsedLog = contract.interface.parseLog(log)
+
+    if (block && parsedLog && block.timestamp >= unixtime) {
+      const user = parsedLog.args[0]
+      const ipfs = parsedLog.args[1]
+
+      return {
+        id: ipfs,
+        createdAt: block.timestamp,
+        block: log.blockNumber,
+        transactionHash: log.transactionHash,
+        userId: user,
+        contentId: `${log.transactionHash}-${log.logIndex}`,
+      }
+    }
+
+    return null
+  }
+
   async getHashesFromLogs(
     unixtime: number,
     blockNumber?: number,
@@ -68,37 +147,13 @@ class RPCProviderService {
     }
 
     try {
-      const logs = await provider.getLogs(filter)
-      const limitedLogs = logs.slice(1, 51) // Limit logs to 50
-
-      const hashes: Hash[] = []
-      for (const log of limitedLogs) {
-        const hash: Hash = {
-          id: '',
-          createdAt: 0,
-          block: 0,
-          transactionHash: '',
-          userId: '',
-          contentId: '',
-        }
-
-        const block = await provider.getBlock(log.blockHash)
-        const parsedLog = contract.interface.parseLog(log)
-        if (block && parsedLog && block.timestamp >= unixtime) {
-          const user = parsedLog.args[0]
-          const ipfs = parsedLog.args[1]
-
-          hash.block = log.blockNumber
-          hash.contentId = `${log.transactionHash}-${log.logIndex}`
-          hash.transactionHash = log.transactionHash
-          hash.id = ipfs
-          hash.userId = user
-          hash.createdAt = block.timestamp
-
-          hashes.push(hash)
-        }
-      }
-      return hashes
+      const results = await this.processLogs(
+        provider,
+        contract,
+        filter,
+        unixtime,
+      )
+      return results
     } catch (e) {
       console.error('ERROR GETTING LOGS', e)
       return []
