@@ -40,7 +40,7 @@ describe('BlogService', () => {
               {
                 title: 'title',
                 slug: 'slug',
-                body: 'Test body',
+                body: 'body',
                 digest: 'digest',
                 contributor: 'contributor',
                 transaction: 'transaction',
@@ -52,7 +52,7 @@ describe('BlogService', () => {
             getBlog: jest.fn().mockResolvedValue({
               title: 'title',
               slug: 'slug',
-              body: 'Test body',
+              body: 'body',
               digest: 'digest',
               contributor: 'contributor',
               transaction: 'transaction',
@@ -75,12 +75,70 @@ describe('BlogService', () => {
     expect(blogService).toBeDefined()
   })
 
+  describe('formatEntry', () => {
+    it('should format a blog entry with all provided fields', async () => {
+      const blog: Partial<Blog> = {
+        title: 'title',
+        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
+        digest: 'digest',
+        contributor: 'contributor',
+      }
+      const transactionId = '12345'
+      const timestamp = 1627849200
+
+      const result = await blogService.formatEntry(
+        blog,
+        transactionId,
+        timestamp,
+      )
+
+      expect(result).toEqual({
+        title: 'title',
+        slug: 'title',
+        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
+        digest: 'digest',
+        contributor: 'contributor',
+        transaction: transactionId,
+        cover_image: '',
+        timestamp,
+        image_sizes: 50,
+      })
+    })
+    it('should handle missing blog title gracefully', async () => {
+      const blog: Partial<Blog> = {
+        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
+        digest: 'digest',
+        contributor: 'contributor',
+      }
+      const transactionId = '12345'
+      const timestamp = 1627849200
+
+      const result = await blogService.formatEntry(
+        blog,
+        transactionId,
+        timestamp,
+      )
+
+      expect(result).toEqual({
+        title: '',
+        slug: '',
+        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
+        digest: 'digest',
+        contributor: 'contributor',
+        transaction: transactionId,
+        cover_image: '',
+        timestamp,
+        image_sizes: 50,
+      })
+    })
+  })
+
   describe('formatBlog', () => {
     it('should format a blog correctly with body', () => {
       const blog = {
-        title: 'Test Blog',
+        title: ' Blog',
         body: 'This is the body of the blog.\n\nThis is the excerpt.',
-        digest: 'test-digest',
+        digest: 'digest',
         publisher: { project: { address: 'John Doe' } },
         timestamp: 1234567890,
       }
