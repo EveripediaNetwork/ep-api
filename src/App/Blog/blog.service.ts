@@ -219,7 +219,6 @@ class BlogService {
   }
 
   async getBlogSuggestions(screenSize: number): Promise<Blog[]> {
-
     const getAllBlogs = await this.getBlogsFromAccounts()
 
     const randomBlog = getAllBlogs.sort(() => 0.5 - Math.random())
