@@ -217,6 +217,25 @@ class BlogService {
         return acc
       }, [])
   }
+
+  async getBlogSuggestions(screenSize: number): Promise<Blog[]> {
+
+    const getAllBlogs = await this.getBlogsFromAccounts()
+
+    const randomBlog = getAllBlogs.sort(() => 0.5 - Math.random())
+
+    let limit: number
+
+    if (screenSize <= 480) {
+      limit = 1
+    } else if (screenSize <= 768) {
+      limit = 2
+    } else {
+      limit = 3
+    }
+
+    return randomBlog.slice(0, limit)
+  }
 }
 
 export default BlogService
