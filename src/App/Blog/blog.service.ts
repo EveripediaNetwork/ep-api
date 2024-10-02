@@ -225,7 +225,6 @@ class BlogService {
 
     const minMaxLimit = Math.min(Math.max(limit, 1), 3)
 
-
     return randomBlog.slice(0, minMaxLimit)
   }
 }
