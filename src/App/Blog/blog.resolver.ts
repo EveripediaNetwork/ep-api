@@ -20,9 +20,12 @@ class BlogResolver {
 
   @Query(() => [Blog])
   async getBlogSuggestions(
-    @Args('screenSize', { type: () => Int}) screenSize: number,
+    @Args('limit', { type: () => Int }) limit: number,
   ): Promise<Blog[]> {
-    return this.blogService.getBlogSuggestions(screenSize)
+    if (limit < 1 || limit > 3) {
+      throw new Error('Limit must be between 1 and 3')
+    }
+    return this.blogService.getBlogSuggestions(limit)
   }
 }
 
