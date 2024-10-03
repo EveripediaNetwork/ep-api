@@ -67,7 +67,11 @@ class WikiSubscriptionService {
       .createQueryBuilder()
       .delete()
       .from(IqSubscription)
-      .where(args)
+      .where('LOWER(userId) = LOWER(:userId)', { userId: args.userId })
+      .andWhere({
+        subscriptionType: args.subscriptionType,
+        auxiliaryId: args.auxiliaryId,
+      })
       .execute()
     return true
   }
