@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Injectable, OnModuleInit } from '@nestjs/common'
+import { CACHE_MANAGER, Inject, Injectable, OnModuleInit } from '@nestjs/common'
+import { Cache } from 'cache-manager'
+import { OnEvent } from '@nestjs/event-emitter'
+import { Cron } from '@nestjs/schedule'
 import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType } from './marketcap.dto'
 
@@ -11,7 +14,10 @@ class MarketCapSearch implements OnModuleInit {
 
   private pm2Ids = new Map()
 
-  constructor(private marketCapService: MarketCapService) {}
+  constructor(
+    private marketCapService: MarketCapService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async onModuleInit() {
     if (Number(process.env.pm_id) === 0) {
@@ -28,11 +34,13 @@ class MarketCapSearch implements OnModuleInit {
     })
 
     setTimeout(() => {
-      this.startCaching()
+      this.buildRankpageSearchData()
     }, 10000)
   }
 
-  private async startCaching() {
+  @OnEvent('buildSearchData', { async: true })
+  @Cron('*/3 * * * *')
+  private async buildRankpageSearchData() {
     if (this.ROOT_PROCESS) {
       const tokens = await this.marketCapService.cgMarketDataApiCall({
         kind: RankType.TOKEN,
@@ -84,9 +92,18 @@ class MarketCapSearch implements OnModuleInit {
           })
         }
       }
+
+      await this.cacheManager.set(
+        'marketCapSearch',
+        {
+          tokens: tokenData,
+          nfts: nftData,
+        },
+        { ttl: 300 },
+      )
       console.log('Initial caching completed')
     } else {
-      console.log('CacheService not runnning')
+      console.log('Rankpage search cache service not runnning')
     }
   }
 }
