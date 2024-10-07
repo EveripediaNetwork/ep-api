@@ -28,7 +28,7 @@ class EventsService {
       if (ids.length > 1) {
         queryBuilder
           .andWhere('LOWER(tag.id) IN (:...ids)', {
-            ids: ids.map(id => id.toLowerCase()),
+            ids: ids.map((id) => id.toLowerCase()),
           })
           .having('COUNT(DISTINCT tag."id") > 1')
       } else {
@@ -181,7 +181,6 @@ class EventsService {
 
     return userDetails
   }
-
 }
 
 export default EventsService

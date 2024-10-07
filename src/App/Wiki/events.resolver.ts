@@ -55,7 +55,6 @@ class EventsResolver {
   async popularEvents(@Args() args: EventDefaultArgs) {
     return this.wikiService.getPopularEvents(args)
   }
-
 }
 
 export default EventsResolver
