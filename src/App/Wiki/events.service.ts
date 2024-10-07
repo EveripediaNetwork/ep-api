@@ -42,10 +42,11 @@ class EventsService {
         queryBuilder.andWhere(sub, {
           blockchain: args.blockchain,
         })
-      } else if (args.country && args.continent) {
+      }
+      if (args.country && args.continent) {
         const country = `%${args.country}%`
         queryBuilder.andWhere(
-          'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent',
+          'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent AND wikiEvents.continent IS NOT NULL',
           {
             country,
             continent: args.continent,
@@ -57,9 +58,12 @@ class EventsService {
           country,
         })
       } else if (args.continent) {
-        queryBuilder.andWhere('wikiEvents.continent ILIKE :continent', {
-          continent: args.continent,
-        })
+        queryBuilder.andWhere(
+          'wikiEvents.continent ILIKE :continent AND wikiEvents.continent IS NOT NULL',
+          {
+            continent: args.continent,
+          },
+        )
       }
 
       queryBuilder = this.wikiService.applyDateFilter(
