@@ -2,9 +2,7 @@ import { Args, Context, Query, Resolver } from '@nestjs/graphql'
 import {
   CategoryArgs,
   EventArgs,
-  EventByBlockchainArgs,
   EventByCategoryArgs,
-  EventByLocationArgs,
   EventByTitleArgs,
   EventDefaultArgs,
   TitleArgs,
@@ -58,32 +56,6 @@ class EventsResolver {
     return this.wikiService.getPopularEvents(args)
   }
 
-  @Query(() => [Wiki], { nullable: true })
-  async eventsByBlockchain(
-    @Args() args: EventByBlockchainArgs,
-    @Context() context: any,
-  ) {
-    const { req } = context
-    const { query } = req.body
-    const events = await this.eventsService.getEventsByLocationOrBlockchain(
-      args,
-      true,
-    )
-    return this.eventsService.resolveWikiRelations(events, query)
-  }
-
-  @Query(() => [Wiki], { nullable: true })
-  async eventsByLocation(
-    @Args() args: EventByLocationArgs,
-    @Context() context: any,
-  ) {
-    const { req } = context
-    const { query } = req.body
-    const events = await this.eventsService.getEventsByLocationOrBlockchain(
-      args,
-    )
-    return this.eventsService.resolveWikiRelations(events, query)
-  }
 }
 
 export default EventsResolver

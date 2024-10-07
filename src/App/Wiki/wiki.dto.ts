@@ -88,6 +88,18 @@ export class EventArgs extends EventDefaultArgs {
   @Field(() => [String], { nullable: true })
   @Validate(ValidStringParams)
   tagIds?: string[]
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  blockchain?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  continent?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  country?: string
 }
 @ArgsType()
 export class EventByTitleArgs extends EventDefaultArgs {
