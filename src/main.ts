@@ -53,7 +53,6 @@ async function bootstrapApplication() {
   process.on('message', async (packet: any) => {
     if (packet.topic === 'searchCache') {
       await cacheManager.set('marketCapSearch', packet.data, { ttl: 300 })
-      console.log('Received data:', packet.data)
     }
 
     if (packet.topic === 'buildSearchData') {

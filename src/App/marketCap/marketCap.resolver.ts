@@ -35,7 +35,7 @@ class MarketCapResolver {
   @Query(() => [MarketRankData], { nullable: 'items' })
   async searchRank(
     @Args() args: MarketCapInputs,
-  ): Promise<(NftRankListData | TokenRankListData)[]> {
+  ): Promise<(NftRankListData | TokenRankListData)[] | []> {
     return this.marketCapService.wildcardSearch(args)
   }
 
