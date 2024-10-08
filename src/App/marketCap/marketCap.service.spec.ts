@@ -111,7 +111,10 @@ describe('MarketCapService', () => {
         .mockResolvedValueOnce(mockWikiData[0])
         .mockResolvedValueOnce(mockWikiData[1])
 
-      const result = await marketCapService.getWikiData(mockCoinsData, RankType.TOKEN)
+      const result = await marketCapService.getWikiData(
+        mockCoinsData,
+        RankType.TOKEN,
+      )
 
       expect(result).toEqual(mockWikiData)
       expect((marketCapService as any).findWiki).toHaveBeenCalledTimes(2)
@@ -120,9 +123,7 @@ describe('MarketCapService', () => {
 
   describe('marketData', () => {
     it('should return processed market data', async () => {
-      const mockArgs = { kind: RankType.TOKEN,
-        limit: 2,
-        offset: 10, }
+      const mockArgs = { kind: RankType.TOKEN, limit: 2, offset: 10 }
       const mockCgData = [{ id: 'iqcoin', name: 'IqCoin' }]
       const mockWikiData = [
         { wiki: { id: 'iqcoin' }, founders: [], blockchain: [] },
@@ -140,24 +141,22 @@ describe('MarketCapService', () => {
     })
   })
 
-//   describe('cgMarketDataApiCall', () => {
-//     it('should fetch market data from CoinGecko API', async () => {
-//       const mockArgs = { kind: RankType.TOKEN, limit: 10 }
-//       const mockResponse = { data: [{ id: 'iqcoin' }] }
-//       ;(httpServiceMock.get as jest.Mock).mockReturnValue(of(mockResponse))
+  //   describe('cgMarketDataApiCall', () => {
+  //     it('should fetch market data from CoinGecko API', async () => {
+  //       const mockArgs = { kind: RankType.TOKEN, limit: 10 }
+  //       const mockResponse = { data: [{ id: 'iqcoin' }] }
+  //       ;(httpServiceMock.get as jest.Mock).mockReturnValue(of(mockResponse))
 
-//       const result = await (marketCapService as any).cgMarketDataApiCall(mockArgs)
+  //       const result = await (marketCapService as any).cgMarketDataApiCall(mockArgs)
 
-//       expect(result).toEqual(mockResponse.data)
-//       expect(httpServiceMock.get).toHaveBeenCalled()
-//     })
-//   })
+  //       expect(result).toEqual(mockResponse.data)
+  //       expect(httpServiceMock.get).toHaveBeenCalled()
+  //     })
+  //   })
 
   describe('ranks', () => {
     it('should return rank data', async () => {
-      const mockArgs = { kind: RankType.TOKEN, 
-        limit: 2,
-        offset: 10, }
+      const mockArgs = { kind: RankType.TOKEN, limit: 2, offset: 10 }
       const mockMarketData = [{ tokenMarketData: { id: 'iqcoin' } }]
       marketCapService.marketData = jest.fn().mockResolvedValue(mockMarketData)
 
@@ -169,9 +168,13 @@ describe('MarketCapService', () => {
 
   describe('getCacheKey', () => {
     it('should return correct cache key for different inputs', () => {
-      expect(marketCapService.getCacheKey({ kind: RankType.TOKEN, 
-        limit: 2,
-        offset: 10, })).toBe('default-list')
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.TOKEN,
+          limit: 2,
+          offset: 10,
+        }),
+      ).toBe('default-list')
       expect(
         marketCapService.getCacheKey({
           kind: RankType.TOKEN,
@@ -188,9 +191,13 @@ describe('MarketCapService', () => {
           offset: 10,
         }),
       ).toBe('ai-coins-list')
-      expect(marketCapService.getCacheKey({ kind: RankType.NFT,
-        limit: 2,
-        offset: 10, })).toBe('nft-list')
+      expect(
+        marketCapService.getCacheKey({
+          kind: RankType.NFT,
+          limit: 2,
+          offset: 10,
+        }),
+      ).toBe('nft-list')
     })
   })
 
@@ -232,21 +239,21 @@ describe('MarketCapService', () => {
     })
   })
 
-//   describe('wildcardSearch', () => {
-//     it('should return filtered results based on search term', async () => {
-//       const mockArgs = { kind: RankType.TOKEN, search: 'iqcoin,', 
-//         limit: 2,
-//         offset: 10, }
-//       const mockRanks = [
-//         { tokenMarketData: { id: 'iqcoin', name: 'Iq Coin' } },
-//         { tokenMarketData: { id: 'token2', name: 'Token Two' } },
-//       ]
-//       marketCapService.ranks = jest.fn().mockResolvedValue(mockRanks)
+  //   describe('wildcardSearch', () => {
+  //     it('should return filtered results based on search term', async () => {
+  //       const mockArgs = { kind: RankType.TOKEN, search: 'iqcoin,',
+  //         limit: 2,
+  //         offset: 10, }
+  //       const mockRanks = [
+  //         { tokenMarketData: { id: 'iqcoin', name: 'Iq Coin' } },
+  //         { tokenMarketData: { id: 'token2', name: 'Token Two' } },
+  //       ]
+  //       marketCapService.ranks = jest.fn().mockResolvedValue(mockRanks)
 
-//       const result = await marketCapService.wildcardSearch(mockArgs)
+  //       const result = await marketCapService.wildcardSearch(mockArgs)
 
-//       expect(result).toHaveLength(1)
-//       expect(result[0].tokenMarketData.id).toBe('iqcoin')
-//     })
-//   })
+  //       expect(result).toHaveLength(1)
+  //       expect(result[0].tokenMarketData.id).toBe('iqcoin')
+  //     })
+  //   })
 })
