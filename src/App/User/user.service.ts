@@ -3,13 +3,21 @@ import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
 import { DataSource, EntityTarget, Repository } from 'typeorm'
+import { gql } from 'graphql-tag'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import User from '../../Database/Entities/user.entity'
 import TokenValidator from '../utils/validateToken'
-import { GetProfileArgs, UsersByEditArgs, UsersByIdArgs } from './user.dto'
+import {
+  GetProfileArgs,
+  UserActivity,
+  UsersByEditArgs,
+  UsersByIdArgs,
+  WikiCount,
+} from './user.dto'
 import PaginationArgs from '../pagination.args'
 import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
+import { hasField } from '../Wiki/wiki.dto'
 
 @Injectable()
 class UserService {
@@ -171,7 +179,6 @@ class UserService {
       fields,
       'user_profile',
     )
-    // console.log(fieldsWithPrefix)
     const profile = (await this.profileRepository())
       .createQueryBuilder('user_profile')
       .select([...fieldsWithPrefix])
@@ -209,9 +216,10 @@ class UserService {
   async getUsersByEdits(args: UsersByEditArgs): Promise<User[] | null> {
     return (await this.userRepository())
       .createQueryBuilder('user')
-      .innerJoin('activity', 'a', 'a."userId" = "user"."id"')
+      .innerJoin('activity', 'a', 'LOWER(a."userId") = LOWER("user"."id")')
       .innerJoin('wiki', 'w', 'w."id" = a."wikiId"')
       .where('w."hidden" = false')
+      .andWhere('"user".active = true')
       .groupBy('"user"."id"')
       .limit(args.limit)
       .offset(args.offset)
@@ -223,14 +231,26 @@ class UserService {
     id: string,
     limit: number,
     offset: number,
-  ): Promise<Activity[] | undefined> {
+    query: string,
+  ): Promise<UserActivity | WikiCount> {
     const repo = this.dataSource.getRepository(Activity)
+
+    const ast = gql`
+      ${query}
+    `
+
+    const isWikiCount = hasField(ast, 'users', {
+      fragmentType: 'WikiCount',
+    })
+    console.log(isWikiCount)
     const wikis =
       type === 'wikis created'
-        ? queryWikisCreated(id, limit, offset, repo)
-        : queryWikisEdited(id, limit, offset, repo)
+        ? queryWikisCreated(id, limit, offset, repo, isWikiCount)
+        : queryWikisEdited(id, limit, offset, repo, isWikiCount)
 
-    return wikis
+    return isWikiCount
+      ? (wikis as unknown as WikiCount)
+      : (wikis as unknown as UserActivity)
   }
 }
 
