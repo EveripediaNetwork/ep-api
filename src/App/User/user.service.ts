@@ -242,7 +242,7 @@ class UserService {
     const isWikiCount = hasField(ast, 'users', {
       fragmentType: 'WikiCount',
     })
-    console.log(isWikiCount)
+
     const wikis =
       type === 'wikis created'
         ? queryWikisCreated(id, limit, offset, repo, isWikiCount)
