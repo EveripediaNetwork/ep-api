@@ -35,6 +35,7 @@ import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
 import Explorer from '../../Database/Entities/explorer.entity'
 import PaginationArgs from '../pagination.args'
+import Events from '../../Database/Entities/Event.entity'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -234,6 +235,11 @@ class WikiResolver {
     return this.wikiService.getFullLinkedWikis(
       wiki.linkedWikis.blockchains as string[],
     )
+  }
+
+  @ResolveField(() => [Events], { nullable: true })
+  async events(@Parent() wiki: IWiki) {
+    return this.wikiService.events(wiki.id)
   }
 }
 

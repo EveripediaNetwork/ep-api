@@ -24,6 +24,7 @@ import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
+import Events from '../../Database/Entities/Event.entity'
 import PaginationArgs from '../pagination.args'
 
 @Injectable()
@@ -59,12 +60,17 @@ class WikiService {
       await this.repository()
     )
       .createQueryBuilder('wiki')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
       .getOne()
 
     return wiki
+  }
+
+  async events(id: string) {
+    const eventRepo = this.dataSource.getRepository(Events)
+    const event = await eventRepo.findBy({ wikiId: id })
+    return event || []
   }
 
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {
@@ -267,7 +273,7 @@ class WikiService {
   ): SelectQueryBuilder<Wiki> {
     const baseQuery = query
       .innerJoin('wiki.tags', 'tag')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
+      .leftJoinAndSelect('events', 'events', 'events.wikiId = wiki.id')
       .andWhere('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
 
     return this.applyDateFilter(baseQuery, dates) as SelectQueryBuilder<Wiki>
@@ -290,7 +296,7 @@ class WikiService {
     // query.addOrderBy('latest_event_date', direction)
 
     query.addOrderBy(
-      `COALESCE("wikiEvents".date, "wikiEvents"."${
+      `COALESCE("events".date, "events"."${
         direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
       }")`,
       direction,
@@ -311,7 +317,7 @@ class WikiService {
       new Brackets((query) => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
-            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd) OR (wikiEvents.multiDateStart >= :other)',
+            'events.date >= :start OR (:other BETWEEN events.multiDateStart AND  events.multiDateEnd) OR (events.multiDateStart >= :other)',
             { start: startDate, other: startDate },
           )
         }
@@ -320,10 +326,10 @@ class WikiService {
           query.andWhere(
             `
             CASE
-                WHEN wikiEvents.date IS NOT NULL THEN 
-                    wikiEvents.date BETWEEN :start AND :end
+                WHEN events.date IS NOT NULL THEN 
+                    events.date BETWEEN :start AND :end
                 ELSE 
-                    wikiEvents.multiDateStart <= :end AND wikiEvents.multiDateEnd >= :start
+                    events.multiDateStart <= :end AND events.multiDateEnd >= :start
             END
         `,
             { end: endDate, start: startDate },
@@ -637,7 +643,7 @@ class WikiService {
     const query = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('wiki.tags', 'tag')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
+      .leftJoinAndSelect('events', 'events', 'events.wikiId = wiki.id')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .andWhere('wiki.hidden = false')
 
