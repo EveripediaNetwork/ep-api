@@ -26,6 +26,9 @@ class IndexerWebhookService {
       logs[0].transaction.status === 1 &&
       firstLevelNodeProcess()
     ) {
+      if (process.env.INDEXER_MODE === 'RPC') {
+        return
+      }
       console.info('Signature verified 🎟️ for Wiki')
       const { transaction } = logs[0]
       const decodedLog = await this.alchemyNotifyService.decodeLog(
