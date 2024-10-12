@@ -119,8 +119,11 @@ class WikiResolver {
   }
 
   @Query(() => [Explorer])
-  async explorers(@Args() args: PaginationArgs) {
-    return this.wikiService.getExplorers(args)
+  async explorers(
+    @Args() args: PaginationArgs,
+    @Args('hidden', { type: () => Boolean }) hidden = false,
+  ) {
+    return this.wikiService.getExplorers(args, hidden)
   }
 
   @Mutation(() => Explorer, { nullable: true })
