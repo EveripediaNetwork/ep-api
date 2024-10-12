@@ -400,10 +400,9 @@ class MarketCapService {
 
     let cache
     if (args.kind === RankType.TOKEN) {
-      console.log('token')
       cache = data.tokens as unknown as TokenRankListData[]
     }
-    if (args.kind === RankType.TOKEN) {
+    if (args.kind === RankType.NFT) {
       cache = data.nfts as unknown as NftRankListData[]
     }
 
@@ -415,7 +414,7 @@ class MarketCapService {
       const tokenMatch =
         item.tokenMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
         item.tokenMarketData?.name.toLowerCase().includes(lowerSearchTerm)
-      console.log(nftMatch)
+
       return (nftMatch as NftRankListData) || (tokenMatch as TokenRankListData)
     })
 

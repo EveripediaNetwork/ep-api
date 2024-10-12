@@ -42,7 +42,7 @@ class MarketCapSearch implements OnModuleInit {
   @Cron('*/3 * * * *')
   private async buildRankpageSearchData() {
     if (this.ROOT_PROCESS) {
-      console.log('Fetching marketcap search data')
+      console.log('Fetching rankpage search data')
       const tokens = await this.marketCapService.marketData({
         kind: RankType.TOKEN,
       } as MarketCapInputs)
@@ -51,14 +51,6 @@ class MarketCapSearch implements OnModuleInit {
         kind: RankType.NFT,
       } as MarketCapInputs)
 
-      const tokenData = await this.marketCapService.getWikiData(
-        tokens,
-        RankType.TOKEN,
-      )
-      const nftData = await this.marketCapService.getWikiData(
-        nfts,
-        RankType.NFT,
-      )
       for (const [k, v] of this.pm2Ids) {
         if (k !== 0 && v === 'ep-api') {
           const processId = k
@@ -74,8 +66,8 @@ class MarketCapSearch implements OnModuleInit {
                 type: 'process:msg',
                 topic: 'searchCache',
                 data: {
-                  tokens: tokenData,
-                  nfts: nftData,
+                  tokens,
+                  nfts,
                 },
               },
               () => {
@@ -101,7 +93,7 @@ class MarketCapSearch implements OnModuleInit {
         },
         { ttl: 300 },
       )
-      console.log('Initial caching completed')
+      console.log('Rankpage search data loaded successfully')
     } else {
       console.log('Rankpage search cache service not runnning')
     }
