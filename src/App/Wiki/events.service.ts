@@ -22,7 +22,7 @@ class EventsService {
       let queryBuilder = repository
         .createQueryBuilder('wiki')
         .innerJoin('wiki.tags', 'tag')
-        .leftJoin('wiki.wikiEvents', 'wikiEvents')
+        .leftJoin('events', 'events', 'events.wikiId = wiki.id')
         .where('wiki.hidden = :hidden', { hidden: false })
 
       if (ids.length > 1) {
@@ -46,7 +46,7 @@ class EventsService {
       if (args.country && args.continent) {
         const country = `%${args.country}%`
         queryBuilder.andWhere(
-          'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent AND wikiEvents.continent IS NOT NULL',
+          'events.country ILIKE :country AND events.continent ILIKE :continent AND events.continent IS NOT NULL',
           {
             country,
             continent: args.continent,
@@ -54,12 +54,12 @@ class EventsService {
         )
       } else if (args.country) {
         const country = `%${args.country}%`
-        queryBuilder.andWhere('wikiEvents.country ILIKE :country', {
+        queryBuilder.andWhere('events.country ILIKE :country', {
           country,
         })
       } else if (args.continent) {
         queryBuilder.andWhere(
-          'wikiEvents.continent ILIKE :continent AND wikiEvents.continent IS NOT NULL',
+          'events.continent ILIKE :continent AND events.continent IS NOT NULL',
           {
             continent: args.continent,
           },
@@ -76,9 +76,9 @@ class EventsService {
           this.wikiService.eventDateOrder(queryBuilder, args.direction)
           queryBuilder
             .groupBy('wiki.id')
-            .addGroupBy('wikiEvents.date')
-            .addGroupBy('wikiEvents.multiDateStart')
-            .addGroupBy('wikiEvents.multiDateEnd')
+            .addGroupBy('events.date')
+            .addGroupBy('events.multiDateStart')
+            .addGroupBy('events.multiDateEnd')
           break
 
         case 'id':

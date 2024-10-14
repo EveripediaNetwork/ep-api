@@ -73,7 +73,7 @@ describe('EventsResolver', () => {
         title,
       } as unknown as EventByTitleArgs
       const eventsByTitle = testEvents.filter((obj) =>
-        obj.id.toLowerCase().includes('blockchain'),
+        obj?.id?.toLowerCase().includes('blockchain'),
       )
 
       jest
@@ -117,7 +117,9 @@ describe('EventsResolver', () => {
 
   describe('events', () => {
     it('should return an array of Wiki objects with events tag', async () => {
-      jest.spyOn(eventsService, 'events').mockResolvedValue(testEvents)
+      jest
+        .spyOn(eventsService, 'events')
+        .mockResolvedValue(testEvents as unknown as Wiki[])
       const args: EventArgs = {
         tagIds: ['tagId1', 'tagId2'],
         lang: 'en',
@@ -135,7 +137,9 @@ describe('EventsResolver', () => {
         },
       }
 
-      jest.spyOn(eventsService, 'events').mockResolvedValueOnce(testEvents)
+      jest
+        .spyOn(eventsService, 'events')
+        .mockResolvedValueOnce(testEvents as unknown as Wiki[])
       jest
         .spyOn(eventsService, 'resolveWikiRelations')
         .mockResolvedValueOnce(testEvents as Wiki[])
@@ -195,7 +199,9 @@ describe('EventsResolver', () => {
       jest
         .spyOn(wikiService, 'getPopularEvents')
         .mockResolvedValue(mockEvents as Wiki[])
-      const result = await eventsResolver.popularEvents(args)
+      const result = await eventsResolver.popularEvents(
+        args as EventDefaultArgs,
+      )
       expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
       expect(result).toEqual(mockEvents)
     })
@@ -218,12 +224,14 @@ describe('EventsResolver', () => {
       jest
         .spyOn(wikiService, 'getPopularEvents')
         .mockResolvedValue(mockEventsWithViews as Wiki[])
-      const result = await eventsResolver.popularEvents(args)
+      const result = await eventsResolver.popularEvents(
+        args as EventDefaultArgs,
+      )
 
       expect(wikiService.getPopularEvents).toHaveBeenCalledWith(args)
       expect(result).toEqual(mockEventsWithViews)
 
-      for (let i = 1; i < mockEventsWithViews.length; i++) {
+      for (let i = 1; i < mockEventsWithViews.length; i += 1) {
         expect(mockEventsWithViews[i - 1].views || 0).toBeGreaterThanOrEqual(
           mockEventsWithViews[i].views || 0,
         )

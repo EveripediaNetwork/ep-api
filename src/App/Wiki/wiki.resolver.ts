@@ -35,6 +35,7 @@ import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
 import Explorer from '../../Database/Entities/explorer.entity'
 import PaginationArgs from '../pagination.args'
+import Events from '../../Database/Entities/Event.entity'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -118,8 +119,11 @@ class WikiResolver {
   }
 
   @Query(() => [Explorer])
-  async explorers(@Args() args: PaginationArgs) {
-    return this.wikiService.getExplorers(args)
+  async explorers(
+    @Args() args: PaginationArgs,
+    @Args('hidden', { type: () => Boolean }) hidden = false,
+  ) {
+    return this.wikiService.getExplorers(args, hidden)
   }
 
   @Mutation(() => Explorer, { nullable: true })
@@ -234,6 +238,11 @@ class WikiResolver {
     return this.wikiService.getFullLinkedWikis(
       wiki.linkedWikis.blockchains as string[],
     )
+  }
+
+  @ResolveField(() => [Events], { nullable: true })
+  async events(@Parent() wiki: IWiki) {
+    return this.wikiService.events(wiki.id)
   }
 }
 
