@@ -93,7 +93,7 @@ class MarketCapService {
         .addSelect('wiki.linkedWikis')
         .addSelect('events.type')
         .addSelect('events.date')
-        .leftJoin('wiki.wikiEvents', 'events')
+        .leftJoin('wiki.events', 'events')
         .leftJoinAndSelect('wiki.tags', 'tags')
 
       const wiki =
@@ -254,7 +254,7 @@ class MarketCapService {
 
       return {
         ...rankpageWiki.wiki,
-        events: rankpageWiki.wiki.__wikiEvents__,
+        events: rankpageWiki.wiki.__events__,
         tags: rankpageWiki.wiki.__tags__,
         founderWikis: rankpageWiki.founders,
         blockchainWikis: rankpageWiki.blockchain,
