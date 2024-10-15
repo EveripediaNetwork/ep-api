@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { Brackets, DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
+import slugify from 'slugify'
 import Wiki from '../../Database/Entities/wiki.entity'
 import { orderWikis, updateDates } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
@@ -12,6 +13,7 @@ import {
   CategoryArgs,
   EventArgs,
   EventDefaultArgs,
+  ExplorerArgs,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -23,6 +25,7 @@ import { OrderBy, Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 @Injectable()
 class WikiService {
@@ -57,12 +60,17 @@ class WikiService {
       await this.repository()
     )
       .createQueryBuilder('wiki')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
       .getOne()
 
     return wiki
+  }
+
+  async events(id: string) {
+    const eventRepo = this.dataSource.getRepository(Events)
+    const event = await eventRepo.findBy({ wikiId: id })
+    return event || []
   }
 
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {
@@ -265,7 +273,7 @@ class WikiService {
   ): SelectQueryBuilder<Wiki> {
     const baseQuery = query
       .innerJoin('wiki.tags', 'tag')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
+      .leftJoinAndSelect('events', 'events', 'events.wikiId = wiki.id')
       .andWhere('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
 
     return this.applyDateFilter(baseQuery, dates) as SelectQueryBuilder<Wiki>
@@ -288,7 +296,7 @@ class WikiService {
     // query.addOrderBy('latest_event_date', direction)
 
     query.addOrderBy(
-      `COALESCE("wikiEvents".date, "wikiEvents"."${
+      `COALESCE("events".date, "events"."${
         direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
       }")`,
       direction,
@@ -309,7 +317,7 @@ class WikiService {
       new Brackets((query) => {
         if (args.startDate && !args.endDate) {
           query.andWhere(
-            'wikiEvents.date >= :start OR (:other BETWEEN wikiEvents.multiDateStart AND  wikiEvents.multiDateEnd) OR (wikiEvents.multiDateStart >= :other)',
+            'events.date >= :start OR (:other BETWEEN events.multiDateStart AND  events.multiDateEnd) OR (events.multiDateStart >= :other)',
             { start: startDate, other: startDate },
           )
         }
@@ -318,10 +326,10 @@ class WikiService {
           query.andWhere(
             `
             CASE
-                WHEN wikiEvents.date IS NOT NULL THEN 
-                    wikiEvents.date BETWEEN :start AND :end
+                WHEN events.date IS NOT NULL THEN 
+                    events.date BETWEEN :start AND :end
                 ELSE 
-                    wikiEvents.multiDateStart <= :end AND wikiEvents.multiDateEnd >= :start
+                    events.multiDateStart <= :end AND events.multiDateEnd >= :start
             END
         `,
             { end: endDate, start: startDate },
@@ -394,7 +402,7 @@ class WikiService {
     return hiddenWikis
   }
 
-  async getExplorers(explorer: string) {
+  async searchExplorers(explorer: string) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     return repo
       .createQueryBuilder('explorer')
@@ -402,19 +410,56 @@ class WikiService {
       .getMany()
   }
 
+  async getExplorers(args: ExplorerArgs) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    return repo
+      .createQueryBuilder('explorer')
+      .where('hidden = :hidden', { hidden: args.hidden })
+      .orderBy(args.order, args.direction)
+      .skip(args.offset)
+      .take(args.limit)
+      .getMany()
+  }
+
+  async countExplorers(args: ExplorerArgs) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const count = await repo
+      .createQueryBuilder('explorer')
+      .where('hidden = :hidden', { hidden: args.hidden })
+      .getCount()
+
+    return { count }
+  }
+
   async addExplorer(args: Explorer) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     const existExplorer = await repo.findOneBy({ ...args })
-    if (!args.baseUrl.startsWith('https')) {
+    if (!args.baseUrl.startsWith('https') || existExplorer) {
+      return null
+    }
+    const slugId = slugify(args.explorer, {
+      lower: true,
+      strict: true,
+      remove: /[*+~.()'"!:@]/g,
+    })
+
+    const newExplorer = repo.create({
+      ...args,
+      id: slugId,
+    })
+    await repo.save(newExplorer)
+    return newExplorer
+  }
+
+  async updateExplorer(args: Explorer) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const existExplorer = await repo.findOneBy({ id: args.id })
+
+    if (!existExplorer) {
       return false
     }
 
-    if (existExplorer) {
-      await repo.update({ id: args.id }, args)
-    }
-
-    const newExplorer = repo.create(args)
-    await repo.save(newExplorer)
+    await repo.update({ id: args.id }, args)
     return true
   }
 
@@ -564,9 +609,12 @@ class WikiService {
   }
 
   async getCategoryTotal(args: CategoryArgs): Promise<Count | undefined> {
-    const count: any | undefined = await this.cacheManager.get(args.category)
+    const tagAndCatergory = `category_${args.category}_tags_${
+      args.tagIds?.join('_') || 'none'
+    }`
+    const count: any | undefined = await this.cacheManager.get(tagAndCatergory)
     if (count) return count
-    const response = await (
+    const query = await (
       await this.repository()
     )
       .createQueryBuilder('wiki')
@@ -579,7 +627,14 @@ class WikiService {
         { category: args.category },
       )
       .where('wiki.hidden = false')
-      .getRawOne()
+
+    if (args.tagIds && args.tagIds.length > 0) {
+      query
+        .innerJoin('wiki.tags', 'tag')
+        .andWhere('tag.id IN (:...tagIds)', { tagIds: args.tagIds })
+    }
+
+    const response = await query.getRawOne()
     await this.cacheManager.set(args.category, response, { ttl: 3600 })
     return response
   }
@@ -600,7 +655,7 @@ class WikiService {
     const query = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('wiki.tags', 'tag')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
+      .leftJoinAndSelect('events', 'events', 'events.wikiId = wiki.id')
       .where('LOWER(tag.id) = LOWER(:tagId)', { tagId: eventTag })
       .andWhere('wiki.hidden = false')
 

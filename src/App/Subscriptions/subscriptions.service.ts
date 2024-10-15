@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, ILike, Repository } from 'typeorm'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import { WikiSubscriptionArgs } from '../../Database/Entities/types/IWiki'
 import TokenValidator from '../utils/validateToken'
@@ -20,7 +20,7 @@ class WikiSubscriptionService {
   ): Promise<IqSubscription | null> {
     return (await this.repository()).findOne({
       where: {
-        userId: args.userId,
+        userId: ILike(args.userId),
         subscriptionType: args.subscriptionType,
         auxiliaryId: args.auxiliaryId,
       },
@@ -36,7 +36,7 @@ class WikiSubscriptionService {
     }
     return (await this.repository()).find({
       where: {
-        userId: id,
+        userId: ILike(id),
       },
     })
   }
@@ -67,7 +67,11 @@ class WikiSubscriptionService {
       .createQueryBuilder()
       .delete()
       .from(IqSubscription)
-      .where(args)
+      .where('LOWER(userId) = LOWER(:userId)', { userId: args.userId })
+      .andWhere({
+        subscriptionType: args.subscriptionType,
+        auxiliaryId: args.auxiliaryId,
+      })
       .execute()
     return true
   }

@@ -19,12 +19,11 @@ class EventsService {
   async events(ids: string[], args: EventArgs) {
     try {
       const repository = this.dataSource.getRepository(Wiki)
-      const queryBuilder = repository
+      let queryBuilder = repository
         .createQueryBuilder('wiki')
         .innerJoin('wiki.tags', 'tag')
-        .leftJoin('wiki.wikiEvents', 'wikiEvents')
+        .leftJoin('events', 'events', 'events.wikiId = wiki.id')
         .where('wiki.hidden = :hidden', { hidden: false })
-        .groupBy('wiki.id')
 
       if (ids.length > 1) {
         queryBuilder
@@ -36,7 +35,38 @@ class EventsService {
         queryBuilder.andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
       }
 
-      this.wikiService.applyDateFilter(
+      if (args.blockchain) {
+        const sub = `LOWER(:blockchain) IN (
+        SELECT json_array_elements_text("linkedWikis"->'blockchains')
+      )`
+        queryBuilder.andWhere(sub, {
+          blockchain: args.blockchain,
+        })
+      }
+      if (args.country && args.continent) {
+        const country = `%${args.country}%`
+        queryBuilder.andWhere(
+          'events.country ILIKE :country AND events.continent ILIKE :continent AND events.continent IS NOT NULL',
+          {
+            country,
+            continent: args.continent,
+          },
+        )
+      } else if (args.country) {
+        const country = `%${args.country}%`
+        queryBuilder.andWhere('events.country ILIKE :country', {
+          country,
+        })
+      } else if (args.continent) {
+        queryBuilder.andWhere(
+          'events.continent ILIKE :continent AND events.continent IS NOT NULL',
+          {
+            continent: args.continent,
+          },
+        )
+      }
+
+      queryBuilder = this.wikiService.applyDateFilter(
         queryBuilder,
         args,
       ) as SelectQueryBuilder<Wiki>
@@ -45,8 +75,10 @@ class EventsService {
         case 'date':
           this.wikiService.eventDateOrder(queryBuilder, args.direction)
           queryBuilder
-            .addGroupBy('wikiEvents.date')
-            .addGroupBy('wikiEvents.multiDateStart')
+            .groupBy('wiki.id')
+            .addGroupBy('events.date')
+            .addGroupBy('events.multiDateStart')
+            .addGroupBy('events.multiDateEnd')
           break
 
         case 'id':
@@ -57,7 +89,6 @@ class EventsService {
           queryBuilder.orderBy(args.order, args.direction)
           break
       }
-
       return await queryBuilder.limit(args.limit).offset(args.offset).getMany()
     } catch (error) {
       console.error('Error fetching events:', error)
@@ -153,57 +184,6 @@ class EventsService {
       .getOne()
 
     return userDetails
-  }
-
-  async getEventsByLocationOrBlockchain(args: any, blockchain = false) {
-    const repository = this.dataSource.getRepository(Wiki)
-
-    let queryBuilder = repository
-      .createQueryBuilder('wiki')
-      .leftJoinAndSelect('wiki.tags', 'tag')
-      .leftJoinAndSelect('wiki.wikiEvents', 'wikiEvents')
-      .where('wiki.hidden = false')
-      .andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
-      .limit(args.limit)
-      .offset(args.offset)
-
-    if (args.order === 'date') {
-      this.wikiService.eventDateOrder(queryBuilder, args.direction)
-    } else {
-      queryBuilder.orderBy(args.order, args.direction)
-    }
-
-    if (blockchain) {
-      const sub = `LOWER(:blockchain) IN (
-        SELECT json_array_elements_text("linkedWikis"->'blockchains')
-      )`
-      queryBuilder.andWhere(sub, {
-        blockchain: args.blockchain,
-      })
-    } else if (args.country && args.continent) {
-      queryBuilder.andWhere(
-        'wikiEvents.country ILIKE :country AND wikiEvents.continent ILIKE :continent',
-        {
-          country: args.country,
-          continent: args.continent,
-        },
-      )
-    } else if (args.country) {
-      queryBuilder.andWhere('wikiEvents.country ILIKE :country', {
-        country: args.country,
-      })
-    } else if (args.continent) {
-      queryBuilder.andWhere('wikiEvents.continent ILIKE :continent', {
-        continent: args.continent,
-      })
-    }
-
-    queryBuilder = this.wikiService.applyDateFilter(
-      queryBuilder,
-      args,
-    ) as SelectQueryBuilder<Wiki>
-
-    return queryBuilder.getMany()
   }
 }
 

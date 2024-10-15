@@ -67,6 +67,10 @@ import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
+import BlogService from './Blog/blog.service'
+import BlogModule from './Blog/blog.module'
+import BlogResolver from './Blog/blog.resolver'
+import MirrorApiService from './Blog/mirrorApi.service'
 
 // istanbul ignore next
 @Module({
@@ -110,6 +114,7 @@ import MarketCapSearch from './marketCap/marketCapSearch.service'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
+    BlogModule,
     SentryMod,
   ],
   controllers: [UploadController, WikiController],
@@ -144,9 +149,9 @@ import MarketCapSearch from './marketCap/marketCapSearch.service'
     MarketCapResolver,
     MarketCapService,
     SentryPlugin,
+    BlogService,
     EventsResolver,
     EventsService,
-    MarketCapSearch,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

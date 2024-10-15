@@ -19,7 +19,13 @@ export class LangArgs extends PaginationArgs {
 
   @Field(() => OrderBy)
   order = OrderBy.UPDATED
+
+  @Field(() => Boolean)
+  hidden = false
 }
+
+@ArgsType()
+export class ExplorerArgs extends LangArgs {}
 
 @ArgsType()
 export class TitleArgs extends LangArgs {
@@ -27,9 +33,6 @@ export class TitleArgs extends LangArgs {
   @Validate(ValidStringParams)
   @MinLength(2)
   title!: string
-
-  @Field(() => Boolean)
-  hidden = false
 }
 
 @ArgsType()
@@ -78,9 +81,6 @@ export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   endDate?: string
-
-  @Field(() => Boolean)
-  hidden = false
 }
 
 @ArgsType()
@@ -88,7 +88,20 @@ export class EventArgs extends EventDefaultArgs {
   @Field(() => [String], { nullable: true })
   @Validate(ValidStringParams)
   tagIds?: string[]
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  blockchain?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  continent?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  country?: string
 }
+
 @ArgsType()
 export class EventByTitleArgs extends EventDefaultArgs {
   @Field(() => String, { nullable: true })
@@ -101,41 +114,28 @@ export class EventByCategoryArgs extends EventDefaultArgs {
   @Validate(ValidStringParams)
   category?: string
 }
-@ArgsType()
-export class EventByBlockchainArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  blockchain?: string
-}
 
-@ArgsType()
-export class EventByLocationArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  continent?: string
-
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  country?: string
-}
-
-export function hasField(ast: any, fieldName: string): boolean {
+export function hasField(
+  ast: any,
+  fieldName: string,
+  options?: { fragmentType: string },
+): boolean {
   let fieldExists = false
 
-  function traverse(node: {
-    kind: string
-    name: { value: string }
-    selectionSet: { selections: any[] }
-  }) {
-    if (node.kind === 'Field' && node.name.value === fieldName) {
+  function traverse(node: any) {
+    if (node.kind === 'Field' && node.name.value === fieldName && !options) {
       fieldExists = true
-    }
-
-    if (node.selectionSet) {
+    } else if (node.kind === 'InlineFragment' && options?.fragmentType) {
+      if (
+        node.typeCondition &&
+        node.typeCondition.name.value === options.fragmentType
+      ) {
+        fieldExists = true
+      }
+    } else if (node.selectionSet) {
       node.selectionSet.selections.forEach(traverse)
     }
   }
-
   ast.definitions.forEach((definition: any) => {
     traverse(definition)
   })

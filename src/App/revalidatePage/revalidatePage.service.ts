@@ -3,6 +3,8 @@ import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
+import { Cron, CronExpression } from '@nestjs/schedule'
+import { firstValueFrom } from 'rxjs'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -29,6 +31,8 @@ export interface RevalidateStatus {
 
 @Injectable()
 export class RevalidatePageService {
+  private failedUrls = new Map()
+
   constructor(
     private httpService: HttpService,
     private dataSource: DataSource,
@@ -56,20 +60,54 @@ export class RevalidatePageService {
       path += `/${id}`
     }
 
-    try {
-      await Promise.all([
-        this.httpService.get(`${revalidateUrl}&path=/en${path}`).toPromise(),
-        this.httpService.get(`${revalidateUrl}&path=/zh${path}`).toPromise(),
-        this.httpService.get(`${revalidateUrl}&path=/ko${path}`).toPromise(),
-      ])
-    } catch (e: any) {
-      console.error(
-        'Error revalidating path',
-        e.response?.config?.url || e.message,
-      )
-    }
+    const urlsToRevalidate = [
+      `${revalidateUrl}&path=/en${path}`,
+      `${revalidateUrl}&path=/zh${path}`,
+      `${revalidateUrl}&path=/ko${path}`,
+    ]
 
+    await Promise.all(
+      urlsToRevalidate.map(async (urlToRevalidate) => {
+        try {
+          await this.httpService.get(urlToRevalidate).toPromise()
+        } catch (e: any) {
+          console.error(
+            'Error revalidating path',
+            e.response?.config?.url || e.message,
+            urlToRevalidate,
+          )
+          this.failedUrls.set(urlToRevalidate, 3)
+        }
+      }),
+    )
     return true
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async retryFailedUrl() {
+    for (const [k, v] of this.failedUrls) {
+      if (v > 0) {
+        try {
+          await Promise.all(
+            k.map(async (url: string) => {
+              const { data } = await firstValueFrom(
+                this.httpService.get(url).pipe(),
+              )
+
+              if (data && data.revalidated === true) {
+                console.log(`♻️ ♻️ Successfully revalidated: ${url}`)
+              }
+            }),
+          )
+
+          this.failedUrls.delete(k)
+        } catch (error: any) {
+          this.failedUrls.set(k, v - 1)
+        }
+      } else {
+        this.failedUrls.delete(k)
+      }
+    }
   }
 
   async revalidatePage(

@@ -21,6 +21,7 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
   CategoryArgs,
+  ExplorerArgs,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -33,7 +34,10 @@ import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
-import Explorer from '../../Database/Entities/explorer.entity'
+import Explorer, {
+  ExplorerCount,
+} from '../../Database/Entities/explorer.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
@@ -113,13 +117,33 @@ class WikiResolver {
 
   @Query(() => [Explorer])
   async searchExplorers(@Args() args: ByIdArgs) {
-    return this.wikiService.getExplorers(args.id)
+    return this.wikiService.searchExplorers(args.id)
+  }
+
+  @Query(() => [Explorer])
+  async explorers(
+    @Args() args: ExplorerArgs,
+  ) {
+    return this.wikiService.getExplorers(args)
+  }
+
+  @Query(() => ExplorerCount)
+  async explorerCount(
+    @Args() args: ExplorerArgs,
+  ) {
+    return this.wikiService.countExplorers(args)
+  }
+
+  @Mutation(() => Explorer, { nullable: true })
+  @UseGuards(AuthGuard)
+  async addExplorer(@Args() args: Explorer) {
+    return this.wikiService.addExplorer(args)
   }
 
   @Mutation(() => Boolean, { nullable: true })
   @UseGuards(AuthGuard)
-  async updateExplorers(@Args() args: Explorer) {
-    return this.wikiService.addExplorer(args)
+  async updateExplorer(@Args() args: Explorer) {
+    return this.wikiService.updateExplorer(args)
   }
 
   @Mutation(() => Wiki, { nullable: true })
@@ -222,6 +246,11 @@ class WikiResolver {
     return this.wikiService.getFullLinkedWikis(
       wiki.linkedWikis.blockchains as string[],
     )
+  }
+
+  @ResolveField(() => [Events], { nullable: true })
+  async events(@Parent() wiki: IWiki) {
+    return this.wikiService.events(wiki.id)
   }
 }
 
