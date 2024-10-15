@@ -21,6 +21,7 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
   CategoryArgs,
+  ExplorerArgs,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -33,8 +34,9 @@ import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
-import Explorer from '../../Database/Entities/explorer.entity'
-import PaginationArgs from '../pagination.args'
+import Explorer, {
+  ExplorerCount,
+} from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
 
 @UseInterceptors(AdminLogsInterceptor)
@@ -120,10 +122,16 @@ class WikiResolver {
 
   @Query(() => [Explorer])
   async explorers(
-    @Args() args: PaginationArgs,
-    @Args('hidden', { type: () => Boolean }) hidden = false,
+    @Args() args: ExplorerArgs,
   ) {
-    return this.wikiService.getExplorers(args, hidden)
+    return this.wikiService.getExplorers(args)
+  }
+
+  @Query(() => ExplorerCount)
+  async explorerCount(
+    @Args() args: ExplorerArgs,
+  ) {
+    return this.wikiService.countExplorers(args)
   }
 
   @Mutation(() => Explorer, { nullable: true })

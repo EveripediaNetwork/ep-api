@@ -13,6 +13,7 @@ import {
   CategoryArgs,
   EventArgs,
   EventDefaultArgs,
+  ExplorerArgs,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -25,7 +26,6 @@ import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
-import PaginationArgs from '../pagination.args'
 
 @Injectable()
 class WikiService {
@@ -410,15 +410,25 @@ class WikiService {
       .getMany()
   }
 
-  async getExplorers(args: PaginationArgs, hidden: boolean) {
+  async getExplorers(args: ExplorerArgs) {
     const repo = this.dataSource.manager.getRepository(Explorer)
     return repo
       .createQueryBuilder('explorer')
-      .where('hidden = :hidden', { hidden })
-      .orderBy('id', 'ASC')
+      .where('hidden = :hidden', { hidden: args.hidden })
+      .orderBy(args.order, args.direction)
       .skip(args.offset)
       .take(args.limit)
       .getMany()
+  }
+
+  async countExplorers(args: ExplorerArgs) {
+    const repo = this.dataSource.manager.getRepository(Explorer)
+    const count = await repo
+      .createQueryBuilder('explorer')
+      .where('hidden = :hidden', { hidden: args.hidden })
+      .getCount()
+
+    return { count }
   }
 
   async addExplorer(args: Explorer) {

@@ -19,7 +19,13 @@ export class LangArgs extends PaginationArgs {
 
   @Field(() => OrderBy)
   order = OrderBy.UPDATED
+
+  @Field(() => Boolean)
+  hidden = false
 }
+
+@ArgsType()
+export class ExplorerArgs extends LangArgs {}
 
 @ArgsType()
 export class TitleArgs extends LangArgs {
@@ -27,9 +33,6 @@ export class TitleArgs extends LangArgs {
   @Validate(ValidStringParams)
   @MinLength(2)
   title!: string
-
-  @Field(() => Boolean)
-  hidden = false
 }
 
 @ArgsType()
@@ -78,9 +81,6 @@ export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   endDate?: string
-
-  @Field(() => Boolean)
-  hidden = false
 }
 
 @ArgsType()
