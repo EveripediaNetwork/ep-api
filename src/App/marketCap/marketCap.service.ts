@@ -253,7 +253,6 @@ class MarketCapService {
           ...marketData,
         }
       }
-      console.log(rankpageWiki)
 
       return {
         ...rankpageWiki.wiki,

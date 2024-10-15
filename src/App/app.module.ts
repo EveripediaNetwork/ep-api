@@ -68,6 +68,7 @@ import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
 import BlogModule from './Blog/blog.module'
+import MarketCapSearch from './marketCap/marketCapSearch.service'
 
 // istanbul ignore next
 @Module({
@@ -78,6 +79,7 @@ import BlogModule from './Blog/blog.module'
     CacheModule.register({ ttl: 3600, max: 10000, isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      installSubscriptionHandlers: true,
       debug: true,
       playground: true,
       introspection: process.env.NODE_ENV !== 'production',
@@ -145,6 +147,7 @@ import BlogModule from './Blog/blog.module'
     WikiSubscriptionService,
     MarketCapResolver,
     MarketCapService,
+    MarketCapSearch,
     SentryPlugin,
     BlogService,
     EventsResolver,
