@@ -14,7 +14,6 @@ import {
   TokenRankListData,
 } from './marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
-import WikiService from '../Wiki/wiki.service'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 const noContentWiki = {
@@ -52,7 +51,6 @@ class MarketCapService {
     private dataSource: DataSource,
     private httpService: HttpService,
     private configService: ConfigService,
-    private wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.API_KEY = this.configService.get('COINGECKO_API_KEY') as string
@@ -177,6 +175,7 @@ class MarketCapService {
   async getWikiData(
     coinsData: Record<any, any> | undefined,
     kind: RankType,
+    delay = false,
   ): Promise<RankPageWiki[]> {
     const k = kind.toLowerCase()
 
@@ -193,6 +192,9 @@ class MarketCapService {
         const batchWikis = await Promise.all(batchPromises)
 
         allWikis.push(...batchWikis)
+        if (delay) {
+          await new Promise((r) => setTimeout(r, 2000))
+        }
       }
     }
 
@@ -251,7 +253,6 @@ class MarketCapService {
           ...marketData,
         }
       }
-      console.log(rankpageWiki)
 
       return {
         ...rankpageWiki.wiki,
@@ -389,15 +390,24 @@ class MarketCapService {
   }
 
   async wildcardSearch(args: MarketCapInputs) {
-    if (!args.search) return []
-    const cache = (await this.ranks(args)) as unknown as (
-      | TokenRankListData
-      | NftRankListData
-    )[]
+    if (!args.search) return [] as (TokenRankListData | NftRankListData)[]
+    const data:
+      | { tokens: TokenRankListData; nfts: NftRankListData }
+      | undefined = await this.cacheManager.get('marketCapSearch')
+    if (!data) {
+      return [] as (TokenRankListData | NftRankListData)[]
+    }
+
+    let cache
+    if (args.kind === RankType.TOKEN) {
+      cache = data.tokens as unknown as TokenRankListData[]
+    }
+    if (args.kind === RankType.NFT) {
+      cache = data.nfts as unknown as NftRankListData[]
+    }
 
     const lowerSearchTerm = args.search.toLowerCase()
-
-    return cache.filter((item: any) => {
+    const result = cache?.filter((item: any) => {
       const nftMatch =
         item.nftMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
         item.nftMarketData?.name.toLowerCase().includes(lowerSearchTerm)
@@ -407,6 +417,8 @@ class MarketCapService {
 
       return (nftMatch as NftRankListData) || (tokenMatch as TokenRankListData)
     })
+
+    return result || []
   }
 }
 

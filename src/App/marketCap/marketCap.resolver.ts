@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
 import {
   MarketCapInputs,
   MarketRankData,
@@ -7,6 +7,7 @@ import {
   TokenRankListData,
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
+import MarketCapSearch from './marketCapSearch.service'
 
 function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
@@ -18,7 +19,10 @@ function extractSlug(url: string) {
 
 @Resolver(() => MarketRankData)
 class MarketCapResolver {
-  constructor(private marketCapService: MarketCapService) {}
+  constructor(
+    private marketCapService: MarketCapService,
+    private marketCapSearch: MarketCapSearch,
+  ) {}
 
   @Query(() => [MarketRankData], { nullable: 'items' })
   async rankList(
@@ -35,7 +39,7 @@ class MarketCapResolver {
   @Query(() => [MarketRankData], { nullable: 'items' })
   async searchRank(
     @Args() args: MarketCapInputs,
-  ): Promise<(NftRankListData | TokenRankListData)[]> {
+  ): Promise<(NftRankListData | TokenRankListData)[] | []> {
     return this.marketCapService.wildcardSearch(args)
   }
 
@@ -63,6 +67,13 @@ class MarketCapResolver {
       console.error(error)
       return false
     }
+  }
+
+  @Subscription(() => Boolean)
+  marketCapSearchSubscription() {
+    return this.marketCapSearch
+      .getRankPagePubSub()
+      .asyncIterator('marketCapSearchSubscription')
   }
 }
 
