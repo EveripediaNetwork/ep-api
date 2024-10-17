@@ -140,7 +140,7 @@ export class MarketCapInputs extends PaginationArgs {
 }
 
 @ArgsType()
-export class RankPageIdInputs {
+export class RankPageIdInputs extends PaginationArgs {
   @Field(() => String)
   wikiId!: string
 

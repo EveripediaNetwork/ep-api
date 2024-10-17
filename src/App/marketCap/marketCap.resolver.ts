@@ -31,11 +31,6 @@ class MarketCapResolver {
     return this.marketCapService.ranks(args)
   }
 
-  @Mutation(() => Boolean)
-  async rankPageIds(@Args() args: RankPageIdInputs): Promise<boolean> {
-    return this.marketCapService.updateMistachIds(args)
-  }
-
   @Query(() => [MarketRankData], { nullable: 'items' })
   async searchRank(
     @Args() args: MarketCapInputs,
@@ -56,11 +51,7 @@ class MarketCapResolver {
         return false
       }
 
-      await this.marketCapService.updateMistachIds({
-        wikiId,
-        coingeckoId: args.coingeckoId,
-        kind: args.kind,
-      })
+      await this.marketCapService.updateMistachIds(args)
 
       return true
     } catch (error) {

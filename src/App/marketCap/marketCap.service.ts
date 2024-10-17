@@ -382,6 +382,11 @@ class MarketCapService {
           ...args,
         })
       }
+      await this.marketData({
+        kind: args.kind,
+        limit: args.limit,
+        offset: args.offset,
+      })
       return true
     } catch (e) {
       console.error('Error in updateMistachIds:', e)
