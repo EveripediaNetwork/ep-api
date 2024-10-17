@@ -15,6 +15,7 @@ import {
 } from './marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import Events from '../../Database/Entities/Event.entity'
 
 const noContentWiki = {
   id: 'no-content',
@@ -61,6 +62,7 @@ class MarketCapService {
     category: string,
   ): Promise<RankPageWiki | null> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
+    const eventsRepository = this.dataSource.getRepository(Events)
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
 
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
@@ -89,12 +91,9 @@ class MarketCapService {
         .addSelect('wiki.metadata')
         .addSelect('wiki.created')
         .addSelect('wiki.linkedWikis')
-        .addSelect('events.type')
-        .addSelect('events.date')
-        .leftJoin('events', 'events', 'events.wikiId = wiki.id')
         .leftJoinAndSelect('wiki.tags', 'tags')
 
-      const wiki =
+      const wikiResult =
         (await wikiQuery
           .andWhere(
             `EXISTS (
@@ -125,9 +124,9 @@ class MarketCapService {
 
       const [founders, blockchain] = await Promise.all([
         (async () => {
-          if (wiki?.linkedWikis?.founders) {
+          if (wikiResult?.linkedWikis?.founders) {
             const founderResults = []
-            for (const f of wiki.linkedWikis.founders) {
+            for (const f of wikiResult.linkedWikis.founders) {
               const result = await baseQuery
                 .where('wiki.id = :id AND wiki.hidden = false', {
                   id: f,
@@ -142,9 +141,9 @@ class MarketCapService {
           return []
         })(),
         (async () => {
-          if (wiki?.linkedWikis?.blockchains) {
+          if (wikiResult?.linkedWikis?.blockchains) {
             const blockchainResults = []
-            for (const b of wiki.linkedWikis.blockchains) {
+            for (const b of wikiResult.linkedWikis.blockchains) {
               const result = await baseQuery
                 .where('wiki.id = :id AND wiki.hidden = false', {
                   id: b,
@@ -160,7 +159,12 @@ class MarketCapService {
         })(),
       ])
 
-      const result = { wiki, founders, blockchain }
+      const events = await eventsRepository.query(
+        `SELECT * FROM events WHERE "wikiId" = $1`,
+        [wikiResult?.id],
+      )
+
+      const result = { wiki: { ...wikiResult, events }, founders, blockchain }
 
       await this.cacheManager.set(id, result, {
         ttl: 3600,
@@ -193,7 +197,7 @@ class MarketCapService {
 
         allWikis.push(...batchWikis)
         if (delay) {
-          await new Promise((r) => setTimeout(r, 2000))
+          await new Promise(r => setTimeout(r, 2000))
         }
       }
     }
@@ -256,7 +260,6 @@ class MarketCapService {
 
       return {
         ...rankpageWiki.wiki,
-        events: rankpageWiki.wiki.__events__,
         tags: rankpageWiki.wiki.__tags__,
         founderWikis: rankpageWiki.founders,
         blockchainWikis: rankpageWiki.blockchain,
