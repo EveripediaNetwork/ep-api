@@ -159,12 +159,15 @@ class MarketCapService {
         })(),
       ])
 
-      const events = await eventsRepository.query(
-        `SELECT * FROM events WHERE "wikiId" = $1`,
-        [wikiResult?.id],
-      )
+      const events =
+        (await eventsRepository.query(
+          `SELECT * FROM events WHERE "wikiId" = $1`,
+          [wikiResult?.id],
+        )) || []
 
-      const result = { wiki: { ...wikiResult, events }, founders, blockchain }
+      const wiki = wikiResult && { ...wikiResult, events }
+
+      const result = { wiki, founders, blockchain }
 
       await this.cacheManager.set(id, result, {
         ttl: 3600,
