@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { DataSource } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -7,44 +7,38 @@ import { of } from 'rxjs'
 import WikiService from '../Wiki/wiki.service'
 import { RankType, TokenCategory } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
+import Wiki from '../../Database/Entities/wiki.entity'
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 describe('MarketCapService', () => {
   let marketCapService: MarketCapService
-  let dataSourceMock: Partial<DataSource>
-  let httpServiceMock: Partial<HttpService>
-  let configServiceMock: Partial<ConfigService>
-  let wikiServiceMock: Partial<WikiService>
-  let cacheManagerMock: any
+  let httpService: HttpService
+  let dataSource: Partial<DataSource>
+  let configService: Partial<ConfigService>
+  let wikiService: Partial<WikiService>
+  let cacheManager: jest.Mocked<any>
+  let wikiRepository: jest.Mocked<Repository<Wiki>>
+  let marketCapIdRepository: jest.Mocked<Repository<MarketCapIds>>
 
   beforeEach(async () => {
-    dataSourceMock = {
+    dataSource = {
       getRepository: jest.fn().mockReturnValue({
         findOne: jest.fn(),
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        leftJoin: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        getOne: jest.fn(),
-        update: jest.fn(),
-        insert: jest.fn(),
+        save: jest.fn(),
       }),
     }
 
-    httpServiceMock = {
+    httpService = {
+      get: jest.fn(() => of({ data: 'mocked response' })),
+    }
+
+    configService = {
       get: jest.fn(),
     }
 
-    configServiceMock = {
-      get: jest.fn().mockReturnValue('mock_api_key'),
-    }
+    wikiService = {}
 
-    wikiServiceMock = {}
-
-    cacheManagerMock = {
+    cacheManager = {
       get: jest.fn(),
       set: jest.fn(),
     }
@@ -52,15 +46,42 @@ describe('MarketCapService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MarketCapService,
-        { provide: DataSource, useValue: dataSourceMock },
-        { provide: HttpService, useValue: httpServiceMock },
-        { provide: ConfigService, useValue: configServiceMock },
-        { provide: WikiService, useValue: wikiServiceMock },
-        { provide: CACHE_MANAGER, useValue: cacheManagerMock },
+        { provide: DataSource, useValue: dataSource },
+        { provide: HttpService, useValue: httpService },
+        { provide: ConfigService, useValue: configService },
+        { provide: WikiService, useValue: wikiService },
+        { provide: CACHE_MANAGER, useValue: cacheManager },
       ],
     }).compile()
 
+    wikiRepository = {
+      createQueryBuilder: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      getOne: jest.fn(),
+    } as any
+
     marketCapService = module.get<MarketCapService>(MarketCapService)
+    dataSource = module.get<DataSource>(DataSource)
+    httpService = module.get<HttpService>(HttpService)
+    configService = module.get<ConfigService>(ConfigService)
+    wikiService = module.get<WikiService>(WikiService)
+    cacheManager = module.get(CACHE_MANAGER)
+
+    marketCapIdRepository = {
+      findOne: jest.fn(),
+    } as any
+
+    dataSource.getRepository.mockImplementation((entity) => {
+      if (entity === Wiki) return wikiRepository
+      if (entity === MarketCapIds) return marketCapIdRepository
+      return {} as any
+    })
   })
 
   it('should be defined', () => {
@@ -70,7 +91,7 @@ describe('MarketCapService', () => {
   describe('findWiki', () => {
     it('should return cached wiki if available', async () => {
       const cachedWiki = { wiki: {}, founders: [], blockchain: [] }
-      cacheManagerMock.get.mockResolvedValue(cachedWiki)
+      cacheManager.get.mockResolvedValue(cachedWiki)
 
       const result = await (marketCapService as any).findWiki(
         'test-id',
@@ -78,25 +99,23 @@ describe('MarketCapService', () => {
       )
 
       expect(result).toEqual(cachedWiki)
-      expect(cacheManagerMock.get).toHaveBeenCalledWith('test-id')
+      expect(cacheManager.get).toHaveBeenCalledWith('test-id')
     })
 
-    // it('should fetch and cache wiki if not in cache', async () => {
-    //   cacheManagerMock.get.mockResolvedValue(undefined)
-    //   const mockWiki = { id: 'test-id', title: 'Test Wiki' }
-    //   ;(
-    //     dataSourceMock.getRepository('Wiki').createQueryBuilder()
-    //       .getOne as jest.Mock
-    //   ).mockResolvedValue(mockWiki)
+    it('should fetch wiki from database if not in cache', async () => {
+      cacheManager.get.mockResolvedValue(undefined)
+      const mockWiki = { id: 'test-id', title: 'Test Wiki' }
+      wikiRepository.getOne.mockResolvedValue(mockWiki)
 
-    //   const result = await (marketCapService as any).findWiki(
-    //     'test-id',
-    //     'cryptocurrencies',
-    //   )
+      const result = await marketCapService['findWiki'](
+        'test-id',
+        'cryptocurrencies',
+      )
 
-    //   expect(result).toEqual({ wiki: mockWiki, founders: [], blockchain: [] })
-    //   expect(cacheManagerMock.set).toHaveBeenCalled()
-    // })
+      expect(result).toEqual({ wiki: mockWiki, founders: [], blockchain: [] })
+      expect(wikiRepository.getOne).toHaveBeenCalled()
+      expect(cacheManager.set).toHaveBeenCalled()
+    })
   })
 
   describe('getWikiData', () => {
@@ -141,18 +160,23 @@ describe('MarketCapService', () => {
     })
   })
 
-  //   describe('cgMarketDataApiCall', () => {
-  //     it('should fetch market data from CoinGecko API', async () => {
-  //       const mockArgs = { kind: RankType.TOKEN, limit: 10 }
-  //       const mockResponse = { data: [{ id: 'iqcoin' }] }
-  //       ;(httpServiceMock.get as jest.Mock).mockReturnValue(of(mockResponse))
+  describe('cgMarketDataApiCall', () => {
+    it('should return cached data if available', async () => {
+      const cachedData = [{ id: 'bitcoin', name: 'Bitcoin' }]
+      cacheManager.get.mockResolvedValue(cachedData)
 
-  //       const result = await (marketCapService as any).cgMarketDataApiCall(mockArgs)
+      const result = await marketCapService['cgMarketDataApiCall']({
+        kind: RankType.TOKEN,
+        category: TokenCategory.STABLE_COINS,
+        limit: 10,
+        offset: 0,
+      })
 
-  //       expect(result).toEqual(mockResponse.data)
-  //       expect(httpServiceMock.get).toHaveBeenCalled()
-  //     })
-  //   })
+      expect(result).toEqual(cachedData)
+      expect(cacheManager.get).toHaveBeenCalled()
+      expect(httpService.get).not.toHaveBeenCalled()
+    })
+  })
 
   describe('ranks', () => {
     it('should return rank data', async () => {
@@ -208,52 +232,57 @@ describe('MarketCapService', () => {
         wikiId: 'wiki1',
         kind: RankType.TOKEN,
       }
-      ;(
-        dataSourceMock.getRepository('MarketCapIds').findOne as jest.Mock
-      ).mockResolvedValue({ coingeckoId: 'iqcoin' })
+
+      marketCapIdRepository.findOne.mockResolvedValue({ coingeckoId: 'iqcoin' })
+      marketCapIdRepository.update = jest.fn()
 
       const result = await marketCapService.updateMistachIds(mockArgs)
 
+      expect(result).toBeDefined()
       expect(result).toBe(true)
-      expect(
-        dataSourceMock.getRepository('MarketCapIds').update,
-      ).toHaveBeenCalled()
+      expect(marketCapIdRepository.update).toHaveBeenCalled()
     })
 
-    it('should insert new record if not exists', async () => {
+    it('should insert new record if it does not exist', async () => {
       const mockArgs = {
         coingeckoId: 'iqcoin2',
         wikiId: 'wiki2',
         kind: RankType.TOKEN,
       }
-      ;(
-        dataSourceMock.getRepository('MarketCapIds').findOne as jest.Mock
-      ).mockResolvedValue(null)
+      marketCapIdRepository.findOne.mockResolvedValue(null)
+      marketCapIdRepository.insert = jest.fn()
 
       const result = await marketCapService.updateMistachIds(mockArgs)
 
+      expect(result).toBeDefined()
       expect(result).toBe(true)
-      expect(
-        dataSourceMock.getRepository('MarketCapIds').insert,
-      ).toHaveBeenCalled()
+      expect(marketCapIdRepository.insert).toHaveBeenCalled()
     })
   })
 
-  //   describe('wildcardSearch', () => {
-  //     it('should return filtered results based on search term', async () => {
-  //       const mockArgs = { kind: RankType.TOKEN, search: 'iqcoin,',
-  //         limit: 2,
-  //         offset: 10, }
-  //       const mockRanks = [
-  //         { tokenMarketData: { id: 'iqcoin', name: 'Iq Coin' } },
-  //         { tokenMarketData: { id: 'token2', name: 'Token Two' } },
-  //       ]
-  //       marketCapService.ranks = jest.fn().mockResolvedValue(mockRanks)
+  describe('wildcardSearch', () => {
+    it('should return filtered results based on search term', async () => {
+      const mockRanks = [
+        { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
+        { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
+      ]
+      jest.spyOn(marketCapService, 'ranks').mockResolvedValue(mockRanks as any)
 
-  //       const result = await marketCapService.wildcardSearch(mockArgs)
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        search: 'bit',
+      })
 
-  //       expect(result).toHaveLength(1)
-  //       expect(result[0].tokenMarketData.id).toBe('iqcoin')
-  //     })
-  //   })
+      expect(result).toEqual([mockRanks[0]])
+    })
+    it('should return empty array if search term is not provided', async () => {
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        search: '',
+        limit: 2,
+        offset: 10,
+      })
+      expect(result).toEqual([])
+    })
+  })
 })

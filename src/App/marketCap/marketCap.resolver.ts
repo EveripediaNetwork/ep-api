@@ -8,7 +8,7 @@ import {
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
 
-function extractSlug(url: string) {
+export function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
 
   const parts = urlReg.split('/')
