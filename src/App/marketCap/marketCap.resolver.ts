@@ -51,7 +51,7 @@ class MarketCapResolver {
         return false
       }
 
-      await this.marketCapService.updateMistachIds(args)
+      await this.marketCapService.updateMistachIds({ ...args, wikiId })
 
       return true
     } catch (error) {

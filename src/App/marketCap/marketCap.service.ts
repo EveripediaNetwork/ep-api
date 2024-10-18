@@ -388,6 +388,7 @@ class MarketCapService {
           wikiId,
         })
       }
+
       await this.marketData({
         kind,
         limit,
