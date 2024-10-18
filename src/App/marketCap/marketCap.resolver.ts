@@ -8,6 +8,8 @@ import {
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
 import MarketCapSearch from './marketCapSearch.service'
+import { UseGuards } from '@nestjs/common'
+import AuthGuard from '../utils/admin.guard'
 
 function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
@@ -39,6 +41,7 @@ class MarketCapResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
   async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
     try {
       let { wikiId } = args
