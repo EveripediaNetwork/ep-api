@@ -11,7 +11,7 @@ import MarketCapSearch from './marketCapSearch.service'
 import { UseGuards } from '@nestjs/common'
 import AuthGuard from '../utils/admin.guard'
 
-function extractSlug(url: string) {
+export function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
 
   const parts = urlReg.split('/')
