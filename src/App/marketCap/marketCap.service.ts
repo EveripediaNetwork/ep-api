@@ -372,26 +372,26 @@ class MarketCapService {
   }
 
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
+    const { offset, limit, kind, coingeckoId, wikiId } = args
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     try {
       const existingRecord = await marketCapIdRepository.findOne({
-        where: { coingeckoId: args.coingeckoId },
+        where: { coingeckoId },
       })
 
       if (existingRecord) {
-        await marketCapIdRepository.update(
-          { coingeckoId: args.coingeckoId },
-          { ...args },
-        )
+        await marketCapIdRepository.update({ coingeckoId }, { kind, wikiId })
       } else {
         await marketCapIdRepository.insert({
-          ...args,
+          kind,
+          coingeckoId,
+          wikiId,
         })
       }
       await this.marketData({
-        kind: args.kind,
-        limit: args.limit,
-        offset: args.offset,
+        kind,
+        limit,
+        offset,
       })
       return true
     } catch (e) {
