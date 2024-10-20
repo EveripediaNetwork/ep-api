@@ -280,21 +280,6 @@ class WikiService {
   }
 
   eventDateOrder(query: SelectQueryBuilder<Wiki>, direction: Direction) {
-    // query.addSelect(
-    //   `(SELECT
-    //           MAX(COALESCE("we".date, "we"."${
-    //             direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-    //           }"))
-    //         FROM
-    //           "events" "we"
-    //         WHERE
-    //           "we"."wikiId" = "wiki"."id"
-    //       )`,
-    //   'latest_event_date',
-    // )
-
-    // query.addOrderBy('latest_event_date', direction)
-
     query.addOrderBy(
       `COALESCE("events".date, "events"."${
         direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'

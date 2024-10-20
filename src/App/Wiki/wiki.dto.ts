@@ -91,6 +91,14 @@ export class EventArgs extends EventDefaultArgs {
 
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
+  title?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  category?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
   blockchain?: string
 
   @Field(() => String, { nullable: true })
@@ -100,19 +108,6 @@ export class EventArgs extends EventDefaultArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   country?: string
-}
-
-@ArgsType()
-export class EventByTitleArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  title?: string
-}
-@ArgsType()
-export class EventByCategoryArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  category?: string
 }
 
 export function hasField(

@@ -1,4 +1,5 @@
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
+import { UseGuards } from '@nestjs/common'
 import {
   MarketCapInputs,
   MarketRankData,
@@ -8,7 +9,6 @@ import {
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
 import MarketCapSearch from './marketCapSearch.service'
-import { UseGuards } from '@nestjs/common'
 import AuthGuard from '../utils/admin.guard'
 
 function extractSlug(url: string) {
