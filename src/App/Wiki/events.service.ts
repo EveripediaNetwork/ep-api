@@ -11,7 +11,7 @@ import { EventArgs, hasField } from './wiki.dto'
 @Injectable()
 class EventsService {
   constructor(private readonly dataSource: DataSource) {}
-  
+
   async events(ids: string[], args: EventArgs, count = false) {
     try {
       let blockchainFilter = ''
