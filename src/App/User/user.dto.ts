@@ -10,7 +10,7 @@ import {
 } from '@nestjs/graphql'
 import { Validate, MinLength } from 'class-validator'
 import PaginationArgs from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 import Activity from '../../Database/Entities/activity.entity'
 
 @ArgsType()

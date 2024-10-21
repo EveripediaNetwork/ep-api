@@ -49,10 +49,10 @@ import EventsService from './events.service'
 class WikiResolver {
   constructor(
     private dataSource: DataSource,
+    private wikiService: WikiService,
+    private eventEmitter: EventEmitter2,
     private revalidate: RevalidatePageService,
     private readonly eventsService: EventsService,
-    private eventEmitter: EventEmitter2,
-    private wikiService: WikiService,
   ) {}
 
   @Query(() => Wiki, { nullable: true })
@@ -165,12 +165,10 @@ class WikiResolver {
   async hideWiki(
     @Args() args: ByIdArgs,
     @Context() ctx: any,
-    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
-    featuredEvents: boolean,
   ) {
     const cacheId = ctx.req.ip + args.id
 
-    const wiki = await this.wikiService.hideWiki(args, featuredEvents)
+    const wiki = await this.wikiService.hideWiki(args)
     const tags = (await wiki?.tags) || []
     if (wiki) {
       await this.revalidate.revalidatePage(

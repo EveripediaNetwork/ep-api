@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
 import { MinLength, Validate } from 'class-validator'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams, ValidDateParams } from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
 
@@ -75,11 +75,11 @@ export class WikiUrl {
 @ArgsType()
 export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   startDate?: string
 
   @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   endDate?: string
 }
 

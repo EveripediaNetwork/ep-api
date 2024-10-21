@@ -59,7 +59,7 @@ import Explorer from './Entities/explorer.entity'
         ],
         synchronize: true,
         keepConnectionAlive: true,
-        logging: ['error',],
+        logging: ['error'],
       }),
       inject: [ConfigService],
     }),

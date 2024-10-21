@@ -9,7 +9,7 @@ import {
 import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 import Events from '../../Database/Entities/Event.entity'
 
 @ObjectType()
