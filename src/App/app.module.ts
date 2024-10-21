@@ -61,7 +61,6 @@ import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
-import EventsResolver from './Wiki/events.resolver'
 import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
@@ -150,7 +149,6 @@ import MarketCapSearch from './marketCap/marketCapSearch.service'
     MarketCapSearch,
     SentryPlugin,
     BlogService,
-    EventsResolver,
     EventsService,
     {
       provide: APP_INTERCEPTOR,

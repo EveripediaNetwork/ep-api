@@ -1,4 +1,4 @@
-import ValidStringParams from '../customValidator'
+import { ValidStringParams } from '../customValidator'
 
 describe('ValidStringParams', () => {
   it('should pass validation for valid string parameters', async () => {

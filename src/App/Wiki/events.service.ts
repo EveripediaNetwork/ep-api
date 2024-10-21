@@ -1,95 +1,155 @@
 import { Injectable } from '@nestjs/common'
 import gql from 'graphql-tag'
-import { DataSource, SelectQueryBuilder } from 'typeorm'
+import { DataSource } from 'typeorm'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Category from '../../Database/Entities/category.entity'
 import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
-import { EventArgs, eventTag, hasField } from './wiki.dto'
-import WikiService from './wiki.service'
+import { EventArgs, hasField } from './wiki.dto'
 
 @Injectable()
 class EventsService {
-  constructor(
-    private readonly dataSource: DataSource,
-    private wikiService: WikiService,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
-  async events(ids: string[], args: EventArgs) {
+  async events(ids: string[], args: EventArgs, count = false) {
     try {
-      const repository = this.dataSource.getRepository(Wiki)
-      let queryBuilder = repository
-        .createQueryBuilder('wiki')
-        .innerJoin('wiki.tags', 'tag')
-        .leftJoin('events', 'events', 'events.wikiId = wiki.id')
-        .where('wiki.hidden = :hidden', { hidden: false })
-
-      if (ids.length > 1) {
-        queryBuilder
-          .andWhere('LOWER(tag.id) IN (:...ids)', {
-            ids: ids.map((id) => id.toLowerCase()),
-          })
-          .having('COUNT(DISTINCT tag."id") > 1')
-      } else {
-        queryBuilder.andWhere('LOWER(tag.id) = LOWER(:ev)', { ev: eventTag })
-      }
-
+      let blockchainFilter = ''
       if (args.blockchain) {
-        const sub = `LOWER(:blockchain) IN (
+        blockchainFilter = `AND LOWER('${args.blockchain}') IN (
         SELECT json_array_elements_text("linkedWikis"->'blockchains')
       )`
-        queryBuilder.andWhere(sub, {
-          blockchain: args.blockchain,
-        })
       }
+
+      let locationFilter = ''
       if (args.country && args.continent) {
         const country = `%${args.country}%`
-        queryBuilder.andWhere(
-          'events.country ILIKE :country AND events.continent ILIKE :continent AND events.continent IS NOT NULL',
-          {
-            country,
-            continent: args.continent,
-          },
-        )
+        locationFilter = `AND events.country ILIKE '${country}' AND events.continent ILIKE ${args.continent} AND events.continent IS NOT NULL`
       } else if (args.country) {
         const country = `%${args.country}%`
-        queryBuilder.andWhere('events.country ILIKE :country', {
-          country,
-        })
+        locationFilter = `AND events.country ILIKE '${country}'`
       } else if (args.continent) {
-        queryBuilder.andWhere(
-          'events.continent ILIKE :continent AND events.continent IS NOT NULL',
-          {
-            continent: args.continent,
-          },
-        )
+        locationFilter = `AND events.continent ILIKE '${args.continent}' AND events.continent IS NOT NULL`
       }
 
-      queryBuilder = this.wikiService.applyDateFilter(
-        queryBuilder,
-        args,
-      ) as SelectQueryBuilder<Wiki>
+      const startDateOnly = `
+            AND (
+                events.date >= '${args.startDate}' 
+                OR ('${args.startDate}' BETWEEN events."multiDateStart" AND events."multiDateEnd")
+                OR (events."multiDateStart" >= '${args.startDate}')
+            )
+      `
 
-      switch (args.order) {
-        case 'date':
-          this.wikiService.eventDateOrder(queryBuilder, args.direction)
-          queryBuilder
-            .groupBy('wiki.id')
-            .addGroupBy('events.date')
-            .addGroupBy('events.multiDateStart')
-            .addGroupBy('events.multiDateEnd')
-          break
+      const startAndEndDate = `
+        AND 
+        CASE
+            WHEN events.date IS NOT NULL THEN 
+                events.date BETWEEN '${args.startDate}' AND '${args.endDate}' 
+            ELSE 
+                events."multiDateStart" <= '${args.endDate}' AND events."multiDateEnd" >= '${args.startDate}'
+        END
+      `
 
-        case 'id':
-          queryBuilder.orderBy('wiki.id', args.direction)
-          break
+      let dateFilter
 
-        default:
-          queryBuilder.orderBy(args.order, args.direction)
-          break
+      if (!args.startDate) {
+        dateFilter = ''
       }
-      return await queryBuilder.limit(args.limit).offset(args.offset).getMany()
+
+      if (args.startDate && !args.endDate) {
+        dateFilter = startDateOnly
+      }
+
+      if (args.endDate) {
+        dateFilter = startAndEndDate
+      }
+
+      let eventsOrder = ''
+      if (args.order === 'date') {
+        eventsOrder = ` 
+        ORDER BY 
+        COALESCE(
+            (SELECT MAX(COALESCE(events.date, events."multiDateStart", events."multiDateEnd"))
+            FROM events 
+            WHERE events."wikiId" = wiki.id
+            ${dateFilter}
+        ), '3099-01-01') ${args.direction} 
+        `
+      } else {
+        eventsOrder = `ORDER BY ${args.order} ${args.direction}`
+      }
+
+      const oneTag = `
+        AND LOWER(tag.id) = 'events'
+      `
+
+      const lowerCaseTagIds = ids.map((id) => id.toLowerCase())
+
+      const formattedTagIds = `(${lowerCaseTagIds
+        .map((id) => `'${id}'`)
+        .join(', ')})`
+      const multipleTags = `
+        AND LOWER(tag.id) IN ${formattedTagIds}
+      `
+
+      const multipleTagsCheck = `
+        HAVING COUNT(DISTINCT tag."id") > 1
+      `
+
+      const categoryFilter = args.category
+        ? `
+         INNER JOIN "wiki_categories_category" wc ON wc."wikiId"="wiki"."id" 
+         INNER JOIN "category" "category" ON "category"."id" = wc."categoryId" AND (LOWER("category"."id") = LOWER('${args.category}')) 
+      `
+        : ''
+
+      const titleFilter = args.title
+        ? `
+         AND LOWER("wiki"."title") LIKE '%${args.title}%'
+      `
+        : ''
+
+      const events = await this.dataSource.getRepository(Wiki).query(
+        `
+            SELECT
+            ${
+              count
+                ? 'COUNT(wiki.id) as amount'
+                : `
+            wiki.*,
+            (
+                SELECT JSON_AGG(events)
+                FROM events 
+                WHERE events."wikiId" = wiki.id
+                ${dateFilter}
+                ${locationFilter}
+                ${blockchainFilter} 
+            ) AS events
+            `
+            }
+            FROM wiki
+            INNER JOIN wiki_tags_tag AS wt ON wt."wikiId" = wiki.id
+            INNER JOIN tag ON tag.id = wt."tagId"
+            ${categoryFilter}
+            WHERE wiki.hidden = ${args.hidden}
+            ${titleFilter}
+            AND EXISTS (
+                SELECT 1
+                FROM events 
+                WHERE events."wikiId" = wiki.id
+                ${dateFilter}
+                ${locationFilter}
+                ${blockchainFilter}
+            )
+            ${ids.length > 1 ? multipleTags : oneTag}
+            ${count ? '' : ' GROUP BY wiki."id"'}
+            ${ids.length > 1 ? multipleTagsCheck : ''}
+            ${count ? '' : eventsOrder}
+            ${count ? '' : `OFFSET ${args.offset} LIMIT ${args.limit}`}
+        `,
+      )
+
+      return events
     } catch (error) {
       console.error('Error fetching events:', error)
       throw error

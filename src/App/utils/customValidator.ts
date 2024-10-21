@@ -7,12 +7,27 @@ import {
 } from 'class-validator'
 
 @ValidatorConstraint({ name: 'valid String', async: true })
-export default class ValidStringParams implements ValidatorConstraintInterface {
+export class ValidStringParams implements ValidatorConstraintInterface {
   async validate(text: string, args: ValidationArguments) {
     return /^[a-zA-Z0-9()\/ -.]*$/.test(text)
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'Invalid parameters'
+    return 'Invalid string parameters'
+  }
+}
+
+@ValidatorConstraint({ name: 'valid String', async: true })
+export class ValidDateParams implements ValidatorConstraintInterface {
+  async validate(text: string, args: ValidationArguments) {
+    const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+    if (!text) {
+      return true
+    }
+    return dateRegex.test(text)
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Invalid date string parameters'
   }
 }

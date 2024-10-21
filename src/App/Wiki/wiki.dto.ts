@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
-import { MinLength, Validate } from 'class-validator'
-import ValidStringParams from '../utils/customValidator'
+import { IsArray, IsString, MinLength, Validate } from 'class-validator'
+import { ValidStringParams, ValidDateParams } from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
 
@@ -75,19 +75,30 @@ export class WikiUrl {
 @ArgsType()
 export class EventDefaultArgs extends LangArgs {
   @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   startDate?: string
 
   @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   endDate?: string
 }
 
 @ArgsType()
 export class EventArgs extends EventDefaultArgs {
   @Field(() => [String], { nullable: true })
-  @Validate(ValidStringParams)
+  @IsArray()
+  @IsString({
+    each: true,
+  })
   tagIds?: string[]
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  title?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
+  category?: string
 
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
@@ -100,19 +111,6 @@ export class EventArgs extends EventDefaultArgs {
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   country?: string
-}
-
-@ArgsType()
-export class EventByTitleArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  title?: string
-}
-@ArgsType()
-export class EventByCategoryArgs extends EventDefaultArgs {
-  @Field(() => String, { nullable: true })
-  @Validate(ValidStringParams)
-  category?: string
 }
 
 export function hasField(

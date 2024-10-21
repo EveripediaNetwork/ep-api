@@ -26,6 +26,7 @@ import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
+import { eventWiki } from '../Tag/tag.dto'
 
 @Injectable()
 class WikiService {
@@ -280,21 +281,6 @@ class WikiService {
   }
 
   eventDateOrder(query: SelectQueryBuilder<Wiki>, direction: Direction) {
-    // query.addSelect(
-    //   `(SELECT
-    //           MAX(COALESCE("we".date, "we"."${
-    //             direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
-    //           }"))
-    //         FROM
-    //           "events" "we"
-    //         WHERE
-    //           "we"."wikiId" = "wiki"."id"
-    //       )`,
-    //   'latest_event_date',
-    // )
-
-    // query.addOrderBy('latest_event_date', direction)
-
     query.addOrderBy(
       `COALESCE("events".date, "events"."${
         direction === 'ASC' ? 'multiDateStart' : 'multiDateEnd'
@@ -513,8 +499,9 @@ class WikiService {
 
       this.filterFeaturedEvents(queryBuilder, featuredEvents)
     }
-    const promotedWiki = await queryBuilder.getOne()
 
+    const promotedWiki = await queryBuilder.getOne()
+    console.log(promotedWiki)
     if (promotedWiki) {
       await (
         await this.repository()
@@ -540,11 +527,10 @@ class WikiService {
     return wiki
   }
 
-  async hideWiki(
-    args: ByIdArgs,
-    featuredEvents: boolean,
-  ): Promise<Wiki | null> {
+  async hideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = await (await this.repository()).findOneBy({ id: args.id })
+    const tags = (await wiki?.tags) || []
+
     await (
       await this.repository()
     )
@@ -554,7 +540,7 @@ class WikiService {
       .where('id = :id', { id: args.id })
       .execute()
 
-    await this.reOrderPromotedwikis(featuredEvents)
+    await this.reOrderPromotedwikis(eventWiki(tags))
     return wiki
   }
 
