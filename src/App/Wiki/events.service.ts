@@ -11,9 +11,7 @@ import { EventArgs, hasField } from './wiki.dto'
 @Injectable()
 class EventsService {
   constructor(private readonly dataSource: DataSource) {}
-
-  // TODO: VALIDATE ARGS AGAINST SQL INJECTION
-
+  
   async events(ids: string[], args: EventArgs, count = false) {
     try {
       let blockchainFilter = ''
