@@ -1,7 +1,11 @@
 /* eslint-disable max-classes-per-file */
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
-import { IsArray, IsString, MinLength, Validate } from 'class-validator'
-import { ValidStringParams, ValidDateParams } from '../utils/customValidator'
+import { MinLength, Validate } from 'class-validator'
+import {
+  ValidStringParams,
+  ValidDateParams,
+  ValidStringArrayParams,
+} from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
 
@@ -86,10 +90,7 @@ export class EventDefaultArgs extends LangArgs {
 @ArgsType()
 export class EventArgs extends EventDefaultArgs {
   @Field(() => [String], { nullable: true })
-  @IsArray()
-  @IsString({
-    each: true,
-  })
+  @Validate(ValidStringArrayParams)
   tagIds?: string[]
 
   @Field(() => String, { nullable: true })

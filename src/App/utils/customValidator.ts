@@ -16,8 +16,19 @@ export class ValidStringParams implements ValidatorConstraintInterface {
     return 'Invalid string parameters'
   }
 }
+@ValidatorConstraint({ name: 'valid array of strings', async: true })
+export class ValidStringArrayParams implements ValidatorConstraintInterface {
+  async validate(text: string[], args: ValidationArguments) {
+    if (!text) return true
+    return text.every((str) => /^[a-zA-Z0-9()\/ -.]*$/.test(str))
+  }
 
-@ValidatorConstraint({ name: 'valid String', async: true })
+  defaultMessage(args: ValidationArguments) {
+    return 'Invalid string parameters'
+  }
+}
+
+@ValidatorConstraint({ name: 'valid date string', async: true })
 export class ValidDateParams implements ValidatorConstraintInterface {
   async validate(text: string, args: ValidationArguments) {
     const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/

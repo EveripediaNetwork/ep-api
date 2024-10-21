@@ -376,7 +376,7 @@ class MarketCapService {
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     try {
       const existingRecord = await marketCapIdRepository.findOne({
-        where: { coingeckoId },
+        where: { coingeckoId, wikiId },
       })
 
       if (existingRecord) {
