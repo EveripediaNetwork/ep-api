@@ -41,7 +41,7 @@ class MarketCapResolver {
   }
 
   @Mutation(() => Boolean)
-//   @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
     try {
       let { wikiId } = args
