@@ -7,14 +7,26 @@ import { extractSlug } from './marketCap.resolver'
 describe('MarketCapResolver', () => {
   let marketCapResolver: MarketCapResolver
   let mockMarketCapService: Partial<MarketCapService>
+  let currentWikiId: string = ''
 
   beforeEach(async () => {
+    currentWikiId = ''
     mockMarketCapService = {
-      ranks: jest.fn(),
-      updateMistachIds: jest.fn(),
+      ranks: jest.fn(async () => [
+        {
+          id: 'iqcoin',
+          name: 'IQ Coin',
+          wikiId: currentWikiId,
+        },
+      ]),
+
+      updateMistachIds: jest.fn(async (args) => {
+        currentWikiId = args.wikiId
+        return true
+      }),
+
       wildcardSearch: jest.fn(),
     }
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MarketCapResolver,
@@ -153,6 +165,75 @@ describe('MarketCapResolver', () => {
       expect(result).toBe(false)
       expect(console.error).toHaveBeenCalled()
     })
+
+    it('should update wikiId and service should return updated value', async () => {
+      let result = await marketCapResolver.rankList({
+        kind: RankType.TOKEN,
+        limit: 1,
+        offset: 0,
+      })
+      expect(result[0].wikiId).toBe('')
+
+      const updateSuccess = await marketCapResolver.linkWikiToRankData({
+        coingeckoId: 'iqcoin',
+        wikiId: 'new-wiki-id',
+        kind: RankType.TOKEN,
+      })
+
+      expect(updateSuccess).toBe(true)
+      expect(mockMarketCapService.updateMistachIds).toHaveBeenCalledWith({
+        coingeckoId: 'iqcoin',
+        wikiId: 'new-wiki-id',
+        kind: RankType.TOKEN,
+      })
+
+      result = await marketCapResolver.rankList({
+        kind: RankType.TOKEN,
+        limit: 1,
+        offset: 0,
+      })
+      expect(result[0].wikiId).toBe('new-wiki-id')
+    })
+
+    it('should handle URL wikiIds by extracting slug', async () => {
+      const updateSuccess = await marketCapResolver.linkWikiToRankData({
+        coingeckoId: 'iqcoin',
+        wikiId: 'https://iqcoin.com/wiki/my-coin/',
+        kind: RankType.TOKEN,
+      })
+
+      expect(updateSuccess).toBe(true)
+      expect(mockMarketCapService.updateMistachIds).toHaveBeenCalledWith({
+        coingeckoId: 'iqcoin',
+        wikiId: 'my-coin',
+        kind: RankType.TOKEN,
+      })
+    })
+
+    it('should return false for empty wikiId', async () => {
+      const updateSuccess = await marketCapResolver.linkWikiToRankData({
+        coingeckoId: 'iqcoin',
+        wikiId: '',
+        kind: RankType.TOKEN,
+      })
+
+      expect(updateSuccess).toBe(false)
+      expect(mockMarketCapService.updateMistachIds).not.toHaveBeenCalled()
+    })
+
+    it('should return false if service update fails', async () => {
+      ;(
+        mockMarketCapService.updateMistachIds as jest.Mock
+      ).mockRejectedValueOnce(new Error('Update failed'))
+
+      const updateSuccess = await marketCapResolver.linkWikiToRankData({
+        coingeckoId: 'iqcoin',
+        wikiId: 'my-wiki',
+        kind: RankType.TOKEN,
+      })
+
+      expect(updateSuccess).toBe(false)
+    })
   })
 
   describe('extractSlug', () => {
@@ -165,7 +246,7 @@ describe('MarketCapResolver', () => {
     })
 
     it('should handle URLs with only domain', () => {
-      expect(extractSlug('https://iqcoin.com/')).toBe('iqcoin.com')
+      expect(extractSlug('https://iqcoin.com')).toBe('iqcoin.com')
     })
 
     it('should return the entire string if there are no slashes', () => {
