@@ -10,6 +10,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { urlencoded, json } from 'express'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import AppModule from './App/app.module'
+import Pm2Service from './App/utils/pm2Service'
 
 const pm2 = require('pm2')
 
@@ -21,8 +22,13 @@ async function bootstrapApplication() {
   const configService = app.get(ConfigService)
   const cacheManager = app.get<Cache>('CACHE_MANAGER')
   const eventEmitter = app.get(EventEmitter2)
+  const pm2Service = app.get(Pm2Service)
+
+  // Call your methods
 
   const port = configService.get<number>('PORT')
+
+
 
   app =
     Number(port) === 443
@@ -51,41 +57,26 @@ async function bootstrapApplication() {
   )
 
   process.on('message', async (packet: any) => {
-    if (packet.topic === 'searchCache') {
-      await cacheManager.set('marketCapSearch', packet.data, { ttl: 300 })
+    if (packet.topic === 'updateCache') {
+      await cacheManager.set(packet.data.key, packet.data.data, {
+        ttl: packet.data.ttl || 300,
+      })
     }
 
     if (packet.topic === 'buildSearchData') {
-      const cacheData = await cacheManager.get('marketCapSearch')
+      const key = 'marketCapSearch'
+      const cacheData = await cacheManager.get(key)
       if (!cacheData) {
         eventEmitter.emit('buildSearchData', {
           id: Number(process.env.pm_id),
         })
       } else {
-        pm2.connect((err: unknown) => {
-          if (err) {
-            console.error('Error connecting to PM2:', err)
-            return
-          }
-
-          pm2.sendDataToProcessId(
-            {
-              id: Number(process.env.pm_id),
-              type: 'process:msg',
-              topic: 'searchCache',
-              data: cacheData,
-            },
-            () => {
-              if (err) {
-                console.error('Error sending data to process root process', err)
-              } else {
-                console.log(
-                  `buildSearchData initiated for ${Number(process.env.pm_id)}`,
-                )
-              }
-            },
-          )
-        })
+        pm2Service.sendDataToProcesses(
+          'ep-api',
+          'updateCache',
+          { data: cacheData, key },
+          Number(process.env.pm_id),
+        )
       }
     }
   })

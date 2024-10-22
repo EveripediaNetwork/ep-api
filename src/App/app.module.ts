@@ -68,6 +68,7 @@ import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
 import BlogModule from './Blog/blog.module'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
+import Pm2Module from './utils/pm2Module'
 
 // istanbul ignore next
 @Module({
@@ -114,6 +115,7 @@ import MarketCapSearch from './marketCap/marketCapSearch.service'
     DiscordModule,
     BlogModule,
     SentryMod,
+    Pm2Module,
   ],
   controllers: [UploadController, WikiController],
   providers: [

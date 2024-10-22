@@ -74,6 +74,7 @@ class WikiService {
     return event || []
   }
 
+  // FIXME: separate event wikis
   async getWikis(args: LangArgs): Promise<Wiki[] | []> {
     return (await this.repository()).find({
       where: {

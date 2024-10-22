@@ -16,6 +16,7 @@ import {
 import Wiki from '../../Database/Entities/wiki.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Events from '../../Database/Entities/Event.entity'
+import Pm2Service from '../utils/pm2Service'
 
 const noContentWiki = {
   id: 'no-content',
@@ -38,6 +39,8 @@ interface RankPageWiki {
 class MarketCapService {
   private RANK_LIMIT = 1000
 
+  private CACHE_KEY!: string
+
   private API_KEY: string
 
   private RANK_LIST = 'default-list'
@@ -50,6 +53,7 @@ class MarketCapService {
 
   constructor(
     private dataSource: DataSource,
+    private pm2Service: Pm2Service,
     private httpService: HttpService,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -121,7 +125,7 @@ class MarketCapService {
           )
           .where('wiki.id = :id AND wiki.hidden = false', { id })
           .getOne())
-      if (id === 'the-open-network') console.log(wikiResult)
+
       const [founders, blockchain] = await Promise.all([
         (async () => {
           if (wikiResult?.linkedWikis?.founders) {
@@ -200,7 +204,7 @@ class MarketCapService {
 
         allWikis.push(...batchWikis)
         if (delay) {
-          await new Promise((r) => setTimeout(r, 2000))
+          await new Promise(r => setTimeout(r, 2000))
         }
       }
     }
@@ -317,6 +321,7 @@ class MarketCapService {
           if (response?.data) {
             allData.push(...response.data)
             await this.cacheManager.set(url, allData, { ttl: 180 })
+            this.CACHE_KEY = url
           }
         }
         if (allData.length >= limit) {
@@ -380,7 +385,6 @@ class MarketCapService {
       })
 
       if (existingRecord) {
-        console.log(existingRecord, args)
         await marketCapIdRepository.update(existingRecord, {
           wikiId,
         })
@@ -397,6 +401,19 @@ class MarketCapService {
         limit,
         offset,
       })
+
+      const recentlyUpdatedCache: any | undefined = await this.cacheManager.get(
+        this.CACHE_KEY,
+      )
+      if (recentlyUpdatedCache && Number(process.env.pm_id)) {
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'updateCache',
+          { data: recentlyUpdatedCache, key: this.CACHE_KEY },
+          Number(process.env.pm_id),
+        )
+      }
+
       return true
     } catch (e) {
       console.error('Error in updateMistachIds:', e)

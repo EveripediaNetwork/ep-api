@@ -6,19 +6,16 @@ import { Cron } from '@nestjs/schedule'
 import { PubSub } from 'graphql-subscriptions'
 import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType } from './marketcap.dto'
-
-const pm2 = require('pm2')
+import Pm2Service from '../utils/pm2Service'
+import { Globals } from '../../globalVars'
 
 @Injectable()
 class MarketCapSearch implements OnModuleInit {
   private pubSub: PubSub
 
-  private ROOT_PROCESS = false
-
-  private pm2Ids = new Map()
-
   constructor(
     private marketCapService: MarketCapService,
+    private pm2Service: Pm2Service,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.pubSub = new PubSub()
@@ -30,17 +27,8 @@ class MarketCapSearch implements OnModuleInit {
 
   async onModuleInit() {
     if (Number(process.env.pm_id) === 0) {
-      this.ROOT_PROCESS = true
+      Globals.ROOT_PROCESS = true
     }
-
-    pm2.connect(() => {
-      pm2.list((_err: unknown, list: any) => {
-        for (const pm2Info of list) {
-          this.pm2Ids.set(pm2Info.pm_id, pm2Info.name)
-        }
-        pm2.disconnect(() => {})
-      })
-    })
 
     setTimeout(() => {
       this.pubSub.publish('marketCapSearchSubscription', {
@@ -53,7 +41,7 @@ class MarketCapSearch implements OnModuleInit {
   @OnEvent('buildSearchData', { async: true })
   @Cron('*/3 * * * *')
   private async buildRankpageSearchData() {
-    if (this.ROOT_PROCESS) {
+    if (Globals.ROOT_PROCESS) {
       console.log('Fetching rankpage search data')
       const tokens = await this.marketCapService.marketData({
         kind: RankType.TOKEN,
@@ -63,39 +51,16 @@ class MarketCapSearch implements OnModuleInit {
         kind: RankType.NFT,
       } as MarketCapInputs)
 
-      for (const [k, v] of this.pm2Ids) {
-        if (k !== 0 && v === 'ep-api') {
-          const processId = k
-          pm2.connect((err: unknown) => {
-            if (err) {
-              console.error('Error connecting to PM2:', err)
-              return
-            }
-
-            pm2.sendDataToProcessId(
-              {
-                id: processId,
-                type: 'process:msg',
-                topic: 'searchCache',
-                data: {
-                  tokens,
-                  nfts,
-                },
-              },
-              () => {
-                if (err) {
-                  console.error(
-                    `Error sending data to process ${processId}:`,
-                    err,
-                  )
-                } else {
-                  console.log(`Data successfully sent to process ${processId}`)
-                }
-              },
-            )
-          })
-        }
+      const data = {
+        tokens,
+        nfts,
       }
+      this.pm2Service.sendDataToProcesses(
+        'ep-api',
+        'updateCache',
+        { data, key: 'marketCapSearch' },
+        Number(process.env.pm_id),
+      )
 
       await this.cacheManager.set(
         'marketCapSearch',
