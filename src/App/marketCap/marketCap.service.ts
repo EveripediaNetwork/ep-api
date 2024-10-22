@@ -121,7 +121,7 @@ class MarketCapService {
           )
           .where('wiki.id = :id AND wiki.hidden = false', { id })
           .getOne())
-
+      if (id === 'the-open-network') console.log(wikiResult)
       const [founders, blockchain] = await Promise.all([
         (async () => {
           if (wikiResult?.linkedWikis?.founders) {
@@ -376,11 +376,14 @@ class MarketCapService {
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     try {
       const existingRecord = await marketCapIdRepository.findOne({
-        where: { coingeckoId, wikiId },
+        where: { coingeckoId },
       })
 
       if (existingRecord) {
-        await marketCapIdRepository.update({ coingeckoId }, { kind, wikiId })
+        console.log(existingRecord, args)
+        await marketCapIdRepository.update(existingRecord, {
+          wikiId,
+        })
       } else {
         await marketCapIdRepository.insert({
           kind,
