@@ -204,7 +204,7 @@ class MarketCapService {
 
         allWikis.push(...batchWikis)
         if (delay) {
-          await new Promise((r) => setTimeout(r, 2000))
+          await new Promise(r => setTimeout(r, 2000))
         }
       }
     }
@@ -401,6 +401,8 @@ class MarketCapService {
         limit,
         offset,
       })
+
+      console.log('=====', { kind, limit, offset }, '=====')
 
       const recentlyUpdatedCache: any | undefined = await this.cacheManager.get(
         this.CACHE_KEY,
