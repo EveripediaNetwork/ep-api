@@ -61,8 +61,12 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  async wikis(@Args() args: LangArgs) {
-    return this.wikiService.getWikis(args)
+  async wikis(
+    @Args() args: LangArgs,
+    @Args('featuredEvents', { type: () => Boolean, nullable: true })
+    featuredEvents: boolean,
+  ) {
+    return this.wikiService.getWikis(args, featuredEvents)
   }
 
   @Query(() => [Wiki])
@@ -162,10 +166,7 @@ class WikiResolver {
 
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
-  async hideWiki(
-    @Args() args: ByIdArgs,
-    @Context() ctx: any,
-  ) {
+  async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.hideWiki(args)

@@ -6,7 +6,7 @@ import { Cache } from 'cache-manager'
 import { HttpService } from '@nestjs/axios'
 import slugify from 'slugify'
 import Wiki from '../../Database/Entities/wiki.entity'
-import { orderWikis, updateDates } from '../utils/queryHelpers'
+import { updateDates } from '../utils/queryHelpers'
 import { ValidSlug, Valid, Slug } from '../utils/validSlug'
 import {
   ByIdArgs,
@@ -21,7 +21,7 @@ import {
   eventTag,
 } from './wiki.dto'
 import { DateArgs, Count } from './wikiStats.dto'
-import { OrderBy, Direction } from '../general.args'
+import { Direction } from '../general.args'
 import { PageViewArgs } from '../pageViews/pageviews.dto'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
@@ -74,21 +74,23 @@ class WikiService {
     return event || []
   }
 
-  // FIXME: separate event wikis
-  async getWikis(args: LangArgs): Promise<Wiki[] | []> {
-    return (await this.repository()).find({
-      where: {
-        language: { id: args.lang },
-        hidden: false,
-      },
-      cache: {
-        id: `wikis_cache_limit${args.limit}-offset${args.offset}-lang${args.lang}-direction${args.direction}-order${args.order}`,
-        milliseconds: 10000,
-      },
-      take: args.limit,
-      skip: args.offset,
-      order: orderWikis(args.order as OrderBy, args.direction as Direction),
-    })
+  async getWikis(
+    args: LangArgs,
+    featuredEvents: boolean,
+  ): Promise<Wiki[] | []> {
+    const queryBuilder = (await this.repository())
+      .createQueryBuilder('wiki')
+      .where('wiki.languageId = :lang', { lang: args.lang })
+      .andWhere('wiki.hidden = false')
+
+    if (featuredEvents !== undefined) {
+      this.filterFeaturedEvents(queryBuilder, featuredEvents)
+    }
+    return queryBuilder
+      .orderBy(`wiki.${args.order}`, args.direction)
+      .skip(args.offset)
+      .take(args.limit)
+      .getMany() as unknown as Wiki[]
   }
 
   filterFeaturedEvents(
@@ -502,7 +504,7 @@ class WikiService {
     }
 
     const promotedWiki = await queryBuilder.getOne()
-    console.log(promotedWiki)
+
     if (promotedWiki) {
       await (
         await this.repository()

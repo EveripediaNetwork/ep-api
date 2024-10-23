@@ -17,6 +17,7 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Events from '../../Database/Entities/Event.entity'
 import Pm2Service from '../utils/pm2Service'
+import { Globals } from '../../globalVars'
 
 const noContentWiki = {
   id: 'no-content',
@@ -38,8 +39,6 @@ interface RankPageWiki {
 @Injectable()
 class MarketCapService {
   private RANK_LIMIT = 1000
-
-  private CACHE_KEY!: string
 
   private API_KEY: string
 
@@ -212,10 +211,10 @@ class MarketCapService {
     return allWikis as RankPageWiki[]
   }
 
-  async marketData(args: MarketCapInputs) {
+  async marketData(args: MarketCapInputs, reset = false) {
     const { kind } = args
 
-    const data = await this.cgMarketDataApiCall(args)
+    const data = await this.cgMarketDataApiCall(args, reset)
     const wikis = await this.getWikiData(data, kind)
 
     const processElement = (element: any, rankpageWiki: any) => {
@@ -285,6 +284,7 @@ class MarketCapService {
 
   async cgMarketDataApiCall(
     args: MarketCapInputs,
+    reset: boolean,
   ): Promise<Record<any, any> | undefined> {
     const { kind, category, limit, offset } = args
     const categoryParam = category ? `category=${category}&` : ''
@@ -296,18 +296,23 @@ class MarketCapService {
     const pageToFetch = offset ? Math.ceil(offset / perPage) + 1 : 1
 
     const allData = []
-
+    let url
     try {
       for (let page = pageToFetch; page <= totalPages; page += 1) {
-        const url =
+        url =
           kind === RankType.TOKEN
             ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${perPage}&page=${page}`
             : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${perPage}&page=${page}`
 
+        if (reset) {
+          await this.cacheManager.del(url)
+        }
+
         const finalCachedResult: any | undefined = await this.cacheManager.get(
           url,
         )
-        if (finalCachedResult) {
+
+        if (finalCachedResult && !reset) {
           allData.push(...finalCachedResult)
           break
         } else {
@@ -321,7 +326,6 @@ class MarketCapService {
           if (response?.data) {
             allData.push(...response.data)
             await this.cacheManager.set(url, allData, { ttl: 180 })
-            this.CACHE_KEY = url
           }
         }
         if (allData.length >= limit) {
@@ -331,7 +335,7 @@ class MarketCapService {
     } catch (err: any) {
       console.error(err.message)
     }
-
+    Globals.REFRESH_CACHE_KEY = url as string
     return allData.slice(0, this.RANK_LIMIT)
   }
 
@@ -396,24 +400,26 @@ class MarketCapService {
         })
       }
 
-      await this.marketData({
-        kind,
-        limit,
-        offset,
-      })
-
-      console.log('=====', { kind, limit, offset }, '=====')
-
-      const recentlyUpdatedCache: any | undefined = await this.cacheManager.get(
-        this.CACHE_KEY,
+      const result = await this.marketData(
+        {
+          kind,
+          limit,
+          offset,
+        },
+        true,
       )
-      if (recentlyUpdatedCache && Number(process.env.pm_id)) {
-        this.pm2Service.sendDataToProcesses(
-          'ep-api',
-          'updateCache',
-          { data: recentlyUpdatedCache, key: this.CACHE_KEY },
-          Number(process.env.pm_id),
-        )
+
+      if (result) {
+        const recentlyUpdatedCache: any | undefined =
+          await this.cacheManager.get(Globals.REFRESH_CACHE_KEY)
+        if (recentlyUpdatedCache && Number(process.env.pm_id)) {
+          this.pm2Service.sendDataToProcesses(
+            'ep-api',
+            'updateCache',
+            { data: recentlyUpdatedCache, key: Globals.REFRESH_CACHE_KEY },
+            Number(process.env.pm_id),
+          )
+        }
       }
 
       return true

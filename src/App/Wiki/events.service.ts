@@ -105,7 +105,7 @@ class EventsService {
 
       const titleFilter = args.title
         ? `
-         AND LOWER("wiki"."title") LIKE '%${args.title}%'
+         AND LOWER("wiki"."title") LIKE LOWER('%${args.title}%')
       `
         : ''
 
