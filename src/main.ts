@@ -76,7 +76,7 @@ async function bootstrapApplication() {
       } else {
         pm2Service.sendDataToProcesses(
           'ep-api',
-          'updateCache',
+          'updateCache [marketCapSearch]',
           { data: cacheData, key },
           Number(process.env.pm_id),
         )

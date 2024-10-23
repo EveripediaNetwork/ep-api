@@ -393,7 +393,7 @@ class MarketCapService {
 
         this.pm2Service.sendDataToProcesses(
           'ep-api',
-          'deleteCache',
+          'deleteCache [linkWikiToRank]',
           {
             keys: [existingRecord.wikiId, existingRecord.coingeckoId],
           },
@@ -425,7 +425,7 @@ class MarketCapService {
         if (recentlyUpdatedCache && Number(process.env.pm_id)) {
           this.pm2Service.sendDataToProcesses(
             'ep-api',
-            'updateCache',
+            'updateCache [linkWikiToRank]',
             { data: recentlyUpdatedCache, key: Globals.REFRESH_CACHE_KEY },
             Number(process.env.pm_id),
           )
