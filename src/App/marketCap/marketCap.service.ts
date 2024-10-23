@@ -98,20 +98,20 @@ class MarketCapService {
 
       const wikiResult =
         (await wikiQuery
-          .andWhere(
-            `EXISTS (
-        SELECT 1
-        FROM json_array_elements(wiki.metadata) AS meta
-        WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = :url
-      )`,
-            { url: coingeckoProfileUrl },
-          )
-          .where('wiki.id = :id AND wiki.hidden = false', { id })
-          .getOne()) ||
-        (await wikiQuery
           .where('wiki.id = :id AND wiki.hidden = false', {
             id: noCategoryId,
           })
+          .getOne()) ||
+        (await wikiQuery
+          .andWhere(
+            `EXISTS (
+                    SELECT 1
+                    FROM json_array_elements(wiki.metadata) AS meta
+                    WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = :url
+            )`,
+            { url: coingeckoProfileUrl },
+          )
+          .where('wiki.id = :id AND wiki.hidden = false', { id })
           .getOne()) ||
         (await wikiQuery
           .innerJoin(
@@ -203,7 +203,7 @@ class MarketCapService {
 
         allWikis.push(...batchWikis)
         if (delay) {
-          await new Promise((r) => setTimeout(r, 2000))
+          await new Promise(r => setTimeout(r, 2000))
         }
       }
     }
@@ -390,6 +390,15 @@ class MarketCapService {
       if (existingRecord) {
         await this.cacheManager.del(existingRecord.wikiId)
         await this.cacheManager.del(existingRecord.coingeckoId)
+
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'deleteCache',
+          {
+            keys:  [existingRecord.wikiId, existingRecord.coingeckoId],
+          },
+          Number(process.env.pm_id),
+        )
         await marketCapIdRepository.update(existingRecord, {
           wikiId,
         })

@@ -60,6 +60,11 @@ async function bootstrapApplication() {
         ttl: packet.data.ttl || 300,
       })
     }
+    if (packet.topic === 'deleteCache') {
+      for (const key of packet.data.keys) {
+        await cacheManager.del(key)
+      }
+    }
 
     if (packet.topic === 'buildSearchData') {
       const key = 'marketCapSearch'

@@ -27,7 +27,10 @@ class Pm2Service implements OnModuleInit {
     ignoreId?: number,
   ) {
     for (const [k, v] of this.pm2Ids) {
-      if (k !== 0 && k !== ignoreId && v === processName) {
+      if (
+        v === processName &&
+        ((ignoreId && k !== ignoreId) || (k !== 0 && !ignoreId))
+      ) {
         const processId = k
         pm2.connect((err: unknown) => {
           if (err) {
@@ -44,11 +47,13 @@ class Pm2Service implements OnModuleInit {
             () => {
               if (err) {
                 console.error(
-                  `Error sending data to process ${processId}:`,
+                  `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
                   err,
                 )
               } else {
-                console.log(`Data successfully sent to process ${processId}`)
+                console.log(
+                  `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
+                )
               }
             },
           )
