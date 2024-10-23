@@ -203,7 +203,7 @@ class MarketCapService {
 
         allWikis.push(...batchWikis)
         if (delay) {
-          await new Promise(r => setTimeout(r, 2000))
+          await new Promise((r) => setTimeout(r, 2000))
         }
       }
     }
@@ -395,7 +395,7 @@ class MarketCapService {
           'ep-api',
           'deleteCache',
           {
-            keys:  [existingRecord.wikiId, existingRecord.coingeckoId],
+            keys: [existingRecord.wikiId, existingRecord.coingeckoId],
           },
           Number(process.env.pm_id),
         )
