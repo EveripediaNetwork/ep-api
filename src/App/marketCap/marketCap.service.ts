@@ -303,7 +303,6 @@ class MarketCapService {
           kind === RankType.TOKEN
             ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${perPage}&page=${page}`
             : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${perPage}&page=${page}`
-
         if (reset) {
           await this.cacheManager.del(url)
         }
@@ -389,6 +388,8 @@ class MarketCapService {
       })
 
       if (existingRecord) {
+        await this.cacheManager.del(existingRecord.wikiId)
+        await this.cacheManager.del(existingRecord.coingeckoId)
         await marketCapIdRepository.update(existingRecord, {
           wikiId,
         })
