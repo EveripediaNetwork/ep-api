@@ -42,6 +42,10 @@ class MarketCapService {
 
   private API_KEY: string
 
+  private INCOMING_WIKI_ID!: string
+
+  private CACHED_WIKI!: RankPageWiki
+
   private RANK_LIST = 'default-list'
 
   private RANK_STABLECOINS_LIST = 'stablecoins-list'
@@ -171,6 +175,10 @@ class MarketCapService {
       const wiki = wikiResult && { ...wikiResult, events }
 
       const result = { wiki, founders, blockchain }
+
+      if (this.INCOMING_WIKI_ID === wiki?.id) {
+        this.CACHED_WIKI = result as RankPageWiki
+      }
 
       await this.cacheManager.set(id, result, {
         ttl: 3600,
@@ -381,6 +389,7 @@ class MarketCapService {
 
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
     const { offset, limit, kind, coingeckoId, wikiId } = args
+    this.INCOMING_WIKI_ID = wikiId
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
     try {
       const existingRecord = await marketCapIdRepository.findOne({
@@ -410,7 +419,7 @@ class MarketCapService {
         })
       }
 
-      const result = await this.marketData(
+      await this.marketData(
         {
           kind,
           limit,
@@ -419,17 +428,13 @@ class MarketCapService {
         true,
       )
 
-      if (result) {
-        const recentlyUpdatedCache: any | undefined =
-          await this.cacheManager.get(Globals.REFRESH_CACHE_KEY)
-        if (recentlyUpdatedCache && Number(process.env.pm_id)) {
-          this.pm2Service.sendDataToProcesses(
-            'ep-api',
-            'updateCache [linkWikiToRank]',
-            { data: recentlyUpdatedCache, key: Globals.REFRESH_CACHE_KEY },
-            Number(process.env.pm_id),
-          )
-        }
+      if (Number(process.env.pm_id) && this.CACHED_WIKI) {
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'updateCache [linkWikiToRank]',
+          { data: this.CACHED_WIKI, key: this.INCOMING_WIKI_ID },
+          Number(process.env.pm_id),
+        )
       }
 
       return true
