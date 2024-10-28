@@ -382,6 +382,7 @@ class MarketCapService {
       } else {
         await marketCapIdRepository.insert({
           ...args,
+          linked: false,
         })
       }
       return true

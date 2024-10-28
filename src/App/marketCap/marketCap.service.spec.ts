@@ -22,15 +22,24 @@ describe('MarketCapService', () => {
 
   beforeEach(async () => {
     dataSource = {
-      getRepository: jest.fn().mockReturnValue({
-        findOne: jest.fn(),
-        save: jest.fn(),
+      getRepository: jest.fn((entity) => {
+        if (entity === Wiki) return wikiRepository
+        if (entity === MarketCapIds) return marketCapIdRepository
+        return {} as any
       }),
     }
 
     httpService = {
-      get: jest.fn(() => of({ data: 'mocked response' })),
-    }
+      get: jest.fn(() =>
+        of({
+          data: 'mocked response',
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        }),
+      ),
+    } as any
 
     configService = {
       get: jest.fn(),
@@ -64,6 +73,7 @@ describe('MarketCapService', () => {
       where: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
       getOne: jest.fn(),
+      findOne: jest.fn(),
     } as any
 
     marketCapService = module.get<MarketCapService>(MarketCapService)
@@ -75,13 +85,9 @@ describe('MarketCapService', () => {
 
     marketCapIdRepository = {
       findOne: jest.fn(),
+      update: jest.fn(),
+      insert: jest.fn(),
     } as any
-
-    dataSource.getRepository.mockImplementation((entity) => {
-      if (entity === Wiki) return wikiRepository
-      if (entity === MarketCapIds) return marketCapIdRepository
-      return {} as any
-    })
   })
 
   it('should be defined', () => {
@@ -165,7 +171,7 @@ describe('MarketCapService', () => {
       const cachedData = [{ id: 'bitcoin', name: 'Bitcoin' }]
       cacheManager.get.mockResolvedValue(cachedData)
 
-      const result = await marketCapService['cgMarketDataApiCall']({
+      const result = await marketCapService.cgMarketDataApiCall({
         kind: RankType.TOKEN,
         category: TokenCategory.STABLE_COINS,
         limit: 10,
@@ -226,37 +232,47 @@ describe('MarketCapService', () => {
   })
 
   describe('updateMistachIds', () => {
-    it('should update existing record', async () => {
+    it('should update existing record and delete from cache', async () => {
       const mockArgs = {
         coingeckoId: 'iqcoin',
         wikiId: 'wiki1',
         kind: RankType.TOKEN,
       }
 
-      marketCapIdRepository.findOne.mockResolvedValue({ coingeckoId: 'iqcoin' })
-      marketCapIdRepository.update = jest.fn()
+      marketCapIdRepository.findOne.mockResolvedValue({
+        coingeckoId: 'iqcoin',
+        wikiId: 'old-wiki',
+        kind: RankType.TOKEN,
+        linked: false,
+      })
 
       const result = await marketCapService.updateMistachIds(mockArgs)
 
       expect(result).toBeDefined()
       expect(result).toBe(true)
-      expect(marketCapIdRepository.update).toHaveBeenCalled()
+      expect(marketCapIdRepository.update).toHaveBeenCalledWith(
+        { coingeckoId: mockArgs.coingeckoId },
+        mockArgs,
+      )
     })
 
-    it('should insert new record if it does not exist', async () => {
+    it('should insert new record if it does not exist and delete from cache', async () => {
       const mockArgs = {
         coingeckoId: 'iqcoin2',
         wikiId: 'wiki2',
         kind: RankType.TOKEN,
       }
+
       marketCapIdRepository.findOne.mockResolvedValue(null)
-      marketCapIdRepository.insert = jest.fn()
 
       const result = await marketCapService.updateMistachIds(mockArgs)
 
       expect(result).toBeDefined()
       expect(result).toBe(true)
-      expect(marketCapIdRepository.insert).toHaveBeenCalled()
+      expect(marketCapIdRepository.insert).toHaveBeenCalledWith({
+        ...mockArgs,
+        linked: false,
+      })
     })
   })
 
@@ -271,6 +287,8 @@ describe('MarketCapService', () => {
       const result = await marketCapService.wildcardSearch({
         kind: RankType.TOKEN,
         search: 'bit',
+        limit: 2,
+        offset: 10,
       })
 
       expect(result).toEqual([mockRanks[0]])
