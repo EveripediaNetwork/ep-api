@@ -9,7 +9,7 @@ import { catchError, firstValueFrom } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
 import { AxiosError } from 'axios'
 import WikiAbi from '../utils/wiki.abi'
-import USER_ACTIVITY_LIMIT from '../../globalVars'
+import { USER_ACTIVITY_LIMIT } from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
 import AppService from '../../App/app.service'
 

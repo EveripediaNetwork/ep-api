@@ -3,11 +3,13 @@
 
 import { ArgsType, Field } from '@nestjs/graphql'
 import LinkedWikis from './ILinkedWikis'
+import Events from '../Event.entity'
 
 export interface IWiki {
   id: string
   title: string
   linkedWikis: LinkedWikis
+  events: Events
 }
 
 @ArgsType()

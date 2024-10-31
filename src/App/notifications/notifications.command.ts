@@ -1,5 +1,5 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
-import { DataSource } from 'typeorm'
+import { DataSource, ILike } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { CACHE_MANAGER, Inject } from '@nestjs/common'
 import Subscription from '../../Database/Entities/IqSubscription'
@@ -116,24 +116,26 @@ class NotificationsCommand implements CommandRunner {
 
       for (const user of users) {
         const random = this.randomWikis(4, moreWikis, wiki.id)
-        const { email } = await userRepository.findOneOrFail({
-          where: { id: user.userId },
+        const userProfile = await userRepository.findOne({
+          where: { id: ILike(user.userId) },
         })
-        try {
-          const status = await this.mailer.sendIqUpdate(
-            email as string,
-            wiki.id,
-            wiki.title,
-            wiki.images[0].id,
-            random,
-          )
-          if (status) {
-            console.log('✅ Notification sent! ')
-          }
+        if (userProfile?.email) {
+          try {
+            const status = await this.mailer.sendIqUpdate(
+              userProfile.email as string,
+              wiki.id,
+              wiki.title,
+              wiki.images[0].id,
+              random,
+            )
+            if (status) {
+              console.log('✅ Notification sent! ')
+            }
 
-          await new Promise((r) => setTimeout(r, SLEEP_TIME))
-        } catch (ex) {
-          console.error(ex)
+            await new Promise((r) => setTimeout(r, SLEEP_TIME))
+          } catch (ex) {
+            console.error(ex)
+          }
         }
       }
       await notificationRepository

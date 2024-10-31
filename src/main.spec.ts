@@ -9,7 +9,6 @@ import AppModule from './App/app.module'
 import bootstrapApplication from './main'
 
 jest.mock('@nestjs/core')
-jest.mock('@nestjs/config')
 jest.mock('fs')
 jest.mock('@sentry/node')
 jest.mock('express-rate-limit')
