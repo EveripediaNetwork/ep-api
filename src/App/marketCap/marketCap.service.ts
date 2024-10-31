@@ -385,6 +385,7 @@ class MarketCapService {
           linked: false,
         })
       }
+      await this.cacheManager.del(`mismatch-${args.coingeckoId}`)
       return true
     } catch (e) {
       console.error('Error in updateMistachIds:', e)

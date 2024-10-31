@@ -50,6 +50,7 @@ describe('MarketCapService', () => {
     cacheManager = {
       get: jest.fn(),
       set: jest.fn(),
+      del: jest.fn(),
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -246,6 +247,7 @@ describe('MarketCapService', () => {
         linked: false,
       })
 
+      cacheManager.del.mockResolvedValue(undefined)
       const result = await marketCapService.updateMistachIds(mockArgs)
 
       expect(result).toBeDefined()
@@ -254,6 +256,7 @@ describe('MarketCapService', () => {
         { coingeckoId: mockArgs.coingeckoId },
         mockArgs,
       )
+    expect(cacheManager.del).toHaveBeenCalledWith(`mismatch-${mockArgs.coingeckoId}`)
     })
 
     it('should insert new record if it does not exist and delete from cache', async () => {
@@ -265,6 +268,7 @@ describe('MarketCapService', () => {
 
       marketCapIdRepository.findOne.mockResolvedValue(null)
 
+      cacheManager.del.mockResolvedValue(undefined)
       const result = await marketCapService.updateMistachIds(mockArgs)
 
       expect(result).toBeDefined()
@@ -273,6 +277,7 @@ describe('MarketCapService', () => {
         ...mockArgs,
         linked: false,
       })
+    expect(cacheManager.del).toHaveBeenCalledWith(`mismatch-${mockArgs.coingeckoId}`)
     })
   })
 
