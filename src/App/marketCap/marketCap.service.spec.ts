@@ -256,7 +256,9 @@ describe('MarketCapService', () => {
         { coingeckoId: mockArgs.coingeckoId },
         mockArgs,
       )
-    expect(cacheManager.del).toHaveBeenCalledWith(`mismatch-${mockArgs.coingeckoId}`)
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `mismatch-${mockArgs.coingeckoId}`,
+      )
     })
 
     it('should insert new record if it does not exist and delete from cache', async () => {
@@ -277,7 +279,9 @@ describe('MarketCapService', () => {
         ...mockArgs,
         linked: false,
       })
-    expect(cacheManager.del).toHaveBeenCalledWith(`mismatch-${mockArgs.coingeckoId}`)
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        `mismatch-${mockArgs.coingeckoId}`,
+      )
     })
   })
 
