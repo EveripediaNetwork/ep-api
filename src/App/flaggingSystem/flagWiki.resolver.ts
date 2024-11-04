@@ -1,6 +1,6 @@
 import { Args, ArgsType, Field, Mutation, Resolver } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 import FlagWikiService from './flagWiki.service'
 
 @ArgsType()

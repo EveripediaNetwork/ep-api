@@ -61,15 +61,14 @@ import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
-import EventsResolver from './Wiki/events.resolver'
 import TagRepository from './Tag/tag.repository'
 import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
 import BlogModule from './Blog/blog.module'
-import BlogResolver from './Blog/blog.resolver'
-import MirrorApiService from './Blog/mirrorApi.service'
+import MarketCapSearch from './marketCap/marketCapSearch.service'
+import Pm2Module from './utils/pm2Module'
 
 // istanbul ignore next
 @Module({
@@ -80,6 +79,7 @@ import MirrorApiService from './Blog/mirrorApi.service'
     CacheModule.register({ ttl: 3600, max: 10000, isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      installSubscriptionHandlers: true,
       debug: true,
       playground: true,
       introspection: process.env.NODE_ENV !== 'production',
@@ -115,6 +115,7 @@ import MirrorApiService from './Blog/mirrorApi.service'
     DiscordModule,
     BlogModule,
     SentryMod,
+    Pm2Module,
   ],
   controllers: [UploadController, WikiController],
   providers: [
@@ -147,12 +148,10 @@ import MirrorApiService from './Blog/mirrorApi.service'
     WikiSubscriptionService,
     MarketCapResolver,
     MarketCapService,
+    MarketCapSearch,
     SentryPlugin,
     BlogService,
-    EventsResolver,
     EventsService,
-    BlogResolver,
-    MirrorApiService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

@@ -1,11 +1,14 @@
 import { ObjectType } from '@nestjs/graphql'
-import { Entity, Column, PrimaryColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
 import { RankType } from '../../App/marketCap/marketcap.dto'
 
 @ObjectType()
 @Entity()
 class MarketCapIds {
-  @PrimaryColumn({ type: 'varchar' })
+  @PrimaryGeneratedColumn('uuid')
+  id!: string
+
+  @Column('varchar')
   wikiId!: string
 
   @Column({ type: 'varchar' })
@@ -19,7 +22,7 @@ class MarketCapIds {
 
   @Column({
     type: 'boolean',
-    default: true
+    default: true,
   })
   linked!: boolean
 }
