@@ -1,5 +1,9 @@
 import { ValidationArguments } from 'class-validator'
-import { ValidDateParams, ValidStringArrayParams, ValidStringParams } from '../customValidator'
+import {
+  ValidDateParams,
+  ValidStringArrayParams,
+  ValidStringParams,
+} from '../customValidator'
 
 describe('Validate', () => {
   let validStringParams: ValidStringParams
@@ -20,7 +24,6 @@ describe('Validate', () => {
     }
   })
 
-  
   it('should pass validation for valid string parameters', async () => {
     const isValid = await validStringParams.validate(
       'Valid String (with parentheses) ',
@@ -52,7 +55,10 @@ describe('Validate', () => {
       ]
 
       for (const input of validInputs) {
-        const result = await validStringParams.validate(input, mockValidationArguments)
+        const result = await validStringParams.validate(
+          input,
+          mockValidationArguments,
+        )
         expect(result).toBe(true)
       }
     })
@@ -67,26 +73,42 @@ describe('Validate', () => {
       ]
 
       for (const input of invalidInputs) {
-        const result = await validStringParams.validate(input, mockValidationArguments)
+        const result = await validStringParams.validate(
+          input,
+          mockValidationArguments,
+        )
         expect(result).toBe(false)
       }
     })
-    
+
     it('should return true for null and undefined inputs', async () => {
-      expect(await validStringParams.validate(null as any, mockValidationArguments)).toBe(true)
-      expect(await validStringParams.validate(undefined as any, mockValidationArguments)).toBe(true)
+      expect(
+        await validStringParams.validate(null as any, mockValidationArguments),
+      ).toBe(true)
+      expect(
+        await validStringParams.validate(
+          undefined as any,
+          mockValidationArguments,
+        ),
+      ).toBe(true)
     })
 
     it('should return true for strings with leading and trailing spaces', async () => {
       const input = '  Test123  '
-      const result = await validStringParams.validate(input, mockValidationArguments)
+      const result = await validStringParams.validate(
+        input,
+        mockValidationArguments,
+      )
       expect(result).toBe(true)
     })
 
     it('should handle single valid characters', async () => {
       const validSingleChars = ['a', '1', '-', '.', '/']
       for (const char of validSingleChars) {
-        const result = await validStringParams.validate(char, mockValidationArguments)
+        const result = await validStringParams.validate(
+          char,
+          mockValidationArguments,
+        )
         expect(result).toBe(true)
       }
     })
@@ -127,32 +149,53 @@ describe('Validate', () => {
       expect(result).toBe(true)
     })
   })
-  
+
   describe('ValidStringArrayParams', () => {
     it('should return true for an array of valid strings', async () => {
       const validArray = ['Hello', 'Test-123', 'Test/123', '123', '']
-      const result = await validStringArrayParams.validate(validArray, mockValidationArguments)
+      const result = await validStringArrayParams.validate(
+        validArray,
+        mockValidationArguments,
+      )
       expect(result).toBe(true)
     })
 
     it('should return false for an array with any invalid string', async () => {
       const invalidArray = ['Hello', 'Test😊123', 'Invalid@String']
-      const result = await validStringArrayParams.validate(invalidArray, mockValidationArguments)
+      const result = await validStringArrayParams.validate(
+        invalidArray,
+        mockValidationArguments,
+      )
       expect(result).toBe(false)
     })
 
     it('should return true for an empty array', async () => {
-      const result = await validStringArrayParams.validate([], mockValidationArguments)
+      const result = await validStringArrayParams.validate(
+        [],
+        mockValidationArguments,
+      )
       expect(result).toBe(true)
     })
 
     it('should return true for a null or undefined array', async () => {
-      expect(await validStringArrayParams.validate(null as any, mockValidationArguments)).toBe(true)
-      expect(await validStringArrayParams.validate(undefined as any, mockValidationArguments)).toBe(true)
+      expect(
+        await validStringArrayParams.validate(
+          null as any,
+          mockValidationArguments,
+        ),
+      ).toBe(true)
+      expect(
+        await validStringArrayParams.validate(
+          undefined as any,
+          mockValidationArguments,
+        ),
+      ).toBe(true)
     })
 
     it('should return the default error message', () => {
-      const message = validStringArrayParams.defaultMessage(mockValidationArguments)
+      const message = validStringArrayParams.defaultMessage(
+        mockValidationArguments,
+      )
       expect(message).toBe('Invalid string parameters')
     })
   })
@@ -161,16 +204,26 @@ describe('Validate', () => {
     it('should return true for valid date strings in YYYY-MM-DD format', async () => {
       const validDates = ['2024-01-01', '1999-12-31', '2020-02-29']
       for (const date of validDates) {
-        const result = await validDateParams.validate(date, mockValidationArguments)
+        const result = await validDateParams.validate(
+          date,
+          mockValidationArguments,
+        )
         expect(result).toBe(true)
       }
     })
 
     it('should return true for null or undefined dates', async () => {
-      expect(await validDateParams.validate(null as any, mockValidationArguments)).toBe(true)
-      expect(await validDateParams.validate(undefined as any, mockValidationArguments)).toBe(true)
+      expect(
+        await validDateParams.validate(null as any, mockValidationArguments),
+      ).toBe(true)
+      expect(
+        await validDateParams.validate(
+          undefined as any,
+          mockValidationArguments,
+        ),
+      ).toBe(true)
     })
-    
+
     it('should return the default error message for invalid date strings', () => {
       const message = validDateParams.defaultMessage(mockValidationArguments)
       expect(message).toBe('Invalid date string parameters')
