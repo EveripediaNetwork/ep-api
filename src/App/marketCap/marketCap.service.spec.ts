@@ -96,7 +96,7 @@ describe('MarketCapService', () => {
     pm2Service = {
       onModuleInit: jest.fn().mockResolvedValue(undefined),
       sendDataToProcesses: jest.fn().mockResolvedValue(undefined),
-      pm2Ids: new Map()
+      pm2Ids: new Map(),
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -127,10 +127,10 @@ describe('MarketCapService', () => {
 
   describe('findWiki', () => {
     it('should return cached wiki if available', async () => {
-      const cachedWiki = { 
+      const cachedWiki = {
         wiki: { id: 'test-id', title: 'Test Wiki' },
         founders: [],
-        blockchain: []
+        blockchain: [],
       }
       cacheManager.get.mockResolvedValue(cachedWiki)
 
@@ -147,10 +147,7 @@ describe('MarketCapService', () => {
   describe('getWikiData', () => {
     it('should return wiki data for given coins', async () => {
       const coinsData = [{ id: 'iqcoin' }, { id: 'iqcoin2' }]
-      const wikiData = [
-        { wiki: { id: 'iqcoin' } },
-        { wiki: { id: 'iqcoin' } },
-      ]
+      const wikiData = [{ wiki: { id: 'iqcoin' } }, { wiki: { id: 'iqcoin' } }]
       ;(marketCapService as any).findWiki = jest
         .fn()
         .mockResolvedValueOnce(wikiData[0])
@@ -187,7 +184,6 @@ describe('MarketCapService', () => {
   })
 
   describe('cgMarketDataApiCall', () => {
-    const mockSingleResponse = { id: 'bitcoin', name: 'Bitcoin' }
     it('should return cached data if available', async () => {
       const cachedData = [{ id: 'bitcoin', name: 'Bitcoin' }]
       cacheManager.get.mockResolvedValue(cachedData)
@@ -199,7 +195,7 @@ describe('MarketCapService', () => {
           limit: 10,
           offset: 0,
         },
-        false
+        false,
       )
 
       expect(result).toEqual(cachedData)
@@ -265,17 +261,17 @@ describe('MarketCapService', () => {
         offset: 0,
         limit: 10,
       }
-  
+
       const existingRecord = {
         coingeckoId: 'test-coin',
-        wikiId: 'old-wiki'
+        wikiId: 'old-wiki',
       }
-  
+
       marketCapIdRepository.findOne.mockResolvedValue(existingRecord)
       jest.spyOn(marketCapService, 'marketData').mockResolvedValue([])
-  
+
       const result = await marketCapService.updateMistachIds(mockArgs)
-  
+
       expect(result).toBe(true)
       expect(cacheManager.del).toHaveBeenCalledWith('old-wiki')
       expect(cacheManager.del).toHaveBeenCalledWith('test-coin')
@@ -289,13 +285,13 @@ describe('MarketCapService', () => {
         offset: 0,
         limit: 10,
       }
-  
+
       marketCapIdRepository.findOne.mockResolvedValue(null)
       marketCapIdRepository.insert.mockResolvedValue(undefined)
       jest.spyOn(marketCapService, 'marketData').mockResolvedValue([])
-  
+
       const result = await marketCapService.updateMistachIds(mockArgs)
-  
+
       expect(result).toBe(true)
       expect(marketCapIdRepository.insert).toHaveBeenCalledWith({
         coingeckoId: mockArgs.coingeckoId,
@@ -310,8 +306,8 @@ describe('MarketCapService', () => {
       const data = {
         tokens: [
           { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
-          { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } }
-        ]
+          { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
+        ],
       }
       cacheManager.get.mockResolvedValue(data)
 
@@ -319,7 +315,7 @@ describe('MarketCapService', () => {
         kind: RankType.TOKEN,
         search: 'bit',
         limit: 2,
-        offset: 0
+        offset: 0,
       })
 
       expect(result).toEqual([data.tokens[0]])
@@ -330,7 +326,7 @@ describe('MarketCapService', () => {
         kind: RankType.TOKEN,
         search: '',
         limit: 2,
-        offset: 0
+        offset: 0,
       })
       expect(result).toEqual([])
     })
@@ -341,7 +337,7 @@ describe('MarketCapService', () => {
         kind: RankType.TOKEN,
         search: 'test',
         limit: 2,
-        offset: 0
+        offset: 0,
       })
       expect(result).toEqual([])
     })
