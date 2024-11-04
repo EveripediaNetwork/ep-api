@@ -1,7 +1,7 @@
 import { ArgsType, Field } from '@nestjs/graphql'
 import { IsNumber, IsString, Validate } from 'class-validator'
 import PaginationArgs from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 
 class BrainPassDto {
   @IsNumber()

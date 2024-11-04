@@ -10,6 +10,7 @@ import {
 import { UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { DataSource } from 'typeorm'
+import gql from 'graphql-tag'
 import Wiki from '../../Database/Entities/wiki.entity'
 import AuthGuard from '../utils/admin.guard'
 import { SlugResult } from '../utils/validSlug'
@@ -21,6 +22,10 @@ import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
   CategoryArgs,
+  EventArgs,
+  eventTag,
+  ExplorerArgs,
+  hasField,
   LangArgs,
   PromoteWikiArgs,
   TitleArgs,
@@ -33,17 +38,21 @@ import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
 import { eventWiki } from '../Tag/tag.dto'
-import Explorer from '../../Database/Entities/explorer.entity'
-import PaginationArgs from '../pagination.args'
+import Explorer, {
+  ExplorerCount,
+} from '../../Database/Entities/explorer.entity'
+import Events from '../../Database/Entities/Event.entity'
+import EventsService from './events.service'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => Wiki)
 class WikiResolver {
   constructor(
     private dataSource: DataSource,
-    private revalidate: RevalidatePageService,
-    private eventEmitter: EventEmitter2,
     private wikiService: WikiService,
+    private eventEmitter: EventEmitter2,
+    private revalidate: RevalidatePageService,
+    private readonly eventsService: EventsService,
   ) {}
 
   @Query(() => Wiki, { nullable: true })
@@ -52,8 +61,12 @@ class WikiResolver {
   }
 
   @Query(() => [Wiki])
-  async wikis(@Args() args: LangArgs) {
-    return this.wikiService.getWikis(args)
+  async wikis(
+    @Args() args: LangArgs,
+    @Args('featuredEvents', { type: () => Boolean, nullable: true })
+    featuredEvents: boolean,
+  ) {
+    return this.wikiService.getWikis(args, featuredEvents)
   }
 
   @Query(() => [Wiki])
@@ -118,8 +131,13 @@ class WikiResolver {
   }
 
   @Query(() => [Explorer])
-  async explorers(@Args() args: PaginationArgs) {
+  async explorers(@Args() args: ExplorerArgs) {
     return this.wikiService.getExplorers(args)
+  }
+
+  @Query(() => ExplorerCount)
+  async explorerCount(@Args() args: ExplorerArgs) {
+    return this.wikiService.countExplorers(args)
   }
 
   @Mutation(() => Explorer, { nullable: true })
@@ -148,15 +166,10 @@ class WikiResolver {
 
   @Mutation(() => Wiki, { nullable: true })
   @UseGuards(AuthGuard)
-  async hideWiki(
-    @Args() args: ByIdArgs,
-    @Context() ctx: any,
-    @Args('featuredEvents', { type: () => Boolean, defaultValue: false })
-    featuredEvents: boolean,
-  ) {
+  async hideWiki(@Args() args: ByIdArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.id
 
-    const wiki = await this.wikiService.hideWiki(args, featuredEvents)
+    const wiki = await this.wikiService.hideWiki(args)
     const tags = (await wiki?.tags) || []
     if (wiki) {
       await this.revalidate.revalidatePage(
@@ -234,6 +247,46 @@ class WikiResolver {
     return this.wikiService.getFullLinkedWikis(
       wiki.linkedWikis.blockchains as string[],
     )
+  }
+
+  @Query(() => [Wiki], { nullable: true })
+  async eventWikis(@Args() args: EventArgs, @Context() context: any) {
+    const { req } = context
+    const { query } = req.body
+
+    const events = await this.eventsService.events(
+      [eventTag, ...(args.tagIds || [])],
+      args,
+    )
+
+    const resolvedEvents = await this.eventsService.resolveWikiRelations(
+      events,
+      query,
+    )
+
+    return resolvedEvents
+  }
+
+  @Query(() => Count)
+  async totalEventWikis(@Args() args: EventArgs) {
+    const [amount] = await this.eventsService.events(['events'], args, true)
+    return amount
+  }
+
+  @ResolveField(() => [Events], { nullable: true })
+  async events(@Parent() wiki: IWiki, @Context() context: any) {
+    const { req } = context
+    const { query } = req.body
+
+    const ast = gql`
+      ${query}
+    `
+    const isEventWikis = hasField(ast, 'eventWikis')
+
+    if (!isEventWikis) {
+      return this.wikiService.events(wiki.id)
+    }
+    return wiki.events as unknown as Events[]
   }
 }
 

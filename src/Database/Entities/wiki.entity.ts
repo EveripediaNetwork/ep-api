@@ -13,8 +13,6 @@ import {
   AfterUpdate,
   Index,
   Relation,
-  JoinColumn,
-  OneToMany,
 } from 'typeorm'
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 
@@ -129,14 +127,8 @@ class Wiki {
   @Column('json', { nullable: true })
   linkedWikis?: LinkedWikis
 
-  //   @Field(() => [Events], { nullable: true })
-  @Column('json', { nullable: true })
+  @Field(() => [Events], { nullable: true })
   events?: Events[]
-
-  @Field(() => [Events], { nullable: true, name: 'events' })
-  @OneToMany(() => Events, events => events.wiki, { lazy: true })
-  @JoinColumn({ name: 'wikiId' })
-  wikiEvents!: Relation<Events>[]
 
   @Field(() => [Image])
   @Column('json', { nullable: true })

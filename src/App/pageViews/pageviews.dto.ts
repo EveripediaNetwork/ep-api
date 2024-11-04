@@ -7,7 +7,7 @@ import {
 } from '@nestjs/graphql'
 import { Min, Max, Validate } from 'class-validator'
 import { OrderArgs } from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 import { OrderBy, IntervalByDays } from '../general.args'
 
 @ObjectType()
