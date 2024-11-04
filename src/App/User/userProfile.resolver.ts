@@ -66,12 +66,15 @@ class UserProfileResolver {
   async wikisCreated(
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
+    @Context() context: any,
   ) {
+    const { query } = context.req.body
     return this.userService.userWikis(
       'wikis created',
       user?.id as string,
       args.limit,
       args.offset,
+      query,
     )
   }
 
@@ -79,12 +82,15 @@ class UserProfileResolver {
   async wikisEdited(
     @Parent() user: GetProfileArgs,
     @Args() args: PaginationArgs,
+    @Context() context: any,
   ) {
+    const { query } = context.req.body
     return this.userService.userWikis(
       'wikis edited',
       user?.id as string,
       args.limit,
       args.offset,
+      query,
     )
   }
 

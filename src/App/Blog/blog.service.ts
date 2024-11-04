@@ -217,6 +217,16 @@ class BlogService {
         return acc
       }, [])
   }
+
+  async getBlogSuggestions(limit: number): Promise<Blog[]> {
+    const getAllBlogs = await this.getBlogsFromAccounts()
+
+    const randomBlog = getAllBlogs.sort(() => 0.5 - Math.random())
+
+    const minMaxLimit = Math.min(Math.max(limit, 1), 3)
+
+    return randomBlog.slice(0, minMaxLimit)
+  }
 }
 
 export default BlogService
