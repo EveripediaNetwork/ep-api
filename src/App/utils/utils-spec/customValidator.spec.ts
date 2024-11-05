@@ -32,7 +32,7 @@ describe('Validate', () => {
       )
       expect(isValid).toBe(true)
     })
-  
+
     it('should fail validation for invalid string parameters', async () => {
       const isValid = await validStringParams.validate(
         'Invalid$String[]@{Characters',
@@ -101,12 +101,7 @@ describe('Validate', () => {
     })
 
     it('should return true for strings with leading and trailing spaces', async () => {
-      const validInputs = [
-        ' Test123',
-        'Test123 ',
-        '  Test123  ',
-        ' Test-123 ',
-      ]
+      const validInputs = [' Test123', 'Test123 ', '  Test123  ', ' Test-123 ']
       for (const input of validInputs) {
         const result = await validStringParams.validate(
           input,
@@ -120,7 +115,7 @@ describe('Validate', () => {
       const message = validStringParams.defaultMessage(mockValidationArguments)
       expect(message).toBe('Invalid string parameters')
     })
-    
+
     it('should handle very long strings', async () => {
       const longValidString = `${'a'.repeat(1000)}123${'b'.repeat(1000)}`
       const result = await validStringParams.validate(
@@ -192,7 +187,12 @@ describe('Validate', () => {
 
   describe('validDateParams', () => {
     it('should return true for valid date strings in YYYY-MM-DD or YYYY/MM/DD format', async () => {
-      const validDates = ['2024-01-01', '1999/12/31', '2020-02-29', '1982/10/22']
+      const validDates = [
+        '2024-01-01',
+        '1999/12/31',
+        '2020-02-29',
+        '1982/10/22',
+      ]
       for (const date of validDates) {
         const result = await validDateParams.validate(
           date,
