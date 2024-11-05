@@ -24,33 +24,34 @@ describe('Validate', () => {
     }
   })
 
-  it('should pass validation for valid string parameters', async () => {
-    const isValid = await validStringParams.validate(
-      'Valid String (with parentheses) ',
-      null as any,
-    )
-    expect(isValid).toBe(true)
-  })
-
-  it('should fail validation for invalid string parameters', async () => {
-    const isValid = await validStringParams.validate(
-      'Invalid String $pecial[] {Characters',
-      null as any,
-    )
-    expect(isValid).toBe(false)
-  })
-
   describe('ValidStringParams', () => {
+    it('should pass validation for valid string parameters', async () => {
+      const isValid = await validStringParams.validate(
+        'Valid String-123',
+        null as any,
+      )
+      expect(isValid).toBe(true)
+    })
+  
+    it('should fail validation for invalid string parameters', async () => {
+      const isValid = await validStringParams.validate(
+        'Invalid$String[]@{Characters',
+        null as any,
+      )
+      expect(isValid).toBe(false)
+    })
     it('should return true for valid strings with alphanumeric characters', async () => {
       const validInputs = [
         'abc123',
         'ABC123',
         'Test123',
         'Hello World',
+        'Hello-World',
+        'Hello-World123',
+        'Hello-World 123',
         'Test-123',
-        'Test.123',
-        'Test/123',
-        'Test (123)',
+        'Test- 123',
+        'Test 123',
         '',
       ]
 
@@ -63,13 +64,19 @@ describe('Validate', () => {
       }
     })
 
-    it('should return false for strings with emoji or unicode characters', async () => {
+    it('should return false for strings with emoji, unicode or sepcial characters', async () => {
       const invalidInputs = [
         'Test😊123',
         'Test★123',
         'Test→123',
         'Test€123',
         'Test©123',
+        'Test.123',
+        'Test/123',
+        'Test(123)',
+        'Test@123',
+        'Test$123',
+        'Test#123',
       ]
 
       for (const input of invalidInputs) {
@@ -94,34 +101,26 @@ describe('Validate', () => {
     })
 
     it('should return true for strings with leading and trailing spaces', async () => {
-      const input = '  Test123  '
-      const result = await validStringParams.validate(
-        input,
-        mockValidationArguments,
-      )
-      expect(result).toBe(true)
-    })
-
-    it('should handle single valid characters', async () => {
-      const validSingleChars = ['a', '1', '-', '.', '/']
-      for (const char of validSingleChars) {
+      const validInputs = [
+        ' Test123',
+        'Test123 ',
+        '  Test123  ',
+        ' Test-123 ',
+      ]
+      for (const input of validInputs) {
         const result = await validStringParams.validate(
-          char,
+          input,
           mockValidationArguments,
         )
         expect(result).toBe(true)
       }
     })
-  })
 
-  describe('defaultMessage', () => {
     it('should return the default error message', () => {
       const message = validStringParams.defaultMessage(mockValidationArguments)
       expect(message).toBe('Invalid string parameters')
     })
-  })
-
-  describe('edge cases', () => {
+    
     it('should handle very long strings', async () => {
       const longValidString = `${'a'.repeat(1000)}123${'b'.repeat(1000)}`
       const result = await validStringParams.validate(
@@ -135,15 +134,6 @@ describe('Validate', () => {
       const multipleSpaces = 'Test   123    456'
       const result = await validStringParams.validate(
         multipleSpaces,
-        mockValidationArguments,
-      )
-      expect(result).toBe(true)
-    })
-
-    it('should handle strings with multiple special characters', async () => {
-      const validMultipleSpecial = 'Test-123/456 (789)'
-      const result = await validStringParams.validate(
-        validMultipleSpecial,
         mockValidationArguments,
       )
       expect(result).toBe(true)
@@ -201,8 +191,8 @@ describe('Validate', () => {
   })
 
   describe('validDateParams', () => {
-    it('should return true for valid date strings in YYYY-MM-DD format', async () => {
-      const validDates = ['2024-01-01', '1999-12-31', '2020-02-29']
+    it('should return true for valid date strings in YYYY-MM-DD or YYYY/MM/DD format', async () => {
+      const validDates = ['2024-01-01', '1999/12/31', '2020-02-29', '1982/10/22']
       for (const date of validDates) {
         const result = await validDateParams.validate(
           date,
