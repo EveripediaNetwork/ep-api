@@ -32,7 +32,7 @@ class Pm2Service implements OnModuleInit {
         ((ignoreId && k !== ignoreId) || (k !== 0 && !ignoreId))
       ) {
         const processId = k
-        await new Promise((r) => setTimeout(r, 300))
+        await new Promise((r) => setTimeout(r, 800))
         pm2.connect((err: unknown) => {
           if (err) {
             console.error('Error connecting to PM2:', err)

@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { CACHE_MANAGER, Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { OnEvent } from '@nestjs/event-emitter'
-import { Cron } from '@nestjs/schedule'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { PubSub } from 'graphql-subscriptions'
 import MarketCapService from './marketCap.service'
-import { MarketCapInputs, RankType } from './marketcap.dto'
+import { MarketCapInputs, RankType, TokenCategory } from './marketcap.dto'
 import Pm2Service from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 
@@ -39,7 +38,7 @@ class MarketCapSearch implements OnModuleInit {
   }
 
   @OnEvent('buildSearchData', { async: true })
-  @Cron('*/3 * * * *')
+  @Cron(CronExpression.EVERY_5_MINUTES)
   private async buildRankpageSearchData() {
     if (Globals.ROOT_PROCESS) {
       console.log('Fetching rankpage search data')
@@ -47,35 +46,62 @@ class MarketCapSearch implements OnModuleInit {
         kind: RankType.TOKEN,
       } as MarketCapInputs)
 
+      const stableCoins = await this.marketCapService.marketData({
+        kind: RankType.TOKEN,
+        category: TokenCategory.STABLE_COINS,
+      } as MarketCapInputs)
+
+      const aiTokens = await this.marketCapService.marketData({
+        kind: RankType.TOKEN,
+        category: TokenCategory.AI,
+      } as MarketCapInputs)
+
       const nfts = await this.marketCapService.marketData({
         kind: RankType.NFT,
       } as MarketCapInputs)
 
       const data = {
-        tokens,
         nfts,
+        tokens,
+        aiTokens,
+        stableCoins,
       }
+
+      const info = JSON.stringify(data)
+
       this.pm2Service.sendDataToProcesses(
         'ep-api',
         'updateCache [marketCapSearch]',
-        { data, key: 'marketCapSearch' },
+        {
+          data: info,
+          key: 'marketCapSearch',
+        },
         Number(process.env.pm_id),
       )
 
-      await this.cacheManager.set(
-        'marketCapSearch',
-        {
-          tokens,
-          nfts,
-        },
-        { ttl: 300 },
-      )
+      this.cacheManager.set('marketCapSearch', { tokens, data }, 300)
+
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,
       })
       console.log('Rankpage search data loaded successfully')
     } else {
       console.log('Rankpage search cache service not runnning')
+    }
+  }
+
+  @OnEvent('updateCache')
+  async setCacheData(payload: any) {
+    const data = JSON.parse(payload.data.data)
+    await this.cacheManager.set(payload.data.key, data, {
+      ttl: payload.data.ttl || 300,
+    })
+  }
+
+  @OnEvent('deleteCache')
+  async deleteCacheData(payload: any) {
+    for (const key of payload.data.keys) {
+      this.cacheManager.del(key)
     }
   }
 }
