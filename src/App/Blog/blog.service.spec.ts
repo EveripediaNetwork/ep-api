@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CACHE_MANAGER } from '@nestjs/common'
-import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import BlogService from './blog.service'
 import MirrorApiService from './mirrorApi.service'
@@ -8,269 +7,225 @@ import { Blog } from './blog.dto'
 
 describe('BlogService', () => {
   let blogService: BlogService
-  let cacheManager: Cache
-  // let configService: ConfigService
-  let mirrorApiService: MirrorApiService
+  let cacheManager: jest.Mocked<any>
+  let configService: jest.Mocked<ConfigService>
+  let mirrorApiService: jest.Mocked<MirrorApiService>
+
+  const blog: Blog = {
+    title: 'Title',
+    slug: 'slug',
+    body: '![cover](https://iq.wiki/image.jpg)\n\n**This** is the excerpt\n\nContent',
+    digest: 'digest',
+    contributor: 'contributor',
+    timestamp: 234567890,
+    image_sizes: 50,
+    cover_image: 'https://iq.wiki/image.jpg',
+    publisher: {
+      project: {
+        address: 'contributor',
+      },
+    },
+  }
 
   beforeEach(async () => {
+    cacheManager = {
+      get: jest.fn(),
+      set: jest.fn(),
+    }
+
+    configService = {
+      get: jest.fn().mockImplementation((key: string) => {
+        const config = {
+          EVERIPEDIA_BLOG_ACCOUNT2: 'account2',
+          EVERIPEDIA_BLOG_ACCOUNT3: 'account3',
+        }
+        return config[key]
+      }),
+    } as any
+
+    mirrorApiService = {
+      getBlogs: jest.fn(),
+      getBlog: jest.fn(),
+    } as any
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BlogService,
         {
           provide: CACHE_MANAGER,
-          useValue: {
-            get: jest.fn(),
-            set: jest.fn(),
-          },
+          useValue: cacheManager,
         },
         {
           provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockImplementation((key) => {
-              if (key === 'EVERIPEDIA_BLOG_ACCOUNT2') return 'account2'
-              if (key === 'EVERIPEDIA_BLOG_ACCOUNT3') return 'account3'
-              return null
-            }),
-          },
+          useValue: configService,
         },
         {
           provide: MirrorApiService,
-          useValue: {
-            getBlogs: jest.fn().mockResolvedValue([
-              {
-                title: 'title',
-                slug: 'slug',
-                body: 'body',
-                digest: 'digest',
-                contributor: 'contributor',
-                transaction: 'transaction',
-                timestamp: 1234567890,
-                cover_image: 'https://example.com/image.jpg',
-                image_sizes: 50,
-              },
-            ]),
-            getBlog: jest.fn().mockResolvedValue({
-              title: 'title',
-              slug: 'slug',
-              body: 'body',
-              digest: 'digest',
-              contributor: 'contributor',
-              transaction: 'transaction',
-              timestamp: 1234567890,
-              cover_image: 'https://example.com/image.jpg',
-              image_sizes: 50,
-            }),
-          },
+          useValue: mirrorApiService,
         },
       ],
     }).compile()
 
     blogService = module.get<BlogService>(BlogService)
-    cacheManager = module.get<Cache>(CACHE_MANAGER)
-    // configService = module.get<ConfigService>(ConfigService)
-    mirrorApiService = module.get<MirrorApiService>(MirrorApiService)
   })
-
-  it('should be defined', () => {
-    expect(blogService).toBeDefined()
-  })
-
-  describe('formatEntry', () => {
-    it('should format a blog entry with all provided fields', async () => {
-      const blog: Partial<Blog> = {
-        title: 'title',
-        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
-        digest: 'digest',
-        contributor: 'contributor',
-      }
-      const transactionId = '12345'
-      const timestamp = 1627849200
-
-      const result = await blogService.formatEntry(
-        blog,
-        transactionId,
-        timestamp,
-      )
-
-      expect(result).toEqual({
-        title: 'title',
-        slug: 'title',
-        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
-        digest: 'digest',
-        contributor: 'contributor',
-        transaction: transactionId,
-        cover_image: '',
-        timestamp,
-        image_sizes: 50,
-      })
-    })
-    it('should handle missing blog title gracefully', async () => {
-      const blog: Partial<Blog> = {
-        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
-        digest: 'digest',
-        contributor: 'contributor',
-      }
-      const transactionId = '12345'
-      const timestamp = 1627849200
-
-      const result = await blogService.formatEntry(
-        blog,
-        transactionId,
-        timestamp,
-      )
-
-      expect(result).toEqual({
-        title: '',
-        slug: '',
-        body: 'This is a test blog body.\n\n![Image](http://example.com/image.jpg)',
-        digest: 'digest',
-        contributor: 'contributor',
-        transaction: transactionId,
-        cover_image: '',
-        timestamp,
-        image_sizes: 50,
-      })
-    })
-  })
-
   describe('formatBlog', () => {
-    it('should format a blog correctly with body', () => {
-      const blog = {
-        title: ' Blog',
-        body: 'This is the body of the blog.\n\nThis is the excerpt.',
+    it('should format blog correctly with body', () => {
+      const formattedBlog = blogService.formatBlog(blog, true)
+
+      expect(formattedBlog).toEqual({
+        title: 'Title',
+        slug: 'Title',
+        body: '![cover](https://iq.wiki/image.jpg)\n\n**This** is the excerpt\n\nContent',
+        excerpt: 'This is the excerpt',
         digest: 'digest',
-        publisher: { project: { address: 'John Doe' } },
-        timestamp: 1234567890,
-      }
-
-      const result = blogService.formatBlog(blog as any, true)
-
-      expect(result.body).toBe(
-        'This is the body of the blog.\n\nThis is the excerpt.',
-      )
-      expect(result.excerpt).toBe('This is the excerpt.')
+        contributor: 'contributor',
+        timestamp: 234567890,
+        cover_image: 'https://iq.wiki/image.jpg',
+        image_sizes: 50,
+      })
     })
-    it('should handle null or undefined blog input gracefully', () => {
-      const result = blogService.formatBlog(null)
-      expect(result.title).toBe('')
-      expect(result.slug).toBe('')
-      expect(result.digest).toBe('')
-      expect(result.contributor).toBe('')
+
+    it('should format blog correctly without body', () => {
+      const formattedBlog = blogService.formatBlog(blog, false)
+
+      expect(formattedBlog).toEqual({
+        title: 'Title',
+        slug: 'Title',
+        digest: 'digest',
+        contributor: 'contributor',
+        timestamp: 234567890,
+        cover_image: 'https://iq.wiki/image.jpg',
+        image_sizes: 50,
+      })
     })
   })
 
   describe('getBlogsFromAccounts', () => {
-    it('should return blogs from cache if available', async () => {
-      const blogs: Blog[] = [
-        {
-          title: 'title',
-          slug: 'slug',
-          body: '',
-          digest: '',
-          contributor: '',
-          transaction: '',
-          timestamp: 0,
-          cover_image: '',
-          image_sizes: 50,
-        },
-      ]
-      jest.spyOn(cacheManager, 'get').mockResolvedValue(blogs)
+    it('should return cached blogs if available', async () => {
+      const cachedBlogs = [blog]
+      cacheManager.get.mockResolvedValue(cachedBlogs)
 
       const result = await blogService.getBlogsFromAccounts()
-      expect(result).toEqual(blogs)
+
+      expect(result).toEqual(cachedBlogs)
+      expect(cacheManager.get).toHaveBeenCalledWith('blog-cache')
+      expect(mirrorApiService.getBlogs).not.toHaveBeenCalled()
     })
 
-    it('should handle empty accounts array gracefully', async () => {
-      blogService.EVERIPEDIA_BLOG_ACCOUNT2 = null
-      blogService.EVERIPEDIA_BLOG_ACCOUNT3 = null
+    it('should fetch and cache blogs if cache is empty', async () => {
+      cacheManager.get.mockResolvedValue(null)
+      const mockBlogWithTimestamp = {
+        ...blog,
+        publishedAtTimestamp: 234567890,
+      }
+      mirrorApiService.getBlogs.mockResolvedValueOnce([mockBlogWithTimestamp])
+      mirrorApiService.getBlogs.mockResolvedValueOnce([])
 
-      const blogs = await blogService.getBlogsFromAccounts()
+      const result = await blogService.getBlogsFromAccounts()
 
-      expect(mirrorApiService.getBlogs).not.toHaveBeenCalled()
-      expect(blogs).toEqual([])
+      expect(result).toHaveLength(1)
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'blog-cache',
+        [
+          {
+            title: 'Title',
+            slug: 'Title',
+            body: '![cover](https://iq.wiki/image.jpg)\n\n**This** is the excerpt\n\nContent',
+            excerpt: 'This is the excerpt',
+            digest: 'digest',
+            contributor: 'contributor',
+            timestamp: 234567890,
+            cover_image: 'https://iq.wiki/image.jpg',
+            image_sizes: 50,
+          },
+        ],
+        { ttl: 7200 },
+      )
+    })
+
+    it('should handle errors when fetching blogs', async () => {
+      cacheManager.get.mockResolvedValue(null)
+      mirrorApiService.getBlogs.mockRejectedValue(new Error('API Error'))
+
+      const result = await blogService.getBlogsFromAccounts()
+
+      expect(result).toEqual([])
+      expect(cacheManager.set).toHaveBeenCalledWith('blog-cache', [], {
+        ttl: 7200,
+      })
+    })
+  })
+
+  describe('getBlogByDigest', () => {
+    it('should return blog from cache if available', async () => {
+      const cachedBlogs = [blog]
+      cacheManager.get.mockResolvedValue(cachedBlogs)
+
+      const result = await blogService.getBlogByDigest('digest')
+
+      expect(result).toBeDefined()
+      expect(result.digest).toBe('digest')
+      expect(mirrorApiService.getBlog).not.toHaveBeenCalled()
+    })
+
+    it('should fetch blog from API if not in cache', async () => {
+      cacheManager.get.mockResolvedValue([])
+      mirrorApiService.getBlog.mockResolvedValue(blog)
+
+      const result = await blogService.getBlogByDigest('digest')
+
+      expect(result).toBeDefined()
+      expect(result.digest).toBe('digest')
+      expect(mirrorApiService.getBlog).toHaveBeenCalledWith('digest')
     })
   })
 
   describe('getEntryPaths', () => {
-    it('should correctly map transactions to EntryPath objects when valid transactions are provided', async () => {
-      const rawTransactions = {
+    it('should transform transactions into entry paths', async () => {
+      const transactions = {
         transactions: {
           edges: [
             {
               node: {
-                id: '1',
-                block: { timestamp: 1234567890 },
-                tags: [{ name: 'Original-Content-Digest', value: 'digest1' }],
-              },
-            },
-            {
-              node: {
-                id: '2',
-                block: { timestamp: 1234567891 },
-                tags: [{ name: 'Original-Content-Digest', value: 'digest2' }],
+                id: 'transaction-id',
+                block: {
+                  timestamp: 234567890,
+                },
+                tags: [{ name: 'Original-Content-Digest', value: 'digest' }],
               },
             },
           ],
         },
       }
 
-      const result = await blogService.getEntryPaths(rawTransactions)
+      const result = await blogService.getEntryPaths(transactions)
 
       expect(result).toEqual([
-        { slug: 'digest1', path: '1', timestamp: 1234567890 },
-        { slug: 'digest2', path: '2', timestamp: 1234567891 },
+        {
+          slug: 'digest',
+          path: 'transaction-id',
+          timestamp: 234567890,
+        },
       ])
     })
 
-    it('should return an empty array when transactions have empty edges array', async () => {
-      const rawTransactions = {
+    it('should filter out entries without slugs', async () => {
+      const transactions = {
         transactions: {
-          edges: [],
+          edges: [
+            {
+              node: {
+                id: 'transaction-id',
+                block: {
+                  timestamp: 234567890,
+                },
+                tags: [],
+              },
+            },
+          ],
         },
       }
 
-      const result = await blogService.getEntryPaths(rawTransactions)
-
-      expect(result).toEqual([])
-    })
-  })
-
-  describe('mapEntry', () => {
-    it('should return an empty array when transactions have empty edges array', async () => {
-      const rawTransactions = {
-        transactions: {
-          edges: [],
-        },
-      }
-
-      const result = await blogService.getEntryPaths(rawTransactions)
-
-      expect(result).toEqual([])
-    })
-  })
-
-  describe('getBlogEntriesFormatted', () => {
-    it('should return formatted blog entries sorted by timestamp when entryPaths are provided', async () => {
-      const entryPaths = [{ path: 'path1' }, { path: 'path2' }]
-      jest.spyOn(blogService, 'mapEntry').mockImplementation(async (entry) => {
-        if (entry.path === 'path1') {
-          return { timestamp: 2, slug: 'slug1' }
-        } else {
-          return { timestamp: 1, slug: 'slug2' }
-        }
-      })
-
-      const result = await blogService.getBlogEntriesFormatted(entryPaths)
-
-      expect(result).toEqual([
-        { timestamp: 2, slug: 'slug1' },
-        { timestamp: 1, slug: 'slug2' },
-      ])
-    })
-    it('should return an empty array when entryPaths is empty', async () => {
-      const entryPaths = []
-
-      const result = await blogService.getBlogEntriesFormatted(entryPaths)
+      const result = await blogService.getEntryPaths(transactions)
 
       expect(result).toEqual([])
     })
