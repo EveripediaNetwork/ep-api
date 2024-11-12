@@ -1,4 +1,4 @@
-import { Field, GraphQLISODateTime, ID, ObjectType } from '@nestjs/graphql'
+import { Field, GraphQLISODateTime, ObjectType } from '@nestjs/graphql'
 import {
   Entity,
   Column,
@@ -10,7 +10,6 @@ import {
 @ObjectType()
 @Entity()
 class HiIQHolderAddress {
-  @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: number
 
@@ -19,6 +18,10 @@ class HiIQHolderAddress {
     unique: true,
   })
   address!: string
+
+  @Field(() => String)
+  @Column({ type: 'numeric', precision: 78, scale: 0 })
+  tokens!: string
 
   @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
