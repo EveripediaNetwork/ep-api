@@ -302,6 +302,24 @@ describe('MarketCapService', () => {
   })
 
   describe('wildcardSearch', () => {
+    const setupMockData = () => ({
+      tokens: [
+        { tokenMarketData: { id: 'bitcoin', name: 'Bitcoin' } },
+        { tokenMarketData: { id: 'ethereum', name: 'Ethereum' } },
+      ],
+      stableCoins: [
+        { tokenMarketData: { id: 'usdt', name: 'Tether' } },
+        { tokenMarketData: { id: 'usdc', name: 'USD Coin' } },
+      ],
+      aiTokens: [
+        { tokenMarketData: { id: 'ocean', name: 'Ocean Protocol' } },
+        { tokenMarketData: { id: 'usdt', name: 'usdt.ai' } },
+      ],
+      nfts: [
+        { nftMarketData: { id: 'bored-coing', name: 'Bored coing iq Club' } },
+        { nftMarketData: { id: 'crypto-punks', name: 'CryptoPunks' } },
+      ],
+    })
     it('should return filtered results based on search term', async () => {
       const data = {
         tokens: [
@@ -340,6 +358,99 @@ describe('MarketCapService', () => {
         offset: 0,
       })
       expect(result).toEqual([])
+    })
+
+    it('should return filtered results for default token search', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        search: 'bit',
+        limit: 2,
+        offset: 0,
+      })
+
+      expect(result).toEqual([mockData.tokens[0]])
+    })
+
+    it('should return filtered results for stablecoin search', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        category: TokenCategory.STABLE_COINS,
+        search: 'usd',
+        limit: 2,
+        offset: 0,
+      })
+
+      expect(result).toEqual([mockData.stableCoins[0], mockData.stableCoins[1]])
+    })
+
+    it('should return filtered results for AI token search', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        category: TokenCategory.AI,
+        search: 'usdt',
+        limit: 2,
+        offset: 0,
+      })
+
+      expect(result).toEqual([mockData.aiTokens[1]])
+    })
+
+    it('should return filtered results for NFT search', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.NFT,
+        search: 'coing',
+        limit: 2,
+        offset: 0,
+      })
+
+      expect(result).toEqual([mockData.nfts[0]])
+    })
+
+    it('should perform case-insensitive search', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const result = await marketCapService.wildcardSearch({
+        kind: RankType.TOKEN,
+        search: 'BITCOIN',
+        limit: 2,
+        offset: 0,
+      })
+
+      expect(result).toEqual([mockData.tokens[0]])
+    })
+
+    it('should search in both id and name fields', async () => {
+      const mockData = setupMockData()
+      cacheManager.get.mockResolvedValue(mockData)
+
+      const resultById = await marketCapService.wildcardSearch({
+        kind: RankType.NFT,
+        search: 'crypto-p',
+        limit: 2,
+        offset: 0,
+      })
+      expect(resultById).toEqual([mockData.nfts[1]])
+
+      const resultByName = await marketCapService.wildcardSearch({
+        kind: RankType.NFT,
+        search: 'iq',
+        limit: 2,
+        offset: 0,
+      })
+      expect(resultByName).toEqual([mockData.nfts[0]])
     })
   })
 })
