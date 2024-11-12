@@ -9,7 +9,7 @@ import {
 @ValidatorConstraint({ name: 'valid String', async: true })
 export class ValidStringParams implements ValidatorConstraintInterface {
   async validate(text: string, args: ValidationArguments) {
-    return /^[a-zA-Z0-9()\/ -.]*$/.test(text)
+    return /^[a-zA-Z0-9- ]*$/.test(text)
   }
 
   defaultMessage(args: ValidationArguments) {
@@ -31,7 +31,7 @@ export class ValidStringArrayParams implements ValidatorConstraintInterface {
 @ValidatorConstraint({ name: 'valid date string', async: true })
 export class ValidDateParams implements ValidatorConstraintInterface {
   async validate(text: string, args: ValidationArguments) {
-    const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+    const dateRegex = /^\d{4}[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12][0-9]|3[01])$/
     if (!text) {
       return true
     }
