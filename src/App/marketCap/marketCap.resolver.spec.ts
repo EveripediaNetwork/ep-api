@@ -140,7 +140,7 @@ describe('MarketCapResolver', () => {
       expect(console.error).toHaveBeenCalled()
     })
 
-    it('should update wikiId and service should return updated value', async () => {
+    it('should link wiki to rank data with valid wikiId, update wikiId and service should return updated value', async () => {
       let result = await marketCapResolver.rankList({
         kind: RankType.TOKEN,
         limit: 1,
