@@ -13,4 +13,4 @@ export const dateOnly = (date: Date) => {
 }
 
 export const firstLevelNodeProcess = () =>
-  parseInt(process.env.NODE_APP_INSTANCE as string, 10) === 0
+  Number(process.env.pm_id) === 0 || !process.env.pm_id
