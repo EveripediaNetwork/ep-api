@@ -7,6 +7,7 @@ import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import {
   MarketCapInputs,
+  MarketCapSearchType,
   NftRankListData,
   RankPageIdInputs,
   RankType,
@@ -446,16 +447,24 @@ class MarketCapService {
 
   async wildcardSearch(args: MarketCapInputs) {
     if (!args.search) return [] as (TokenRankListData | NftRankListData)[]
-    const data:
-      | { tokens: TokenRankListData; nfts: NftRankListData }
-      | undefined = await this.cacheManager.get('marketCapSearch')
+
+    const data: MarketCapSearchType | undefined = await this.cacheManager.get(
+      'marketCapSearch',
+    )
+
     if (!data) {
       return [] as (TokenRankListData | NftRankListData)[]
     }
 
     let cache
     if (args.kind === RankType.TOKEN) {
-      cache = data.tokens as unknown as TokenRankListData[]
+      if (args.category === TokenCategory.STABLE_COINS) {
+        cache = data.stableCoins as unknown as TokenRankListData[]
+      } else if (args.category === TokenCategory.AI)
+        cache = data.aiTokens as unknown as TokenRankListData[]
+      else {
+        cache = data.tokens as unknown as TokenRankListData[]
+      }
     }
     if (args.kind === RankType.NFT) {
       cache = data.nfts as unknown as NftRankListData[]

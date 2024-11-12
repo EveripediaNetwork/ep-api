@@ -10,7 +10,6 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { urlencoded, json } from 'express'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import AppModule from './App/app.module'
-import Pm2Service from './App/utils/pm2Service'
 
 const pm2 = require('pm2')
 
@@ -20,11 +19,7 @@ async function bootstrapApplication() {
   })
 
   const configService = app.get(ConfigService)
-  const cacheManager = app.get<Cache>('CACHE_MANAGER')
   const eventEmitter = app.get(EventEmitter2)
-  const pm2Service = app.get(Pm2Service)
-
-  // Call your methods
 
   const port = configService.get<number>('PORT')
 
@@ -55,32 +50,17 @@ async function bootstrapApplication() {
   )
 
   process.on('message', async (packet: any) => {
-    if (packet.topic === 'updateCache') {
-      await cacheManager.set(packet.data.key, packet.data.data, {
-        ttl: packet.data.ttl || 300,
-      })
+    if (packet.topic.includes('updateCache')) {
+      eventEmitter.emit('updateCache', packet)
     }
-    if (packet.topic === 'deleteCache') {
-      for (const key of packet.data.keys) {
-        await cacheManager.del(key)
-      }
+    if (packet.topic.includes('deleteCache')) {
+      eventEmitter.emit('deleteCache', packet)
     }
 
     if (packet.topic === 'buildSearchData') {
-      const key = 'marketCapSearch'
-      const cacheData = await cacheManager.get(key)
-      if (!cacheData) {
-        eventEmitter.emit('buildSearchData', {
-          id: Number(process.env.pm_id),
-        })
-      } else {
-        pm2Service.sendDataToProcesses(
-          'ep-api',
-          'updateCache [marketCapSearch]',
-          { data: cacheData, key },
-          Number(process.env.pm_id),
-        )
-      }
+      eventEmitter.emit('buildSearchData', {
+        id: Number(process.env.pm_id),
+      })
     }
   })
 

@@ -84,6 +84,13 @@ export class TokenRankListData extends Wiki {
   events?: Events[]
 }
 
+export interface MarketCapSearchType {
+  nfts: NftRankListData[]
+  tokens: TokenRankListData[]
+  aiTokens: TokenRankListData[]
+  stableCoins: TokenRankListData[]
+}
+
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })
