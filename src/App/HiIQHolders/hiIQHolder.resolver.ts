@@ -11,7 +11,12 @@ class HiIQHoldersResolver {
 
   @Query(() => [HiIQHolder], { name: 'hiIQHolders' })
   async hiIQHolders(@Args() args: HiIQHolderArgs) {
-    return this.hiIQHoldersService.getHiIQHoldersCount(args)
+    return this.hiIQHoldersService.getHiIQHoldersGraph(args)
+  }
+
+  @Query(() => [HiIQHolder], { name: 'hiIQHoldersCount' })
+  async hiIQHoldersCount() {
+    return this.hiIQHoldersService.getHiIQHoldersCount()
   }
 
   @Query(() => [HiIQHolderAddress], { name: 'hiIQHoldersRank' })

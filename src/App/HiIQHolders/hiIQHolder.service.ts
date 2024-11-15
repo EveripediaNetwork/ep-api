@@ -220,7 +220,7 @@ class HiIQHolderService {
     return repo
   }
 
-  async getHiIQHoldersCount(args: HiIQHolderArgs): Promise<HiIQHolder[]> {
+  async getHiIQHoldersGraph(args: HiIQHolderArgs): Promise<HiIQHolder[]> {
     if (args.interval !== IntervalByDays.DAY) {
       return this.hiIQHoldersRepo.query(
         `
@@ -247,6 +247,14 @@ class HiIQHolderService {
       .offset(args.offset)
       .limit(args.limit)
       .getRawMany()
+  }
+
+  async getHiIQHoldersCount() {
+    return this.hiIQHoldersRepo
+      .createQueryBuilder('hi_iq_holder')
+      .orderBy('created', 'DESC')
+      .limit(1)
+      .getMany()
   }
 }
 export default HiIQHolderService
