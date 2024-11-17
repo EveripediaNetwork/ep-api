@@ -57,7 +57,7 @@ describe('PageViewsService', () => {
   })
 
   describe('updateCount', () => {
-    it('should return 0 if cached', async () => { 
+    it('should return 0 if cached', async () => {
       jest.spyOn(cacheManager, 'get').mockResolvedValueOnce({ ip: 'test-ip' })
       const result = await pageViewsService.updateCount('wiki-id', 'test-ip')
       expect(result).toBe(0)
@@ -68,7 +68,9 @@ describe('PageViewsService', () => {
       jest
         .spyOn(dataSource.getRepository(Wiki), 'query')
         .mockResolvedValueOnce(undefined)
-      jest.spyOn(pageViewsService, 'updatePageViewPerDay').mockResolvedValueOnce(1)
+      jest
+        .spyOn(pageViewsService, 'updatePageViewPerDay')
+        .mockResolvedValueOnce(1)
 
       const result = await pageViewsService.updateCount('wiki-id', 'test-ip')
       expect(result).toBe(1)
@@ -86,15 +88,17 @@ describe('PageViewsService', () => {
       expect(result).toBe(0)
     })
   })
-  
+
   describe('updatePageViewPerDay', () => {
     it('should create new pageview entry if none exists', async () => {
       const repository = {
         findOne: jest.fn().mockResolvedValueOnce(null),
         create: jest.fn().mockReturnValueOnce({ id: 'new-id' }),
-        save: jest.fn().mockResolvedValueOnce({ id: 'new-id' })
+        save: jest.fn().mockResolvedValueOnce({ id: 'new-id' }),
       }
-      jest.spyOn(pageViewsService, 'repository').mockResolvedValue(repository as any)
+      jest
+        .spyOn(pageViewsService, 'repository')
+        .mockResolvedValue(repository as any)
 
       const result = await pageViewsService['updatePageViewPerDay']('wiki-id')
 
@@ -102,7 +106,7 @@ describe('PageViewsService', () => {
       expect(repository.create).toHaveBeenCalledWith({
         wikiId: 'wiki-id',
         day: expect.any(Date),
-        visits: 1
+        visits: 1,
       })
       expect(repository.save).toHaveBeenCalled()
     })
@@ -110,16 +114,18 @@ describe('PageViewsService', () => {
     it('should update existing pageview entry', async () => {
       const repository = {
         findOne: jest.fn().mockResolvedValueOnce({ id: 'existing-id' }),
-        query: jest.fn().mockResolvedValueOnce(undefined)
+        query: jest.fn().mockResolvedValueOnce(undefined),
       }
-      jest.spyOn(pageViewsService, 'repository').mockResolvedValue(repository as any)
+      jest
+        .spyOn(pageViewsService, 'repository')
+        .mockResolvedValue(repository as any)
 
       const result = await pageViewsService['updatePageViewPerDay']('wiki-id')
 
       expect(result).toBe(1)
       expect(repository.query).toHaveBeenCalledWith(
         'UPDATE pageviews_per_day SET visits = visits + $1 where "wikiId" = $2 AND day = $3',
-        [1, 'wiki-id', expect.any(Date)]
+        [1, 'wiki-id', expect.any(Date)],
       )
     })
   })
@@ -128,7 +134,7 @@ describe('PageViewsService', () => {
     it('should return wiki views with correct query parameters', async () => {
       const mockResult = [
         { day: new Date(), visits: 10 },
-        { day: new Date(), visits: 20 }
+        { day: new Date(), visits: 20 },
       ]
       const queryBuilder = {
         select: jest.fn().mockReturnThis(),
@@ -140,8 +146,11 @@ describe('PageViewsService', () => {
         orderBy: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValueOnce(mockResult),
       }
-      jest.spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
-        .mockReturnValue(queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>)
+      jest
+        .spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
+        .mockReturnValue(
+          queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>,
+        )
 
       const args = {
         days: 7,
@@ -155,9 +164,16 @@ describe('PageViewsService', () => {
 
       expect(result).toEqual(mockResult)
       expect(queryBuilder.select).toHaveBeenCalledWith('day')
-      expect(queryBuilder.addSelect).toHaveBeenCalledWith('Sum(visits)', 'visits')
-      expect(queryBuilder.where).toHaveBeenCalledWith('day >= :start', { start: expect.any(Date) })
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('day <= :end', { end: expect.any(Date) })
+      expect(queryBuilder.addSelect).toHaveBeenCalledWith(
+        'Sum(visits)',
+        'visits',
+      )
+      expect(queryBuilder.where).toHaveBeenCalledWith('day >= :start', {
+        start: expect.any(Date),
+      })
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('day <= :end', {
+        end: expect.any(Date),
+      })
       expect(queryBuilder.offset).toHaveBeenCalledWith(0)
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('day', 'ASC')
     })
@@ -173,8 +189,11 @@ describe('PageViewsService', () => {
         orderBy: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValueOnce([]),
       }
-      jest.spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
-        .mockReturnValue(queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>)
+      jest
+        .spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
+        .mockReturnValue(
+          queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>,
+        )
 
       const args = {
         days: 7,
@@ -200,8 +219,11 @@ describe('PageViewsService', () => {
         orderBy: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValueOnce([]),
       }
-      jest.spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
-        .mockReturnValue(queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>)
+      jest
+        .spyOn(dataSource.getRepository(PageviewsPerDay), 'createQueryBuilder')
+        .mockReturnValue(
+          queryBuilder as unknown as SelectQueryBuilder<PageviewsPerDay>,
+        )
 
       const args = {
         days: 7,
