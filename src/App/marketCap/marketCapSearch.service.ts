@@ -6,7 +6,7 @@ import { PubSub } from 'graphql-subscriptions'
 import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType, TokenCategory } from './marketcap.dto'
 import Pm2Service from '../utils/pm2Service'
-import { Globals } from '../../globalVars'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 @Injectable()
 class MarketCapSearch implements OnModuleInit {
@@ -25,10 +25,6 @@ class MarketCapSearch implements OnModuleInit {
   }
 
   async onModuleInit() {
-    if (Number(process.env.pm_id) === 0) {
-      Globals.ROOT_PROCESS = true
-    }
-
     setTimeout(() => {
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: false,
@@ -40,7 +36,7 @@ class MarketCapSearch implements OnModuleInit {
   @OnEvent('buildSearchData', { async: true })
   @Cron(CronExpression.EVERY_5_MINUTES)
   private async buildRankpageSearchData() {
-    if (Globals.ROOT_PROCESS) {
+    if (firstLevelNodeProcess()) {
       console.log('Fetching rankpage search data')
       const tokens = await this.marketCapService.marketData({
         kind: RankType.TOKEN,
