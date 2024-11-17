@@ -166,7 +166,7 @@ describe('PageViewsService', () => {
       expect(queryBuilder.select).toHaveBeenCalledWith('day')
       expect(queryBuilder.addSelect).toHaveBeenCalledWith(
         'Sum(visits)',
-        'visits',
+        'visits',0
       )
       expect(queryBuilder.where).toHaveBeenCalledWith('day >= :start', {
         start: expect.any(Date),
