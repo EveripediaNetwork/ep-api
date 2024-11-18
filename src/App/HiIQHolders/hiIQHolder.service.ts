@@ -85,7 +85,16 @@ class HiIQHolderService {
     }
   }
 
-  async indexHIIQHolders() {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: 'checkForHiiqHolers',
+  })
+  async checkForHiiqHolers() {
+    if (firstLevelNodeProcess()) {
+      await this.indexHIIQHolders(false)
+    }
+  }
+
+  async indexHIIQHolders(newDayUpdates = true) {
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
     const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
@@ -96,79 +105,96 @@ class HiIQHolderService {
         ? await this.getOldLogs(previous, next)
         : await this.getOldLogs()
 
-    for (const log of logs) {
-      try {
-        const decodelog = decodeEventLog({
-          abi: hiIQAbi,
-          data: log.data,
-          topics: log.topics,
-        }) as unknown as MethodType
-
-        if (decodelog.eventName === 'Deposit' && decodelog.args.type === 1n) {
-          const { provider, value } = decodelog.args
-
-          if (value !== undefined) {
-            const existingHolder = await this.checkExistingHolders(provider)
-
-            if (existingHolder) {
-              existingHolder.tokens = (
-                BigInt(existingHolder.tokens) + value
-              ).toString()
-
-              await this.hiIQHoldersAddressRepo.save(existingHolder)
-            } else {
-              try {
-                const newHolder = this.hiIQHoldersAddressRepo.create({
-                  address: provider,
-                  tokens: value.toString(),
-                })
-                await this.hiIQHoldersAddressRepo.save(newHolder)
-              } catch (e: any) {
-                console.error(e.message)
+    if (logs.length !== 0) {
+      for (const log of logs) {
+        try {
+          const decodelog = decodeEventLog({
+            abi: hiIQAbi,
+            data: log.data,
+            topics: log.topics,
+          }) as unknown as MethodType
+          if (decodelog.eventName === 'Deposit' && decodelog.args.type === 1n) {
+            const { provider, value } = decodelog.args
+            if (value !== undefined) {
+              const existingHolder = await this.checkExistingHolders(provider)
+              if (existingHolder) {
+                existingHolder.tokens = (
+                  BigInt(existingHolder.tokens) + value
+                ).toString()
+                await this.hiIQHoldersAddressRepo.save(existingHolder)
+              } else {
+                try {
+                  const newHolder = this.hiIQHoldersAddressRepo.create({
+                    address: provider,
+                    tokens: value.toString(),
+                  })
+                  await this.hiIQHoldersAddressRepo.save(newHolder)
+                } catch (e: any) {
+                  console.error(e.message)
+                }
               }
+            } else {
+              console.error('Value is undefined for event:', decodelog)
             }
-          } else {
-            console.error('Value is undefined for event:', decodelog)
           }
-        }
-        if (decodelog.eventName === 'Withdraw') {
-          const existHolder = await this.checkExistingHolders(
-            decodelog.args.provider,
-          )
-          if (existHolder) {
-            await this.hiIQHoldersAddressRepo
-              .createQueryBuilder()
-              .delete()
-              .from(HiIQHolderAddress)
-              .where('address = :address', {
-                address: decodelog.args.provider,
-              })
-              .execute()
+          if (decodelog.eventName === 'Withdraw') {
+            const existHolder = await this.checkExistingHolders(
+              decodelog.args.provider,
+            )
+            if (existHolder) {
+              await this.hiIQHoldersAddressRepo
+                .createQueryBuilder()
+                .delete()
+                .from(HiIQHolderAddress)
+                .where('address = :address', {
+                  address: decodelog.args.provider,
+                })
+                .execute()
+            }
           }
+        } catch (e: any) {
+          console.log(e)
         }
-      } catch (e: any) {
-        console.log(e)
       }
-    }
 
-    const count = await this.hiIQHoldersAddressRepo
-      .createQueryBuilder()
-      .getCount()
+      const count = await this.hiIQHoldersAddressRepo
+        .createQueryBuilder()
+        .getCount()
 
-    const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
-    const existCount = await this.hiIQHoldersRepo.findOneBy({
-      day: new Date(newDay),
-    })
+      let newDay
 
-    if (!existCount) {
-      const totalHolders = this.hiIQHoldersRepo.create({
-        amount: count,
-        day: newDay,
-        created: newDay,
-        updated: newDay,
+      if (newDayUpdates) {
+        newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
+      } else {
+        newDay = new Date()
+      }
+
+      const existCount = await this.hiIQHoldersRepo.findOneBy({
+        day: new Date(newDay),
       })
-      await this.hiIQHoldersRepo.save(totalHolders)
-      console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+
+      if (!existCount) {
+        const totalHolders = this.hiIQHoldersRepo.create({
+          amount: count,
+          day: newDay,
+          created: newDay,
+          updated: newDay,
+        })
+        await this.hiIQHoldersRepo.save(totalHolders)
+        console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+      } else if (count !== existCount.amount) {
+        await this.hiIQHoldersRepo
+          .createQueryBuilder()
+          .update(HiIQHolder)
+          .set({ amount: count })
+          .where('day = :day', { day: existCount.day })
+          .execute()
+        console.log(
+          `hiIQ holder count: updated value: ${count}  ${
+            existCount.amount > count ? '🔴' : '🟢'
+          } `,
+        )
+      }
     }
   }
 
