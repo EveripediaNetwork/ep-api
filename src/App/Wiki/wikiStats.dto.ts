@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { ObjectType, Field, Int, ArgsType } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 
 @ObjectType()
 export class Count {

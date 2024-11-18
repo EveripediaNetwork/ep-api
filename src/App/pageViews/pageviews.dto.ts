@@ -7,7 +7,7 @@ import {
 } from '@nestjs/graphql'
 import { Min, Max, Validate } from 'class-validator'
 import { OrderArgs } from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidDateParams, ValidStringParams } from '../utils/customValidator'
 import { OrderBy, IntervalByDays } from '../general.args'
 
 @ObjectType()
@@ -42,11 +42,11 @@ export class PageViewArgs extends VistArgs {
   amount!: number
 
   @Field(() => String, { description: 'Format <YYYY/MM/DD>', nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   startDay?: string
 
   @Field(() => String, { description: 'Format <YYYY/MM/DD>', nullable: true })
-  @Validate(ValidStringParams)
+  @Validate(ValidDateParams)
   endDay?: string
 
   @Field(() => String, { nullable: true })

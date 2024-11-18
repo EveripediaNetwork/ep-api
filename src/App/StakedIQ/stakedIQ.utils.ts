@@ -63,7 +63,6 @@ export const stopJob = async <T extends EntityWithCreated>(
   date?: Date,
 ) => {
   const oldRecord = await leastRecordByDate(repo)
-
   if (oldRecord.length > 0 && oldRecord[0].created) {
     const oldDate = dateOnly(oldRecord[0].created)
     const stopDate = date ? dateOnly(date) : dateOnly(todayMidnightDate)

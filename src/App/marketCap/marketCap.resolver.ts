@@ -1,14 +1,18 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
+import { UseGuards } from '@nestjs/common'
 import {
   MarketCapInputs,
+  MarketCapSearchInputs,
   MarketRankData,
   NftRankListData,
   RankPageIdInputs,
   TokenRankListData,
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
+import MarketCapSearch from './marketCapSearch.service'
+import AuthGuard from '../utils/admin.guard'
 
-function extractSlug(url: string) {
+export function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
 
   const parts = urlReg.split('/')
@@ -18,7 +22,10 @@ function extractSlug(url: string) {
 
 @Resolver(() => MarketRankData)
 class MarketCapResolver {
-  constructor(private marketCapService: MarketCapService) {}
+  constructor(
+    private marketCapService: MarketCapService,
+    private marketCapSearch: MarketCapSearch,
+  ) {}
 
   @Query(() => [MarketRankData], { nullable: 'items' })
   async rankList(
@@ -27,19 +34,15 @@ class MarketCapResolver {
     return this.marketCapService.ranks(args)
   }
 
-  @Mutation(() => Boolean)
-  async rankPageIds(@Args() args: RankPageIdInputs): Promise<boolean> {
-    return this.marketCapService.updateMistachIds(args)
-  }
-
   @Query(() => [MarketRankData], { nullable: 'items' })
   async searchRank(
-    @Args() args: MarketCapInputs,
-  ): Promise<(NftRankListData | TokenRankListData)[]> {
+    @Args() args: MarketCapSearchInputs,
+  ): Promise<(NftRankListData | TokenRankListData)[] | []> {
     return this.marketCapService.wildcardSearch(args)
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
   async linkWikiToRankData(@Args() args: RankPageIdInputs): Promise<boolean> {
     try {
       let { wikiId } = args
@@ -52,17 +55,20 @@ class MarketCapResolver {
         return false
       }
 
-      await this.marketCapService.updateMistachIds({
-        wikiId,
-        coingeckoId: args.coingeckoId,
-        kind: args.kind,
-      })
+      await this.marketCapService.updateMistachIds({ ...args, wikiId })
 
       return true
     } catch (error) {
       console.error(error)
       return false
     }
+  }
+
+  @Subscription(() => Boolean)
+  marketCapSearchSubscription() {
+    return this.marketCapSearch
+      .getRankPagePubSub()
+      .asyncIterator('marketCapSearchSubscription')
   }
 }
 

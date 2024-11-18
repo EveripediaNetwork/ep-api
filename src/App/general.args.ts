@@ -1,6 +1,6 @@
 import { ArgsType, Field, registerEnumType } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
-import ValidStringParams from './utils/customValidator'
+import { ValidStringParams } from './utils/customValidator'
 
 export enum OrderBy {
   ID = 'id',

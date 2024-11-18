@@ -12,7 +12,7 @@ import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
-import USER_ACTIVITY_LIMIT from '../../globalVars'
+import { USER_ACTIVITY_LIMIT } from '../../globalVars'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
@@ -187,6 +187,7 @@ class PinService {
     deletedEvents: Events[]
   }> {
     const repository = this.dataSource.getRepository(Events)
+
     if (!wiki.events || wiki.events.length === 0) {
       return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
@@ -223,9 +224,13 @@ class PinService {
       const eventsToBeCreated = createEvents.map(({ action, id, ...rest }) => ({
         ...rest,
       }))
-      const newEvents = repository.create(eventsToBeCreated)
-      const savedEvents = await repository.save(newEvents)
-      createdEvents = savedEvents
+      const newEvents: Events[] = []
+      for (const e of eventsToBeCreated) {
+        const newEvent = repository.create(e)
+        const savedEvent = await repository.save(newEvent)
+        newEvents.push(savedEvent as Events)
+      }
+      createdEvents = newEvents
     }
     if (updateEvents.length > 0) {
       const eventsToBeUpdated = updateEvents.map(({ action, ...rest }) => ({

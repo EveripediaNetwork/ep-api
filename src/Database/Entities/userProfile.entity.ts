@@ -14,9 +14,9 @@ import {
   ObjectType,
 } from '@nestjs/graphql'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
-import Activity from './activity.entity'
 import Wiki from './wiki.entity'
 import skipMiddleware from './middlewares/skipMiddleware'
+import { UserActivity, UserWikis, WikiCount } from '../../App/User/user.dto'
 
 @ObjectType()
 @Entity()
@@ -95,11 +95,11 @@ class UserProfile {
   @Field(() => Boolean)
   active!: boolean
 
-  @Field(() => [Activity])
-  wikisCreated!: Activity[]
+  @Field(() => UserWikis)
+  wikisCreated!: UserActivity | WikiCount
 
-  @Field(() => [Activity])
-  wikisEdited!: Activity[]
+  @Field(() => UserWikis)
+  wikisEdited!: UserActivity | WikiCount
 
   @Field(() => [Wiki])
   wikiSubscribed!: Wiki[]

@@ -9,7 +9,7 @@ import {
 import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
-import ValidStringParams from '../utils/customValidator'
+import { ValidStringParams } from '../utils/customValidator'
 import Events from '../../Database/Entities/Event.entity'
 
 @ObjectType()
@@ -84,6 +84,13 @@ export class TokenRankListData extends Wiki {
   events?: Events[]
 }
 
+export interface MarketCapSearchType {
+  nfts: NftRankListData[]
+  tokens: TokenRankListData[]
+  aiTokens: TokenRankListData[]
+  stableCoins: TokenRankListData[]
+}
+
 @ObjectType()
 export class NftRankListData extends Wiki {
   @Field(() => NftListData, { nullable: true })
@@ -140,7 +147,13 @@ export class MarketCapInputs extends PaginationArgs {
 }
 
 @ArgsType()
-export class RankPageIdInputs {
+export class MarketCapSearchInputs extends MarketCapInputs {
+  @Field(() => Boolean, { nullable: true })
+  founders = false
+}
+
+@ArgsType()
+export class RankPageIdInputs extends PaginationArgs {
   @Field(() => String)
   wikiId!: string
 

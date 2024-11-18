@@ -8,6 +8,6 @@ import MirrorApiService from './mirrorApi.service'
 @Module({
   imports: [ConfigModule, HttpModule],
   providers: [BlogService, BlogResolver, MirrorApiService],
-  exports: [BlogService],
+  exports: [BlogService, MirrorApiService],
 })
 export default class BlogModule {}

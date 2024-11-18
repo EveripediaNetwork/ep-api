@@ -114,22 +114,34 @@ class UserResolver {
   }
 
   @ResolveField()
-  async wikisCreated(@Parent() user: IUser, @Args() args: PaginationArgs) {
+  async wikisCreated(
+    @Parent() user: IUser,
+    @Args() args: PaginationArgs,
+    @Context() context: any,
+  ) {
+    const { query } = context.req.body
     return this.userService.userWikis(
       'wikis created',
       user?.id as string,
       args.limit,
       args.offset,
+      query,
     )
   }
 
   @ResolveField()
-  async wikisEdited(@Parent() user: IUser, @Args() args: PaginationArgs) {
+  async wikisEdited(
+    @Parent() user: IUser,
+    @Args() args: PaginationArgs,
+    @Context() context: any,
+  ) {
+    const { query } = context.req.body
     return this.userService.userWikis(
       'wikis edited',
       user?.id as string,
       args.limit,
       args.offset,
+      query,
     )
   }
 

@@ -1,14 +1,7 @@
 /* eslint-disable import/no-cycle */
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
 import { EventType } from '@everipedia/iq-utils'
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Relation,
-} from 'typeorm'
-import Wiki from './wiki.entity'
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 registerEnumType(EventType, { name: 'EventType' })
 
@@ -57,10 +50,6 @@ class Events {
   @Field(() => String, { nullable: true })
   @Column('varchar', { nullable: true })
   country?: string
-
-  @Field(() => Wiki, { nullable: true })
-  @ManyToOne(() => Wiki, wiki => wiki.wikiEvents, { lazy: true })
-  wiki!: Relation<Wiki>
 
   @Field(() => String, { nullable: true })
   action?: string
