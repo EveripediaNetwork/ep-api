@@ -75,7 +75,7 @@ class MarketCapSearch implements OnModuleInit {
         Number(process.env.pm_id),
       )
 
-      this.cacheManager.set('marketCapSearch', { tokens, data }, 300)
+      this.cacheManager.set('marketCapSearch', data, 300)
 
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,
