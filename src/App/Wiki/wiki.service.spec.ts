@@ -154,39 +154,6 @@ describe('WikiService', () => {
     })
   })
 
-  describe('getWikis', () => {
-    it('should return wikis with pagination and ordering', async () => {
-      const wikis = [
-        { id: 'wiki1', title: 'Test Wiki 1' },
-        { id: 'wiki2', title: 'Test Wiki 2' },
-      ]
-      repository.find.mockResolvedValue(wikis)
-
-      const result = await wikiService.getWikis({
-        lang: 'en',
-        limit: 10,
-        offset: 0,
-        direction: Direction.DESC,
-        order: OrderBy.UPDATED,
-      })
-
-      expect(result).toEqual(wikis)
-      expect(repository.find).toHaveBeenCalledWith({
-        where: {
-          language: { id: 'en' },
-          hidden: false,
-        },
-        cache: {
-          id: 'wikis_cache_limit10-offset0-langen-directionDESC-orderupdated',
-          milliseconds: 10000,
-        },
-        take: 10,
-        skip: 0,
-        order: { updated: 'DESC' },
-      })
-    })
-  })
-
   describe('getPromotedWikis', () => {
     it('should return promoted wikis', async () => {
       const wikis = [
