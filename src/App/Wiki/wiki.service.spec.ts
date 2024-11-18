@@ -139,7 +139,7 @@ describe('WikiService', () => {
   describe('findWiki', () => {
     it('should return a wiki by id and lanuage', async () => {
       const wiki = { id: 'wiki1', title: 'Test Wiki' }
-      queryBuilder.getOne.mockResolvedValueg(wiki)
+      queryBuilder.getOne.mockResolvedValue(wiki)
 
       const result = await wikiService.findWiki({ id: 'wiki1', lang: 'en' })
 
@@ -201,6 +201,7 @@ describe('WikiService', () => {
         offset: 0,
         direction: Direction.DESC,
         order: OrderBy.UPDATED,
+        hidden: true,
       })
 
       expect(result).toEqual(wikis)
@@ -226,6 +227,7 @@ describe('WikiService', () => {
           offset: 0,
           direction: Direction.DESC,
           order: OrderBy.UPDATED,
+          hidden: true,
         },
         true,
       )
