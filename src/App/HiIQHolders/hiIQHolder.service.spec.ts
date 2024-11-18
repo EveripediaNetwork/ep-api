@@ -30,37 +30,42 @@ describe('HiIQHolderService', () => {
         HiIQHolderService,
         {
           provide: ConfigService,
-          useValue: { 
+          useValue: {
             get: jest.fn().mockImplementation((key: string) => {
-              switch(key) {
-                case 'PROVIDER_NETWORK': return 'mainnet'
-                case 'etherScanApiKey': return 'test-api-key'
-                default: return null
+              switch (key) {
+                case 'PROVIDER_NETWORK':
+                  return 'mainnet'
+                case 'etherScanApiKey':
+                  return 'test-api-key'
+                default:
+                  return null
               }
-            })
+            }),
           },
         },
         {
           provide: HttpService,
-          useValue: { 
-            get: jest.fn().mockReturnValue(of({ 
-              data: { 
-                result: [
-                  { 
-                    data: '0x...',
-                    topics: ['0x...'], 
-                    blockNumber: '123' 
-                  }
-                ] 
-              } 
-            }))
+          useValue: {
+            get: jest.fn().mockReturnValue(
+              of({
+                data: {
+                  result: [
+                    {
+                      data: '0x...',
+                      topics: ['0x...'],
+                      blockNumber: '123',
+                    },
+                  ],
+                },
+              }),
+            ),
           },
         },
         {
           provide: HiIQHolderRepository,
-          useValue: { 
-            find: jest.fn(), 
-            save: jest.fn(), 
+          useValue: {
+            find: jest.fn(),
+            save: jest.fn(),
             findOneBy: jest.fn(),
             create: jest.fn(),
             query: jest.fn(),
@@ -73,9 +78,9 @@ describe('HiIQHolderService', () => {
         },
         {
           provide: HiIQHolderAddressRepository,
-          useValue: { 
-            findOneBy: jest.fn(), 
-            create: jest.fn(), 
+          useValue: {
+            findOneBy: jest.fn(),
+            create: jest.fn(),
             save: jest.fn(),
             createQueryBuilder: jest.fn().mockReturnValue({
               delete: jest.fn().mockReturnThis(),
@@ -88,7 +93,7 @@ describe('HiIQHolderService', () => {
         },
         {
           provide: SchedulerRegistry,
-          useValue: { 
+          useValue: {
             getCronJob: jest.fn(),
           },
         },
@@ -97,21 +102,25 @@ describe('HiIQHolderService', () => {
 
     hiIQHolderService = module.get<HiIQHolderService>(HiIQHolderService)
     hiIQHoldersRepo = module.get<HiIQHolderRepository>(HiIQHolderRepository)
-    hiIQHoldersAddressRepo = module.get<HiIQHolderAddressRepository>(HiIQHolderAddressRepository)
+    hiIQHoldersAddressRepo = module.get<HiIQHolderAddressRepository>(
+      HiIQHolderAddressRepository,
+    )
     schedulerRegistry = module.get<SchedulerRegistry>(SchedulerRegistry)
     httpService = module.get<HttpService>(HttpService)
   })
 
   describe('lastHolderRecord', () => {
     it('should return the last holder record', async () => {
-      const record = [{ 
-        id: 1,
-        amount: 100,
-        created: new Date(),
-        updated: new Date(),
-        tokens: '100',
-        day: new Date(),
-      }]
+      const record = [
+        {
+          id: 1,
+          amount: 100,
+          created: new Date(),
+          updated: new Date(),
+          tokens: '100',
+          day: new Date(),
+        },
+      ]
       jest.spyOn(hiIQHoldersRepo, 'find').mockResolvedValue(record)
 
       const result = await hiIQHolderService.lastHolderRecord()
@@ -126,12 +135,12 @@ describe('HiIQHolderService', () => {
   describe('checkExistingHolders', () => {
     it('should return existing holder address', async () => {
       const address = '0x123'
-      const holder = { 
+      const holder = {
         id: 1,
-        address, 
-        tokens: '100', 
+        address,
+        tokens: '100',
         created: new Date(),
-        updated: new Date()
+        updated: new Date(),
       }
       jest.spyOn(hiIQHoldersAddressRepo, 'findOneBy').mockResolvedValue(holder)
 
@@ -139,32 +148,38 @@ describe('HiIQHolderService', () => {
       expect(result).toEqual(holder)
       expect(hiIQHoldersAddressRepo.findOneBy).toHaveBeenCalledWith({ address })
     })
-    
+
     it('should return null when no holder exists', async () => {
-        jest.spyOn(hiIQHoldersAddressRepo, 'findOneBy').mockResolvedValue(null)
-  
-        const result = await hiIQHolderService.checkExistingHolders('0x999')
-        expect(result).toBeNull()
-        expect(hiIQHoldersAddressRepo.findOneBy).toHaveBeenCalledWith({ address: '0x999' })
+      jest.spyOn(hiIQHoldersAddressRepo, 'findOneBy').mockResolvedValue(null)
+
+      const result = await hiIQHolderService.checkExistingHolders('0x999')
+      expect(result).toBeNull()
+      expect(hiIQHoldersAddressRepo.findOneBy).toHaveBeenCalledWith({
+        address: '0x999',
       })
+    })
   })
 
   describe('checkForNewHolders', () => {
     it('should not call indexHIIQHolders when job exists', async () => {
-      const job = { 
-        running: false, 
-        start: jest.fn(), 
-        stop: jest.fn(), 
+      const job = {
+        running: false,
+        start: jest.fn(),
+        stop: jest.fn(),
         fireOnTick: jest.fn(),
         setTime: jest.fn(),
         lastDate: jest.fn().mockReturnValue(new Date()),
         nextDate: jest.fn(),
         nextDates: jest.fn(),
-        addCallback: jest.fn()
+        addCallback: jest.fn(),
       }
       jest.spyOn(schedulerRegistry, 'getCronJob').mockReturnValue(job)
-      jest.spyOn(hiIQHolderService, 'indexHIIQHolders' as any).mockResolvedValue(undefined)
-      jest.spyOn(firstLevelNodeProcess as jest.Mock, 'mockReturnValue').mockReturnValue(true)
+      jest
+        .spyOn(hiIQHolderService, 'indexHIIQHolders' as any)
+        .mockResolvedValue(undefined)
+      jest
+        .spyOn(firstLevelNodeProcess as jest.Mock, 'mockReturnValue')
+        .mockReturnValue(true)
 
       await hiIQHolderService.checkForNewHolders()
       expect(hiIQHolderService.indexHIIQHolders).not.toHaveBeenCalled()
@@ -174,109 +189,125 @@ describe('HiIQHolderService', () => {
   describe('getOldLogs', () => {
     it('should fetch logs successfully', async () => {
       const logs = [{ data: '0x...', topics: ['0x...'] }]
-      jest.spyOn(httpService, 'get').mockReturnValue(of({ 
-        status: 200, 
-        statusText: 'OK', 
-        headers: {}, 
-        config: {}, 
-        data: { result: logs } 
-      }))
+      jest.spyOn(httpService, 'get').mockReturnValue(
+        of({
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+          data: { result: logs },
+        }),
+      )
 
       const result = await hiIQHolderService.getOldLogs()
       expect(result).toEqual(logs)
     })
 
     it('should handle errors when fetching logs', async () => {
-      jest.spyOn(httpService, 'get').mockReturnValue(throwError(() => new Error('Network error')))
-      
+      jest
+        .spyOn(httpService, 'get')
+        .mockReturnValue(throwError(() => new Error('Network error')))
+
       const result = await hiIQHolderService.getOldLogs()
       expect(result).toBeUndefined()
     })
-    
+
     it('should handle block number request errors', async () => {
-        jest.spyOn(httpService, 'get').mockReturnValue(throwError(() => new Error('Block number error')))
-  
-        const result = await hiIQHolderService.getOldLogs()
-        expect(result).toBeUndefined()
-      })
-  
-      it('should handle logs request errors', async () => {
-        jest.spyOn(httpService, 'get').mockReturnValueOnce(of({ 
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-          data: { result: '100' } 
-        })).mockReturnValueOnce(of({ 
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-          data: { result: '200' } 
-        })).mockReturnValue(throwError(() => new Error('Logs request error')))
-  
-        const result = await hiIQHolderService.getOldLogs()
-        expect(result).toBeUndefined()
-      })
+      jest
+        .spyOn(httpService, 'get')
+        .mockReturnValue(throwError(() => new Error('Block number error')))
+
+      const result = await hiIQHolderService.getOldLogs()
+      expect(result).toBeUndefined()
+    })
+
+    it('should handle logs request errors', async () => {
+      jest
+        .spyOn(httpService, 'get')
+        .mockReturnValueOnce(
+          of({
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config: {},
+            data: { result: '100' },
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config: {},
+            data: { result: '200' },
+          }),
+        )
+        .mockReturnValue(throwError(() => new Error('Logs request error')))
+
+      const result = await hiIQHolderService.getOldLogs()
+      expect(result).toBeUndefined()
+    })
   })
 
   describe('hiIQHoldersRank', () => {
     it('should return ranked holders', async () => {
       const rankedHolders = [
         { address: '0x123', tokens: '1000' },
-        { address: '0x456', tokens: '500' }
+        { address: '0x456', tokens: '500' },
       ]
       jest.spyOn(hiIQHoldersAddressRepo, 'createQueryBuilder').mockReturnValue({
         orderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(rankedHolders)
+        getMany: jest.fn().mockResolvedValue(rankedHolders),
       } as any)
 
-      const result = await hiIQHolderService.hiIQHoldersRank({ 
+      const result = await hiIQHolderService.hiIQHoldersRank({
         direction: 'DESC' as Direction,
-        offset: 0, 
+        offset: 0,
         limit: 10,
         order: { tokens: 'DESC' } as unknown as OrderBy,
       })
       expect(result).toEqual(rankedHolders)
     })
-    
+
     it('should handle error in query builder', async () => {
-        jest.spyOn(hiIQHoldersAddressRepo, 'createQueryBuilder').mockReturnValue({
-          orderBy: jest.fn().mockReturnThis(),
-          skip: jest.fn().mockReturnThis(),
-          take: jest.fn().mockReturnThis(),
-          getMany: jest.fn().mockRejectedValue(new Error('Ranking query error'))
-        } as any)
-  
-        await expect(hiIQHolderService.hiIQHoldersRank({ 
+      jest.spyOn(hiIQHoldersAddressRepo, 'createQueryBuilder').mockReturnValue({
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockRejectedValue(new Error('Ranking query error')),
+      } as any)
+
+      await expect(
+        hiIQHolderService.hiIQHoldersRank({
           direction: 'DESC' as Direction,
-          offset: 0, 
+          offset: 0,
           limit: 10,
           order: { tokens: 'DESC' } as unknown as OrderBy,
-        })).rejects.toThrow('Ranking query error')
-      })
+        }),
+      ).rejects.toThrow('Ranking query error')
+    })
   })
 
   describe('getHiIQHoldersGraph', () => {
     it('should return holders graph data for day interval', async () => {
       const holders = [
         { amount: 100, day: new Date() },
-        { amount: 200, day: new Date() }
+        { amount: 200, day: new Date() },
       ]
       jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
         offset: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue(holders)
+        getRawMany: jest.fn().mockResolvedValue(holders),
       } as any)
 
-      const result = await hiIQHolderService.getHiIQHoldersGraph({ 
-        interval: 1, 
-        offset: 0, 
-        limit: 10 
+      const result = await hiIQHolderService.getHiIQHoldersGraph({
+        interval: 1,
+        offset: 0,
+        limit: 10,
       })
       expect(result).toEqual(holders)
     })
@@ -284,43 +315,51 @@ describe('HiIQHolderService', () => {
     it('should return holders graph data for non-day interval', async () => {
       const holders = [
         { amount: 100, day: new Date() },
-        { amount: 200, day: new Date() }
+        { amount: 200, day: new Date() },
       ]
       jest.spyOn(hiIQHoldersRepo, 'query').mockResolvedValue(holders)
 
-      const result = await hiIQHolderService.getHiIQHoldersGraph({ 
-        interval: 7, 
-        offset: 0, 
-        limit: 10 
+      const result = await hiIQHolderService.getHiIQHoldersGraph({
+        interval: 7,
+        offset: 0,
+        limit: 10,
       })
       expect(result).toEqual(holders)
     })
- 
+
     it('should handle non-day interval with error in query', async () => {
-        jest.spyOn(hiIQHoldersRepo, 'query').mockRejectedValue(new Error('Query error'))
-  
-        await expect(hiIQHolderService.getHiIQHoldersGraph({ 
-          interval: 7, 
-          offset: 0, 
-          limit: 10 
-        })).rejects.toThrow('Query error')
-      })
-  
-      it('should handle day interval with error in query builder', async () => {
-        jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
-          select: jest.fn().mockReturnThis(),
-          addSelect: jest.fn().mockReturnThis(),
-          offset: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnThis(),
-          getRawMany: jest.fn().mockRejectedValue(new Error('Query builder error'))
-        } as any)
-  
-        await expect(hiIQHolderService.getHiIQHoldersGraph({ 
-          interval: IntervalByDays.DAY, 
-          offset: 0, 
-          limit: 10 
-        })).rejects.toThrow('Query builder error')
-      })
+      jest
+        .spyOn(hiIQHoldersRepo, 'query')
+        .mockRejectedValue(new Error('Query error'))
+
+      await expect(
+        hiIQHolderService.getHiIQHoldersGraph({
+          interval: 7,
+          offset: 0,
+          limit: 10,
+        }),
+      ).rejects.toThrow('Query error')
+    })
+
+    it('should handle day interval with error in query builder', async () => {
+      jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getRawMany: jest
+          .fn()
+          .mockRejectedValue(new Error('Query builder error')),
+      } as any)
+
+      await expect(
+        hiIQHolderService.getHiIQHoldersGraph({
+          interval: IntervalByDays.DAY,
+          offset: 0,
+          limit: 10,
+        }),
+      ).rejects.toThrow('Query builder error')
+    })
   })
 
   describe('getHiIQHoldersCount', () => {
@@ -329,21 +368,23 @@ describe('HiIQHolderService', () => {
       jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
         orderBy: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(count)
+        getMany: jest.fn().mockResolvedValue(count),
       } as any)
 
       const result = await hiIQHolderService.getHiIQHoldersCount()
       expect(result).toEqual(count)
     })
-    
+
     it('should handle error in query builder', async () => {
-        jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
-          orderBy: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnThis(),
-          getMany: jest.fn().mockRejectedValue(new Error('Count query error'))
-        } as any)
-  
-        await expect(hiIQHolderService.getHiIQHoldersCount()).rejects.toThrow('Count query error')
-      })
+      jest.spyOn(hiIQHoldersRepo, 'createQueryBuilder').mockReturnValue({
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockRejectedValue(new Error('Count query error')),
+      } as any)
+
+      await expect(hiIQHolderService.getHiIQHoldersCount()).rejects.toThrow(
+        'Count query error',
+      )
+    })
   })
 })
