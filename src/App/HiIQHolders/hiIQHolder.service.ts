@@ -1,9 +1,12 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-mutable-exports */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnModuleInit } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { decodeEventLog } from 'viem'
+import * as dotenv from 'dotenv'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
@@ -15,7 +18,14 @@ import HiIQHolderArgs from './hiIQHolders.dto'
 import { IntervalByDays } from '../general.args'
 import { OrderArgs } from '../pagination.args'
 
+dotenv.config()
+
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
+
+export function checkDisableCondition(): boolean {
+  console.log(process.env)
+  return JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
+}
 
 export type MethodType = {
   eventName: string
@@ -27,7 +37,7 @@ export type MethodType = {
 }
 
 @Injectable()
-class HiIQHolderService {
+class HiIQHolderService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
@@ -42,6 +52,16 @@ class HiIQHolderService {
 
   private etherScanApiKey(): string {
     return this.configService.get<string>('etherScanApiKey') as string
+  }
+
+  async onModuleInit() {
+    setTimeout(() => {
+      const reIndex = JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string)
+      if (!reIndex) {
+        const job = this.schedulerRegistry.getCronJob('reIndexHiIQHolders')
+        job.stop()
+      }
+    }, 5000)
   }
 
   async lastHolderRecord(): Promise<HiIQHolder[]> {
@@ -62,27 +82,32 @@ class HiIQHolderService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async checkForNewHolders() {
-    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+  async dailyHiIQHolders() {
+    const job = this.schedulerRegistry.getCronJob('dailyHiIQHolders')
     if (firstLevelNodeProcess() && !job) {
       await this.indexHIIQHolders()
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, {
-    name: 'storeHiIQHolderCount',
+  checkDisableCondition() {
+    JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS, {
+    name: 'reIndexHiIQHolders',
   })
   async storeHiIQHolderCount() {
     const today = new Date()
     const oneDayBack = new Date(today)
     oneDayBack.setDate(oneDayBack.getDate() - 1)
 
-    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    const job = this.schedulerRegistry.getCronJob('reIndexHiIQHolders')
     const jobRun = await stopJob(this.hiIQHoldersRepo, job, oneDayBack)
 
     if (firstLevelNodeProcess() && !jobRun) {
       await this.indexHIIQHolders()
     }
+    console.log('running')
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES, {
