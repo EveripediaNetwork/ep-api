@@ -24,7 +24,7 @@ export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
 export function checkDisableCondition(): boolean {
   console.log(process.env)
-  return JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
+  return JSON.parse(process.env.REINDEX_HIIQ_HOLDERS || 'false') as boolean
 }
 
 export type MethodType = {
@@ -56,7 +56,7 @@ class HiIQHolderService implements OnModuleInit {
 
   async onModuleInit() {
     setTimeout(() => {
-      const reIndex = JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string)
+      const reIndex = JSON.parse(process.env.REINDEX_HIIQ_HOLDERS || 'false')
       if (!reIndex) {
         const job = this.schedulerRegistry.getCronJob('reIndexHiIQHolders')
         job.stop()
@@ -90,7 +90,7 @@ class HiIQHolderService implements OnModuleInit {
   }
 
   checkDisableCondition() {
-    JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
+    JSON.parse(process.env.REINDEX_HIIQ_HOLDERS || 'false') as boolean
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS, {
@@ -306,6 +306,14 @@ class HiIQHolderService implements OnModuleInit {
       .orderBy('created', 'DESC')
       .limit(1)
       .getMany()
+  }
+
+  async searchHiIQHolderAddress(address: string): Promise<HiIQHolderAddress | null> {
+    return this.hiIQHoldersAddressRepo.findOne({
+      where: {
+        address: address.toLowerCase(),
+      },
+    })
   }
 }
 export default HiIQHolderService
