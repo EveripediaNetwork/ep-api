@@ -307,13 +307,16 @@ class HiIQHolderService implements OnModuleInit {
       .limit(1)
       .getMany()
   }
-
-  async searchHiIQHolderAddress(address: string): Promise<HiIQHolderAddress | null> {
-    return this.hiIQHoldersAddressRepo.findOne({
-      where: {
-        address: address.toLowerCase(),
-      },
-    })
+  
+  async searchHiIQHoldersByAddress(address: string): Promise<HiIQHolderAddress[]> {
+    const normalizedAddress = address.toLowerCase();
+    
+    return this.hiIQHoldersAddressRepo
+      .createQueryBuilder('hi_iq_holder_address')
+      .where('LOWER(address) = LOWER(:address)', { 
+        address: normalizedAddress 
+      })
+      .getMany();
   }
 }
 export default HiIQHolderService
