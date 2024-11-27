@@ -71,6 +71,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cron": "^2.3.1",
+    "decimal.js": "^10.4.3",
     "dompurify": "^3.0.2",
     "esm": "^3.2.25",
     "ethers": "^5.7.2",

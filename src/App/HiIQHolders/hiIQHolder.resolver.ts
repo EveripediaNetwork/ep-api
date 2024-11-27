@@ -3,7 +3,7 @@ import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderArgs from './hiIQHolders.dto'
 import HiIQHolderService from './hiIQHolder.service'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
-import { OrderArgs } from '../pagination.args'
+import { HiIQHoldersRankArgs } from '../pagination.args'
 
 @Resolver(() => HiIQHolder)
 class HiIQHoldersResolver {
@@ -20,7 +20,7 @@ class HiIQHoldersResolver {
   }
 
   @Query(() => [HiIQHolderAddress], { name: 'hiIQHoldersRank' })
-  async hiIQHoldersRank(@Args() args: OrderArgs) {
+  async hiIQHoldersRank(@Args() args: HiIQHoldersRankArgs) {
     return this.hiIQHoldersService.hiIQHoldersRank(args)
   }
 

@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import tokenDecimalMiddleware from './middlewares/tokenDecimalMiddleware'
 
 @ObjectType()
 @Entity()
@@ -19,8 +20,8 @@ class HiIQHolderAddress {
   })
   address!: string
 
-  @Field(() => String)
-  @Column({ type: 'numeric', precision: 78, scale: 0 })
+  @Field(() => String, { middleware: [tokenDecimalMiddleware] })
+  @Column('numeric')
   tokens!: string
 
   @Field(() => GraphQLISODateTime)

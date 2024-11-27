@@ -22,4 +22,10 @@ export class OrderArgs extends PaginationArgs {
   order = OrderBy.UPDATED
 }
 
+@ArgsType()
+export class HiIQHoldersRankArgs extends OrderArgs {
+  @Field(() => Boolean)
+  Raw = false
+}
+
 export default PaginationArgs
