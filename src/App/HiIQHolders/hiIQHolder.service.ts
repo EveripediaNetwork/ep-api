@@ -48,8 +48,6 @@ class HiIQHolderService {
     return this.configService.get<string>('etherScanApiKey') as string
   }
 
-
-
   async lastHolderRecord(): Promise<HiIQHolder[]> {
     return this.hiIQHoldersRepo.find({
       order: {
@@ -75,12 +73,8 @@ class HiIQHolderService {
     }
   }
 
-  checkDisableCondition() {
-    JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
-  }
-
-  @Cron(CronExpression.EVERY_10_SECONDS, {
-    name: 'reIndexHiIQHolders',
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
