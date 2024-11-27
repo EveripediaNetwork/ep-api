@@ -155,8 +155,10 @@ class HiIQHolderService {
                 .execute()
             }
           }
-        } catch (error) {
-          console.log(error)
+        } catch (error: any) {
+          if (error.message !== 'topics is not iterable') {
+            console.log(error.message, intermittentCheck)
+          }
         }
       }
     }
