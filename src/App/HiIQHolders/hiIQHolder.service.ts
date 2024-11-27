@@ -1,12 +1,13 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/no-mutable-exports */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Injectable, OnModuleInit } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { decodeEventLog } from 'viem'
-import * as dotenv from 'dotenv'
+import { ethers } from 'ethers'
+import Decimal from 'decimal.js'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
@@ -16,16 +17,9 @@ import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import hiIQAbi from '../utils/hiIQAbi'
 import HiIQHolderArgs from './hiIQHolders.dto'
 import { IntervalByDays } from '../general.args'
-import { OrderArgs } from '../pagination.args'
-
-dotenv.config()
+import { HiIQHoldersRankArgs } from '../pagination.args'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
-
-export function checkDisableCondition(): boolean {
-  console.log(process.env)
-  return JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
-}
 
 export type MethodType = {
   eventName: string
@@ -37,7 +31,7 @@ export type MethodType = {
 }
 
 @Injectable()
-class HiIQHolderService implements OnModuleInit {
+class HiIQHolderService {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
@@ -52,16 +46,6 @@ class HiIQHolderService implements OnModuleInit {
 
   private etherScanApiKey(): string {
     return this.configService.get<string>('etherScanApiKey') as string
-  }
-
-  async onModuleInit() {
-    setTimeout(() => {
-      const reIndex = JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string)
-      if (!reIndex) {
-        const job = this.schedulerRegistry.getCronJob('reIndexHiIQHolders')
-        job.stop()
-      }
-    }, 5000)
   }
 
   async lastHolderRecord(): Promise<HiIQHolder[]> {
@@ -89,40 +73,34 @@ class HiIQHolderService implements OnModuleInit {
     }
   }
 
-  checkDisableCondition() {
-    JSON.parse(process.env.REINDEX_HIIQ_HOLDERS as string) as boolean
-  }
-
-  @Cron(CronExpression.EVERY_10_SECONDS, {
-    name: 'reIndexHiIQHolders',
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
-    const today = new Date()
-    const oneDayBack = new Date(today)
-    oneDayBack.setDate(oneDayBack.getDate() - 1)
+    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    await stopJob(this.hiIQHoldersRepo, job)
 
-    const job = this.schedulerRegistry.getCronJob('reIndexHiIQHolders')
-    const jobRun = await stopJob(this.hiIQHoldersRepo, job, oneDayBack)
-
-    if (firstLevelNodeProcess() && !jobRun) {
+    if (firstLevelNodeProcess()) {
       await this.indexHIIQHolders()
     }
-    console.log('running')
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES, {
-    name: 'checkForHiiqHolers',
+    name: 'intermittentCheck',
   })
-  async checkForHiiqHolers() {
-    if (firstLevelNodeProcess()) {
-      await this.indexHIIQHolders(false)
+  async intermittentCheck() {
+    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    if (firstLevelNodeProcess() && !job.running) {
+      await this.indexHIIQHolders(true)
     }
   }
 
-  async indexHIIQHolders(newDayUpdates = true) {
+  async indexHIIQHolders(intermittentCheck = false) {
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
-    const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
+    const previous = intermittentCheck
+      ? Math.floor((Date.now() - 15 * 60 * 1000) / 1000) // 15 mins back for intermittent checks
+      : Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
     const next = previous ? previous + oneDayInSeconds : undefined
 
     const logs =
@@ -143,15 +121,15 @@ class HiIQHolderService implements OnModuleInit {
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
               if (existingHolder) {
-                existingHolder.tokens = (
-                  BigInt(existingHolder.tokens) + value
-                ).toString()
+                existingHolder.tokens = new Decimal(existingHolder.tokens)
+                  .plus(value.toString())
+                  .toString()
                 await this.hiIQHoldersAddressRepo.save(existingHolder)
               } else {
                 try {
                   const newHolder = this.hiIQHoldersAddressRepo.create({
                     address: provider,
-                    tokens: value.toString(),
+                    tokens: `${ethers.utils.formatEther(value)}`,
                   })
                   await this.hiIQHoldersAddressRepo.save(newHolder)
                 } catch (e: any) {
@@ -177,28 +155,53 @@ class HiIQHolderService implements OnModuleInit {
                 .execute()
             }
           }
-        } catch (e: any) {
-          console.log(e)
+        } catch (error) {
+          console.log(error)
         }
       }
+    }
 
-      const count = await this.hiIQHoldersAddressRepo
-        .createQueryBuilder()
-        .getCount()
+    const count = await this.hiIQHoldersAddressRepo
+      .createQueryBuilder()
+      .getCount()
+    const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
 
-      let newDay
+    if (intermittentCheck) {
+      console.log('intermittent checks')
+      const existCount = await this.hiIQHoldersRepo.findOneBy({
+        day: new Date(),
+      })
 
-      if (newDayUpdates) {
-        newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
-      } else {
-        newDay = new Date()
+      if (!existCount) {
+        const totalHolders = this.hiIQHoldersRepo.create({
+          amount: count,
+          day: new Date(),
+          created: new Date(),
+          updated: new Date(),
+        })
+        await this.hiIQHoldersRepo.save(totalHolders)
+        console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
       }
-
+      if (existCount && count !== existCount.amount) {
+        await this.hiIQHoldersRepo
+          .createQueryBuilder()
+          .update(HiIQHolder)
+          .set({ amount: count })
+          .where('day = :day', { day: existCount.day })
+          .execute()
+        console.log(
+          `hiIQ holder count fro present day: updated value: ${count}  ${
+            existCount.amount > count ? '🔴' : '🟢'
+          } `,
+        )
+      }
+    } else {
+      console.log('indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
 
-      if (!existCount) {
+      if (!existCount && new Date(newDay) <= new Date()) {
         const totalHolders = this.hiIQHoldersRepo.create({
           amount: count,
           day: newDay,
@@ -207,18 +210,6 @@ class HiIQHolderService implements OnModuleInit {
         })
         await this.hiIQHoldersRepo.save(totalHolders)
         console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
-      } else if (count !== existCount.amount) {
-        await this.hiIQHoldersRepo
-          .createQueryBuilder()
-          .update(HiIQHolder)
-          .set({ amount: count })
-          .where('day = :day', { day: existCount.day })
-          .execute()
-        console.log(
-          `hiIQ holder count: updated value: ${count}  ${
-            existCount.amount > count ? '🔴' : '🟢'
-          } `,
-        )
       }
     }
   }
@@ -261,10 +252,15 @@ class HiIQHolderService implements OnModuleInit {
     return logs
   }
 
-  async hiIQHoldersRank(args: OrderArgs): Promise<HiIQHolderAddress[]> {
+  async hiIQHoldersRank(
+    args: HiIQHoldersRankArgs,
+  ): Promise<HiIQHolderAddress[]> {
     const repo = await this.hiIQHoldersAddressRepo
       .createQueryBuilder()
-      .orderBy('tokens', args.direction)
+      .orderBy(
+        args.order && args.order === 'updated' ? 'updated' : 'tokens',
+        args.direction,
+      )
       .skip(args.offset)
       .take(args.limit)
       .getMany()
