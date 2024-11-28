@@ -5,9 +5,8 @@ import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
-import { decodeEventLog } from 'viem'
+import { decodeEventLog, erc20Abi } from 'viem'
 import { ethers } from 'ethers'
-import Decimal from 'decimal.js'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
@@ -26,6 +25,7 @@ export type MethodType = {
   args: {
     provider: string
     type?: bigint
+    ts?: bigint
     value?: bigint
   }
 }
@@ -40,7 +40,7 @@ class HiIQHolderService {
     private schedulerRegistry: SchedulerRegistry,
   ) {}
 
-  private provider(): string {
+  private providerUrl(): string {
     return this.configService.get<string>('PROVIDER_NETWORK') as string
   }
 
@@ -108,6 +108,8 @@ class HiIQHolderService {
         ? await this.getOldLogs(previous, next)
         : await this.getOldLogs()
 
+    const rpcProvider = new ethers.providers.JsonRpcProvider(this.providerUrl())
+
     if (logs.length !== 0) {
       for (const log of logs) {
         try {
@@ -116,20 +118,50 @@ class HiIQHolderService {
             data: log.data,
             topics: log.topics,
           }) as unknown as MethodType
-          if (decodelog.eventName === 'Deposit' && decodelog.args.type === 1n) {
+
+          const tokenContract = new ethers.Contract(
+            hiIQCOntract,
+            erc20Abi,
+            rpcProvider,
+          )
+
+          if (decodelog.eventName === 'Deposit') {
             const { provider, value } = decodelog.args
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
-              if (existingHolder) {
-                existingHolder.tokens = new Decimal(existingHolder.tokens)
-                  .plus(value.toString())
-                  .toString()
-                await this.hiIQHoldersAddressRepo.save(existingHolder)
-              } else {
+              const timestamp = parseInt(log.timeStamp, 16)
+              const logTime = new Date(timestamp * 1000).toISOString()
+
+              const balance = await tokenContract.balanceOf(provider, {
+                blockTag: log.blockNumber,
+              })
+
+              const [decimals] = await Promise.all([
+                tokenContract.decimals(),
+                tokenContract.symbol(),
+              ])
+
+              const formattedBalance = ethers.utils.formatUnits(
+                balance,
+                decimals,
+              )
+
+              if (existingHolder && formattedBalance !== '0.0') {
+                await this.hiIQHoldersAddressRepo
+                  .createQueryBuilder()
+                  .update(HiIQHolderAddress)
+                  .set({ tokens: formattedBalance, updated: logTime })
+                  .where('address = :address', {
+                    address: existingHolder.address,
+                  })
+                  .execute()
+              }
+              if (!existingHolder && formattedBalance !== '0.0') {
                 try {
                   const newHolder = this.hiIQHoldersAddressRepo.create({
                     address: provider,
-                    tokens: `${ethers.utils.formatEther(value)}`,
+                    tokens: `${formattedBalance}`,
+                    updated: logTime,
                   })
                   await this.hiIQHoldersAddressRepo.save(newHolder)
                 } catch (e: any) {
@@ -222,7 +254,7 @@ class HiIQHolderService {
     const endTimestamp = startTimestamp + oneDayInSeconds
     const key = this.etherScanApiKey()
     const rootUrl = `https://api${
-      this.provider().includes('mainnet') ? '' : '-goerli'
+      this.providerUrl().includes('mainnet') ? '' : '-goerli'
     }`
     const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
       `${rootUrl}.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
@@ -259,10 +291,7 @@ class HiIQHolderService {
   ): Promise<HiIQHolderAddress[]> {
     const repo = await this.hiIQHoldersAddressRepo
       .createQueryBuilder()
-      .orderBy(
-        args.order && args.order === 'updated' ? 'updated' : 'tokens',
-        args.direction,
-      )
+      .orderBy('tokens', args.direction)
       .skip(args.offset)
       .take(args.limit)
       .getMany()
@@ -304,6 +333,25 @@ class HiIQHolderService {
       .orderBy('created', 'DESC')
       .limit(1)
       .getMany()
+  }
+
+  async searchHiIQHoldersByAddress(
+    address: string,
+  ): Promise<HiIQHolderAddress | null> {
+    const normalizedAddress = address.toLowerCase()
+
+    const hiIQHolderAddress = await this.hiIQHoldersAddressRepo
+      .createQueryBuilder('hi_iq_holder_address')
+      .where('LOWER(address) = LOWER(:address)', {
+        address: normalizedAddress,
+      })
+      .getOne()
+
+    if (!hiIQHolderAddress) {
+      return null
+    }
+
+    return hiIQHolderAddress
   }
 }
 export default HiIQHolderService
