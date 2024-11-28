@@ -132,9 +132,7 @@ class HiIQHolderService {
               const timestamp = parseInt(log.timeStamp, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
 
-              const balance = await tokenContract.balanceOf(provider, {
-                blockTag: log.blockNumber,
-              })
+              const balance = await tokenContract.balanceOf(provider)
 
               const [decimals] = await Promise.all([
                 tokenContract.decimals(),
