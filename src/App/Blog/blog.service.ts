@@ -1,5 +1,6 @@
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Injectable, Inject, CACHE_MANAGER, Logger } from '@nestjs/common'
 import { Cache } from 'cache-manager'
+import { Cron } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import Arweave from 'arweave'
 import slugify from 'slugify'
@@ -31,11 +32,13 @@ export type RawTransactions = {
 
 @Injectable()
 class BlogService {
+  private readonly logger = new Logger(BlogService.name)
+
   private EVERIPEDIA_BLOG_ACCOUNT2: string
 
   private EVERIPEDIA_BLOG_ACCOUNT3: string
 
-  private BLOG_CACHE_KEY = 'blog-cache'
+  public BLOG_CACHE_KEY = 'blog-cache'
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -226,6 +229,17 @@ class BlogService {
     const minMaxLimit = Math.min(Math.max(limit, 1), 3)
 
     return randomBlog.slice(0, minMaxLimit)
+  }
+
+  @Cron('*/5 * * * *')
+  async handleBlogCacheRefresh() {
+    try {
+      this.logger.log('Refreshing blog cache')
+      await this.getBlogsFromAccounts()
+      this.logger.log('Blog cache refreshed successfully')
+    } catch (error) {
+      this.logger.error('Failed to refresh blog cache', error)
+    }
   }
 }
 
