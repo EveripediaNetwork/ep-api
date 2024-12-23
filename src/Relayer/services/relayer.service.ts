@@ -136,7 +136,7 @@ class RelayerService {
           txConfig,
         )
       } else {
-        const gasBumpMultiplier = isRetry ? 1.5 : 1.2
+        const gasBumpMultiplier = isRetry ? 1.7 : 1.3
         const gas = await this.getUpdatedGas(gasBumpMultiplier)
 
         const txConfig = this.appService.privateSigner()
