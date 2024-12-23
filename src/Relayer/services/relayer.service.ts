@@ -89,11 +89,9 @@ class RelayerService {
     }
   }
 
-  async getUpdatedGas() {
+  async getUpdatedGas(increaseBy = 1.2) {
     const maticGas = (await this.getMaticGas()) || '40'
-
-    const gasBump = String(Math.round(parseInt(maticGas, 10) * 1.2))
-
+    const gasBump = String(Math.round(parseInt(maticGas, 10) * increaseBy))
     return gasBump
   }
 
@@ -104,58 +102,69 @@ class RelayerService {
     v: string,
     r: string,
     s: string,
-  ) {
-    const activityCount = await this.activityRepository.countUserActivity(
-      userAddr,
-      72,
-    )
-    if (activityCount > USER_ACTIVITY_LIMIT) {
-      throw new HttpException(
-        {
-          status: HttpStatus.TOO_MANY_REQUESTS,
-          error: 'Too many requests',
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
+    isRetry = false,
+  ): Promise<any> {
+    if (!isRetry) {
+      const activityCount = await this.activityRepository.countUserActivity(
+        userAddr,
+        72,
       )
-    }
-
-    let result
-    if (this.appService.apiLevel() !== 'prod') {
-      const txConfig = {
-        gasPrice: ethers.utils.parseUnits('0.7', 'gwei'),
+      if (activityCount > USER_ACTIVITY_LIMIT) {
+        throw new HttpException(
+          {
+            status: HttpStatus.TOO_MANY_REQUESTS,
+            error: 'Too many requests',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        )
       }
-      result = await this.wikiInstance.postBySig(
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        txConfig,
-      )
-    } else {
-      const gas = await this.getUpdatedGas()
-
-      const txConfig = this.appService.privateSigner()
-        ? {
-            gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
-            gasLimit: 50000,
-          }
-        : {
-            gasLimit: 50000,
-          }
-
-      result = await this.wikiInstance.postBySig(
-        ipfs,
-        userAddr,
-        deadline,
-        v,
-        r,
-        s,
-        txConfig,
-      )
     }
-    return result
+
+    try {
+      let result
+      if (this.appService.apiLevel() !== 'prod') {
+        const txConfig = {
+          gasPrice: ethers.utils.parseUnits('0.7', 'gwei'),
+        }
+        result = await this.wikiInstance.postBySig(
+          ipfs,
+          userAddr,
+          deadline,
+          v,
+          r,
+          s,
+          txConfig,
+        )
+      } else {
+        const gasBumpMultiplier = isRetry ? 1.5 : 1.2
+        const gas = await this.getUpdatedGas(gasBumpMultiplier)
+
+        const txConfig = this.appService.privateSigner()
+          ? {
+              gasPrice: ethers.utils.parseUnits(gas, 'gwei'),
+              gasLimit: 50000,
+            }
+          : {
+              gasLimit: 50000,
+            }
+
+        result = await this.wikiInstance.postBySig(
+          ipfs,
+          userAddr,
+          deadline,
+          v,
+          r,
+          s,
+          txConfig,
+        )
+      }
+      return result
+    } catch (error: any) {
+      if (!isRetry && error.code === 'REPLACEMENT_UNDERPRICED') {
+        return this.relayTx(ipfs, userAddr, deadline, v, r, s, true)
+      }
+      throw error
+    }
   }
 }
 
