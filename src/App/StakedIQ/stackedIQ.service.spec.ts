@@ -79,7 +79,7 @@ describe('StakedIQService', () => {
     stackedIQService = module.get<StakedIQService>(StakedIQService)
     configService = module.get<ConfigService>(ConfigService)
     httpService = module.get<HttpService>(HttpService)
-    stackedRepository = module.get<StakedIQRepository>(StakedIQRepository) 
+    stackedRepository = module.get<StakedIQRepository>(StakedIQRepository)
     schedulerRegistry = module.get<SchedulerRegistry>(SchedulerRegistry)
   })
 
@@ -166,24 +166,21 @@ describe('StakedIQService', () => {
       const result = await stackedIQService.getTVL()
 
       expect(result).toBe(1)
-      expect(contract.balanceOf).toHaveBeenCalledWith(
-        config.HIIQ_ADDRESS,
-      )
+      expect(contract.balanceOf).toHaveBeenCalledWith(config.HIIQ_ADDRESS)
     })
 
     it('should get TVL for specific block when specified', async () => {
       contract.balanceOf.mockResolvedValue({
         toString: () => '1000000000000000000',
-      });
-      const blockNumber = '12345';
+      })
+      const blockNumber = '12345'
 
-      const result = await stackedIQService.getTVL(blockNumber);
+      const result = await stackedIQService.getTVL(blockNumber)
 
-      expect(result).toBe(1);
-      expect(contract.balanceOf).toHaveBeenCalledWith(
-        config.HIIQ_ADDRESS,
-        { blockTag: Number(blockNumber) }
-      )
+      expect(result).toBe(1)
+      expect(contract.balanceOf).toHaveBeenCalledWith(config.HIIQ_ADDRESS, {
+        blockTag: Number(blockNumber),
+      })
     })
 
     it('should handle contract errors gracefully', async () => {
@@ -237,10 +234,13 @@ describe('StakedIQService', () => {
     })
 
     it('should handle getDates errors', async () => {
-      (stakedIQUtils.getDates as jest.Mock).mockRejectedValue(new Error('Dates error'));
+      ;(stakedIQUtils.getDates as jest.Mock).mockRejectedValue(
+        new Error('Dates error'),
+      )
 
-      await expect(stackedIQService.previousStakedIQ()).rejects.toThrow('Dates error');
-    });
-
+      await expect(stackedIQService.previousStakedIQ()).rejects.toThrow(
+        'Dates error',
+      )
+    })
   })
 })
