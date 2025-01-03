@@ -53,6 +53,9 @@ export class Blog extends FormatedBlogType {
 
   @Field({ nullable: true })
   publisher?: Project
+
+  @Field({ nullable: true })
+  hidden?: boolean
 }
 
 @ObjectType()

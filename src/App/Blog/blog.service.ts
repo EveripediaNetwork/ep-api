@@ -122,6 +122,13 @@ class BlogService {
         }),
       ).then((blogArrays) => blogArrays.flat())
     }
+
+    if (blogs) {
+      blogs = blogs.filter((blog) => !blog.hidden)
+    } else {
+      blogs = []
+    }
+
     await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
     return blogs as Blog[]
   }
@@ -226,6 +233,26 @@ class BlogService {
     const minMaxLimit = Math.min(Math.max(limit, 1), 3)
 
     return randomBlog.slice(0, minMaxLimit)
+  }
+
+  async hideBlogByDigest(digest: string): Promise<boolean> {
+  let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+
+
+  if (!blogs) {
+    blogs = await this.getBlogsFromAccounts()
+  }
+
+  if (blogs && Array.isArray(blogs)) {
+    const blogIndex = blogs.findIndex((e: Blog) => e.digest === digest)
+
+    if (blogIndex !== -1) {
+      blogs[blogIndex].hidden = true
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
+      return true
+    }
+  }
+  return false
   }
 }
 
