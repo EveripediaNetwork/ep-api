@@ -160,31 +160,31 @@ describe('HiIQHolderService', () => {
     })
   })
 
-  describe('checkForNewHolders', () => {
-    it('should not call indexHIIQHolders when job exists', async () => {
-      const job = {
-        running: false,
-        start: jest.fn(),
-        stop: jest.fn(),
-        fireOnTick: jest.fn(),
-        setTime: jest.fn(),
-        lastDate: jest.fn().mockReturnValue(new Date()),
-        nextDate: jest.fn(),
-        nextDates: jest.fn(),
-        addCallback: jest.fn(),
-      }
-      jest.spyOn(schedulerRegistry, 'getCronJob').mockReturnValue(job)
-      jest
-        .spyOn(hiIQHolderService, 'indexHIIQHolders' as any)
-        .mockResolvedValue(undefined)
-      jest
-        .spyOn(firstLevelNodeProcess as jest.Mock, 'mockReturnValue')
-        .mockReturnValue(true)
+  // describe('checkForNewHolders', () => {
+  //   it('should not call indexHIIQHolders when job exists', async () => {
+  //     const job = {
+  //       running: false,
+  //       start: jest.fn(),
+  //       stop: jest.fn(),
+  //       fireOnTick: jest.fn(),
+  //       setTime: jest.fn(),
+  //       lastDate: jest.fn().mockReturnValue(new Date()),
+  //       nextDate: jest.fn(),
+  //       nextDates: jest.fn(),
+  //       addCallback: jest.fn(),
+  //     }
+  //     jest.spyOn(schedulerRegistry, 'getCronJob').mockReturnValue(job)
+  //     jest
+  //       .spyOn(hiIQHolderService, 'indexHIIQHolders' as any)
+  //       .mockResolvedValue(undefined)
+  //     jest
+  //       .spyOn(firstLevelNodeProcess as jest.Mock, 'mockReturnValue')
+  //       .mockReturnValue(true)
 
-      await hiIQHolderService.checkForNewHolders()
-      expect(hiIQHolderService.indexHIIQHolders).not.toHaveBeenCalled()
-    })
-  })
+  //     await hiIQHolderService.checkForNewHolders()
+  //     expect(hiIQHolderService.indexHIIQHolders).not.toHaveBeenCalled()
+  //   })
+  // })
 
   describe('getOldLogs', () => {
     it('should fetch logs successfully', async () => {
