@@ -280,7 +280,7 @@ class HiIQHolderService {
       const resp = await this.httpService.get(logsFor1Day).toPromise()
       logs = resp?.data.result
     } catch (e: any) {
-        console.error('Error requesting log data', e)
+      console.error('Error requesting log data', e)
     }
     return logs
   }
