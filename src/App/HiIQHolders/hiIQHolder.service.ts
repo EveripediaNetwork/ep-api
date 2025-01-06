@@ -251,11 +251,12 @@ class HiIQHolderService {
     const startTimestamp = 1622505600
     const endTimestamp = startTimestamp + oneDayInSeconds
     const key = this.etherScanApiKey()
-    const rootUrl = `https://api${
-      this.providerUrl().includes('mainnet') ? '' : '-goerli'
-    }`
+    const mainnet = this.providerUrl().includes('mainnet')
+
     const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
-      `${rootUrl}.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
+      `https://api.etherscan.io/api?${
+        !mainnet && 'chainid=11155111'
+      }module=block&action=getblocknobytime&timestamp=${
         timestamp || fallbackTimestamp
       }&closest=before&apikey=${key}`
 
@@ -273,13 +274,13 @@ class HiIQHolderService {
       console.error('Error requesting block number', e.data)
     }
 
-    const logsFor1Day = `${rootUrl}.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
+    const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
     let logs
     try {
       const resp = await this.httpService.get(logsFor1Day).toPromise()
       logs = resp?.data.result
     } catch (e: any) {
-      console.error('Error requesting log data', e)
+        console.error('Error requesting log data', e)
     }
     return logs
   }
