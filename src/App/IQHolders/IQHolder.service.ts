@@ -194,11 +194,11 @@ class IQHolderService {
     const startTimestamp = 1616112000
     const endTimestamp = startTimestamp + oneDayInSeconds
     const key = this.etherScanApiKey()
-    const rootUrl = `https://api${
-      this.provider().includes('mainnet') ? '' : '-goerli'
-    }`
+    const mainnet = this.provider().includes('mainnet')
     const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
-      `${rootUrl}.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${
+      `https://api.etherscan.io/api?${
+        !mainnet && 'chainid=11155111'
+      }module=block&action=getblocknobytime&timestamp=${
         timestamp || fallbackTimestamp
       }&closest=before&apikey=${key}`
 
@@ -215,7 +215,9 @@ class IQHolderService {
     } catch (e: any) {
       console.error('Error requesting block number', e.data)
     }
-    const transactionsFor1Day = `${rootUrl}.etherscan.io/api?module=account&action=txlist&address=${IQContract}&startBlock=${blockNumberForQuery1}&endBlock=${blockNumberForQuery2}&page=1&offset=1000&sort=asc&apikey=${key}`
+    const transactionsFor1Day = `https://api.etherscan.io/api?${
+      !mainnet && 'chainid=11155111'
+    }module=account&action=txlist&address=${IQContract}&startBlock=${blockNumberForQuery1}&endBlock=${blockNumberForQuery2}&page=1&offset=1000&sort=asc&apikey=${key}`
 
     let transactions
     try {

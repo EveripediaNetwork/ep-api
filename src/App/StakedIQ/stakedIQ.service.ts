@@ -11,7 +11,7 @@ import { existRecord, stopJob, getDates, insertOldData } from './stakedIQ.utils'
 @Injectable()
 class StakedIQService {
   constructor(
-    private repo: StakedIQRepository,
+    private repo: StakedIQRepository, 
     private configService: ConfigService,
     private httpService: HttpService,
     private schedulerRegistry: SchedulerRegistry,
@@ -76,9 +76,10 @@ class StakedIQService {
     const { time, incomingDate } = await getDates(this.repo)
 
     const key = this.etherScanApiKey()
-    const url = `https://api${
-      this.provider().includes('mainnet') ? '' : '-goerli'
-    }.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
+    const mainnet = this.provider().includes('mainnet')
+    const url = `https://api.etherscan.io/api?${
+      !mainnet && 'chainid=11155111'
+    }module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
 
     let blockNumberForQuery
     try {
