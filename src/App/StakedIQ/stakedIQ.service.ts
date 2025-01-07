@@ -11,7 +11,7 @@ import { existRecord, stopJob, getDates, insertOldData } from './stakedIQ.utils'
 @Injectable()
 class StakedIQService {
   constructor(
-    private repo: StakedIQRepository, 
+    private repo: StakedIQRepository,
     private configService: ConfigService,
     private httpService: HttpService,
     private schedulerRegistry: SchedulerRegistry,
