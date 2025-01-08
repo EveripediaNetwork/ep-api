@@ -69,6 +69,7 @@ import BlogService from './Blog/blog.service'
 import BlogModule from './Blog/blog.module'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
 import Pm2Module from './utils/pm2Module'
+import UserProfileValidator from './User/userProfileValidator.service'
 
 // istanbul ignore next
 @Module({
@@ -152,6 +153,7 @@ import Pm2Module from './utils/pm2Module'
     SentryPlugin,
     BlogService,
     EventsService,
+    UserProfileValidator,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

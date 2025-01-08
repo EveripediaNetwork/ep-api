@@ -18,6 +18,7 @@ import PaginationArgs from '../pagination.args'
 import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
 import { hasField } from '../Wiki/wiki.dto'
+import UserProfileValidator from './userProfileValidator.service'
 
 @Injectable()
 class UserService {
@@ -60,7 +61,16 @@ class UserService {
     profileInfo: string,
     token: string,
   ): Promise<UserProfile | boolean | string> {
-    const data: UserProfile = JSON.parse(profileInfo)
+    let data: UserProfile
+
+    try {
+      data = JSON.parse(profileInfo)
+    } catch (error) {
+      throw new HttpException('Invalid JSON format', HttpStatus.BAD_REQUEST)
+    }
+
+    const validator = new UserProfileValidator()
+    validator.validate(data)
 
     const validDateId = this.tokenValidator.validateToken(token, data.id, false)
 
