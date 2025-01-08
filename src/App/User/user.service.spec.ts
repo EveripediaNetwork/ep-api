@@ -144,69 +144,69 @@ describe('UserService', () => {
   describe('createProfile', () => {
     it('should return false if validateEnsAddr returns false', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(false)
-  
+
       const result = await userService.createProfile(
         '{"id": "0X5456AFEA3AA035088FE1F9AA36509B320360A89E"}',
         'token',
       )
-  
+
       expect(result).toBe(false)
     })
-  
+
     it('should create and return a new profile if it does not exist', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce(null)
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
-  
+
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
-  
+
       expect(result).toEqual({})
     })
-  
+
     it('should update and return the profile if it exists', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce({
         id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
       })
-  
+
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
-  
+
       expect(result).toEqual({
         id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
       })
     })
-  
+
     it('should create a new profile and user if neither exists', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce(null)
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
-  
+
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
-  
+
       expect(result).toEqual({})
     })
-  
+
     it('should create a new user if profile exists but user does not', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       mockQueryBuilder.getOne.mockResolvedValueOnce({
         id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
       })
       mockQueryBuilder.getRawOne.mockResolvedValueOnce(null)
-  
+
       const result = await userService.createProfile(
         JSON.stringify(profileData),
         'token',
       )
-  
+
       expect(result).toEqual({
         id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
       })
@@ -220,7 +220,7 @@ describe('UserService', () => {
       mockRepository.findOne
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null)
-  
+
       await userService.createProfile(JSON.stringify(profileData), 'token')
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         'LOWER(id) = LOWER(:id)',
