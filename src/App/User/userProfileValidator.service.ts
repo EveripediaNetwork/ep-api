@@ -55,7 +55,7 @@ class UserProfileValidator {
   }
 
   private validateNotifications(notifications?: Notifications[]): void {
-    const notificationList = notifications || [new Notifications()];
+    const notificationList = notifications || [new Notifications()]
     if (!notifications) {
       return
     }
@@ -104,7 +104,7 @@ class UserProfileValidator {
   private validateAdvancedSettings(
     advancedSettings?: AdvancedSettings[],
   ): void {
-    const settings = advancedSettings || [new AdvancedSettings()];
+    const settings = advancedSettings || [new AdvancedSettings()]
     if (!advancedSettings) {
       return
     }
