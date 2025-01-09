@@ -7,6 +7,7 @@ import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import {
   MarketCapInputs,
+  MarketCapSearchInputs,
   MarketCapSearchType,
   NftRankListData,
   RankPageIdInputs,
@@ -445,14 +446,12 @@ class MarketCapService {
     }
   }
 
-  async wildcardSearch(args: MarketCapInputs) {
-    if (!args.search) return [] as (TokenRankListData | NftRankListData)[]
-
+  async wildcardSearch(args: MarketCapSearchInputs) {
     const data: MarketCapSearchType | undefined = await this.cacheManager.get(
       'marketCapSearch',
     )
 
-    if (!data) {
+    if (!data || !args.search) {
       return [] as (TokenRankListData | NftRankListData)[]
     }
 
@@ -471,16 +470,31 @@ class MarketCapService {
     }
 
     const lowerSearchTerm = args.search.toLowerCase()
-    const result = cache?.filter((item: any) => {
-      const nftMatch =
-        item.nftMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
-        item.nftMarketData?.name.toLowerCase().includes(lowerSearchTerm)
-      const tokenMatch =
-        item.tokenMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
-        item.tokenMarketData?.name.toLowerCase().includes(lowerSearchTerm)
+    let result
 
-      return (nftMatch as NftRankListData) || (tokenMatch as TokenRankListData)
-    })
+    if (args.founders) {
+      result = cache?.filter((item) => {
+        const tokenMatch = item.founderWikis?.some(
+          (founder) =>
+            founder.id.toLowerCase().includes(lowerSearchTerm) ||
+            founder.title.toLowerCase().includes(lowerSearchTerm),
+        )
+        return tokenMatch
+      }) as TokenRankListData[]
+    } else {
+      result = cache?.filter((item: any) => {
+        const nftMatch =
+          item.nftMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
+          item.nftMarketData?.name.toLowerCase().includes(lowerSearchTerm)
+        const tokenMatch =
+          item.tokenMarketData?.id.toLowerCase().includes(lowerSearchTerm) ||
+          item.tokenMarketData?.name.toLowerCase().includes(lowerSearchTerm)
+
+        return (
+          (nftMatch as NftRankListData) || (tokenMatch as TokenRankListData)
+        )
+      })
+    }
 
     return result || []
   }

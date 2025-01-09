@@ -2,6 +2,7 @@ import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
 import {
   MarketCapInputs,
+  MarketCapSearchInputs,
   MarketRankData,
   NftRankListData,
   RankPageIdInputs,
@@ -11,7 +12,7 @@ import MarketCapService from './marketCap.service'
 import MarketCapSearch from './marketCapSearch.service'
 import AuthGuard from '../utils/admin.guard'
 
-function extractSlug(url: string) {
+export function extractSlug(url: string) {
   const urlReg = url.replace(/\/$/, '')
 
   const parts = urlReg.split('/')
@@ -35,7 +36,7 @@ class MarketCapResolver {
 
   @Query(() => [MarketRankData], { nullable: 'items' })
   async searchRank(
-    @Args() args: MarketCapInputs,
+    @Args() args: MarketCapSearchInputs,
   ): Promise<(NftRankListData | TokenRankListData)[] | []> {
     return this.marketCapService.wildcardSearch(args)
   }

@@ -147,6 +147,12 @@ export class MarketCapInputs extends PaginationArgs {
 }
 
 @ArgsType()
+export class MarketCapSearchInputs extends MarketCapInputs {
+  @Field(() => Boolean, { nullable: true })
+  founders = false
+}
+
+@ArgsType()
 export class RankPageIdInputs extends PaginationArgs {
   @Field(() => String)
   wikiId!: string

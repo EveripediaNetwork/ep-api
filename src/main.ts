@@ -44,8 +44,23 @@ async function bootstrapApplication() {
     rateLimit({
       windowMs: configService.get<number>('THROTTLE_TTL'),
       max: configService.get<number>('THROTTLE_LIMIT'),
-      message: async (_request: any, response: any) =>
-        response.json({ message: 'You are being rate limited' }),
+      message: async (_request: any, response: any) => {
+        console.info(
+          'Rate limit info',
+          JSON.stringify({
+            ip: _request.ip,
+            path: _request.path,
+            method: _request.method,
+            headers: _request.headers,
+            agent: _request.get('User-Agent'),
+            body: _request.body,
+            timestamp: new Date().toISOString(),
+          }),
+          null,
+          2,
+        )
+        response.json({ message: 'You are being rate limited' })
+      },
     }),
   )
 

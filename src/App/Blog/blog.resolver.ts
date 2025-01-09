@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Int } from '@nestjs/graphql'
+import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql'
 import BlogService from './blog.service'
 import { Blog } from './blog.dto'
 
@@ -26,6 +26,13 @@ class BlogResolver {
       throw new Error('Limit must be between 1 and 3')
     }
     return this.blogService.getBlogSuggestions(limit)
+  }
+
+  @Mutation(() => Boolean)
+  async hideBlog(
+    @Args('digest', { type: () => String }) digest: string,
+  ): Promise<boolean> {
+    return this.blogService.hideBlogByDigest(digest)
   }
 }
 

@@ -3,7 +3,7 @@ import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderArgs from './hiIQHolders.dto'
 import HiIQHolderService from './hiIQHolder.service'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
-import { OrderArgs } from '../pagination.args'
+import { HiIQHoldersRankArgs } from '../pagination.args'
 
 @Resolver(() => HiIQHolder)
 class HiIQHoldersResolver {
@@ -11,12 +11,22 @@ class HiIQHoldersResolver {
 
   @Query(() => [HiIQHolder], { name: 'hiIQHolders' })
   async hiIQHolders(@Args() args: HiIQHolderArgs) {
-    return this.hiIQHoldersService.getHiIQHoldersCount(args)
+    return this.hiIQHoldersService.getHiIQHoldersGraph(args)
+  }
+
+  @Query(() => [HiIQHolder], { name: 'hiIQHoldersCount' })
+  async hiIQHoldersCount() {
+    return this.hiIQHoldersService.getHiIQHoldersCount()
   }
 
   @Query(() => [HiIQHolderAddress], { name: 'hiIQHoldersRank' })
-  async hiIQHoldersRank(@Args() args: OrderArgs) {
+  async hiIQHoldersRank(@Args() args: HiIQHoldersRankArgs) {
     return this.hiIQHoldersService.hiIQHoldersRank(args)
+  }
+
+  @Query(() => HiIQHolderAddress, { name: 'searchHiIQHoldersByAddress', nullable: true })
+  async searchHiIQHoldersByAddress(@Args('address') address: string) {
+    return this.hiIQHoldersService.searchHiIQHoldersByAddress(address)
   }
 }
 

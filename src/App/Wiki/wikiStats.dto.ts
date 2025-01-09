@@ -36,7 +36,7 @@ export class DateArgs {
   constructor() {
     const currentDate = new Date()
     this.startDate = Math.round(
-      currentDate.setDate(currentDate.getDate() - 7) / 1000,
+      currentDate.setDate(new Date().getDate() - 7) / 1000,
     )
     this.endDate = Math.round(Date.now() / 1000)
   }
