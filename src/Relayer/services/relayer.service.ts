@@ -82,7 +82,7 @@ class RelayerService {
       )
 
       const fastGasPrice = data.result.FastGasPrice
-      return fastGasPrice
+      return Number(fastGasPrice) <= 40 ? '40' : fastGasPrice
     } catch (error) {
       console.error('Error in getGasPrice', error)
       return null
