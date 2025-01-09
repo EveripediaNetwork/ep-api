@@ -260,7 +260,7 @@ describe('HiIQHolderService', () => {
           limit: 10,
           order: { tokens: 'DESC' } as unknown as OrderBy,
         }),
-      ).rejects.toThrow('Ranking query error') 
+      ).rejects.toThrow('Ranking query error')
     })
   })
 
