@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
+import { HttpException } from '@nestjs/common'
 import UserService from './user.service'
 import TokenValidator from '../utils/validateToken'
 import User from '../../Database/Entities/user.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
+import UserProfileValidator from './userProfileValidator.service'
 // import { ethers } from 'ethers'
 
 describe('UserService', () => {
@@ -69,10 +71,76 @@ describe('UserService', () => {
     avatar: 'avatar',
     banner: 'banner',
     links: [],
-    notifications: [],
-    advancedSettings: {},
+    notifications: [
+      {
+        EVERIPEDIA_NOTIFICATIONS: false,
+        WIKI_OF_THE_DAY: false,
+        WIKI_OF_THE_MONTH: false,
+        EDIT_NOTIFICATIONS: false,
+      },
+    ],
+    advancedSettings: [
+      {
+        SIGN_EDITS_WITH_RELAYER: true,
+      },
+    ],
   }
 
+  describe('input validation', () => {
+    it('should throw HttpException when invalid JSON is provided', async () => {
+      const invalidJson = 'invalid json string'
+
+      await expect(
+        userService.createProfile(invalidJson, 'token'),
+      ).rejects.toThrow(HttpException)
+    })
+
+    it('should validate profile data using UserProfileValidator', async () => {
+      const validJson = JSON.stringify(profileData)
+      jest.spyOn(UserProfileValidator.prototype, 'validate')
+
+      await userService.createProfile(validJson, 'token')
+
+      expect(UserProfileValidator.prototype.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: profileData.id,
+        }),
+      )
+    })
+  })
+
+  describe('ENS validation', () => {
+    it('should validate ENS address when username ends with .eth', async () => {
+      const ensProfileData = {
+        ...profileData,
+        username: 'test.eth',
+      }
+
+      jest.spyOn(userService, 'validateEnsAddr').mockResolvedValue(true)
+      const validJson = JSON.stringify(ensProfileData)
+
+      await userService.createProfile(validJson, 'token')
+
+      expect(userService.validateEnsAddr).toHaveBeenCalledWith(
+        expect.objectContaining({ username: 'test.eth' }),
+        'fakeValidatedId',
+      )
+    })
+  })
+
+  describe('token validation', () => {
+    it('should validate token with tokenValidator service', async () => {
+      const validJson = JSON.stringify(profileData)
+
+      await userService.createProfile(validJson, 'testToken')
+
+      expect(tokenValidator.validateToken).toHaveBeenCalledWith(
+        'testToken',
+        profileData.id,
+        false,
+      )
+    })
+  })
   describe('createProfile', () => {
     it('should return false if validateEnsAddr returns false', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(false)
@@ -143,6 +211,7 @@ describe('UserService', () => {
         id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E',
       })
     })
+
     it('should not duplicate user ID regardless of case', async () => {
       jest.spyOn(userService, 'validateEnsAddr').mockResolvedValueOnce(true)
       jest
@@ -157,6 +226,34 @@ describe('UserService', () => {
         'LOWER(id) = LOWER(:id)',
         { id: '0X5456AFEA3AA035088FE1F9AA36509B320360A89E' },
       )
+    })
+
+    it('should update existing profile when both user and profile exist', async () => {
+      const existingProfile = { ...profileData }
+      mockQueryBuilder.getOne.mockResolvedValueOnce(existingProfile)
+      mockQueryBuilder.getRawOne.mockResolvedValueOnce({ id: profileData.id })
+      const validJson = JSON.stringify(profileData)
+
+      const result = await userService.createProfile(validJson, 'token')
+
+      expect(mockQueryBuilder.update).toHaveBeenCalled()
+      expect(mockQueryBuilder.set).toHaveBeenCalled()
+      expect(result).toEqual(existingProfile)
+    })
+
+    it("should create profile when user exists but profile doesn't", async () => {
+      mockQueryBuilder.getOne.mockResolvedValueOnce(null)
+      mockQueryBuilder.getRawOne.mockResolvedValueOnce({ id: profileData.id })
+      const validJson = JSON.stringify(profileData)
+
+      await userService.createProfile(validJson, 'token')
+
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: profileData.id,
+        }),
+      )
+      expect(mockRepository.save).toHaveBeenCalled()
     })
   })
 
