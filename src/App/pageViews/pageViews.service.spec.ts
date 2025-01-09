@@ -69,7 +69,7 @@ describe('PageViewsService', () => {
         .spyOn(dataSource.getRepository(Wiki), 'query')
         .mockResolvedValueOnce(undefined)
       jest
-        .spyOn(pageViewsService, 'updatePageViewPerDay')
+        .spyOn(pageViewsService as any, 'updatePageViewPerDay')
         .mockResolvedValueOnce(1)
 
       const result = await pageViewsService.updateCount('wiki-id', 'test-ip')
@@ -167,7 +167,6 @@ describe('PageViewsService', () => {
       expect(queryBuilder.addSelect).toHaveBeenCalledWith(
         'Sum(visits)',
         'visits',
-        0,
       )
       expect(queryBuilder.where).toHaveBeenCalledWith('day >= :start', {
         start: expect.any(Date),
