@@ -139,6 +139,9 @@ class Activity {
 
   @Column('smallint', { nullable: true })
   a_version!: string
+
+  @Field(() => Boolean, { nullable: true })
+  hidden?: boolean
 }
 
 export default Activity

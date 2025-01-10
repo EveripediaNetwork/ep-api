@@ -97,6 +97,7 @@ class ActivityRepository extends Repository<Activity> {
         'activity.type',
         'activity.datetime',
         'activity.block',
+        'w.hidden',
         ...activityContent,
       ])
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
@@ -130,6 +131,7 @@ class ActivityRepository extends Repository<Activity> {
 
       return {
         ...e,
+        hidden: e.hidden,
         content: [
           {
             id: e.wikiId,
@@ -149,6 +151,7 @@ class ActivityRepository extends Repository<Activity> {
             created: e.a_created,
             updated: e.a_updated,
             user: { id: e.userAddress },
+            hidden: e.hidden,
           },
         ],
       }

@@ -117,6 +117,7 @@ class ActivityResolver {
       ...wiki,
       created: activity.created_timestamp,
       updated: activity.updated_timestamp,
+      hidden: wiki.hidden,
     }))
     return updatedContent
   }
