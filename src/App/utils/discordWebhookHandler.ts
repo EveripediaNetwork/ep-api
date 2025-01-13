@@ -81,7 +81,7 @@ export default class WebhookHandler {
         }
         case AdminMutations.REVALIDATE_PAGE: {
           const { urlId } = payload
-          const baseUrl = this.getWebpageUrl()
+          const baseUrl = this.getWebpageUrl() 
           const koUrl = `${baseUrl}/ko${urlId}`
           const zhUrl = `${baseUrl}/zh${urlId}`
 

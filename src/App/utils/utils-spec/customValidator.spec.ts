@@ -52,6 +52,7 @@ describe('Validate', () => {
         'Test-123',
         'Test- 123',
         'Test 123',
+        'Test.123',
         '',
       ]
 
@@ -71,7 +72,6 @@ describe('Validate', () => {
         'Test→123',
         'Test€123',
         'Test©123',
-        'Test.123',
         'Test/123',
         'Test(123)',
         'Test@123',
