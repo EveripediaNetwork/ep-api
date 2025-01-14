@@ -22,6 +22,7 @@ import IQHolder from './Entities/iqHolder.entity'
 import MarketCapIds from './Entities/marketCapIds.entity'
 import Events from './Entities/Event.entity'
 import Explorer from './Entities/explorer.entity'
+import HiddenBlog from '../App/Blog/hideBlog.entity'
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import Explorer from './Entities/explorer.entity'
           IQHolderAddress,
           MarketCapIds,
           Events,
-          Explorer
+          Explorer,
+          HiddenBlog,
         ],
         synchronize: true,
         keepConnectionAlive: true,

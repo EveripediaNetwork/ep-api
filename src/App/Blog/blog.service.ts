@@ -7,6 +7,7 @@ import Arweave from 'arweave'
 import slugify from 'slugify'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
+import HiddenBlog from './hideBlog.entity'
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -108,16 +109,17 @@ class BlogService {
     )
 
     if (!hiddenDigests) {
-      const result = await this.dataSource.query(
-        'SELECT digest FROM hidden_blogs',
-      )
-      hiddenDigests = result.map((row: { digest: string }) => row.digest)
+      const hiddenBlogs = await this.dataSource
+        .getRepository(HiddenBlog)
+        .find({ select: ['digest'] })
+
+      hiddenDigests = hiddenBlogs.map((blog) => blog.digest)
       await this.cacheManager.set(this.HIDDEN_BLOGS_CACHE_KEY, hiddenDigests, {
         ttl: 7200,
       })
     }
 
-    return hiddenDigests || []
+    return hiddenDigests
   }
 
   private async filterHiddenBlogs(blogs: Blog[]): Promise<Blog[]> {
@@ -149,15 +151,8 @@ class BlogService {
           }
         }),
       ).then((blogArrays) => blogArrays.flat())
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
     }
-
-    if (blogs) {
-      blogs = blogs.filter((blog) => !blog.hidden)
-    } else {
-      blogs = []
-    }
-
-    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
     return this.filterHiddenBlogs(blogs || [])
   }
 
@@ -270,10 +265,13 @@ class BlogService {
 
   async hideBlogByDigest(digest: string): Promise<boolean> {
     try {
-      await this.dataSource.query(
-        'INSERT INTO hidden_blogs (digest) VALUES ($1) ON CONFLICT (digest) DO NOTHING',
-        [digest],
-      )
+      const hiddenBlogRepo = this.dataSource.getRepository(HiddenBlog)
+
+      const existing = await hiddenBlogRepo.findOne({ where: { digest } })
+      if (!existing) {
+        const hiddenBlog = hiddenBlogRepo.create({ digest })
+        await hiddenBlogRepo.save(hiddenBlog)
+      }
 
       await this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY)
 

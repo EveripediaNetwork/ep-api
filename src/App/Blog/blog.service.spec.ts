@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { DataSource } from 'typeorm'
 import BlogService from './blog.service'
 import MirrorApiService from './mirrorApi.service'
 import { Blog } from './blog.dto'
-import { DataSource } from 'typeorm'
 
 describe('BlogService', () => {
   let blogService: BlogService
@@ -51,8 +51,10 @@ describe('BlogService', () => {
     } as any
 
     dataSource = {
-      query: jest.fn().mockResolvedValue([]),
-    } as any
+      getRepository: jest.fn().mockReturnValue({
+        find: jest.fn().mockResolvedValue([]),
+      }),
+    } as unknown as DataSource
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
