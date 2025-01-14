@@ -1,6 +1,8 @@
 import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
+import { InjectDataSource } from '@nestjs/typeorm'
+import { DataSource } from 'typeorm'
 import Arweave from 'arweave'
 import slugify from 'slugify'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
@@ -37,10 +39,13 @@ class BlogService {
 
   private BLOG_CACHE_KEY = 'blog-cache'
 
+  private HIDDEN_BLOGS_CACHE_KEY = 'hidden-blogs-cache'
+
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService,
     private readonly mirrorApiService: MirrorApiService,
+    @InjectDataSource() private dataSource: DataSource,
   ) {
     this.EVERIPEDIA_BLOG_ACCOUNT2 = this.configService.get(
       'EVERIPEDIA_BLOG_ACCOUNT2',
@@ -97,6 +102,29 @@ class BlogService {
     return newBlog
   }
 
+  private async getHiddenBlogDigests(): Promise<string[]> {
+    let hiddenDigests = await this.cacheManager.get<string[]>(
+      this.HIDDEN_BLOGS_CACHE_KEY,
+    )
+
+    if (!hiddenDigests) {
+      const result = await this.dataSource.query(
+        'SELECT digest FROM hidden_blogs',
+      )
+      hiddenDigests = result.map((row: { digest: string }) => row.digest)
+      await this.cacheManager.set(this.HIDDEN_BLOGS_CACHE_KEY, hiddenDigests, {
+        ttl: 7200,
+      })
+    }
+
+    return hiddenDigests || []
+  }
+
+  private async filterHiddenBlogs(blogs: Blog[]): Promise<Blog[]> {
+    const hiddenDigests = await this.getHiddenBlogDigests()
+    return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
+  }
+
   async getBlogsFromAccounts(): Promise<Blog[]> {
     const accounts = [
       this.EVERIPEDIA_BLOG_ACCOUNT2,
@@ -130,17 +158,22 @@ class BlogService {
     }
 
     await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
-    return blogs as Blog[]
+    return this.filterHiddenBlogs(blogs || [])
   }
 
-  async getBlogByDigest(digest: string): Promise<Blog> {
+  async getBlogByDigest(digest: string): Promise<Blog | null> {
+    const hiddenDigests = await this.getHiddenBlogDigests()
+    if (hiddenDigests.includes(digest)) {
+      return null
+    }
+
     const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
 
     const blog =
       blogs?.find((e: Blog) => e.digest === digest) ??
       (await this.mirrorApiService.getBlog(digest))
 
-    return this.formatBlog(blog as Blog, true)
+    return blog ? this.formatBlog(blog as Blog, true) : null
   }
 
   async getEntryPaths({ transactions }: RawTransactions): Promise<EntryPath[]> {
@@ -236,22 +269,27 @@ class BlogService {
   }
 
   async hideBlogByDigest(digest: string): Promise<boolean> {
-    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    try {
+      await this.dataSource.query(
+        'INSERT INTO hidden_blogs (digest) VALUES ($1) ON CONFLICT (digest) DO NOTHING',
+        [digest],
+      )
 
-    if (!blogs) {
-      blogs = await this.getBlogsFromAccounts()
-    }
+      await this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY)
 
-    if (blogs && Array.isArray(blogs)) {
-      const blogIndex = blogs.findIndex((e: Blog) => e.digest === digest)
-
-      if (blogIndex !== -1) {
-        blogs[blogIndex].hidden = true
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
-        return true
+      const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+      if (blogs) {
+        const filteredBlogs = await this.filterHiddenBlogs(blogs)
+        await this.cacheManager.set(this.BLOG_CACHE_KEY, filteredBlogs, {
+          ttl: 7200,
+        })
       }
+
+      return true
+    } catch (error) {
+      console.error('Error hiding blog:', error)
+      return false
     }
-    return false
   }
 }
 
