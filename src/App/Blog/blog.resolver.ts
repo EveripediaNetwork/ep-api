@@ -1,6 +1,7 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql'
 import BlogService from './blog.service'
 import { Blog } from './blog.dto'
+import HiddenBlog from './hideBlog.entity'
 
 @Resolver(() => Blog)
 class BlogResolver {
@@ -33,6 +34,11 @@ class BlogResolver {
     @Args('digest', { type: () => String }) digest: string,
   ): Promise<boolean> {
     return this.blogService.hideBlogByDigest(digest)
+  }
+
+  @Query(() => [HiddenBlog], { nullable: 'items' })
+  async getHiddenBlogs(): Promise<HiddenBlog[]> {
+    return this.blogService.getHiddenBlogs()
   }
 }
 
