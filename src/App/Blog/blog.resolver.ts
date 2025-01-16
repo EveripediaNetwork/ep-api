@@ -34,6 +34,13 @@ class BlogResolver {
   ): Promise<boolean> {
     return this.blogService.hideBlogByDigest(digest)
   }
+
+  @Mutation(() => Boolean)
+  async unhideBlog(
+    @Args('digest', { type: () => String }) digest: string,
+  ): Promise<boolean> {
+    return this.blogService.unhideBlogByDigest(digest)
+  }
 }
 
 export default BlogResolver
