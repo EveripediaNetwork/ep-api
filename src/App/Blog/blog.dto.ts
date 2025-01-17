@@ -56,6 +56,9 @@ export class Blog extends FormatedBlogType {
 
   @Field({ nullable: true })
   hidden?: boolean
+
+  @Field({ nullable: true })
+  hiddenAt?: Date
 }
 
 @ObjectType()
