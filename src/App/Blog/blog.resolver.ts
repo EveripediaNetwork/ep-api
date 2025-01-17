@@ -43,8 +43,8 @@ class BlogResolver {
     return this.blogService.unhideBlogByDigest(digest)
   }
 
-  @Query(() => [HiddenBlog], { nullable: 'items' })
-  async getHiddenBlogs(): Promise<HiddenBlog[]> {
+  @Query(() => [Blog], { nullable: 'items' })
+  async getHiddenBlogs(): Promise<Blog[]> {
     return this.blogService.getHiddenBlogs()
   }
 }

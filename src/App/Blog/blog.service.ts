@@ -316,8 +316,49 @@ class BlogService {
     }
   }
 
-  async getHiddenBlogs(): Promise<HiddenBlog[]> {
-    return this.dataSource.getRepository(HiddenBlog).find()
+  async getHiddenBlogs(): Promise<Blog[]> {
+    const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
+    const hiddenBlogs = await hiddenBlogsRepo.find()
+
+    let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    if (!allBlogs) {
+      const accounts = [
+        this.EVERIPEDIA_BLOG_ACCOUNT2,
+        this.EVERIPEDIA_BLOG_ACCOUNT3,
+      ]
+
+      allBlogs = await Promise.all(
+        accounts.map(async (account) => {
+          try {
+            if (!account) return []
+            const entries = await this.mirrorApiService.getBlogs(account)
+            return (
+              entries
+                ?.filter((entry) => entry.publishedAtTimestamp)
+                .map((b: Blog) => this.formatBlog(b, true)) || []
+            )
+          } catch (error) {
+            console.error(`Error fetching blogs for account ${account}:`, error)
+            return []
+          }
+        }),
+      ).then((blogArrays) => blogArrays.flat())
+
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, { ttl: 7200 })
+    }
+
+    const hiddenBlogsWithInfo =
+      allBlogs?.filter((blog) =>
+        hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
+      ) || []
+
+    return hiddenBlogsWithInfo.map((blog) => {
+      const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
+      return {
+        ...blog,
+        hiddenAt: hiddenBlog?.hiddenAt,
+      }
+    })
   }
 }
 
