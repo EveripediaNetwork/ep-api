@@ -315,6 +315,10 @@ class BlogService {
       return false
     }
   }
+
+  async getHiddenBlogs(): Promise<HiddenBlog[]> {
+    return this.dataSource.getRepository(HiddenBlog).find()
+  }
 }
 
 export default BlogService
