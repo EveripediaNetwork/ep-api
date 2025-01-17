@@ -290,6 +290,32 @@ class BlogService {
     }
   }
 
+  async unhideBlogByDigest(digest: string): Promise<boolean> {
+    try {
+      const hiddenBlogRepo = this.dataSource.getRepository(HiddenBlog)
+
+      const existing = await hiddenBlogRepo.findOne({ where: { digest } })
+      if (existing) {
+        await hiddenBlogRepo.remove(existing)
+      }
+
+      await this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY)
+
+      const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+      if (blogs) {
+        const filteredBlogs = await this.filterHiddenBlogs(blogs)
+        await this.cacheManager.set(this.BLOG_CACHE_KEY, filteredBlogs, {
+          ttl: 7200,
+        })
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error unhiding blog:', error)
+      return false
+    }
+  }
+
   async getHiddenBlogs(): Promise<HiddenBlog[]> {
     return this.dataSource.getRepository(HiddenBlog).find()
   }

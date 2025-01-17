@@ -36,6 +36,13 @@ class BlogResolver {
     return this.blogService.hideBlogByDigest(digest)
   }
 
+  @Mutation(() => Boolean)
+  async unhideBlog(
+    @Args('digest', { type: () => String }) digest: string,
+  ): Promise<boolean> {
+    return this.blogService.unhideBlogByDigest(digest)
+  }
+
   @Query(() => [HiddenBlog], { nullable: 'items' })
   async getHiddenBlogs(): Promise<HiddenBlog[]> {
     return this.blogService.getHiddenBlogs()
