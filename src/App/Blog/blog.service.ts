@@ -127,6 +127,34 @@ class BlogService {
     return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
+  private async refreshBlogCache(): Promise<Blog[]> {
+    const accounts = [
+      this.EVERIPEDIA_BLOG_ACCOUNT2,
+      this.EVERIPEDIA_BLOG_ACCOUNT3,
+    ]
+
+    const blogs = await Promise.all(
+      accounts.map(async (account) => {
+        try {
+          if (!account) return []
+          const entries = await this.mirrorApiService.getBlogs(account)
+          return (
+            entries
+              ?.filter((entry) => entry.publishedAtTimestamp)
+              .map((b: Blog) => this.formatBlog(b, true)) || []
+          )
+        } catch (error) {
+          console.error(`Error fetching blogs for account ${account}:`, error)
+          return []
+        }
+      }),
+    ).then((blogArrays) => blogArrays.flat())
+
+    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
+    return blogs
+  }
+
+
   async getBlogsFromAccounts(): Promise<Blog[]> {
     const accounts = [
       this.EVERIPEDIA_BLOG_ACCOUNT2,
@@ -273,15 +301,10 @@ class BlogService {
         await hiddenBlogRepo.save(hiddenBlog)
       }
 
-      await this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY)
-
-      const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-      if (blogs) {
-        const filteredBlogs = await this.filterHiddenBlogs(blogs)
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, filteredBlogs, {
-          ttl: 7200,
-        })
-      }
+      await Promise.all([
+        this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY),
+        this.cacheManager.del(this.BLOG_CACHE_KEY)
+      ])
 
       return true
     } catch (error) {
@@ -299,15 +322,10 @@ class BlogService {
         await hiddenBlogRepo.remove(existing)
       }
 
-      await this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY)
-
-      const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-      if (blogs) {
-        const filteredBlogs = await this.filterHiddenBlogs(blogs)
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, filteredBlogs, {
-          ttl: 7200,
-        })
-      }
+      await Promise.all([
+        this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY),
+        this.cacheManager.del(this.BLOG_CACHE_KEY)
+      ])
 
       return true
     } catch (error) {
@@ -318,40 +336,20 @@ class BlogService {
 
   async getHiddenBlogs(): Promise<Blog[]> {
     const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
-    const hiddenBlogs = await hiddenBlogsRepo.find()
-    console.log('Hidden blogs fetched from repository:', hiddenBlogs)
+    const hiddenBlogs = await hiddenBlogsRepo.find({
+      order: { hiddenAt: 'DESC' }
+    })
 
     let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!allBlogs) {
-      const accounts = [
-        this.EVERIPEDIA_BLOG_ACCOUNT2,
-        this.EVERIPEDIA_BLOG_ACCOUNT3,
-      ]
 
-      allBlogs = await Promise.all(
-        accounts.map(async (account) => {
-          try {
-            if (!account) return []
-            const entries = await this.mirrorApiService.getBlogs(account)
-            return (
-              entries
-                ?.filter((entry) => entry.publishedAtTimestamp)
-                .map((b: Blog) => this.formatBlog(b, true)) || []
-            )
-          } catch (error) {
-            console.error(`Error fetching blogs for account ${account}:`, error)
-            return []
-          }
-        }),
-      ).then((blogArrays) => blogArrays.flat())
-
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, { ttl: 7200 })
+      allBlogs = await this.refreshBlogCache()
     }
 
     const hiddenBlogsWithInfo =
-      allBlogs?.filter((blog) =>
+      allBlogs.filter((blog) =>
         hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
-      ) || []
+      )
 
     return hiddenBlogsWithInfo.map((blog) => {
       const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
