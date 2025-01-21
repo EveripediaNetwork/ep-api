@@ -113,7 +113,7 @@ class BlogService {
         .getRepository(HiddenBlog)
         .find({ select: ['digest'] })
 
-      hiddenDigests = hiddenBlogs.map(blog => blog.digest)
+      hiddenDigests = hiddenBlogs.map((blog) => blog.digest)
       await this.cacheManager.set(this.HIDDEN_BLOGS_CACHE_KEY, hiddenDigests, {
         ttl: 7200,
       })
@@ -124,7 +124,7 @@ class BlogService {
 
   private async filterHiddenBlogs(blogs: Blog[]): Promise<Blog[]> {
     const hiddenDigests = await this.getHiddenBlogDigests()
-    return blogs.filter(blog => !hiddenDigests.includes(blog.digest))
+    return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
   async getBlogsFromAccounts(): Promise<Blog[]> {
@@ -136,13 +136,13 @@ class BlogService {
     let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!blogs) {
       blogs = await Promise.all(
-        accounts.map(async account => {
+        accounts.map(async (account) => {
           try {
             if (!account) return []
             const entries = await this.mirrorApiService.getBlogs(account)
             return (
               entries
-                ?.filter(entry => entry.publishedAtTimestamp)
+                ?.filter((entry) => entry.publishedAtTimestamp)
                 .map((b: Blog) => this.formatBlog(b, true)) || []
             )
           } catch (error) {
@@ -150,7 +150,7 @@ class BlogService {
             return []
           }
         }),
-      ).then(blogArrays => blogArrays.flat())
+      ).then((blogArrays) => blogArrays.flat())
       await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
     }
     return this.filterHiddenBlogs(blogs || [])
@@ -186,7 +186,7 @@ class BlogService {
           timestamp: node.block.timestamp,
         }
       })
-      .filter(entry => entry.slug && entry.slug !== '')
+      .filter((entry) => entry.slug && entry.slug !== '')
       .reduce((acc: EntryPath[], current) => {
         const x = acc.findIndex(
           (entry: EntryPath) => entry.slug === current.slug,
@@ -329,13 +329,13 @@ class BlogService {
       ]
 
       allBlogs = await Promise.all(
-        accounts.map(async account => {
+        accounts.map(async (account) => {
           try {
             if (!account) return []
             const entries = await this.mirrorApiService.getBlogs(account)
             return (
               entries
-                ?.filter(entry => entry.publishedAtTimestamp)
+                ?.filter((entry) => entry.publishedAtTimestamp)
                 .map((b: Blog) => this.formatBlog(b, true)) || []
             )
           } catch (error) {
@@ -343,18 +343,18 @@ class BlogService {
             return []
           }
         }),
-      ).then(blogArrays => blogArrays.flat())
+      ).then((blogArrays) => blogArrays.flat())
 
       await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, { ttl: 7200 })
     }
 
     const hiddenBlogsWithInfo =
-      allBlogs?.filter(blog =>
-        hiddenBlogs.some(hiddenBlog => hiddenBlog.digest === blog.digest),
+      allBlogs?.filter((blog) =>
+        hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
       ) || []
 
-    return hiddenBlogsWithInfo.map(blog => {
-      const hiddenBlog = hiddenBlogs.find(hb => hb.digest === blog.digest)
+    return hiddenBlogsWithInfo.map((blog) => {
+      const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
       return {
         ...blog,
         hiddenAt: hiddenBlog?.hiddenAt,
