@@ -45,7 +45,9 @@ class BlogResolver {
 
   @Query(() => [Blog], { nullable: 'items' })
   async getHiddenBlogs(): Promise<Blog[]> {
-    return this.blogService.getHiddenBlogs()
+    const hiddenBlogs = await this.blogService.getHiddenBlogs()
+    console.log('Fetched hidden blogs:', hiddenBlogs)
+    return hiddenBlogs
   }
 }
 
