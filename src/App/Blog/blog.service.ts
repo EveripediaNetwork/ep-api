@@ -154,7 +154,6 @@ class BlogService {
     return blogs
   }
 
-
   async getBlogsFromAccounts(): Promise<Blog[]> {
     const accounts = [
       this.EVERIPEDIA_BLOG_ACCOUNT2,
@@ -303,7 +302,7 @@ class BlogService {
 
       await Promise.all([
         this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY),
-        this.cacheManager.del(this.BLOG_CACHE_KEY)
+        this.cacheManager.del(this.BLOG_CACHE_KEY),
       ])
 
       return true
@@ -324,7 +323,7 @@ class BlogService {
 
       await Promise.all([
         this.cacheManager.del(this.HIDDEN_BLOGS_CACHE_KEY),
-        this.cacheManager.del(this.BLOG_CACHE_KEY)
+        this.cacheManager.del(this.BLOG_CACHE_KEY),
       ])
 
       return true
@@ -337,19 +336,17 @@ class BlogService {
   async getHiddenBlogs(): Promise<Blog[]> {
     const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
     const hiddenBlogs = await hiddenBlogsRepo.find({
-      order: { hiddenAt: 'DESC' }
+      order: { hiddenAt: 'DESC' },
     })
 
     let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!allBlogs) {
-
       allBlogs = await this.refreshBlogCache()
     }
 
-    const hiddenBlogsWithInfo =
-      allBlogs.filter((blog) =>
-        hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
-      )
+    const hiddenBlogsWithInfo = allBlogs.filter((blog) =>
+      hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
+    )
 
     return hiddenBlogsWithInfo.map((blog) => {
       const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
