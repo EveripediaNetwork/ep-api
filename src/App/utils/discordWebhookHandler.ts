@@ -191,6 +191,16 @@ export default class WebhookHandler {
             error: async (err) => {
               await fss.unlink('./uploads/message.json')
               console.log(err.response)
+              const errorMessage = `Request to API failed\nError code: ${
+                err.response?.status
+              }\nError message: ${err.response?.data?.message || err.message}`
+              await this.sendToChannel(
+                boundary,
+                JSON.stringify({
+                  content: errorMessage,
+                }),
+                braindaoAlarms,
+              )
             },
           })
       } catch (e) {
