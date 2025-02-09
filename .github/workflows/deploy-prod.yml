@@ -6,6 +6,12 @@ jobs:
     name: deploy to prod
     runs-on: ubuntu-latest
     steps:
+      - name: Remove old SSH host key
+        run: ssh-keygen -R ${{ secrets.HOST_PROD }}
+
+      - name: Add new SSH host key
+        run: ssh-keyscan -H ${{ secrets.HOST_PROD }} >> ~/.ssh/known_hosts
+
       - name: Deploy to production
         uses: appleboy/ssh-action@master
         with: 
