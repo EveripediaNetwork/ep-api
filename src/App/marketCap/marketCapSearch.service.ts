@@ -22,12 +22,9 @@ export const query = gql`
 class MarketCapSearch implements OnModuleInit {
   private pubSub: PubSub
 
-  //   private attempts = 0
-
   constructor(
     private marketCapService: MarketCapService,
     private pm2Service: Pm2Service,
-    // private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.pubSub = new PubSub()
@@ -44,55 +41,8 @@ class MarketCapSearch implements OnModuleInit {
       })
       this.buildRankpageSearchData()
       console.log('Starting API rate limit tester...')
-      //   this.testRateLimit()
     }, 15000)
   }
-
-  //   async testRateLimit(): Promise<void> {
-  //     const url = 'http://localhost:8000/graphql' // Replace with your API URL
-
-  //     while (true) {
-  //       try {
-  //         await request(url, query)
-  //         this.attempts += 1
-  //       } catch (err: any) {
-  //         console.error('GRAPH ERROR', JSON.stringify(err, null, 2))
-  //         console.error(`Error on attempt #${this.attempts}:`)
-  //         break
-  //       }
-
-  //       //   try {
-  //       //     this.attempts += 1
-  //       //     const response = await axios.get(url)
-  //       //     console.log(`Attempt #${this.attempts}: Status ${response.status}`)
-
-  //       //     // Optional: Add custom logic if the API indicates rate limiting in the response body
-  //       //     if (response.data && response.data.rateLimitReached) {
-  //       //       console.log('Rate limit reached in response body.')
-  //       //       break
-  //       //     }
-  //       //   } catch (error) {
-  //       //     if (axios.isAxiosError(error)) {
-  //       //       const axiosError = error as AxiosError
-
-  //       //       // Check for rate limiting status code (e.g., 429)
-  //       //       if (axiosError.response && axiosError.response.status === 429) {
-  //       //         console.log('Rate limit reached: 429 Too Many Requests')
-  //       //         break
-  //       //       }
-
-  //       //       console.error(
-  //       //         `Error on attempt #${this.attempts}:`,
-  //       //         axiosError.message,
-  //       //       )
-  //       //     } else {
-  //       //       console.error(`Unexpected error on attempt #${this.attempts}:`, error)
-  //       //     }
-  //       //   }
-  //     }
-
-  //     // console.log(`Stopped after ${this.attempts} attempts due to rate limit.`)
-  //   }
 
   @OnEvent('buildSearchData', { async: true })
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -136,7 +86,7 @@ class MarketCapSearch implements OnModuleInit {
         Number(process.env.pm_id),
       )
 
-      this.cacheManager.set('marketCapSearch', data, 300)
+      this.cacheManager.set('marketCapSearch', data)
 
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,
@@ -151,7 +101,7 @@ class MarketCapSearch implements OnModuleInit {
   async setCacheData(payload: any) {
     const data = JSON.parse(payload.data.data)
     await this.cacheManager.set(payload.data.key, data, {
-      ttl: payload.data.ttl || 300,
+      ttl: payload.data.ttl,
     })
   }
 
