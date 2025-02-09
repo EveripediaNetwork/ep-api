@@ -400,3 +400,4 @@ dist
 .vscode
 ngrok.yml
 logs
+.env*
