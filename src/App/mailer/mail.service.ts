@@ -18,7 +18,6 @@ export default class MailService {
     image: string,
     suggestions: any[],
   ): Promise<boolean> {
-    const root = process.cwd()
     const websiteUrl = this.config.get<string>('WEBSITE_URL')
     const ipfsUrl = this.config.get<string>('ipfsUrl')
 
@@ -44,44 +43,7 @@ export default class MailService {
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
       subject: `IQ.wiki update - ${title}`,
-      html: htmlContent,
-      attachments: [
-        {
-          filename: 'Twitter.png',
-          path: `${root}/public/Twitter.png`,
-          cid: 'Twitter',
-        },
-        {
-          filename: 'Github.png',
-          path: `${root}/public/Github.png`,
-          cid: 'Github',
-        },
-        {
-          filename: 'Instagram.png',
-          path: `${root}/public/Instagram.png`,
-          cid: 'Instagram',
-        },
-        {
-          filename: 'Facebook.png',
-          path: `${root}/public/Facebook.png`,
-          cid: 'Facebook',
-        },
-        {
-          filename: 'Discord.png',
-          path: `${root}/public/Discord.png`,
-          cid: 'Discord',
-        },
-        {
-          filename: 'Telegram.png',
-          path: `${root}/public/Telegram.png`,
-          cid: 'Telegram',
-        },
-        {
-          filename: 'braindao-logo.png',
-          path: `${root}/public/braindao-logo.png`,
-          cid: 'logo',
-        },
-      ],
+      html: htmlContent
     })
     return true
   }
