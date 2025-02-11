@@ -43,7 +43,7 @@ export default class MailService {
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
       subject: `IQ.wiki update - ${title}`,
-      html: htmlContent
+      html: htmlContent,
     })
     return true
   }
