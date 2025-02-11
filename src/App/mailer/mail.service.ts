@@ -1,6 +1,8 @@
 import { MailerService } from '@nestjs-modules/mailer'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { render } from '@react-email/render'
+import Email from './email/iq-wiki-newsletter'
 
 @Injectable()
 export default class MailService {
@@ -17,24 +19,30 @@ export default class MailService {
     suggestions: any[],
   ): Promise<boolean> {
     const root = process.cwd()
+    const websiteUrl = this.config.get<string>('WEBSITE_URL')
+    const ipfsUrl = this.config.get<string>('ipfsUrl')
+    
+    if (!websiteUrl || !ipfsUrl) {
+      throw new Error('WEBSITE_URL or ipfsUrl is not defined in the configuration')
+    }
+
+    const htmlContent = await render(Email({
+      wiki: title,
+      url: `${websiteUrl}/wiki/${id}`,
+      iqUrl: websiteUrl,
+      wikiImage: `${ipfsUrl}${image}`,
+      unsubscribeLink: `${websiteUrl}/account/settings`,
+      suggestions,
+    }), { pretty: true })
+
     await this.mailerService.sendMail({
       to: userEmail,
       from: this.config.get<string>('MAIL_SENDER'),
       subject: `IQ.wiki update - ${title}`,
-      template: './iqMail',
-      context: {
-        wiki: title,
-        url: `${this.config.get<string>('WEBSITE_URL')}/wiki/${id}`,
-        iqUrl: this.config.get<string>('WEBSITE_URL'),
-        wikiImage: `${this.config.get<string>('ipfsUrl')}${image}`,
-        unsubscribeLink: `${this.config.get<string>(
-          'WEBSITE_URL',
-        )}/account/settings`,
-        suggestions,
-      },
+      html: htmlContent,
       attachments: [
         {
-          filename: 'Twiiter.png',
+          filename: 'Twitter.png',
           path: `${root}/public/Twitter.png`,
           cid: 'Twitter',
         },
@@ -54,7 +62,7 @@ export default class MailService {
           cid: 'Facebook',
         },
         {
-          filename: 'discord.png',
+          filename: 'Discord.png',
           path: `${root}/public/Discord.png`,
           cid: 'Discord',
         },
@@ -71,5 +79,4 @@ export default class MailService {
       ],
     })
     return true
-  }
-}
+  }}
