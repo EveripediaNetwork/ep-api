@@ -77,7 +77,11 @@ import UserProfileValidator from './User/userProfileValidator.service'
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CacheModule.register({ ttl: 3600, max: 10000, isGlobal: true }),
+    CacheModule.register({
+      ttl: 3600,
+      max: process.env.API_LEVEL === 'prod' ? 10000 : 2500,
+      isGlobal: true,
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       installSubscriptionHandlers: true,
