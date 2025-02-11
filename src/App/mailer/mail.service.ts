@@ -21,19 +21,24 @@ export default class MailService {
     const root = process.cwd()
     const websiteUrl = this.config.get<string>('WEBSITE_URL')
     const ipfsUrl = this.config.get<string>('ipfsUrl')
-    
+
     if (!websiteUrl || !ipfsUrl) {
-      throw new Error('WEBSITE_URL or ipfsUrl is not defined in the configuration')
+      throw new Error(
+        'WEBSITE_URL or ipfsUrl is not defined in the configuration',
+      )
     }
 
-    const htmlContent = await render(Email({
-      wiki: title,
-      url: `${websiteUrl}/wiki/${id}`,
-      iqUrl: websiteUrl,
-      wikiImage: `${ipfsUrl}${image}`,
-      unsubscribeLink: `${websiteUrl}/account/settings`,
-      suggestions,
-    }), { pretty: true })
+    const htmlContent = await render(
+      Email({
+        wiki: title,
+        url: `${websiteUrl}/wiki/${id}`,
+        iqUrl: websiteUrl,
+        wikiImage: `${ipfsUrl}${image}`,
+        unsubscribeLink: `${websiteUrl}/account/settings`,
+        suggestions,
+      }),
+      { pretty: true },
+    )
 
     await this.mailerService.sendMail({
       to: userEmail,
@@ -79,4 +84,5 @@ export default class MailService {
       ],
     })
     return true
-  }}
+  }
+}
