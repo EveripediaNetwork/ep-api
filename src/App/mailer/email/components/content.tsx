@@ -75,7 +75,7 @@ export default function Content({
                   </Text>
                   <Text
                     style={{ marginBlock: 0 }}
-                    className="font-medium text-2xl sm:text-4xl"
+                    className="font-medium text-2xl sm:text-[26px]"
                   >
                     {title}
                   </Text>

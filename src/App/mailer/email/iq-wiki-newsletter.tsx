@@ -67,11 +67,11 @@ const Email = ({ wiki, wikiImage, url, suggestions }: EmailProps) => (
     <Html lang="en">
       <Head>
         <Font
-          fontFamily="Monteserrat"
+          fontFamily="Montserrat"
           fallbackFontFamily="Verdana"
           webFont={{
             url: 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap',
-            format: 'woff2',
+            format: 'woff',
           }}
           fontWeight={400}
           fontStyle="normal"
