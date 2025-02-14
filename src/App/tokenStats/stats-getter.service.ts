@@ -116,7 +116,7 @@ class StatsGetterService {
 
     const volumeChange =
       cgVolumeData.total_volumes.length === 1
-        ? cgVolumeData.total_volumes[0][1] * cgVolumeData.total_volumes * 100
+        ? 0
         : ((cgVolumeData.total_volumes[1][1] -
             cgVolumeData.total_volumes[0][1]) /
             cgVolumeData.total_volumes[0][1]) *
