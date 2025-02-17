@@ -2,7 +2,7 @@ import { MailerService } from '@nestjs-modules/mailer'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { render } from '@react-email/render'
-import Email from './email/iq-wiki-newsletter'
+import Email from '../../../emails'
 
 @Injectable()
 export default class MailService {

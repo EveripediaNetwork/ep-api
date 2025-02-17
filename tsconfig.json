@@ -6,14 +6,16 @@
     "jsx": "react-jsx",
     "types": ["node", "react"],
     "esModuleInterop": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/",
     "test/",
     "dist/wiki.resolver.spec.ts",
     "dist/RPCProvider.service.spec.ts",
-    "dist/run.command.spec.ts"
+    "dist/run.command.spec.ts",
+    "emails"
   ],
   "exclude": ["node_modules", "uploads"]
 }
