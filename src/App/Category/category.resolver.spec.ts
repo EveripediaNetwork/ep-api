@@ -1,5 +1,5 @@
 import { HttpModule } from '@nestjs/axios'
-import { CacheModule } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { TestingModule, Test } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
@@ -115,7 +115,7 @@ describe('CategoryResolver', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600,
+          ttl: 3600 * 1000,
           store: mockCacheStore,
         }),
       ],

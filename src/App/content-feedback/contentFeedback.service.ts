@@ -1,4 +1,5 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { DataSource } from 'typeorm'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
@@ -164,9 +165,9 @@ class ContentFeedbackService {
   }
 
   async checkIP(ip: string): Promise<boolean> {
-    const cached: string | undefined = await this.cacheManager.get(ip)
+    const cached: string | null | undefined = await this.cacheManager.get(ip)
     if (!cached) {
-      await this.cacheManager.set(ip, ip, { ttl: 60 })
+      await this.cacheManager.set(ip, ip, 60 * 1000)
       return true
     }
     return false

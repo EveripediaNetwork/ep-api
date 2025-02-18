@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { CACHE_MANAGER } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { HttpModule } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'

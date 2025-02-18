@@ -1,12 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import {
-  BadRequestException,
-  CacheModule,
-  MiddlewareConsumer,
-  Module,
-} from '@nestjs/common'
+import { BadRequestException, MiddlewareConsumer, Module } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
 import { GraphQLDirective, DirectiveLocation } from 'graphql'
@@ -14,6 +10,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
+import { SentryModule } from '@sentry/nestjs/setup'
 import WikiResolver from './Wiki/wiki.resolver'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
@@ -57,7 +54,6 @@ import TreasuryModule from './Treasury/treasury.module'
 import StakedIQModule from './StakedIQ/stakedIQ.module'
 import HiIQHolderModule from './HiIQHolders/hiIQHolder.module'
 import IQHolderModule from './IQHolders/IQHolder.module'
-import SentryMiddleware from '../sentry/sentry.middleware'
 import SentryMod from '../sentry/sentry.module'
 import DiscordModule from './utils/discord.module'
 import UploadController from './Upload/upload.controller'
@@ -74,6 +70,7 @@ import UserProfileValidator from './User/userProfileValidator.service'
 // istanbul ignore next
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -88,10 +85,12 @@ import UserProfileValidator from './User/userProfileValidator.service'
       debug: true,
       playground: true,
       introspection: process.env.NODE_ENV !== 'production',
-      cors: true,
       cache: new InMemoryLRUCache(),
       autoSchemaFile: true,
-      context: ({ req, connection }) => ({ req, connection }),
+      context: ({ req, connection }: { req: Request; connection: any }) => ({
+        req,
+        connection,
+      }),
       transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
       buildSchemaOptions: {
         directives: [
@@ -175,7 +174,7 @@ import UserProfileValidator from './User/userProfileValidator.service'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SentryMiddleware).exclude('graphql').forRoutes('*')
+    // consumer.apply(SentryMiddleware).exclude('graphql').forRoutes('*')
     consumer.apply(PinMiddleware, logger).forRoutes('graphql')
   }
 }

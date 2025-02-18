@@ -1,7 +1,8 @@
 import { Command, CommandRunner, Option } from 'nest-commander'
 import { DataSource, ILike } from 'typeorm'
 import { Cache } from 'cache-manager'
-import { CACHE_MANAGER, Inject } from '@nestjs/common'
+import { Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import Subscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import MailService from '../mailer/mail.service'
@@ -79,7 +80,7 @@ class NotificationsCommand implements CommandRunner {
         ORDER BY d."datetime" DESC
         LIMIT 10
     `)
-    await this.cacheManager.set(id, result, { ttl: 900 })
+    await this.cacheManager.set(id, result, 900 * 1000)
     return result
   }
 

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import BlogService from './blog.service'
@@ -151,7 +151,7 @@ describe('BlogService', () => {
             image_sizes: 50,
           },
         ],
-        { ttl: 7200 },
+        7200 * 1000,
       )
     })
 
@@ -162,9 +162,11 @@ describe('BlogService', () => {
       const result = await blogService.getBlogsFromAccounts()
 
       expect(result).toEqual([])
-      expect(cacheManager.set).toHaveBeenCalledWith('blog-cache', [], {
-        ttl: 7200,
-      })
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'blog-cache',
+        [],
+        7200 * 1000,
+      )
     })
   })
 

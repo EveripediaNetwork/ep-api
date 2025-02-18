@@ -1,4 +1,5 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor } from '@ntegral/nestjs-sentry'
@@ -26,7 +27,7 @@ import AppService from '../App/app.service'
     }),
     DatabaseModule,
     httpModule(20000),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600 * 1000 }),
     PosthogModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

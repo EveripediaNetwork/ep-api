@@ -1,5 +1,6 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Cache } from 'cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { DataSource, Repository } from 'typeorm'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -53,7 +54,9 @@ class PageViewsService {
 
   async updateCount(id: string, ip: string): Promise<number> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
-    const cached: WikiViewed | undefined = await this.cacheManager.get(id)
+    const cached: WikiViewed | null | undefined = await this.cacheManager.get(
+      id,
+    )
 
     if (cached) {
       return 0

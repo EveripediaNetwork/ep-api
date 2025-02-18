@@ -2,7 +2,8 @@
 /* eslint-disable no-console */
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import {
@@ -79,7 +80,8 @@ class MarketCapService {
       category === 'cryptocurrencies' ? 'coins' : 'nft'
     }/${id}`
 
-    const cachedWiki: RankPageWiki | undefined = await this.cacheManager.get(id)
+    const cachedWiki: RankPageWiki | null | undefined =
+      await this.cacheManager.get(id)
     if (!cachedWiki) {
       const marketCapId = await marketCapIdRepository.findOne({
         where: { coingeckoId: id, kind: category as RankType },
@@ -182,9 +184,7 @@ class MarketCapService {
         this.CACHED_WIKI = result as RankPageWiki
       }
 
-      await this.cacheManager.set(id, result, {
-        ttl: 3600,
-      })
+      await this.cacheManager.set(id, result, 3600 * 1000)
 
       return result as unknown as RankPageWiki
     }
@@ -334,7 +334,7 @@ class MarketCapService {
             .toPromise()
           if (response?.data) {
             allData.push(...response.data)
-            await this.cacheManager.set(url, allData, { ttl: 180 })
+            await this.cacheManager.set(url, allData, 180 * 1000)
           }
         }
         if (allData.length >= limit) {
@@ -447,9 +447,8 @@ class MarketCapService {
   }
 
   async wildcardSearch(args: MarketCapSearchInputs) {
-    const data: MarketCapSearchType | undefined = await this.cacheManager.get(
-      'marketCapSearch',
-    )
+    const data: MarketCapSearchType | null | undefined =
+      await this.cacheManager.get('marketCapSearch')
 
     if (!data || !args.search) {
       return [] as (TokenRankListData | NftRankListData)[]

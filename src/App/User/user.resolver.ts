@@ -8,12 +8,8 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { DataSource } from 'typeorm'
-import {
-  CACHE_MANAGER,
-  Inject,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, UseGuards, UseInterceptors } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Cache } from 'cache-manager'
 import User from '../../Database/Entities/user.entity'
@@ -151,13 +147,13 @@ class UserResolver {
 
     const key = id ? id.toLowerCase() : ''
 
-    const cached: UserProfile | undefined = await this.cacheManager.get(
+    const cached: UserProfile | null | undefined = await this.cacheManager.get(
       key as unknown as string,
     )
 
     if (!cached) {
       const a = await this.userService.getUserProfile(fields, { id })
-      await this.cacheManager.set(key as unknown as string, a, { ttl: 180 })
+      await this.cacheManager.set(key as unknown as string, a, 180 * 1000)
       return a
     }
     return cached

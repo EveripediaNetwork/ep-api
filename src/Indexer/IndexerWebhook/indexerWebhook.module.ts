@@ -1,4 +1,5 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { PosthogModule, PosthogService } from 'nestjs-posthog'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import httpModule from '../../httpModule'
@@ -20,7 +21,7 @@ import AppService from '../../App/app.service'
 @Module({
   imports: [
     httpModule(10000),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600 * 1000 }),
     PosthogModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

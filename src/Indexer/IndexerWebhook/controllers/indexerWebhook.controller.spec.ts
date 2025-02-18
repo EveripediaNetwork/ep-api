@@ -2,8 +2,9 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
 import { HttpModule } from '@nestjs/axios'
-import { HttpStatus, CacheModule } from '@nestjs/common'
+import { HttpStatus } from '@nestjs/common'
 import { PosthogModule } from 'nestjs-posthog'
+import { CacheModule } from '@nestjs/cache-manager'
 import IndexerWebhookController from './indexerWebhook.controller'
 import { EventData } from '../indexerWehhook.dto'
 import {
@@ -40,7 +41,7 @@ describe('IndexerWebhookController', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600,
+          ttl: 3600 * 1000,
           store: mockCacheStore,
         }),
         PosthogModule.forRootAsync({

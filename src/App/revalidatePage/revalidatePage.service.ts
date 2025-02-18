@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable, CACHE_MANAGER, Inject } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'

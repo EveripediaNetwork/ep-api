@@ -4,7 +4,7 @@
     "rootDir": ".",
     "outDir": "dist",
     "jsx": "react-jsx",
-    "types": ["node", "react"],
+    "types": ["node", "react", "jest", "Multer"],
     "esModuleInterop": true,
     "experimentalDecorators": true
   },

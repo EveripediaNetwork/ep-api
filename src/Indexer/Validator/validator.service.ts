@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common'
 import slugify from 'slugify'
 
 import {
@@ -13,6 +12,7 @@ import {
   EventType,
   Media,
 } from '@everipedia/iq-utils'
+import { Injectable } from '@nestjs/common'
 import { isValidUrl } from '../../App/utils/getWikiFields'
 import { WikiSummarySize } from '../../App/utils/getWikiSummary'
 

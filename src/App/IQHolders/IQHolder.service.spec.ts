@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { SchedulerRegistry } from '@nestjs/schedule'
 import { DataSource } from 'typeorm'
 import { ethers } from 'ethers'
 import { of } from 'rxjs'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import IQHolderService from './IQHolder.service'
 import IQHolderRepository from './IQHolder.repository'
 import IQHolderAddressRepository from './IQHolderAddress.repository'
@@ -140,12 +140,12 @@ describe('IQHolderService', () => {
 
   it('should check for existing holders', async () => {
     const address = '0x123'
-    const holder = { address: address }
+    const holder = { address }
     ;(iqHolders.findOneBy as jest.Mock).mockResolvedValue(holder)
 
     const result = await iqholderService.checkExistingHolders(address)
     expect(result).toEqual(holder)
-    expect(iqHolders.findOneBy).toHaveBeenCalledWith({ address: address })
+    expect(iqHolders.findOneBy).toHaveBeenCalledWith({ address })
   })
 
   it('should not process when cache has temp stop flag', async () => {
@@ -194,9 +194,11 @@ describe('IQHolderService', () => {
     await iqholderService.indexIQHolders()
 
     expect(queryRunner?.rollbackTransaction).toHaveBeenCalled()
-    expect(cacheManager.set).toHaveBeenCalledWith('storeIQHolderCount', true, {
-      ttl: 900,
-    })
+    expect(cacheManager.set).toHaveBeenCalledWith(
+      'storeIQHolderCount',
+      true,
+      900 * 1000,
+    )
   })
 
   it('should handle empty transaction list', () => {

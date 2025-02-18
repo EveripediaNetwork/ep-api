@@ -1,8 +1,8 @@
 import { HttpModule } from '@nestjs/axios'
-import { CacheModule } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TestingModule, Test } from '@nestjs/testing'
 import { DataSource } from 'typeorm'
+import { CacheModule } from '@nestjs/cache-manager'
 import { mockCacheStore } from '../../App/utils/test-helpers/reuseableTestObjects'
 import SitemapController from './sitemap.controller'
 import WikiService from '../../App/Wiki/wiki.service'
@@ -26,7 +26,7 @@ describe('SitemapController', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600,
+          ttl: 3600 * 1000,
           store: mockCacheStore,
         }),
       ],
