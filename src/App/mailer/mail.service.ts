@@ -2,7 +2,7 @@ import { MailerService } from '@nestjs-modules/mailer'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { render } from '@react-email/render'
-import Email from './email/iq-wiki-newsletter'
+import Email from '../../../emails'
 
 @Injectable()
 export default class MailService {
@@ -27,6 +27,13 @@ export default class MailService {
       )
     }
 
+    const modifiedSuggestion = suggestions.map(({ images, ...suggestion }) => ({
+      ...suggestion,
+      image: images.map(
+        (img: { id: string; type: string }) => `${ipfsUrl}${img.id}`,
+      )[0],
+    }))
+
     const htmlContent = await render(
       Email({
         wiki: title,
@@ -34,9 +41,9 @@ export default class MailService {
         iqUrl: websiteUrl,
         wikiImage: `${ipfsUrl}${image}`,
         unsubscribeLink: `${websiteUrl}/account/settings`,
-        suggestions,
+        suggestions: modifiedSuggestion,
       }),
-      { pretty: true },
+      { pretty: false },
     )
 
     await this.mailerService.sendMail({
