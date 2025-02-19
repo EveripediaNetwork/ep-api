@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
@@ -67,7 +68,7 @@ class IQHolderService {
     disabled: true
   })
   async storeIQHolderCount() {
-    const tempStop: boolean | undefined = await this.cacheManager.get(
+    const tempStop: boolean | null | undefined = await this.cacheManager.get(
       cronIndexerId,
     )
 
@@ -148,7 +149,7 @@ class IQHolderService {
     } catch (e: any) {
       console.log(e)
       await queryRunner.rollbackTransaction()
-      await this.cacheManager.set(cronIndexerId, true, { ttl: 900 })
+      await this.cacheManager.set(cronIndexerId, true, 900 * 1000)
       this.lockingService.releaseLock(cronIndexerId)
       await queryRunner.release()
       return

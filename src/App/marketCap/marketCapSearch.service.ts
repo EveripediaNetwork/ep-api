@@ -1,10 +1,10 @@
-import { CACHE_MANAGER, Inject, Injectable, OnModuleInit } from '@nestjs/common'
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { PubSub } from 'graphql-subscriptions'
 import { gql } from 'graphql-request'
-// import { ConfigService } from '@nestjs/config'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType, TokenCategory } from './marketcap.dto'
 import Pm2Service from '../utils/pm2Service'
@@ -100,9 +100,7 @@ class MarketCapSearch implements OnModuleInit {
   @OnEvent('updateCache')
   async setCacheData(payload: any) {
     const data = JSON.parse(payload.data.data)
-    await this.cacheManager.set(payload.data.key, data, {
-      ttl: payload.data.ttl,
-    })
+    await this.cacheManager.set(payload.data.key, data, payload.data.ttl * 1000)
   }
 
   @OnEvent('deleteCache')

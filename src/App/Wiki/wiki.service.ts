@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { Brackets, DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { Cache } from 'cache-manager'
@@ -138,7 +139,7 @@ class WikiService {
   }
 
   async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
-    const wikiIdsList: { id: string; title: string }[] | undefined =
+    const wikiIdsList: { id: string; title: string }[] | null | undefined =
       await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
     const response = await (
@@ -151,7 +152,7 @@ class WikiService {
       .orderBy('id', 'ASC')
       .getRawMany()
 
-    await this.cacheManager.set('wikiIdsList', response, { ttl: 3600 })
+    await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
     return response
   }
 
@@ -624,7 +625,7 @@ class WikiService {
     }
 
     const response = await query.getRawOne()
-    await this.cacheManager.set(args.category, response, { ttl: 3600 })
+    await this.cacheManager.set(args.category, response, 3600 * 1000)
     return response
   }
 

@@ -1,4 +1,5 @@
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { InjectDataSource } from '@nestjs/typeorm'
@@ -114,9 +115,11 @@ class BlogService {
         .find({ select: ['digest'] })
 
       hiddenDigests = hiddenBlogs.map((blog) => blog.digest)
-      await this.cacheManager.set(this.HIDDEN_BLOGS_CACHE_KEY, hiddenDigests, {
-        ttl: 7200,
-      })
+      await this.cacheManager.set(
+        this.HIDDEN_BLOGS_CACHE_KEY,
+        hiddenDigests,
+        7200 * 1000,
+      )
     }
 
     return hiddenDigests
@@ -150,7 +153,7 @@ class BlogService {
       }),
     ).then((blogArrays) => blogArrays.flat())
 
-    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
+    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
     return blogs
   }
 
@@ -178,7 +181,7 @@ class BlogService {
           }
         }),
       ).then((blogArrays) => blogArrays.flat())
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, { ttl: 7200 })
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
     }
     return this.filterHiddenBlogs(blogs || [])
   }

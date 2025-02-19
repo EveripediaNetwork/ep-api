@@ -16,7 +16,9 @@ class ActivityService {
     )
     const topLevelSelections =
       topLevelColumnsWithQueryAlias.join(',\n              ')
-    const contentJSONB = selections.filter((e: string) => typeof e === 'object')
+    const contentJSONB = selections.filter(
+      (e: string) => typeof e === 'object',
+    ) as any[]
 
     const contentSelections = contentJSONB[0].selections.filter(
       (e: string) =>

@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PosthogService } from 'nestjs-posthog'
 import { LockingService } from '../../IQHolders/IQHolders.dto'
-import SentryPlugin from '../../../sentry/sentryPlugin'
+// import SentryPlugin from '../../../sentry/sentryPlugin'
 import ActivityResolver from '../../Activities/activity.resolver'
 import ActivityService from '../../Activities/activity.service'
 import CategoryResolver from '../../Category/category.resolver'
@@ -53,7 +53,7 @@ export const providerObjects = {
   wikiService: WikiService,
   userService: UserService,
   userResolver: UserResolver,
-  sentryPlugin: SentryPlugin,
+  //   sentryPlugin: SentryPlugin,
   wikiResolver: WikiResolver,
   eventEmitter2: EventEmitter2,
   configService: ConfigService,
@@ -101,7 +101,7 @@ export enum ProviderEnum {
   wikiService = 'wikiService',
   userService = 'userService',
   userResolver = 'userResolver',
-  sentryPlugin = 'sentryPlugin',
+  //   sentryPlugin = 'sentryPlugin',
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
   configService = 'configService',

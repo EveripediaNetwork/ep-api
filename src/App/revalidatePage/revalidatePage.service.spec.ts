@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { HttpService } from '@nestjs/axios'
 import { DataSource } from 'typeorm'
 import { ConfigService } from '@nestjs/config'
-import { CACHE_MANAGER } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { RevalidatePageService, Routes } from './revalidatePage.service'
 
 describe('RevalidatePage Service', () => {

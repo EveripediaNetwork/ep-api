@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { CacheModule } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { DataSource } from 'typeorm'
 import { getMockRes } from '@jest-mock/express'
 import { HttpModule } from '@nestjs/axios'

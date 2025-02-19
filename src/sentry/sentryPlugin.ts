@@ -3,11 +3,11 @@ import { Plugin } from '@nestjs/apollo'
 import {
   ApolloServerPlugin,
   GraphQLRequestListener,
-} from 'apollo-server-plugin-base'
+  GraphQLRequestContext,
+} from '@apollo/server'
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry'
-import { GraphQLRequestContext } from 'apollo-server-types'
 import '@sentry/tracing'
-import { Context } from './sentryTransaction'
+import { Context } from '@sentry/node/types/integrations/context'
 
 @Plugin()
 export default class SentryPlugin implements ApolloServerPlugin<Context> {
@@ -16,7 +16,9 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
   async requestDidStart({
     request,
     context,
-  }: GraphQLRequestContext | any): Promise<GraphQLRequestListener> {
+  }: GraphQLRequestContext<Context> | any): Promise<
+    GraphQLRequestListener<Context>
+  > {
     const { query } = request
     const methodName = query.match(/[{]\s+(\w+)/)
     const [, name] = methodName
@@ -41,6 +43,7 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
         .instance()
         .getCurrentHub()
         .configureScope((scope) => {
+          if (!context?.req) return
           const { headers, body: data, method, baseUrl: url } = context.req
           scope.addEventProcessor((event) => {
             event.request = { method, url, headers, data }
@@ -51,7 +54,7 @@ export default class SentryPlugin implements ApolloServerPlugin<Context> {
       this.sentry.instance().configureScope((scope) => {
         scope.setSpan(transaction)
       })
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
     }
 

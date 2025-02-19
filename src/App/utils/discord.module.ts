@@ -1,4 +1,5 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { ScheduleModule } from '@nestjs/schedule'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import DiscordWebhookService from './discordWebhookService'
@@ -10,7 +11,7 @@ import httpModule from '../../httpModule'
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wiki, UserProfile]),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600 * 1000 }),
     httpModule(10000),
     ScheduleModule.forRoot(),
   ],

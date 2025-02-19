@@ -15,6 +15,11 @@ module.exports = {
       error_file: './logs/api-error.json',
       log_date_format: 'YYYY-MM-DD HH:mm Z',
       max_memory_restart: '2600M',
+
+      env_development: {
+        API_LEVEL: 'dev',
+        max_memory_restart: '768M', 
+      },
     },
     {
       name: 'indexer-service',

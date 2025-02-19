@@ -36,7 +36,14 @@ class MetadataChangesService {
       ),
     ]
     const update = data.metadata.filter(
-      (m) => !meta.includes(m.id as EditSpecificMetaIds),
+      (m) =>
+        !meta.includes(
+          m.id as
+            | EditSpecificMetaIds.WORDS_CHANGED
+            | EditSpecificMetaIds.PERCENT_CHANGED
+            | EditSpecificMetaIds.BLOCKS_CHANGED
+            | EditSpecificMetaIds.WIKI_SCORE,
+        ),
     )
 
     let wiki

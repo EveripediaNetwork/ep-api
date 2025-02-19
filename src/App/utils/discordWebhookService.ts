@@ -1,4 +1,5 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { Cache } from 'cache-manager'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
@@ -45,9 +46,11 @@ class DiscordWebhookService {
         unknownAddresses: [],
       }
 
-      await this.cacheManager.set(addressToWikiCacheKey, cachedData, {
-        ttl: 7200,
-      })
+      await this.cacheManager.set(
+        addressToWikiCacheKey,
+        cachedData,
+        7200 * 1000,
+      )
     }
 
     cachedData.knownAddresses = cachedData.knownAddresses || {}

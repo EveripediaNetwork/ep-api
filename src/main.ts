@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import './sentry/sentryInstrument'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
@@ -22,7 +21,6 @@ async function bootstrapApplication() {
   const eventEmitter = app.get(EventEmitter2)
 
   const port = configService.get<number>('PORT')
-
   app =
     Number(port) === 443
       ? await NestFactory.create(AppModule, {

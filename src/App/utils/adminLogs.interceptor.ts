@@ -3,9 +3,9 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  CACHE_MANAGER,
   Inject,
 } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { OnEvent } from '@nestjs/event-emitter'
 import { GqlExecutionContext } from '@nestjs/graphql'
 import { Observable } from 'rxjs'
@@ -64,9 +64,8 @@ export default class AdminLogsInterceptor implements NestInterceptor {
 
   @OnEvent('admin.action', { async: true })
   async sendAdminLog(cacheId: string) {
-    const payload: AdminLogPayload | undefined = await this.cacheManager.get(
-      cacheId,
-    )
+    const payload: AdminLogPayload | null | undefined =
+      await this.cacheManager.get(cacheId)
     if (payload) {
       await this.webhookHandler.postWebhook(ActionTypes.ADMIN_ACTION, {
         user: payload.address,

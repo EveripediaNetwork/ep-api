@@ -1,7 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common'
-import * as Sentry from '@sentry/node'
+import Sentry from '@sentry/nestjs'
 import { NextFunction, Request, Response } from 'express'
-import * as Tracing from '@sentry/tracing'
 import { ConfigService } from '@nestjs/config'
 
 const ignoredEndpoints = ['/brainpass/nft-events', '/indexer']
@@ -14,7 +13,8 @@ export default class SentryMiddleware implements NestMiddleware {
     Sentry.init({
       dsn: this.configService.get<string>('SENTRY_DSN'),
       tracesSampleRate: 0.3,
-      integrations: [new Tracing.Integrations.Apollo()],
+      profilesSampleRate: 0.5,
+      integrations: [Sentry.graphqlIntegration()],
       ignoreErrors: ['RangeError'],
     })
 

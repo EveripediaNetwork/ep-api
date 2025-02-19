@@ -1,4 +1,5 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { CacheModule } from '@nestjs/cache-manager'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
@@ -15,7 +16,7 @@ import { LockingService } from './IQHolders.dto'
   imports: [
     TypeOrmModule.forFeature([IQHolderAddress, IQHolder]),
     ScheduleModule.forRoot(),
-    CacheModule.register({ ttl: 3600 }),
+    CacheModule.register({ ttl: 3600 * 1000 }),
     HttpModule,
   ],
   providers: [

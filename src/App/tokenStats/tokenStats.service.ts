@@ -1,4 +1,5 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import TokenData from './models/tokenData.model'
 import StatsGetterService from './stats-getter.service'
@@ -11,7 +12,7 @@ class TokenStatsService {
   ) {}
 
   async getStats(name: string, cmcName?: string): Promise<TokenData> {
-    const cached: TokenData | undefined = await this.cacheManager.get(
+    const cached: TokenData | null | undefined = await this.cacheManager.get(
       name.toLowerCase(),
     )
     if (cached) {
