@@ -1,43 +1,122 @@
 import {
+  Button,
   Column,
   Hr,
   Img,
-  Link,
   Row,
   Section,
   Text,
 } from '@react-email/components'
-import {
-  NFTsIcon,
-  DefiIcon,
-  Cryptocurrency,
-  DaoIcon,
-  DappsIcon,
-  ExchangeIcon,
-  Organization,
-  PeopleOfCryptoIcon,
-} from '../assets'
+
+const BASE_PATH = 'https://iq.wiki/images/emails'
 
 const TranformCategoryIcon = (categoryType: string) => {
   switch (categoryType) {
     case 'nfts':
-      return <NFTsIcon />
+      return (
+        <>
+          <Img src={`${BASE_PATH}/nfts.png`} className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden" />
+          <Img
+            src={`${BASE_PATH}/nfts-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
     case 'defi':
-      return <DefiIcon />
-    case 'crypto':
-      return <Cryptocurrency />
+      return (
+        <>
+          <Img src={`${BASE_PATH}/defi.png`} className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden" />
+          <Img
+            src={`${BASE_PATH}/defi-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
+    case 'cryptocurrencies':
+      return (
+        <>
+          <Img
+            src={`${BASE_PATH}/crypto.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"
+          />
+          <Img
+            src={`${BASE_PATH}/crypto-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
     case 'dao':
-      return <DaoIcon />
+      return (
+        <>
+          <Img src={`${BASE_PATH}/dao.png`} className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden" />
+          <Img
+            src={`${BASE_PATH}/dao-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
     case 'dapps':
-      return <DappsIcon />
-    case 'exchange':
-      return <ExchangeIcon />
+      return (
+        <>
+          <Img src={`${BASE_PATH}/dapps.png`} className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden" />
+          <Img
+            src={`${BASE_PATH}/dapps-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
+    case 'exchanges':
+      return (
+        <>
+          <Img
+            src={`${BASE_PATH}/exchange.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"
+          />
+          <Img
+            src={`${BASE_PATH}/exchange-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
     case 'organization':
-      return <Organization />
-    case 'people-of-crypto':
-      return <PeopleOfCryptoIcon />
+      return (
+        <>
+          <Img
+            src={`${BASE_PATH}/organization.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"
+          />
+          <Img
+            src={`${BASE_PATH}/organization-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
+    case 'people':
+      return (
+        <>
+          <Img
+            src={`${BASE_PATH}/people.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"
+          />
+          <Img
+            src={`${BASE_PATH}/people-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
     default:
-      return <Cryptocurrency />
+      return (
+        <>
+          <Img
+            src={`${BASE_PATH}/crypto.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"
+          />
+          <Img
+            src={`${BASE_PATH}/crypto-dark.png`}
+            className="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block"
+          />
+        </>
+      )
   }
 }
 
@@ -47,7 +126,8 @@ export default function Content({
   suggestions: {
     title: string
     summary: string
-    category: string
+    category_id: string
+    category_title: string
     wikiUrl: string
     image: string
   }[]
@@ -56,66 +136,92 @@ export default function Content({
     <Section className="mt-10 sm:mt-20">
       <Text
         style={{ marginBlock: 0 }}
-        className="font-bold text-[24px] text-center sm:text-[32px]"
+        className="font-semibold text-[24px] text-center sm:text-4xl text-foreground dark:text-foreground-dark"
       >
         More wikis you'll love!
       </Text>
       <div className="mt-3 sm:mt-10">
         {suggestions.map(
-          ({ title, wikiUrl, image, summary, category }, index) => (
-            <>
-              <Row key={`${title}-${index}`}>
+          (
+            { title, wikiUrl, image, summary, category_id, category_title },
+            index,
+          ) => (
+            <div key={`${title}-${index}`}>
+              <Row>
+                <Column className="sm:pl-4 block sm:hidden w-full mb-3 sm:mt-0 sm:w-2/5">
+                  <Row style={{ margin: 0 }} className='block sm:hidden pb-2'>
+                    <Column
+                      style={{
+                        verticalAlign: 'middle',
+                        width: '20px',
+                        lineHeight: 0,
+                      }}
+                    >
+                      {TranformCategoryIcon(category_id)}
+                    </Column>
+                    <Column
+                      style={{
+                        verticalAlign: 'middle',
+                        lineHeight: 0,
+                      }}
+                    >
+                      <Text style={{margin: 0}} className="pl-[3px] sm:pl-[6px] text-foreground dark:text-foreground-dark font-medium text-base">
+                        {category_title}
+                      </Text>
+                    </Column>
+                  </Row>
+                  <Img
+                    src={image}
+                    alt={title}
+                    className="rounded-xl w-full h-[250px] sm:h-[200px] border border-solid border-[#E4E7EB] dark:border-border-dark md:max-w-full bg-contain"
+                  />
+                </Column>
                 <Column className="w-full block sm:table-cell sm:w-3/5">
+                  <Row style={{ margin: 0 }} className='hidden sm:block'>
+                    <Column
+                      style={{
+                        verticalAlign: 'middle',
+                        width: '20px',
+                        lineHeight: 0,
+                      }}
+                    >
+                      {TranformCategoryIcon(category_id)}
+                    </Column>
+                    <Column
+                      style={{
+                        verticalAlign: 'middle',
+                        lineHeight: 0,
+                      }}
+                    >
+                      <Text style={{margin: 0}} className="pl-[3px] sm:pl-[6px] text-foreground dark:text-foreground-dark font-medium text-base">
+                        {category_title}
+                      </Text>
+                    </Column>
+                  </Row>
                   <Text
-                    style={{ marginBlock: 0 }}
-                    className="font-medium text-xs inline-flex items-center gap-2"
-                  >
-                    {TranformCategoryIcon(category)}
-                    <span>{category}</span>
-                  </Text>
-                  <Text
-                    style={{ marginBlock: 0 }}
-                    className="font-medium text-2xl sm:text-[26px]"
+                    style={{ margin: '0 0 6px 0' }}
+                    className="text-xl sm:text-3xl font-semibold pt-1 sm:pt-2 text-card-foreground dark:text-card-foreground-dark"
                   >
                     {title}
                   </Text>
                   <Text
-                    style={{ marginBlock: 0 }}
-                    className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground-dark pb-2"
+                    style={{ margin: 0 }}
+                    className="text-base sm:text-xl text-foreground dark:text-foreground-dark"
                   >
                     {summary}
                   </Text>
-                  <Link
-                    className="border-1 border-solid border-border dark:border-border-dark bg-secondary dark:bg-secondary-dark font-medium text-sm sm:mt-2 inline-flex items-center px-8 rounded-md h-12"
+                  <Button
+                    className="border-1 border-solid border-border dark:border-border-dark bg-secondary dark:bg-secondary-dark font-medium text-base px-7 sm:px-10 rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-secondary-foreground dark:text-secondary-foreground-dark"
                     href={wikiUrl}
                   >
-                    <Text className="text-secondary-foreground dark:text-secondary-foreground-dark font-semibold">
-                      Read more
-                    </Text>
-                    <svg
-                      className="pl-1.5"
-                      width="24"
-                      height="25"
-                      viewBox="0 0 24 25"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M16.6894 12.2207L12.2501 7.7814L12.9572 7.0743L18.4571 12.5743L12.9572 18.0743L12.2501 17.3672L16.6894 12.9278L17.043 12.5743L16.6894 12.2207ZM11.0395 12.2207L6.60017 7.7814L7.30728 7.07429L12.8073 12.5743L7.30727 18.0743L6.60017 17.3672L11.0395 12.9278L11.3931 12.5743L11.0395 12.2207Z"
-                        className="fill-secondary-foreground dark:fill-secondary-foreground-dark stroke-secondary-foreground dark:stroke-secondary-foreground-dark"
-                      />
-                    </svg>
-                  </Link>
+                    Read now
+                  </Button>
                 </Column>
-                <Column className="md:pl-4 block sm:table-cell w-full mt-3 sm:mt-0 sm:w-2/5">
+                <Column className="sm:pl-4 hidden sm:table-cell w-full mt-0 sm:w-2/5">
                   <Img
                     src={image}
                     alt={title}
-                    className="rounded-xl w-full bg-cover h-[250px] sm:h-[155px] border-border dark:border-border-dark md:max-w-full"
-                    style={{
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                    }}
+                    className="rounded-xl w-full h-[250px] sm:h-[200px] border border-solid border-[#E4E7EB] dark:border-border-dark md:max-w-full bg-contain"
                   />
                 </Column>
               </Row>
@@ -126,7 +232,7 @@ export default function Content({
                   </Column>
                 </Row>
               )}
-            </>
+            </div>
           ),
         )}
       </div>

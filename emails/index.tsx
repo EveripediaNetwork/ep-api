@@ -1,12 +1,11 @@
 import {
   Body,
+  Button,
   Container,
-  Font,
   Head,
   Hr,
   Html,
   Img,
-  Link,
   Preview,
   Section,
   Tailwind,
@@ -15,7 +14,6 @@ import {
 import Banner from './components/banner'
 import Content from './components/content'
 import Footer from './components/footer'
-import ArrowRightDoubleIcon from './assets/arrow-right-double'
 
 interface EmailProps {
   wiki: string
@@ -26,21 +24,22 @@ interface EmailProps {
   suggestions: {
     title: string
     summary: string
-    category: string
+    category_id: string
+    category_title: string
     wikiUrl: string
     image: string
   }[]
 }
 
-export const BASE_URL = 'https://iq.wiki/'
-
-export const emailTailwindConfig = {
+const emailTailwindConfig = {
   theme: {
     colors: {
       background: '#FFFFFF',
       'background-dark': '#17202B',
       card: '#F9FAFB',
       'card-dark': '#1B2430',
+      'card-foreground': '#0F172A',
+      'card-foreground-dark': '#FAFCF8',
       brand: '#FF5CAA',
       'brand-dark': '#FF1A88',
       'brand-accent': '#FFE5F1',
@@ -62,35 +61,32 @@ export const emailTailwindConfig = {
   },
 }
 
-const Email = ({ wiki, wikiImage, url, suggestions }: EmailProps) => (
+const Email = ({ wiki, wikiImage, url, suggestions, iqUrl, unsubscribeLink }: EmailProps) => (
   <Tailwind config={emailTailwindConfig}>
     <Html lang="en">
-      <Head>
-        <Font
-          fontFamily="Montserrat"
-          fallbackFontFamily="Verdana"
-          webFont={{
-            url: 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap',
-            format: 'woff',
-          }}
-          fontWeight={400}
-          fontStyle="normal"
-        />
-      </Head>
+      <Head />
       <Preview>IQ.wiki update - {wiki}</Preview>
-      <Body className="bg-background dark:bg-background-dark text-foreground dark:text-foreground-dark">
-        <Container className="mx-auto max-w-[800px] px-5 py-5 sm:px-10 sm:py-8">
+      <Body style={{
+          fontFamily: '-apple-system, BlinkMacSystemFont, Helvetica',
+        }} className="bg-background dark:bg-background-dark text-foreground dark:text-foreground-dark">
+        <Container className="mx-auto max-w-[800px] bg-[#FAFAFA] dark:bg-secondary-dark px-5 py-5 sm:px-10 sm:py-8">
           <Banner />
           <Hr className="mt-2 mb-10 border-border dark:border-border-dark" />
           <Section>
-            <Text className="text-2xl sm:text-[32px] font-bold text-center my-0 mb-2 sm:mb-4">
+            <Text
+              style={{ margin: 0 }}
+              className="text-2xl sm:text-3xl font-semibold text-center pb-2 sm:pb-4 text-foreground dark:text-foreground-dark"
+            >
               Your Update from IQ.wiki
             </Text>
-            <Text className="text-xs sm:text-base text-center my-0">
+            <Text
+              style={{ margin: 0 }}
+              className="text-base sm:text-xl text-center my-0 text-foreground dark:text-foreground-dark"
+            >
               What’s new and what to read next. 👀
             </Text>
           </Section>
-          <Section className="bg-card dark:bg-card-dark max-w-full w-full p-3 sm:p-6 border border-border dark:border-border-dark mb-3 sm:mb-6 rounded-3xl mt-3 sm:mt-6">
+          <Section className="bg-[#FFFFFF] dark:bg-card-dark max-w-full w-full p-3 sm:p-6 border border-solid border-border dark:border-border-dark mb-3 sm:mb-6 rounded-[12px] sm:rounded-3xl mt-3 sm:mt-6">
             <Img
               src={wikiImage}
               alt={wiki}
@@ -99,29 +95,32 @@ const Email = ({ wiki, wikiImage, url, suggestions }: EmailProps) => (
             />
           </Section>
           <Section>
-            <Text className="font-bold text-[16px] sm:text-[32px] mt-0 mb-1 sm:mb-5">
+            <Text
+              style={{ margin: 0 }}
+              className="font-semibold text-xl sm:text-[30px] pb-2 sm:pb-3 text-foreground dark:text-foreground-dark"
+            >
               {wiki}
             </Text>
-            <Text className="text-xs sm:text-base my-0">
-              Hey There! I have got some good news for you.
-              <span className="text-brand dark:text-brand font-semibold">
+            <Text
+              style={{ margin: 0 }}
+              className="text-base sm:text-xl text-foreground dark:text-foreground-dark"
+            >
+              Hey There! I have got some good news for you.{' '}
+              <span className="text-brand dark:text-brand-dark font-semibold">
                 {wiki}
               </span>{' '}
               has been updated. You don’t want to miss. it. Click below to check
               out the lastest information.
             </Text>
-            <Link
-              className="bg-brand dark:bg-brand-dark text-white font-medium text-sm px-8 rounded-md sm:mt-3 inline-flex items-center py-0 h-12 mt-3"
+            <Button
+              className="bg-brand dark:bg-brand-dark text-base px-7 sm:px-10 rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-primary-foreground"
               href={url}
             >
-              <Text className="text-primary-foreground font-semibold">
-                Check it out
-              </Text>
-              <ArrowRightDoubleIcon />
-            </Link>
+              Check it out
+            </Button>
           </Section>
           <Content suggestions={suggestions} />
-          <Footer />
+          <Footer iqUrl={iqUrl} unsubscribeLink={unsubscribeLink} />
         </Container>
       </Body>
     </Html>

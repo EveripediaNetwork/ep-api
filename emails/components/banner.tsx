@@ -1,11 +1,11 @@
-import { Column, Link, Row, Section, Text } from '@react-email/components'
-import { Logo } from '../assets'
+import { Column, Img, Link, Row, Section, Text } from '@react-email/components'
 
+const BASE_PATH = 'https://iq.wiki/images/emails'
 export default function Banner() {
   return (
     <Section
       style={{ maxWidth: '100%' }}
-      className="bg-card dark:bg-card-dark w-full py-3"
+      className="bg-[#FFFFFF] dark:bg-card-dark w-full py-3"
     >
       <Row>
         <Column align="center">
@@ -13,9 +13,9 @@ export default function Banner() {
             href="https://iq.wiki"
             className="inline-flex items-center gap-2 my-0"
           >
-            <Logo />
+            <Img src={`${BASE_PATH}/braindao-logo.png`} className='w-[65px] h-[55px]' />
             <Text
-              style={{ marginBlock: 0 }}
+              style={{ marginBlock: 0, marginLeft: '8px' }}
               className="my-0 text-center text-foreground dark:text-foreground-dark text-[27px] font-bold"
             >
               IQ.wiki
@@ -23,7 +23,7 @@ export default function Banner() {
           </Link>
         </Column>
       </Row>
-      <Text style={{ marginBlock: 0 }} className="my-0 text-center text-sm">
+      <Text style={{ margin: 0 }} className="my-0 text-center text-sm text-foreground dark:text-foreground-dark">
         The World’s Largest{' '}
         <span className="text-brand dark:text-brand-dark">
           Blockchain & Crypto

@@ -52,6 +52,7 @@
     "@nestjs/platform-express": "^10.2.10",
     "@nestjs/platform-fastify": "^8.4.5",
     "@nestjs/schedule": "^3.0.1",
+    "@nestjs/serve-static": "^5.0.2",
     "@nestjs/typeorm": "^9.0.1",
     "@ntegral/nestjs-sentry": "^4.0.0",
     "@openzeppelin/defender-relay-client": "^1.54.1",

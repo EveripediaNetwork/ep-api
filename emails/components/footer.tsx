@@ -1,70 +1,75 @@
-import { Column, Link, Row, Section, Text } from '@react-email/components'
-import {
-  DiscordIcon,
-  FacebookIcon,
-  GithubIcon,
-  InstagramIcon,
-  TelegramIcon,
-  TwitterIcon,
-} from '../assets'
+import { Column, Img, Link, Row, Section, Text } from '@react-email/components'
 
-export default function Footer() {
+const BASE_PATH = 'https://iq.wiki/images/emails/'
+
+export default function Footer({iqUrl, unsubscribeLink}: {iqUrl: string, unsubscribeLink: string}) {
   return (
     <Section className="bg-card dark:bg-card-dark mt-10 p-10">
       <Section className="bg-background dark:bg-background-dark w-full py-3">
         <Text className="text-center mx-auto">
-          <Link href="/" className="text-brand dark:text-brand-dark">
+          <Link href="https://iq.wiki/categories" className="text-brand dark:text-brand-dark">
             Explore
           </Link>{' '}
           -{' '}
-          <Link href="/" className="text-brand dark:text-brand-dark">
+          <Link href="https://iq.wiki/#tags" className="text-brand dark:text-brand-dark">
             Tags
           </Link>{' '}
           -{' '}
-          <Link href="/" className="text-brand dark:text-brand-dark">
+          <Link href="https://iq.wiki/events" className="text-brand dark:text-brand-dark">
             Events
           </Link>{' '}
           -{' '}
-          <Link href="/" className="text-brand dark:text-brand-dark">
+          <Link href="https://iqai.com/" className="text-brand dark:text-brand-dark">
             IQ AI
           </Link>
         </Text>
       </Section>
-      <Section className="mt-10">
+      <Section className="mt-10 text-center">
         <Row className="w-fit">
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10">
-            <TwitterIcon />
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10" align='center'>
+            <Img src={`${BASE_PATH}x.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}x-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10 ml-2">
-            <GithubIcon />
+          <Column style={{ width: "8px" }}></Column>
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10"  align='center'>
+            <Img src={`${BASE_PATH}github.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}github-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10 ml-2">
-            <InstagramIcon />
+          <Column style={{ width: "8px" }}></Column>
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10"  align='center'>
+            <Img src={`${BASE_PATH}instagram.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}instagram-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10 ml-2">
-            <FacebookIcon />
+          <Column style={{ width: "8px" }}></Column>
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10"  align='center'>
+            <Img src={`${BASE_PATH}fb.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}fb-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10 ml-2">
-            <DiscordIcon />
+          <Column style={{ width: "8px" }}></Column>
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10"  align='center'>
+            <Img src={`${BASE_PATH}discord.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}discord-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
-          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark inline-flex items-center justify-center w-10 h-10 ml-2">
-            <TelegramIcon />
+          <Column style={{ width: "8px" }}></Column>
+          <Column className="rounded-full bg-brand-accent dark:bg-brand-accent-dark w-10 h-10"  align='center'>
+            <Img src={`${BASE_PATH}telegram.png`} className='w-5 h-5 dark:hidden' />
+            <Img src={`${BASE_PATH}telegram-dark.png`} className='w-5 h-5 hidden dark:block' />
           </Column>
         </Row>
       </Section>
-      <Text className="text-center mt-10">
+      <Text className="text-center mt-10 text-foreground dark:text-foreground-dark">
         You are getting this email as a registered user of{' '}
-        <span className="text-brand dark:text-brand-dark underline">
+        <Link href={iqUrl} className="text-brand dark:text-brand-dark underline">
           IQ.wiki
-        </span>
+        </Link>
       </Text>
-      <Text className="text-center mt-2">
+      <Text className="text-center mt-2 text-foreground dark:text-foreground-dark">
         Manage your email preferences{' '}
-        <span className="text-brand dark:text-brand-dark underline">here</span>{' '}
+        <Link href={iqUrl} className="text-brand dark:text-brand-dark underline">here</Link>{' '}
         or{' '}
-        <span className="text-brand dark:text-brand-dark underline">
+        <Link href={unsubscribeLink} className="text-brand dark:text-brand-dark underline">
           unsuscribe
-        </span>
+        </Link>
       </Text>
     </Section>
   )

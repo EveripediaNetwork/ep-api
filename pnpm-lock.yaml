@@ -38,7 +38,7 @@ importers:
         version: 1.8.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(nodemailer@6.8.0)
       '@nestjs/apollo':
         specifier: ^10.0.8
-        version: 10.0.8(bl26oriybkmfsb6zgesckhbcbq)
+        version: 10.0.8(lnng3ibxdgm6iw7pmhsvkwrkka)
       '@nestjs/axios':
         specifier: ^0.0.6
         version: 0.0.6(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(reflect-metadata@0.1.13)(rxjs@7.5.4)
@@ -66,6 +66,9 @@ importers:
       '@nestjs/schedule':
         specifier: ^3.0.1
         version: 3.0.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(reflect-metadata@0.1.13)
+      '@nestjs/serve-static':
+        specifier: ^5.0.2
+        version: 5.0.2(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(express@4.18.2)
       '@nestjs/typeorm':
         specifier: ^9.0.1
         version: 9.0.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(reflect-metadata@0.1.13)(rxjs@7.5.4)(typeorm@0.3.12(mysql2@2.3.3)(pg@8.8.0)(ts-node@10.9.2(@swc/core@1.3.69(@swc/helpers@0.5.15))(@types/node@17.0.45)(typescript@4.7.4)))
@@ -116,7 +119,7 @@ importers:
         version: 3.13.0(express@4.18.2)(graphql@16.3.0)
       apollo-server-fastify:
         specifier: ^3.13.0
-        version: 3.13.0(fastify@3.29.0)(graphql@16.3.0)
+        version: 3.13.0(graphql@16.3.0)
       arweave:
         specifier: ^1.15.1
         version: 1.15.1
@@ -1728,6 +1731,22 @@ packages:
     resolution: {integrity: sha512-7k+eMMBUwvXFp6vwZ5byiLBEQKzjMyIJwO46ginoFugt2AXrOt0iUhR3BKFuWDBZaYQ1l4az86UGw5ohgH3wow==}
     peerDependencies:
       typescript: ^3.4.5 || ^4.3.5
+
+  '@nestjs/serve-static@5.0.2':
+    resolution: {integrity: sha512-MvgBQ691s8cIIsr7w4gE3NiUghCsD+1d/njqEG83M4U/9+WeczCgjrsgHTtGFYMBYBMysXQ9ni6VsUiSdzKtrQ==}
+    peerDependencies:
+      '@fastify/static': ^8.0.4
+      '@nestjs/common': ^11.0.2
+      '@nestjs/core': ^11.0.2
+      express: ^5.0.1
+      fastify: ^5.2.1
+    peerDependenciesMeta:
+      '@fastify/static':
+        optional: true
+      express:
+        optional: true
+      fastify:
+        optional: true
 
   '@nestjs/testing@8.3.1':
     resolution: {integrity: sha512-QZ7WwXYpUpfuyLddFwPSkJOWbpTUCtxvY2P9DjxcEsafmxaCeEURBM0DjaKcSwsTvyg9WIew803zViJO5NklPA==}
@@ -6219,6 +6238,10 @@ packages:
   path-to-regexp@6.2.1:
     resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==}
 
+  path-to-regexp@8.2.0:
+    resolution: {integrity: sha512-TdrF7fW9Rphjq4RjrW0Kp2AW0Ahwu9sRGTkS6bvDi0SCwZlEZYmcfDbEsTz8RVk0EHIS/Vd1bv3JhG+1xZuAyQ==}
+    engines: {node: '>=16'}
+
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
@@ -9538,7 +9561,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@nestjs/apollo@10.0.8(bl26oriybkmfsb6zgesckhbcbq)':
+  '@nestjs/apollo@10.0.8(lnng3ibxdgm6iw7pmhsvkwrkka)':
     dependencies:
       '@nestjs/common': 9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4)
       '@nestjs/core': 8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4)
@@ -9549,7 +9572,7 @@ snapshots:
     optionalDependencies:
       apollo-server-core: 3.13.0(graphql@16.3.0)
       apollo-server-express: 3.13.0(express@4.18.2)(graphql@16.3.0)
-      apollo-server-fastify: 3.13.0(fastify@3.29.0)(graphql@16.3.0)
+      apollo-server-fastify: 3.13.0(graphql@16.3.0)
 
   '@nestjs/axios@0.0.6(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(reflect-metadata@0.1.13)(rxjs@7.5.4)':
     dependencies:
@@ -9715,6 +9738,14 @@ snapshots:
       typescript: 4.7.4
     transitivePeerDependencies:
       - chokidar
+
+  '@nestjs/serve-static@5.0.2(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(express@4.18.2)':
+    dependencies:
+      '@nestjs/common': 9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4)
+      '@nestjs/core': 8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4)
+      path-to-regexp: 8.2.0
+    optionalDependencies:
+      express: 4.18.2
 
   '@nestjs/testing@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@10.2.10(@nestjs/common@9.3.12(cache-manager@4.1.0)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@8.3.1))':
     dependencies:
@@ -10938,13 +10969,12 @@ snapshots:
       - encoding
       - supports-color
 
-  apollo-server-fastify@3.13.0(fastify@3.29.0)(graphql@16.3.0):
+  apollo-server-fastify@3.13.0(graphql@16.3.0):
     dependencies:
       '@fastify/accepts': 3.0.0
       '@fastify/cors': 7.0.0
       apollo-server-core: 3.13.0(graphql@16.3.0)
       apollo-server-types: 3.8.0(graphql@16.3.0)
-      fastify: 3.29.0
       graphql: 16.3.0
     transitivePeerDependencies:
       - encoding
@@ -15221,6 +15251,8 @@ snapshots:
   path-to-regexp@3.2.0: {}
 
   path-to-regexp@6.2.1: {}
+
+  path-to-regexp@8.2.0: {}
 
   path-type@4.0.0: {}
 
