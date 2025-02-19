@@ -27,12 +27,13 @@ export default class MailService {
       )
     }
 
-    
     const modifiedSuggestion = suggestions.map(({ images, ...suggestion }) => ({
       ...suggestion,
-      image: images.map((img: {id: string, type: string}) => `${ipfsUrl}${img.id}`)[0],
-    }))  
-    
+      image: images.map(
+        (img: { id: string; type: string }) => `${ipfsUrl}${img.id}`,
+      )[0],
+    }))
+
     const htmlContent = await render(
       Email({
         wiki: title,

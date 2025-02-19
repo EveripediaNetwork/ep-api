@@ -173,7 +173,7 @@ export default function Content({
                   <Img
                     src={image}
                     alt={title}
-                    className="rounded-xl w-full h-[250px] sm:h-[200px] border border-solid border-[#E4E7EB] dark:border-border-dark md:max-w-full bg-contain"
+                    className="rounded-xl w-full h-[280px] border border-solid border-[#E4E7EB] dark:border-border-dark md:max-w-full bg-contain"
                   />
                 </Column>
                 <Column className="w-full block sm:table-cell sm:w-3/5">

@@ -49,7 +49,7 @@ class NotificationsCommand implements CommandRunner {
 
     while (counter < size) {
       const rand = filtered[Math.floor(Math.random() * filtered.length)]
-      if (!objs.some(an => an === rand)) {
+      if (!objs.some((an) => an === rand)) {
         objs.push(rand)
         counter += 1
       }
@@ -66,7 +66,7 @@ class NotificationsCommand implements CommandRunner {
       'bitcoin',
       'Bitcoin',
       'QmRx8cUzCi6161h6Pd7qwXeiRJqSbojajoYCjvxU2QfDwN',
-      random
+      random,
     )
   }
 
@@ -106,7 +106,7 @@ class NotificationsCommand implements CommandRunner {
     loop?: boolean,
   ): Promise<void> {
     if (pending.length === 0 && loop) {
-      await new Promise(r => setTimeout(r, SLEEP_TIME_QUERY))
+      await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
       const newNotifications = await this.getPedingNotifications()
       await this.testEmail()
       console.log(
@@ -151,7 +151,7 @@ class NotificationsCommand implements CommandRunner {
               console.log('✅ Notification sent! ')
             }
 
-            await new Promise(r => setTimeout(r, SLEEP_TIME))
+            await new Promise((r) => setTimeout(r, SLEEP_TIME))
           } catch (ex) {
             console.error(ex)
           }
