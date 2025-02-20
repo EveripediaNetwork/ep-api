@@ -83,7 +83,7 @@ const Email = ({ wiki, wikiImage, url, suggestions, iqUrl, unsubscribeLink }: Em
               style={{ margin: 0 }}
               className="text-base sm:text-xl text-center my-0 text-foreground dark:text-foreground-dark"
             >
-              What’s new and what to read next. 👀
+              What's new and what to read next. 👀
             </Text>
           </Section>
           <Section className="bg-[#FFFFFF] dark:bg-card-dark max-w-full w-full p-3 sm:p-6 border border-solid border-border dark:border-border-dark mb-3 sm:mb-6 rounded-[12px] sm:rounded-3xl mt-3 sm:mt-6">
@@ -109,12 +109,13 @@ const Email = ({ wiki, wikiImage, url, suggestions, iqUrl, unsubscribeLink }: Em
               <span className="text-brand dark:text-brand-dark font-semibold">
                 {wiki}
               </span>{' '}
-              has been updated. You don’t want to miss. it. Click below to check
+              has been updated. You don't want to miss. it. Click below to check
               out the lastest information.
             </Text>
             <Button
-              className="bg-brand dark:bg-brand-dark text-base px-7 sm:px-10 rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-primary-foreground"
+              className="bg-brand dark:bg-brand-dark font-medium text-base sm:text-lg text-center w-[176px] sm:w-[193px] rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-primary-foreground"
               href={url}
+              style={{lineHeight: '0 !important'}}
             >
               Check it out
             </Button>

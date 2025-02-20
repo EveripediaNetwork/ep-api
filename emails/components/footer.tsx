@@ -9,16 +9,16 @@ export default function Footer({iqUrl, unsubscribeLink}: {iqUrl: string, unsubsc
         <Text className="text-center mx-auto">
           <Link href="https://iq.wiki/categories" className="text-brand dark:text-brand-dark">
             Explore
-          </Link>{' '}
-          -{' '}
+          </Link>
+          <span className='px-2'>-</span>
           <Link href="https://iq.wiki/#tags" className="text-brand dark:text-brand-dark">
             Tags
-          </Link>{' '}
-          -{' '}
+          </Link>
+          <span className='px-2'>-</span>
           <Link href="https://iq.wiki/events" className="text-brand dark:text-brand-dark">
             Events
-          </Link>{' '}
-          -{' '}
+          </Link>
+          <span className='px-2'>-</span>
           <Link href="https://iqai.com/" className="text-brand dark:text-brand-dark">
             IQ AI
           </Link>

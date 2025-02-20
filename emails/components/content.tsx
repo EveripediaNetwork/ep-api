@@ -205,14 +205,21 @@ export default function Content({
                     {title}
                   </Text>
                   <Text
-                    style={{ margin: 0 }}
+                    style={{ 
+                      margin: 0,
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: 3,
+                     }}
                     className="text-base sm:text-xl text-foreground dark:text-foreground-dark"
                   >
                     {summary}
                   </Text>
                   <Button
-                    className="border-1 border-solid border-border dark:border-border-dark bg-secondary dark:bg-secondary-dark font-medium text-base px-7 sm:px-10 rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-secondary-foreground dark:text-secondary-foreground-dark"
+                    className="border-1 border-solid border-border dark:border-border-dark bg-secondary dark:bg-secondary-dark font-medium text-base sm:text-lg text-center w-[176px] sm:w-[193px] rounded-md sm:mt-3 py-3 sm:py-4 mt-3 text-secondary-foreground dark:text-secondary-foreground-dark"
                     href={wikiUrl}
+                    style={{lineHeight: '0 !important'}}
                   >
                     Read now
                   </Button>

@@ -63,6 +63,7 @@ class NotificationsCommand implements CommandRunner {
     const moreWikis = await this.getMoreWikis()
     const random = this.randomWikis(4, moreWikis, 'bitcoin')
     await this.mailer.sendIqUpdate(
+      // 'ajayifey@gmail.com',
       'ayokunumi99@gmail.com',
       'bitcoin',
       'Bitcoin',
