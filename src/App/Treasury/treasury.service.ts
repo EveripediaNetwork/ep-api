@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
+import { Cache } from 'cache-manager'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import TreasuryRepository from './treasury.repository'
 import { firstLevelNodeProcess } from './treasury.dto'
 
@@ -11,6 +13,7 @@ class TreasuryService {
     private repo: TreasuryRepository,
     private configService: ConfigService,
     private httpService: HttpService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private getTreasuryENVs() {
@@ -23,7 +26,13 @@ class TreasuryService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
     if (firstLevelNodeProcess()) {
-      const value = await this.requestTotalbalance()
+      let value: number | null | undefined = await this.cacheManager.get(
+        'treasuryBalance',
+      )
+      if (!value) {
+        value = await this.requestTotalbalance()
+        await this.cacheManager.set('treasuryBalance', value, 7200 * 1000)
+      }
       await this.repo.saveData(`${value}`)
     }
   }

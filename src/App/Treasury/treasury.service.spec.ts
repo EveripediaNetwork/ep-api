@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
 import { of, throwError } from 'rxjs'
 import { AxiosResponse } from 'axios'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import TreasuryRepository from './treasury.repository'
 import * as treasuryDto from './treasury.dto'
 import TreasuryService from './treasury.service'
@@ -15,11 +16,20 @@ describe('TreasuryService', () => {
   let configService: jest.Mocked<ConfigService>
   let httpService: jest.Mocked<HttpService>
   let treasuryRepository: jest.Mocked<TreasuryRepository>
+  let cacheManager: any
+  const treasuryAddress = 'test-treasury-address'
+  const url = `https://pro-openapi.debank.com/v1/user/total_balance?id=${treasuryAddress}`
 
   beforeEach(async () => {
+    cacheManager = {
+      get: jest.fn().mockResolvedValue(1000.5),
+      set: jest.fn(),
+    }
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TreasuryService,
+        { provide: CACHE_MANAGER, useValue: cacheManager },
         {
           provide: ConfigService,
           useValue: {
@@ -78,7 +88,6 @@ describe('TreasuryService', () => {
 
   describe('requestTotalbalance', () => {
     it('should return total USD value when API call is successful', async () => {
-      const treasuryAddress = 'test-treasury-address'
       const debankKey = 'test-debank-key'
 
       configService.get
@@ -90,19 +99,16 @@ describe('TreasuryService', () => {
       }
 
       httpService.get.mockReturnValue(of(response) as any)
-      httpService.get().toPromise = jest.fn().mockResolvedValue(response)
+      httpService.get(url).toPromise = jest.fn().mockResolvedValue(response)
 
       const result = await treasuryService.requestTotalbalance()
 
       expect(result).toBe(1000.5)
-      expect(httpService.get).toHaveBeenCalledWith(
-        `https://pro-openapi.debank.com/v1/user/total_balance?id=${treasuryAddress}`,
-        {
-          headers: {
-            Accesskey: debankKey,
-          },
+      expect(httpService.get).toHaveBeenCalledWith(url, {
+        headers: {
+          Accesskey: debankKey,
         },
-      )
+      })
     })
 
     it('should return null when API call fails', async () => {
@@ -112,7 +118,7 @@ describe('TreasuryService', () => {
 
       const error = new Error('API Error')
       httpService.get.mockReturnValue(throwError(() => error))
-      httpService.get().toPromise = jest.fn().mockRejectedValue(error)
+      httpService.get(url).toPromise = jest.fn().mockRejectedValue(error)
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
 
@@ -136,7 +142,7 @@ describe('TreasuryService', () => {
         .mockResolvedValue(totalValue)
 
       await treasuryService.storeTotalValue()
-
+      expect(cacheManager.get).toHaveBeenCalledWith('treasuryBalance')
       expect(treasuryRepository.saveData).toHaveBeenCalledWith(
         totalValue.toFixed(1),
       )
