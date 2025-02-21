@@ -3,7 +3,6 @@ import { DataSource, ILike } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { Inject } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Cron, CronExpression } from '@nestjs/schedule'
 import Subscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import MailService from '../mailer/mail.service'
@@ -58,20 +57,6 @@ class NotificationsCommand implements CommandRunner {
     return objs
   }
 
-  //   @Cron(CronExpression.EVERY_5_SECONDS)
-  async testEmail() {
-    const moreWikis = await this.getMoreWikis()
-    const random = this.randomWikis(4, moreWikis, 'bitcoin')
-    await this.mailer.sendIqUpdate(
-      // 'ajayifey@gmail.com',
-      'ayokunumi99@gmail.com',
-      'bitcoin',
-      'Bitcoin',
-      'QmRx8cUzCi6161h6Pd7qwXeiRJqSbojajoYCjvxU2QfDwN',
-      random,
-    )
-  }
-
   private async getMoreWikis() {
     const repository = this.dataSource.getRepository(Activity)
     const id = 'latestActivity'
@@ -110,7 +95,6 @@ class NotificationsCommand implements CommandRunner {
     if (pending.length === 0 && loop) {
       await new Promise((r) => setTimeout(r, SLEEP_TIME_QUERY))
       const newNotifications = await this.getPedingNotifications()
-      await this.testEmail()
       console.log(
         '📨 Running EmailSend on Loop, checking for new notifications! 📨',
       )
@@ -141,14 +125,13 @@ class NotificationsCommand implements CommandRunner {
         })
         if (userProfile?.email) {
           try {
-            const status = false
-            // const status = await this.mailer.sendIqUpdate(
-            //   userProfile.email as string,
-            //   wiki.id,
-            //   wiki.title,
-            //   wiki.images[0].id,
-            //   random,
-            // )
+            const status = await this.mailer.sendIqUpdate(
+              userProfile.email as string,
+              wiki.id,
+              wiki.title,
+              wiki.images[0].id,
+              random,
+            )
             if (status) {
               console.log('✅ Notification sent! ')
             }
