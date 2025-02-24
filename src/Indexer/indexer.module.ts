@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common'
 import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
-import { SentryInterceptor } from '@ntegral/nestjs-sentry'
 import { PosthogModule, PosthogService } from 'nestjs-posthog'
+import { SentryGlobalFilter } from '@sentry/nestjs/setup'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
 import HistoryProviderService from './Provider/history.service'
@@ -59,7 +59,7 @@ import AppService from '../App/app.service'
     AppService,
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new SentryInterceptor(),
+      useClass: SentryGlobalFilter,
     },
   ],
 })

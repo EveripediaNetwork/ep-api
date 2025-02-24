@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import './sentry/sentryInstrument'
 import { CommandFactory } from 'nest-commander'
 import IndexerModule from './Indexer/indexer.module'
 
