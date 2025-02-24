@@ -1,5 +1,1 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-pnpm format 
-pnpm rome ci ./src
+pnpm lint-staged
