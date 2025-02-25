@@ -82,15 +82,15 @@ class RelayerService {
       )
 
       const fastGasPrice = data.result.FastGasPrice
-      return Number(fastGasPrice) <= 40 ? '40' : fastGasPrice
+      return Number(fastGasPrice) <= 40 ? '60' : fastGasPrice
     } catch (error) {
       console.error('Error in getGasPrice', error)
       return null
     }
   }
 
-  async getUpdatedGas(increaseBy = 1.2) {
-    const maticGas = (await this.getMaticGas()) || '40'
+  async getUpdatedGas(increaseBy = 1.5) {
+    const maticGas = (await this.getMaticGas()) || '60'
     const gasBump = String(Math.round(parseInt(maticGas, 10) * increaseBy))
     return gasBump
   }
@@ -136,7 +136,7 @@ class RelayerService {
           txConfig,
         )
       } else {
-        const gasBumpMultiplier = isRetry ? 1.7 : 1.3
+        const gasBumpMultiplier = isRetry ? 2.0 : 1.7
         const gas = await this.getUpdatedGas(gasBumpMultiplier)
 
         const txConfig = this.appService.privateSigner()
