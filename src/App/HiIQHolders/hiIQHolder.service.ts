@@ -2,21 +2,21 @@
 /* eslint-disable import/no-mutable-exports */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
-import { HttpService } from '@nestjs/axios'
-import { ConfigService } from '@nestjs/config'
+import { Cron, CronExpression, type SchedulerRegistry } from '@nestjs/schedule'
+import type { HttpService } from '@nestjs/axios'
+import type { ConfigService } from '@nestjs/config'
 import { decodeEventLog, erc20Abi } from 'viem'
 import { ethers } from 'ethers'
-import HiIQHolderRepository from './hiIQHolder.repository'
+import type HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
-import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
+import type HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
 import HiIQHolderAddress from '../../Database/Entities/hiIQHolderAddress.entity'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import hiIQAbi from '../utils/hiIQAbi'
-import HiIQHolderArgs from './hiIQHolders.dto'
+import type HiIQHolderArgs from './hiIQHolders.dto'
 import { IntervalByDays } from '../general.args'
-import { HiIQHoldersRankArgs } from '../pagination.args'
+import type { HiIQHoldersRankArgs } from '../pagination.args'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
@@ -50,6 +50,15 @@ class HiIQHolderService {
 
   async lastHolderRecord(): Promise<HiIQHolder[]> {
     return this.hiIQHoldersRepo.find({
+      order: {
+        updated: 'DESC',
+      },
+      take: 1,
+    })
+  }
+
+  async lastUpdatedHiIQHolder(): Promise<HiIQHolderAddress[]> {
+    return this.hiIQHoldersAddressRepo.find({
       order: {
         updated: 'DESC',
       },
@@ -98,8 +107,11 @@ class HiIQHolderService {
   async indexHIIQHolders(intermittentCheck = false) {
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
+    const lastUpdatedHolder = await this.lastUpdatedHiIQHolder()
     const previous = intermittentCheck
-      ? Math.floor((Date.now() - 15 * 60 * 1000) / 1000) // 15 mins back for intermittent checks
+      ? Math.floor(new Date(`${lastUpdatedHolder[0].updated}`).getTime()) /
+          1000 -
+        600
       : Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
     const next = previous ? previous + oneDayInSeconds : undefined
 
@@ -129,7 +141,7 @@ class HiIQHolderService {
             const { provider, value } = decodelog.args
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
-              const timestamp = parseInt(log.timeStamp, 16)
+              const timestamp = Number.parseInt(log.timeStamp, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
 
               const balance = await tokenContract.balanceOf(provider)
@@ -222,7 +234,7 @@ class HiIQHolderService {
           .where('day = :day', { day: existCount.day })
           .execute()
         console.log(
-          `hiIQ holder count fro present day: updated value: ${count}  ${
+          `hiIQ holder count for present day: updated value: ${count}  ${
             existCount.amount > count ? '🔴' : '🟢'
           } `,
         )
