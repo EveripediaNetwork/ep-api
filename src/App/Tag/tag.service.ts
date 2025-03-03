@@ -10,7 +10,10 @@ import Wiki from '../../Database/Entities/wiki.entity'
 
 @Injectable()
 class TagService {
-  constructor(private dataSource: DataSource, private tagRepo: TagRepository) {}
+  constructor(
+    private dataSource: DataSource,
+    private tagRepo: TagRepository,
+  ) {}
 
   async getTags(args: PaginationArgs): Promise<Tag[]> {
     return this.tagRepo.findTags(args)

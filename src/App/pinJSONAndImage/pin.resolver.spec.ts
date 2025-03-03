@@ -85,19 +85,17 @@ describe('PinResolver', () => {
 
   it('should return a IpfsHash after successful image upload', async () => {
     const mockWriteStream = {
-      on: jest
-        .fn()
-        .mockImplementation(function mock(
-          this: any,
-          event: string,
-          handler: () => void,
-        ) {
-          if (event === 'finish') {
-            handler()
-          }
+      on: jest.fn().mockImplementation(function mock(
+        this: any,
+        event: string,
+        handler: () => void,
+      ) {
+        if (event === 'finish') {
+          handler()
+        }
 
-          return this
-        }),
+        return this
+      }),
     }
     const mockReadStream = {
       on: jest.fn().mockReturnValue(mockWriteStream),

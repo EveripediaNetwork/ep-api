@@ -8,7 +8,7 @@ import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
 
 @Module({
-  imports: [ConfigModule, HttpModule, TypeOrmModule.forFeature([HiddenBlog]),],
+  imports: [ConfigModule, HttpModule, TypeOrmModule.forFeature([HiddenBlog])],
   providers: [BlogService, BlogResolver, MirrorApiService],
   exports: [BlogService, MirrorApiService],
 })

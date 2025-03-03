@@ -3,5 +3,5 @@
 
 pnpm test
 pnpm format
-pnpm rome ci ./src
+pnpm check
 pnpm build:swc

@@ -136,9 +136,8 @@ class RunCommand implements CommandRunner {
           updated: update,
         }
       }
-      const computedMetadata = await this.metaChanges.appendMetadata(
-        wikiContent,
-      )
+      const computedMetadata =
+        await this.metaChanges.appendMetadata(wikiContent)
       const addedSummary = await getWikiSummary(computedMetadata)
 
       const completeWiki = {

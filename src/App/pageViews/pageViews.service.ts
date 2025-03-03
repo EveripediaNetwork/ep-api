@@ -28,9 +28,7 @@ class PageViewsService {
   }
 
   private async updatePageViewPerDay(id: string) {
-    const perDayWikiPageView = await (
-      await this.repository()
-    ).findOne({
+    const perDayWikiPageView = await (await this.repository()).findOne({
       where: { wikiId: id, day: presentDate },
     })
 
@@ -43,9 +41,7 @@ class PageViewsService {
       await (await this.repository()).save(newPageView)
       return 1
     }
-    await (
-      await this.repository()
-    ).query(
+    await (await this.repository()).query(
       `UPDATE pageviews_per_day SET visits = visits + $1 where "wikiId" = $2 AND day = $3`,
       [1, id, presentDate],
     )
@@ -54,9 +50,8 @@ class PageViewsService {
 
   async updateCount(id: string, ip: string): Promise<number> {
     const wikiRepository = this.dataSource.getRepository(Wiki)
-    const cached: WikiViewed | null | undefined = await this.cacheManager.get(
-      id,
-    )
+    const cached: WikiViewed | null | undefined =
+      await this.cacheManager.get(id)
 
     if (cached) {
       return 0

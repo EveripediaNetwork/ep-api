@@ -53,9 +53,7 @@ class UserProfileResolver {
 
   @Query(() => Boolean)
   async usernameTaken(@Args('username') username: string) {
-    const name = await (
-      await this.userService.profileRepository()
-    ).find({
+    const name = await (await this.userService.profileRepository()).find({
       select: ['username'],
       where: { username },
     })
@@ -97,9 +95,7 @@ class UserProfileResolver {
   @ResolveField()
   async active(@Parent() user: GetProfileArgs) {
     const { id } = user
-    const a = await (
-      await this.userService.userRepository()
-    ).query(
+    const a = await (await this.userService.userRepository()).query(
       `SELECT u."active" 
         FROM "user_profile"
         LEFT JOIN "user" u on u."id" = "user_profile"."id"

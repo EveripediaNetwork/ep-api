@@ -329,9 +329,8 @@ class PinService {
 
       if (index !== -1) {
         const newWiki = { ...wiki }
-        newWiki.metadata[
-          index
-        ].value = `https://www.coingecko.com/en/coins/${apiId}`
+        newWiki.metadata[index].value =
+          `https://www.coingecko.com/en/coins/${apiId}`
         console.info('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
           const matchedId = marketCapIdRepo.create({

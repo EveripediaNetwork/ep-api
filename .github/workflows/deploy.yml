@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm rome ci ./src
+        run: pnpm check
 
       - name: Build
         run: pnpm build:swc

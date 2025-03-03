@@ -146,7 +146,9 @@ describe('HiIQHolderService', () => {
 
       const result = await hiIQHolderService.checkExistingHolders(address)
       expect(result).toEqual(holder)
-      expect(hiIQHoldersAddressRepo.findOneBy).toHaveBeenCalledWith({ address })
+      expect(hiIQHoldersAddressRepo.findOneBy).toHaveBeenCalledWith({
+        address,
+      })
     })
 
     it('should return null when no holder exists', async () => {

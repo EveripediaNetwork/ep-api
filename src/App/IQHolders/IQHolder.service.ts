@@ -65,12 +65,11 @@ class IQHolderService {
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: cronIndexerId,
-    disabled: true
+    disabled: true,
   })
   async storeIQHolderCount() {
-    const tempStop: boolean | null | undefined = await this.cacheManager.get(
-      cronIndexerId,
-    )
+    const tempStop: boolean | null | undefined =
+      await this.cacheManager.get(cronIndexerId)
 
     const today = new Date()
     const oneDayBack = new Date(today)

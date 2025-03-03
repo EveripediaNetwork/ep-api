@@ -24,7 +24,10 @@ class HiIQHoldersResolver {
     return this.hiIQHoldersService.hiIQHoldersRank(args)
   }
 
-  @Query(() => HiIQHolderAddress, { name: 'searchHiIQHoldersByAddress', nullable: true })
+  @Query(() => HiIQHolderAddress, {
+    name: 'searchHiIQHoldersByAddress',
+    nullable: true,
+  })
   async searchHiIQHoldersByAddress(@Args('address') address: string) {
     return this.hiIQHoldersService.searchHiIQHoldersByAddress(address)
   }

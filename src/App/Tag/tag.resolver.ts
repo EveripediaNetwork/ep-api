@@ -10,7 +10,10 @@ import { ArgsById } from '../general.args'
 
 @Resolver(() => Tag)
 class TagResolver {
-  constructor(private dataSource: DataSource, private service: TagService) {}
+  constructor(
+    private dataSource: DataSource,
+    private service: TagService,
+  ) {}
 
   @Query(() => [Tag])
   async tags(@Args() args: PaginationArgs) {

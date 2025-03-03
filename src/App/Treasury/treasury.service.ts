@@ -26,9 +26,8 @@ class TreasuryService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async storeTotalValue() {
     if (firstLevelNodeProcess()) {
-      let value: number | null | undefined = await this.cacheManager.get(
-        'treasuryBalance',
-      )
+      let value: number | null | undefined =
+        await this.cacheManager.get('treasuryBalance')
       if (!value) {
         value = await this.requestTotalbalance()
         await this.cacheManager.set('treasuryBalance', value, 7200 * 1000)

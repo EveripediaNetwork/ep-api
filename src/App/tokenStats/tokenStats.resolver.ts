@@ -7,9 +7,7 @@ class TokenStatsResolver {
   constructor(private readonly tokenStatsService: TokenStatsService) {}
 
   @Query(() => TokenData, { name: 'tokenStats' })
-  async getTokenStats(
-    @Args() args: TokenStatArgs,
-  ): Promise<TokenData> {
+  async getTokenStats(@Args() args: TokenStatArgs): Promise<TokenData> {
     const result = await this.tokenStatsService.getStats(
       args.tokenName.toLowerCase(),
       args.cmcTokenName?.toLowerCase(),
