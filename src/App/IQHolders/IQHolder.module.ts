@@ -24,7 +24,7 @@ import { LockingService } from './IQHolders.dto'
     IQHoldersResolver,
     IQHolderRepository,
     IQHolderAddressRepository,
-    LockingService
+    LockingService,
   ],
   exports: [IQHolderService, IQHolderRepository, IQHolderAddressRepository],
 })

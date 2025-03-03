@@ -45,7 +45,7 @@ class StakedIQService {
 
   @Cron(CronExpression.EVERY_5_SECONDS, {
     name: 'IndexOldStakedIQ',
-    disabled: true
+    disabled: true,
   })
   async indexOldStakedBalance(): Promise<void> {
     const job = this.schedulerRegistry.getCronJob('IndexOldStakedIQ')

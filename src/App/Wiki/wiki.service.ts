@@ -58,9 +58,7 @@ class WikiService {
   }
 
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
-    const wiki = await (
-      await this.repository()
-    )
+    const wiki = await (await this.repository())
       .createQueryBuilder('wiki')
       .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
@@ -142,9 +140,7 @@ class WikiService {
     const wikiIdsList: { id: string; title: string }[] | null | undefined =
       await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
-    const response = await (
-      await this.repository()
-    )
+    const response = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('id')
       .addSelect('title')
@@ -358,9 +354,7 @@ class WikiService {
   }
 
   async getValidWikiSlug(args: ByIdArgs): Promise<Slug | Valid> {
-    const slugs = await (
-      await this.repository()
-    ).query(
+    const slugs = await (await this.repository()).query(
       `
         SELECT id 
         FROM wiki 
@@ -454,9 +448,7 @@ class WikiService {
   }
 
   async getAddressToWiki(address: string): Promise<WikiUrl[]> {
-    const ids = await (
-      await this.repository()
-    ).query(
+    const ids = await (await this.repository()).query(
       ` SELECT id FROM 
             (
                 SELECT id, json_array_elements(metadata)->>'value' AS value FROM wiki 
@@ -507,9 +499,7 @@ class WikiService {
     const promotedWiki = await queryBuilder.getOne()
 
     if (promotedWiki) {
-      await (
-        await this.repository()
-      )
+      await (await this.repository())
         .createQueryBuilder()
         .update(Wiki)
         .set({ promoted: 0 })
@@ -517,9 +507,7 @@ class WikiService {
         .execute()
     }
 
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ promoted: level })
@@ -535,9 +523,7 @@ class WikiService {
     const wiki = await (await this.repository()).findOneBy({ id: args.id })
     const tags = (await wiki?.tags) || []
 
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: true, promoted: 0 })
@@ -559,9 +545,7 @@ class WikiService {
 
     if (currentPromotions.length > 0) {
       for (let index = 0; index < currentPromotions.length; index += 1) {
-        await (
-          await this.repository()
-        )
+        await (await this.repository())
           .createQueryBuilder()
           .update(Wiki)
           .set({ promoted: index + 1 })
@@ -573,9 +557,7 @@ class WikiService {
 
   async unhideWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = await (await this.repository()).findOneBy({ id: args.id })
-    await (
-      await this.repository()
-    )
+    await (await this.repository())
       .createQueryBuilder()
       .update(Wiki)
       .set({ hidden: false })
@@ -604,9 +586,7 @@ class WikiService {
     }`
     const count: any | undefined = await this.cacheManager.get(tagAndCatergory)
     if (count) return count
-    const query = await (
-      await this.repository()
-    )
+    const query = await (await this.repository())
       .createQueryBuilder('wiki')
       .select('Count(wiki.id)', 'amount')
       .innerJoin('wiki_categories_category', 'wc', 'wc."wikiId" = wiki.id')

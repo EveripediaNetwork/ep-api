@@ -27,7 +27,11 @@ class User implements IUser {
   id!: string
 
   @Field(() => UserProfile, { nullable: true })
-  @OneToOne(() => UserProfile, profile => profile.id, { eager: true })
+  @OneToOne(
+    () => UserProfile,
+    (profile) => profile.id,
+    { eager: true },
+  )
   @JoinColumn()
   @Index('idx_user_profileId')
   profile!: Relation<UserProfile>
@@ -37,7 +41,11 @@ class User implements IUser {
   active!: boolean
 
   @Field(() => [Wiki])
-  @OneToMany(() => Wiki, wiki => wiki.user, { lazy: true })
+  @OneToMany(
+    () => Wiki,
+    (wiki) => wiki.user,
+    { lazy: true },
+  )
   wikis!: Relation<IWiki>[]
 
   @Field(() => UserWikis)

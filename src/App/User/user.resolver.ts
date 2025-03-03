@@ -79,9 +79,7 @@ class UserResolver {
 
     const user = await this.userService.getUser(args.id, fields)
 
-    await (
-      await this.userService.userRepository()
-    )
+    await (await this.userService.userRepository())
       .createQueryBuilder()
       .update(User)
       .set({ active: args.active })

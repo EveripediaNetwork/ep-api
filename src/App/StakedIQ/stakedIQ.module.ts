@@ -14,7 +14,12 @@ import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
     ScheduleModule.forRoot(),
     HttpModule,
   ],
-  providers: [StakedIQResolver, StakedIQService, StakedIQRepository, AlchemyNotifyService],
+  providers: [
+    StakedIQResolver,
+    StakedIQService,
+    StakedIQRepository,
+    AlchemyNotifyService,
+  ],
   exports: [StakedIQResolver, StakedIQService, StakedIQRepository],
 })
 export default class StakedIQModule {}

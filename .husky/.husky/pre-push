@@ -2,6 +2,6 @@
 . "$(dirname "$0")/_/husky.sh"
 
 pnpm test
-pnpm rome ci ./src
+pnpm check
 pnpm format
 pnpm build:swc

@@ -91,7 +91,7 @@ import UserProfileValidator from './User/userProfileValidator.service'
         req,
         connection,
       }),
-      transformSchema: schema => userDirectiveTransformer(schema, 'isUser'),
+      transformSchema: (schema) => userDirectiveTransformer(schema, 'isUser'),
       buildSchemaOptions: {
         directives: [
           new GraphQLDirective({

@@ -8,7 +8,11 @@ import CategoryService from '../App/Category/category.service'
 import DiscordModule from '../App/utils/discord.module'
 
 @Module({
-  imports: [CacheModule.register({ ttl: 3600 * 1000 }), httpModule(10000), DiscordModule],
+  imports: [
+    CacheModule.register({ ttl: 3600 * 1000 }),
+    httpModule(10000),
+    DiscordModule,
+  ],
   controllers: [SitemapController],
   providers: [WikiService, ValidSlug, CategoryService],
 })

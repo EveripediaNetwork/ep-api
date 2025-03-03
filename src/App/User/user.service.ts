@@ -82,16 +82,12 @@ class UserService {
       return false
     }
 
-    const existsProfile = await (
-      await this.profileRepository()
-    )
+    const existsProfile = await (await this.profileRepository())
       .createQueryBuilder()
       .where('LOWER(id) = LOWER(:id)', { id: data.id })
       .getOne()
 
-    const existsUser = await (
-      await this.userRepository()
-    )
+    const existsUser = await (await this.userRepository())
       .createQueryBuilder()
       .where('LOWER(id) = LOWER(:id)', { id: data.id })
       .getRawOne()

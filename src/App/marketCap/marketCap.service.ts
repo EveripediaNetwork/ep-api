@@ -317,9 +317,8 @@ class MarketCapService {
           await this.cacheManager.del(url)
         }
 
-        const finalCachedResult: any | undefined = await this.cacheManager.get(
-          url,
-        )
+        const finalCachedResult: any | undefined =
+          await this.cacheManager.get(url)
 
         if (finalCachedResult && !reset) {
           allData.push(...finalCachedResult)

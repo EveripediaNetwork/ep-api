@@ -11,7 +11,7 @@ class LinkedWikis {
   @Field(() => [String], { nullable: true })
   blockchains?: LinkedWikisType
 
-  @Field(() => [String], { nullable: true})
+  @Field(() => [String], { nullable: true })
   speakers?: LinkedWikisType
 }
 

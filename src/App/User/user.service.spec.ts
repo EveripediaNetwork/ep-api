@@ -361,7 +361,11 @@ describe('UserService', () => {
       const getAllColumnNamesSpy = jest
         .spyOn(userService, 'getAllColumnNames')
         .mockResolvedValueOnce(['user.id', 'user.name', 'user.email'])
-      const mockUser = { id: '1', name: 'Test User', email: 'test@example.com' }
+      const mockUser = {
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com',
+      }
       mockQueryBuilder.getOne.mockResolvedValueOnce(mockUser)
 
       const result = await userService.getUser('1', ['id', 'name', 'email'])

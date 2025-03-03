@@ -50,7 +50,7 @@ class BrainPass {
   @Field(() => String, { nullable: true })
   @Column('varchar', {
     length: 255,
-    nullable: true
+    nullable: true,
   })
   transactionType?: string
 
