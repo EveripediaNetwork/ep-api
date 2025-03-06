@@ -53,6 +53,12 @@ jobs:
       - name: Tests
         run: pnpm test
 
+      - name: Update known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts       
+
       - name: deploy bot
         uses: appleboy/ssh-action@master
         with:

@@ -6,6 +6,12 @@ jobs:
     name: deploy to prod
     runs-on: ubuntu-latest
     steps:
+      - name: Update known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.HOST_PROD }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          
       - name: Deploy to production
         uses: appleboy/ssh-action@master
         with: 
@@ -19,5 +25,4 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build:swc
             pm2 update
-          strict_host_key_checking: false
             
