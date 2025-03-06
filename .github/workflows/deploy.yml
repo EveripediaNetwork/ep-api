@@ -66,3 +66,4 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build:swc
             pm2 update
+          strict_host_key_checking: false
