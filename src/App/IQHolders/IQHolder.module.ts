@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { CacheModule } from '@nestjs/cache-manager'
-import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -15,7 +14,6 @@ import { LockingService } from './IQHolders.dto'
 @Module({
   imports: [
     TypeOrmModule.forFeature([IQHolderAddress, IQHolder]),
-    // ScheduleModule.forRoot(),
     CacheModule.register({ ttl: 3600 * 1000 }),
     HttpModule,
   ],
