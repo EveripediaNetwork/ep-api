@@ -1,8 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/no-mutable-exports */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Injectable } from '@nestjs/common'
-import { Cron, CronExpression, type SchedulerRegistry } from '@nestjs/schedule'
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { decodeEventLog, erc20Abi } from 'viem'
@@ -32,6 +31,10 @@ export type MethodType = {
 
 @Injectable()
 class HiIQHolderService {
+  private HIIQ_CONTRACT_START_TIMESTAMP = 1622505600
+
+  private TWENTY_HOURS_IN_SECONDS = 86400
+
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
@@ -78,19 +81,22 @@ class HiIQHolderService {
   async dailyHiIQHolders() {
     const job = this.schedulerRegistry.getCronJob('dailyHiIQHolders')
     if (firstLevelNodeProcess() && !job) {
-      await this.indexHIIQHolders()
+      await this.indexHIIQHolders('dailyHiIQHolders')
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, {
+  @Cron('*/2 * * * * *', {
     name: 'storeHiIQHolderCount',
   })
   async storeHiIQHolderCount() {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
     await stopJob(this.hiIQHoldersRepo, job)
 
-    if (firstLevelNodeProcess()) {
-      await this.indexHIIQHolders()
+    if (
+      firstLevelNodeProcess() &&
+      this.configService.get<string>('API_LEVEL') === 'prod'
+    ) {
+      await this.indexHIIQHolders('storeHiIQHolderCount')
     }
   }
 
@@ -99,15 +105,23 @@ class HiIQHolderService {
   })
   async intermittentCheck() {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
-    if (firstLevelNodeProcess() && !job.running) {
-      await this.indexHIIQHolders(true)
+    if (
+      firstLevelNodeProcess() &&
+      !job.running &&
+      this.configService.get<string>('API_LEVEL') === 'prod'
+    ) {
+      await this.indexHIIQHolders('intermittentCheck', true)
     }
   }
 
-  async indexHIIQHolders(intermittentCheck = false) {
+  async indexHIIQHolders(jobName: string, intermittentCheck = false) {
+    const job = this.schedulerRegistry.getCronJob(jobName)
+    job.stop()
     const oneDayInSeconds = 86400
+
     const record = await this.lastHolderRecord()
     const lastUpdatedHolder = await this.lastUpdatedHiIQHolder()
+
     const previous = intermittentCheck
       ? Math.floor(new Date(`${lastUpdatedHolder[0].updated}`).getTime()) /
           1000 -
@@ -118,7 +132,10 @@ class HiIQHolderService {
     const logs =
       previous && next
         ? await this.getOldLogs(previous, next)
-        : await this.getOldLogs()
+        : await this.getOldLogs(
+            this.HIIQ_CONTRACT_START_TIMESTAMP,
+            this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS,
+          )
 
     const rpcProvider = new ethers.providers.JsonRpcProvider(this.providerUrl())
 
@@ -130,32 +147,26 @@ class HiIQHolderService {
             data: log.data,
             topics: log.topics,
           }) as unknown as MethodType
-
           const tokenContract = new ethers.Contract(
             hiIQCOntract,
             erc20Abi,
             rpcProvider,
           )
-
           if (decodelog.eventName === 'Deposit') {
             const { provider, value } = decodelog.args
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
               const timestamp = Number.parseInt(log.timeStamp, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
-
               const balance = await tokenContract.balanceOf(provider)
-
               const [decimals] = await Promise.all([
                 tokenContract.decimals(),
                 tokenContract.symbol(),
               ])
-
               const formattedBalance = ethers.utils.formatUnits(
                 balance,
                 decimals,
               )
-
               if (existingHolder && formattedBalance !== '0.0') {
                 await this.hiIQHoldersAddressRepo
                   .createQueryBuilder()
@@ -256,28 +267,20 @@ class HiIQHolderService {
         console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
       }
     }
+    job.start()
   }
 
-  async getOldLogs(previous?: number, next?: number) {
-    const oneDayInSeconds = 86400
-    const startTimestamp = 1622505600
-    const endTimestamp = startTimestamp + oneDayInSeconds
+  async getOldLogs(previous: number, next: number) {
     const key = this.etherScanApiKey()
-    const mainnet = this.providerUrl().includes('mainnet')
-
-    const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
-      `https://api.etherscan.io/api?${
-        !mainnet && 'chainid=11155111'
-      }module=block&action=getblocknobytime&timestamp=${
-        timestamp || fallbackTimestamp
-      }&closest=before&apikey=${key}`
+    const buildUrl = (fallbackTimestamp: number) =>
+      `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
 
     let blockNumberForQuery1
     let blockNumberForQuery2
     try {
       const [response1, response2] = await Promise.all([
-        this.httpService.get(buildUrl(startTimestamp, previous)).toPromise(),
-        this.httpService.get(buildUrl(endTimestamp, next)).toPromise(),
+        this.httpService.get(buildUrl(previous)).toPromise(),
+        this.httpService.get(buildUrl(next)).toPromise(),
       ])
 
       blockNumberForQuery1 = response1?.data.result
@@ -287,6 +290,7 @@ class HiIQHolderService {
     }
 
     const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
+
     let logs
     try {
       const resp = await this.httpService.get(logsFor1Day).toPromise()

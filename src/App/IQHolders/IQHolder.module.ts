@@ -15,7 +15,7 @@ import { LockingService } from './IQHolders.dto'
 @Module({
   imports: [
     TypeOrmModule.forFeature([IQHolderAddress, IQHolder]),
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
     CacheModule.register({ ttl: 3600 * 1000 }),
     HttpModule,
   ],

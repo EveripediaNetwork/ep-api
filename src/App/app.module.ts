@@ -11,6 +11,7 @@ import { GraphqlInterceptor } from '@ntegral/nestjs-sentry'
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryModule } from '@sentry/nestjs/setup'
+import { ScheduleModule } from '@nestjs/schedule'
 import WikiResolver from './Wiki/wiki.resolver'
 import LanguageResolver from './Language/language.resolver'
 import CategoryResolver from './Category/category.resolver'
@@ -102,6 +103,7 @@ import UserProfileValidator from './User/userProfileValidator.service'
       },
     }),
     SitemapModule,
+    ScheduleModule.forRoot(),
     MailerModule,
     httpModule(20000),
     EventEmitterModule.forRoot({ verboseMemoryLeak: false }),
@@ -150,9 +152,9 @@ import UserProfileValidator from './User/userProfileValidator.service'
     TokenValidator,
     WikiSubscriptionResolver,
     WikiSubscriptionService,
-    MarketCapResolver,
-    MarketCapService,
-    MarketCapSearch,
+    // MarketCapResolver,
+    // MarketCapService,
+    // MarketCapSearch,
     SentryPlugin,
     BlogService,
     EventsService,
