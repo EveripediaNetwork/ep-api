@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { CacheModule } from '@nestjs/cache-manager'
-import { ScheduleModule } from '@nestjs/schedule'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import DiscordWebhookService from './discordWebhookService'
 import WebhookHandler from './discordWebhookHandler'
@@ -13,7 +12,6 @@ import httpModule from '../../httpModule'
     TypeOrmModule.forFeature([Wiki, UserProfile]),
     CacheModule.register({ ttl: 3600 * 1000 }),
     httpModule(10000),
-    ScheduleModule.forRoot(),
   ],
   providers: [WebhookHandler, DiscordWebhookService],
   exports: [WebhookHandler, DiscordWebhookService],
