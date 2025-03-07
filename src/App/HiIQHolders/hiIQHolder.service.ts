@@ -33,6 +33,8 @@ export type MethodType = {
 class HiIQHolderService {
   private HIIQ_CONTRACT_START_TIMESTAMP = 1622505600
 
+  private HISTORICAL_INDEXING = false
+
   private TWENTY_HOURS_IN_SECONDS = 86400
 
   constructor(
@@ -51,22 +53,30 @@ class HiIQHolderService {
     return this.configService.get<string>('etherScanApiKey') as string
   }
 
-  async lastHolderRecord(): Promise<HiIQHolder[]> {
-    return this.hiIQHoldersRepo.find({
+  async lastHolderRecord(): Promise<Date | null> {
+    const count = await this.hiIQHoldersRepo.find({
       order: {
         updated: 'DESC',
       },
       take: 1,
     })
+    if (count.length !== 0) {
+      return count[0].day
+    }
+    return null
   }
 
-  async lastUpdatedHiIQHolder(): Promise<HiIQHolderAddress[]> {
-    return this.hiIQHoldersAddressRepo.find({
+  async lastUpdatedHiIQHolder(): Promise<Date | null> {
+    const holder = await this.hiIQHoldersAddressRepo.find({
       order: {
         updated: 'DESC',
       },
       take: 1,
     })
+    if (holder.length !== 0) {
+      return holder[0].updated
+    }
+    return null
   }
 
   async checkExistingHolders(
@@ -90,7 +100,7 @@ class HiIQHolderService {
   })
   async storeHiIQHolderCount() {
     const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
-    await stopJob(this.hiIQHoldersRepo, job)
+    this.HISTORICAL_INDEXING = await stopJob(this.hiIQHoldersRepo, job)
 
     if (
       firstLevelNodeProcess() &&
@@ -108,7 +118,8 @@ class HiIQHolderService {
     if (
       firstLevelNodeProcess() &&
       !job.running &&
-      this.configService.get<string>('API_LEVEL') === 'prod'
+      this.configService.get<string>('API_LEVEL') === 'prod' &&
+      this.HISTORICAL_INDEXING
     ) {
       await this.indexHIIQHolders('intermittentCheck', true)
     }
@@ -117,17 +128,52 @@ class HiIQHolderService {
   async indexHIIQHolders(jobName: string, intermittentCheck = false) {
     const job = this.schedulerRegistry.getCronJob(jobName)
     job.stop()
-    const oneDayInSeconds = 86400
 
-    const record = await this.lastHolderRecord()
+    const lastCount = await this.lastHolderRecord()
     const lastUpdatedHolder = await this.lastUpdatedHiIQHolder()
+    const lastUpdatedHolderTimestamp = Math.floor(
+      new Date(`${lastUpdatedHolder}`).getTime() / 1000,
+    )
+    const lastCountTimestamp = Math.floor(
+      new Date(`${lastCount}`).getTime() / 1000,
+    )
+    const currentTime = Math.floor(Date.now() / 1000)
 
-    const previous = intermittentCheck
-      ? Math.floor(new Date(`${lastUpdatedHolder[0].updated}`).getTime()) /
-          1000 -
-        600
-      : Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
-    const next = previous ? previous + oneDayInSeconds : undefined
+    let previous
+    let next
+
+    if (intermittentCheck) {
+      if (
+        Number.isNaN(lastUpdatedHolderTimestamp) &&
+        Number.isNaN(lastCountTimestamp)
+      ) {
+        previous = this.HIIQ_CONTRACT_START_TIMESTAMP
+        next = this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS
+      } else if (
+        Number.isNaN(lastUpdatedHolderTimestamp) &&
+        !Number.isNaN(lastCountTimestamp)
+      ) {
+        if (currentTime - lastCountTimestamp > this.TWENTY_HOURS_IN_SECONDS) {
+          previous = lastCountTimestamp
+          next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
+        } else {
+          previous = lastCountTimestamp
+          next = currentTime
+        }
+      } else if (
+        currentTime - lastUpdatedHolderTimestamp >
+        this.TWENTY_HOURS_IN_SECONDS
+      ) {
+        previous = lastCountTimestamp
+        next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
+      } else {
+        previous = lastUpdatedHolderTimestamp
+        next = currentTime
+      }
+    } else {
+      previous = lastCountTimestamp
+      next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
+    }
 
     const logs =
       previous && next
@@ -182,6 +228,7 @@ class HiIQHolderService {
                   const newHolder = this.hiIQHoldersAddressRepo.create({
                     address: provider,
                     tokens: `${formattedBalance}`,
+                    created: logTime,
                     updated: logTime,
                   })
                   await this.hiIQHoldersAddressRepo.save(newHolder)
@@ -219,20 +266,22 @@ class HiIQHolderService {
     const count = await this.hiIQHoldersAddressRepo
       .createQueryBuilder()
       .getCount()
-    const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
 
     if (intermittentCheck) {
+      const newDay = !lastCountTimestamp
+        ? '2021-06-01'
+        : new Date(next * 1000).toISOString()
       console.log('intermittent checks')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
-        day: new Date(),
+        day: new Date(newDay),
       })
 
       if (!existCount) {
         const totalHolders = this.hiIQHoldersRepo.create({
           amount: count,
-          day: new Date(),
-          created: new Date(),
-          updated: new Date(),
+          day: newDay,
+          created: newDay,
+          updated: newDay,
         })
         await this.hiIQHoldersRepo.save(totalHolders)
         console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
@@ -251,6 +300,7 @@ class HiIQHolderService {
         )
       }
     } else {
+      const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
       console.log('indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),

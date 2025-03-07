@@ -5,13 +5,7 @@ jobs:
   deploy-to-prod:
     name: deploy to prod
     runs-on: ubuntu-latest
-    steps:
-      - name: Update known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.HOST_PROD }} >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-          
+    steps:         
       - name: Deploy to production
         uses: appleboy/ssh-action@master
         with: 
@@ -19,6 +13,7 @@ jobs:
           username: ${{ secrets.USERNAME_PROD }}
           key: ${{ secrets.KEY_PROD }}
           port: ${{ secrets.PORT_PROD }}
+          fingerprint: ${{ secrets.PROD_KEY_FINGERPRINT }}
           script: |
             cd ep-api
             git pull
