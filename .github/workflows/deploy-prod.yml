@@ -13,7 +13,6 @@ jobs:
           username: ${{ secrets.USERNAME_PROD }}
           key: ${{ secrets.KEY_PROD }}
           port: ${{ secrets.PORT_PROD }}
-          fingerprint: ${{ secrets.PROD_KEY_FINGERPRINT }}
           script: |
             cd ep-api
             git pull
