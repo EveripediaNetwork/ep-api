@@ -67,6 +67,7 @@ import BlogModule from './Blog/blog.module'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
 import Pm2Module from './utils/pm2Module'
 import UserProfileValidator from './User/userProfileValidator.service'
+import SentryMiddleware from '../sentry/sentry.middleware'
 
 // istanbul ignore next
 @Module({
@@ -176,7 +177,7 @@ import UserProfileValidator from './User/userProfileValidator.service'
 })
 class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    // consumer.apply(SentryMiddleware).exclude('graphql').forRoutes('*')
+    consumer.apply(SentryMiddleware).exclude('graphql').forRoutes('*')
     consumer.apply(PinMiddleware, logger).forRoutes('graphql')
   }
 }

@@ -28,12 +28,17 @@ export type MethodType = {
     value?: bigint
   }
 }
+const HISTORICAL_INDEXING = 'HISTORICAL_INDEXING'
+
+const INTERMITTENT_INDEXING = 'INTERMITTENT_INDEXING'
+
+const HIIQ_DAILY_COUNT = 'HIIQ_DAILY_COUNT'
 
 @Injectable()
 class HiIQHolderService {
   private HIIQ_CONTRACT_START_TIMESTAMP = 1622505600
 
-  private HISTORICAL_INDEXING = false
+  private IS_INTERMITTENT_INDEXING = false
 
   private TWENTY_HOURS_IN_SECONDS = 86400
 
@@ -87,41 +92,44 @@ class HiIQHolderService {
     })
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: HIIQ_DAILY_COUNT,
+  })
   async dailyHiIQHolders() {
-    const job = this.schedulerRegistry.getCronJob('dailyHiIQHolders')
+    const job = this.schedulerRegistry.getCronJob(HIIQ_DAILY_COUNT)
     if (firstLevelNodeProcess() && !job) {
-      await this.indexHIIQHolders('dailyHiIQHolders')
+      await this.indexHIIQHolders(HIIQ_DAILY_COUNT)
     }
   }
 
   @Cron('*/2 * * * * *', {
-    name: 'storeHiIQHolderCount',
+    name: HISTORICAL_INDEXING,
   })
   async storeHiIQHolderCount() {
-    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
-    this.HISTORICAL_INDEXING = await stopJob(this.hiIQHoldersRepo, job)
+    const job = this.schedulerRegistry.getCronJob(HISTORICAL_INDEXING)
+    this.IS_INTERMITTENT_INDEXING = await stopJob(this.hiIQHoldersRepo, job)
 
     if (
       firstLevelNodeProcess() &&
-      this.configService.get<string>('API_LEVEL') === 'prod'
+      this.configService.get<string>('API_LEVEL') === 'prod' &&
+      !this.IS_INTERMITTENT_INDEXING
     ) {
-      await this.indexHIIQHolders('storeHiIQHolderCount')
+      await this.indexHIIQHolders(HISTORICAL_INDEXING)
     }
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES, {
-    name: 'intermittentCheck',
+    name: INTERMITTENT_INDEXING,
   })
   async intermittentCheck() {
-    const job = this.schedulerRegistry.getCronJob('storeHiIQHolderCount')
+    const job = this.schedulerRegistry.getCronJob(HISTORICAL_INDEXING)
     if (
       firstLevelNodeProcess() &&
       !job.running &&
       this.configService.get<string>('API_LEVEL') === 'prod' &&
-      this.HISTORICAL_INDEXING
+      this.IS_INTERMITTENT_INDEXING
     ) {
-      await this.indexHIIQHolders('intermittentCheck', true)
+      await this.indexHIIQHolders(INTERMITTENT_INDEXING, true)
     }
   }
 
@@ -141,6 +149,7 @@ class HiIQHolderService {
 
     let previous
     let next
+    let latest = false
 
     if (intermittentCheck) {
       if (
@@ -167,8 +176,12 @@ class HiIQHolderService {
         previous = lastCountTimestamp
         next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
       } else {
-        previous = lastUpdatedHolderTimestamp
+        previous =
+          lastCountTimestamp > lastUpdatedHolderTimestamp
+            ? lastCountTimestamp + 1
+            : lastUpdatedHolderTimestamp
         next = currentTime
+        latest = true
       }
     } else {
       previous = lastCountTimestamp
@@ -177,14 +190,13 @@ class HiIQHolderService {
 
     const logs =
       previous && next
-        ? await this.getOldLogs(previous, next)
+        ? await this.getOldLogs(previous, next, latest)
         : await this.getOldLogs(
             this.HIIQ_CONTRACT_START_TIMESTAMP,
             this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS,
           )
 
     const rpcProvider = new ethers.providers.JsonRpcProvider(this.providerUrl())
-
     if (logs.length !== 0) {
       for (const log of logs) {
         try {
@@ -271,7 +283,7 @@ class HiIQHolderService {
       const newDay = !lastCountTimestamp
         ? '2021-06-01'
         : new Date(next * 1000).toISOString()
-      console.log('intermittent checks')
+      console.log('hiiq holders intermittent indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
@@ -301,11 +313,10 @@ class HiIQHolderService {
       }
     } else {
       const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
-      console.log('indexing')
+      console.log('hiiq holders historical indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
-
       if (!existCount && new Date(newDay) <= new Date()) {
         const totalHolders = this.hiIQHoldersRepo.create({
           amount: count,
@@ -320,7 +331,7 @@ class HiIQHolderService {
     job.start()
   }
 
-  async getOldLogs(previous: number, next: number) {
+  async getOldLogs(previous: number, next: number, latest = false) {
     const key = this.etherScanApiKey()
     const buildUrl = (fallbackTimestamp: number) =>
       `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
@@ -339,7 +350,11 @@ class HiIQHolderService {
       console.error('Error requesting block number', e.data)
     }
 
-    const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${blockNumberForQuery1}&toBlock=${blockNumberForQuery2}&page=1&offset=1000&apikey=${key}`
+    const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
+      latest ? blockNumberForQuery1 + 1 : blockNumberForQuery1
+    }&toBlock=${
+      latest ? blockNumberForQuery1 - 30 : blockNumberForQuery2
+    }&page=1&offset=1000&apikey=${key}`
 
     let logs
     try {

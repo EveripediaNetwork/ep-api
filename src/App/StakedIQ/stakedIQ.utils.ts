@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ObjectLiteral, Repository } from 'typeorm'
+import { CronJob } from 'cron'
 import StakedIQ from '../../Database/Entities/stakedIQ.entity'
 import Treasury from '../../Database/Entities/treasury.entity'
 import {
@@ -58,7 +60,8 @@ interface EntityWithCreated {
 
 export const stopJob = async <T extends EntityWithCreated>(
   repo: Repository<T>,
-  job: any,
+  // @ts-ignore
+  job: CronJob<null, null>,
   date?: Date,
 ) => {
   const oldRecord = await leastRecordByDate(repo)
