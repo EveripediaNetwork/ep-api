@@ -8,6 +8,7 @@ import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
 import HiIQHoldersResolver from './hiIQHolder.resolver'
 import HiIQHolderService from './hiIQHolder.service'
+import ETHProviderService from '../utils/ethProviderService'
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import HiIQHolderService from './hiIQHolder.service'
     HttpModule,
   ],
   providers: [
+    ETHProviderService,
     HiIQHolderService,
     HiIQHoldersResolver,
     HiIQHolderRepository,

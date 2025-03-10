@@ -16,6 +16,7 @@ import hiIQAbi from '../utils/hiIQAbi'
 import HiIQHolderArgs from './hiIQHolders.dto'
 import { IntervalByDays } from '../general.args'
 import { HiIQHoldersRankArgs } from '../pagination.args'
+import ETHProviderService from '../utils/ethProviderService'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
@@ -48,15 +49,8 @@ class HiIQHolderService {
     private hiIQHoldersRepo: HiIQHolderRepository,
     private hiIQHoldersAddressRepo: HiIQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
+    private ethProviderService: ETHProviderService,
   ) {}
-
-  private providerUrl(): string {
-    return this.configService.get<string>('PROVIDER_NETWORK') as string
-  }
-
-  private etherScanApiKey(): string {
-    return this.configService.get<string>('etherScanApiKey') as string
-  }
 
   async lastHolderRecord(): Promise<Date | null> {
     const count = await this.hiIQHoldersRepo.find({
@@ -196,7 +190,8 @@ class HiIQHolderService {
             this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS,
           )
 
-    const rpcProvider = new ethers.providers.JsonRpcProvider(this.providerUrl())
+    await this.ethProviderService.checkNetwork()
+
     if (logs.length !== 0) {
       for (const log of logs) {
         try {
@@ -208,7 +203,7 @@ class HiIQHolderService {
           const tokenContract = new ethers.Contract(
             hiIQCOntract,
             erc20Abi,
-            rpcProvider,
+            this.ethProviderService.getRpcProvider(),
           )
           if (decodelog.eventName === 'Deposit') {
             const { provider, value } = decodelog.args
@@ -332,7 +327,7 @@ class HiIQHolderService {
   }
 
   async getOldLogs(previous: number, next: number, latest = false) {
-    const key = this.etherScanApiKey()
+    const key = this.ethProviderService.etherScanApiKey()
     const buildUrl = (fallbackTimestamp: number) =>
       `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
 

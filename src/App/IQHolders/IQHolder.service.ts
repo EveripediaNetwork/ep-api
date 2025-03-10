@@ -15,6 +15,7 @@ import IQHolderAddress from '../../Database/Entities/iqHolderAddress.entity'
 import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { LockingService } from './IQHolders.dto'
+import ETHProviderService from '../utils/ethProviderService'
 
 export const IQContract = '0x579CEa1889991f68aCc35Ff5c3dd0621fF29b0C9'
 
@@ -28,17 +29,10 @@ class IQHolderService {
     private dataSource: DataSource,
     private iqHolders: IQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
+    private ethProviderService: ETHProviderService,
     private readonly lockingService: LockingService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-
-  private provider(): string {
-    return this.configService.get<string>('PROVIDER_NETWORK') as string
-  }
-
-  private etherScanApiKey(): string {
-    return this.configService.get<string>('etherScanApiKey') as string
-  }
 
   async lastHolderRecord(): Promise<IQHolder[]> {
     return this.repo.find({
@@ -87,9 +81,13 @@ class IQHolderService {
   }
 
   async indexIQHolders() {
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
+    await this.ethProviderService.checkNetwork()
     const iface = new ethers.utils.Interface(erc20Abi)
-    const iq = new ethers.Contract(IQContract, iface, provider)
+    const iq = new ethers.Contract(
+      IQContract,
+      iface,
+      this.ethProviderService.getRpcProvider(),
+    )
     const oneDayInSeconds = 86400
     const record = await this.lastHolderRecord()
     const previous = Math.floor(new Date(`${record[0]?.day}`).getTime() / 1000)
@@ -193,8 +191,8 @@ class IQHolderService {
     const oneDayInSeconds = 86400
     const startTimestamp = 1616112000
     const endTimestamp = startTimestamp + oneDayInSeconds
-    const key = this.etherScanApiKey()
-    const mainnet = this.provider().includes('mainnet')
+    const key = this.ethProviderService.etherScanApiKey()
+    const mainnet = this.configService.get<string>('API_LEVEL') === 'prod'
     const buildUrl = (fallbackTimestamp: number, timestamp?: number) =>
       `https://api.etherscan.io/api?${
         !mainnet && 'chainid=11155111'

@@ -7,6 +7,7 @@ import erc20Abi from '../utils/erc20Abi'
 import StakedIQRepository from './stakedIQ.repository'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { existRecord, stopJob, getDates, insertOldData } from './stakedIQ.utils'
+import ETHProviderService from '../utils/ethProviderService'
 
 @Injectable()
 class StakedIQService {
@@ -15,6 +16,7 @@ class StakedIQService {
     private configService: ConfigService,
     private httpService: HttpService,
     private schedulerRegistry: SchedulerRegistry,
+    private ethProviderService: ETHProviderService,
   ) {}
 
   private address(): { hiIQ: string; iq: string } {
@@ -22,14 +24,6 @@ class StakedIQService {
       hiIQ: this.configService.get<string>('HIIQ_ADDRESS') as string,
       iq: this.configService.get<string>('IQ_ADDRESS') as string,
     }
-  }
-
-  private etherScanApiKey(): string {
-    return this.configService.get<string>('etherScanApiKey') as string
-  }
-
-  private provider(): string {
-    return this.configService.get<string>('PROVIDER_NETWORK') as string
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -60,9 +54,13 @@ class StakedIQService {
   }
 
   async getTVL(block?: string): Promise<number> {
-    const provider = new ethers.providers.JsonRpcProvider(this.provider())
+    await this.ethProviderService.checkNetwork()
     const iface = new ethers.utils.Interface(erc20Abi)
-    const iq = new ethers.Contract(this.address().iq, iface, provider)
+    const iq = new ethers.Contract(
+      this.address().iq,
+      iface,
+      this.ethProviderService.getRpcProvider(),
+    )
 
     const value = block
       ? await iq.balanceOf(this.address().hiIQ, { blockTag: Number(block) })
@@ -75,8 +73,8 @@ class StakedIQService {
   async previousStakedIQ(): Promise<void> {
     const { time, incomingDate } = await getDates(this.repo)
 
-    const key = this.etherScanApiKey()
-    const mainnet = this.provider().includes('mainnet')
+    const key = this.ethProviderService.etherScanApiKey()
+    const mainnet = this.configService.get<string>('API_LEVEL') === 'prod'
     const url = `https://api.etherscan.io/api?${
       !mainnet && 'chainid=11155111'
     }module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
