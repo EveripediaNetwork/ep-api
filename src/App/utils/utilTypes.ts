@@ -1,6 +1,7 @@
 export enum ActionTypes {
   FLAG_WIKI = 'flagwiki',
   PINJSON_ERROR = 'pinJSON',
+  GAS_PRICE_ERROR = 'relayer',
   ADMIN_ACTION = 'adminAction',
   CONTENT_FEEDBACK = 'contentFeedback',
   WIKI_ETH_ADDRESS = 'wikiEthAddress',

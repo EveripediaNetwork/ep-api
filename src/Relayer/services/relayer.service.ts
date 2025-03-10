@@ -12,6 +12,8 @@ import WikiAbi from '../utils/wiki.abi'
 import { USER_ACTIVITY_LIMIT } from '../../globalVars'
 import ActivityRepository from '../../App/Activities/activity.repository'
 import AppService from '../../App/app.service'
+import WebhookHandler from '../../App/utils/discordWebhookHandler'
+import { ActionTypes, WebhookPayload } from '../../App/utils/utilTypes'
 
 @Injectable()
 class RelayerService {
@@ -24,6 +26,7 @@ class RelayerService {
     private configService: ConfigService,
     private httpService: HttpService,
     private activityRepository: ActivityRepository,
+    private readonly discordWebhook: WebhookHandler,
   ) {
     this.signer = this.getRelayerInstance()
     this.wikiInstance = this.getWikiContractInstance(this.signer)
@@ -82,9 +85,23 @@ class RelayerService {
       )
 
       const fastGasPrice = data.result.FastGasPrice
-      return Number(fastGasPrice) <= 40 ? '60' : fastGasPrice
+      const numericGasPrice = Number(fastGasPrice)
+      if (!Number.isNaN(numericGasPrice)) {
+        return numericGasPrice <= 40 ? '60' : fastGasPrice
+      }
+      this.discordWebhook.postWebhook(ActionTypes.GAS_PRICE_ERROR, {
+        title: 'GAS PRICE ERROR',
+        description: 'Unable to evaluate gas price',
+        content: data.result,
+      } as unknown as WebhookPayload)
+      throw new Error('Invalid gas price format')
     } catch (error) {
-      console.error('Error in getGasPrice', error)
+      this.discordWebhook.postWebhook(ActionTypes.GAS_PRICE_ERROR, {
+        title: 'GAS PRICE ERROR',
+        description: 'Error fetching GasPrice',
+        content: error,
+      } as unknown as WebhookPayload)
+      console.error('Error fetching GasPrice', error)
       return null
     }
   }

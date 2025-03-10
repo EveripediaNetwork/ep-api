@@ -297,6 +297,19 @@ export default class WebhookHandler {
       })
       await this.sendToChannel(boundary, jsonContent, internalActivity)
     }
+    if (actionType === ActionTypes.GAS_PRICE_ERROR) {
+      const jsonContent = JSON.stringify({
+        username: 'Relayer',
+        embeds: [
+          {
+            color: 0x6212ec,
+            title: payload.title,
+            description: `${payload.description} \n\n${payload.content}`,
+          },
+        ],
+      })
+      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
+    }
     return true
   }
 
