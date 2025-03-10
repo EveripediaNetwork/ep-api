@@ -371,7 +371,7 @@ class HiIQHolderService {
   ): Promise<HiIQHolderAddress[]> {
     const repo = await this.hiIQHoldersAddressRepo
       .createQueryBuilder()
-      .orderBy('tokens', args.direction)
+      .orderBy('updated', args.direction)
       .skip(args.offset)
       .take(args.limit)
       .getMany()
