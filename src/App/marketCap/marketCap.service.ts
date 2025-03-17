@@ -184,12 +184,18 @@ class MarketCapService {
         this.CACHED_WIKI = result as RankPageWiki
       }
 
-      await this.cacheManager.set(id, result, 3600 * 1000)
+      await this.cacheManager.set(id, result, 60 * 60 * 1000) // Set cache for 1 hour
 
       return result as unknown as RankPageWiki
     }
-
-    return cachedWiki
+    const processedCachedWiki = {
+      ...cachedWiki,
+      wiki: {
+        ...cachedWiki.wiki,
+        created: new Date(cachedWiki.wiki.created),
+      },
+    }
+    return processedCachedWiki as RankPageWiki
   }
 
   async getWikiData(
