@@ -16,6 +16,16 @@ class UserProfileValidator {
   private errors: ValidationError[] = []
 
   private validateLinks(links?: Links[]): void {
+    if (links) {
+      const vals = links[0]
+      if (
+        vals.instagram === '' &&
+        vals.lens === '' &&
+        vals.twitter === '' &&
+        vals.website === ''
+      )
+        return
+    }
     if (!links) return
 
     if (!Array.isArray(links)) {
@@ -142,6 +152,7 @@ class UserProfileValidator {
   }
 
   private validateRequiredFields(data: any): void {
+    console.log(data)
     if (!data.id || typeof data.id !== 'string' || data.id.length > 255) {
       this.errors.push({
         field: 'id',
@@ -203,6 +214,7 @@ class UserProfileValidator {
     this.validateLinks(data.links)
     this.validateNotifications(data.notifications)
     this.validateAdvancedSettings(data.advancedSettings)
+    console.log(this.errors.length)
 
     if (this.errors.length > 0) {
       throw new HttpException(

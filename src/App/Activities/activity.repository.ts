@@ -234,7 +234,7 @@ class ActivityRepository extends Repository<Activity> {
     args: IntervalArgs,
     type = 0,
   ): Promise<WikiStats[] | null> {
-    return this.createQueryBuilder('activity')
+    const query = this.createQueryBuilder('activity')
       .select('Count(*)', 'amount')
       .addSelect('Min(datetime)', 'startOn')
       .addSelect('Max(datetime)', 'endOn')
@@ -244,12 +244,25 @@ class ActivityRepository extends Repository<Activity> {
       .andWhere(
         'activity.datetime >= to_timestamp(:start) AND activity.datetime <= to_timestamp(:end)',
       )
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('taggedWiki.id')
+          .from('wiki', 'taggedWiki')
+          .leftJoin('taggedWiki.tags', 'excludedTag')
+          .where('LOWER(excludedTag.id) = LOWER(:events)')
+          .getQuery()
+        return `w.id NOT IN ${subQuery}`
+      })
       .setParameters({
         start: args.startDate,
         end: args.endDate,
         t: args.interval,
+        events: 'events',
         type,
       })
+
+    return query
       .groupBy('interval')
       .orderBy('Min(datetime)', 'ASC')
       .getRawMany()

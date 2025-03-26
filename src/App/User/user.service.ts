@@ -62,7 +62,6 @@ class UserService {
     token: string,
   ): Promise<UserProfile | boolean | string> {
     let data: UserProfile
-
     try {
       data = JSON.parse(profileInfo)
     } catch (error) {
@@ -92,7 +91,7 @@ class UserService {
       .where('LOWER(id) = LOWER(:id)', { id: data.id })
       .getRawOne()
 
-    const profile = (await this.profileRepository()).create({
+    const profileObject = {
       id: data.id,
       username: data.username,
       bio: data.bio,
@@ -102,7 +101,7 @@ class UserService {
       links: data.links,
       notifications: data.notifications,
       advancedSettings: data.advancedSettings,
-    })
+    }
 
     const createUser = async (arg?: UserProfile) => {
       const user = (await this.userRepository()).create({
@@ -114,6 +113,7 @@ class UserService {
     }
 
     const createProfile = async () => {
+      const profile = (await this.profileRepository()).create(profileObject)
       const newProfile = await (await this.profileRepository()).save(profile)
       return newProfile
     }
@@ -126,25 +126,27 @@ class UserService {
         .where('LOWER(id) = LOWER(:id)', { id: data.id })
         .execute()
 
+    if (!existsProfile && !existsUser) {
+      const newProfile = await createProfile()
+      await createUser(newProfile)
+      return newProfile
+    }
+
     if (existsUser && existsProfile) {
       await updateProfile()
       return existsProfile
     }
 
     if (existsUser && !existsProfile) {
-      const newProfile = await createProfile()
-      return newProfile
+      return createProfile()
     }
 
     if (!existsUser && existsProfile) {
-      await createUser(profile)
+      await createProfile()
       await updateProfile()
       return existsProfile
     }
-
-    const newProfile = await createProfile()
-    await createUser(newProfile)
-    return newProfile
+    return true
   }
 
   async getAllColumnNames(
