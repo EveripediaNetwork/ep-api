@@ -330,7 +330,7 @@ describe('CategoryService', () => {
         start: intervalArgs.startDate,
         end: intervalArgs.endDate,
         t: intervalArgs.interval,
-        events: 'event',
+        events: 'events',
         type,
       })
       expect(groupBy).toHaveBeenCalledWith('interval')
