@@ -22,6 +22,8 @@ export const query = gql`
 class MarketCapSearch implements OnModuleInit {
   private pubSub: PubSub
 
+  private SIX_MINUTES_TTL = 6 * 60 * 1000
+
   constructor(
     private marketCapService: MarketCapService,
     private pm2Service: Pm2Service,
@@ -82,11 +84,12 @@ class MarketCapSearch implements OnModuleInit {
         {
           data: info,
           key: 'marketCapSearch',
+          ttl: this.SIX_MINUTES_TTL,
         },
         Number(process.env.pm_id),
       )
 
-      this.cacheManager.set('marketCapSearch', data)
+      this.cacheManager.set('marketCapSearch', data, this.SIX_MINUTES_TTL)
 
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,
@@ -100,7 +103,7 @@ class MarketCapSearch implements OnModuleInit {
   @OnEvent('updateCache')
   async setCacheData(payload: any) {
     const data = JSON.parse(payload.data.data)
-    await this.cacheManager.set(payload.data.key, data, payload.data.ttl * 1000)
+    await this.cacheManager.set(payload.data.key, data, payload.data.ttl)
   }
 
   @OnEvent('deleteCache')
