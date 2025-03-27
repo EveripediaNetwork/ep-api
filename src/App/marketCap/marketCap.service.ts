@@ -82,120 +82,116 @@ class MarketCapService {
 
     const cachedWiki: RankPageWiki | null | undefined =
       await this.cacheManager.get(id)
-    if (!cachedWiki) {
-      const marketCapId = await marketCapIdRepository.findOne({
-        where: { coingeckoId: id, kind: category as RankType },
-        select: ['wikiId'],
-      })
 
-      const noCategoryId = marketCapId?.wikiId || id
+    if (cachedWiki?.wiki) {
+      return {
+        ...cachedWiki,
+        wiki: {
+          ...cachedWiki.wiki,
+          created: new Date(cachedWiki.wiki.created),
+        },
+      } as RankPageWiki
+    }
 
-      const baseQuery = wikiRepository
-        .createQueryBuilder('wiki')
-        .select('wiki.id')
-        .addSelect('wiki.title')
-        .addSelect('wiki.ipfs')
-        .addSelect('wiki.images')
+    const marketCapId = await marketCapIdRepository.findOne({
+      where: { coingeckoId: id, kind: category as RankType },
+      select: ['wikiId'],
+    })
 
-      const wikiQuery = baseQuery
-        .clone()
-        .addSelect('wiki.metadata')
-        .addSelect('wiki.created')
-        .addSelect('wiki.linkedWikis')
-        .leftJoinAndSelect('wiki.tags', 'tags')
+    const noCategoryId = marketCapId?.wikiId || id
 
-      const wikiResult =
-        (await wikiQuery
-          .where('wiki.id = :id AND wiki.hidden = false', {
-            id: noCategoryId,
-          })
-          .getOne()) ||
-        (await wikiQuery
-          .andWhere(
-            `EXISTS (
+    const baseQuery = wikiRepository
+      .createQueryBuilder('wiki')
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.ipfs')
+      .addSelect('wiki.images')
+
+    const wikiQuery = baseQuery
+      .clone()
+      .addSelect('wiki.metadata')
+      .addSelect('wiki.created')
+      .addSelect('wiki.linkedWikis')
+      .leftJoinAndSelect('wiki.tags', 'tags')
+
+    const wikiResult =
+      (await wikiQuery
+        .where('wiki.id = :id AND wiki.hidden = false', {
+          id: noCategoryId,
+        })
+        .getOne()) ||
+      (await wikiQuery
+        .andWhere(
+          `EXISTS (
                     SELECT 1
                     FROM json_array_elements(wiki.metadata) AS meta
                     WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = :url
             )`,
-            { url: coingeckoProfileUrl },
-          )
-          .where('wiki.id = :id AND wiki.hidden = false', { id })
-          .getOne()) ||
-        (await wikiQuery
-          .innerJoin(
-            'wiki.categories',
-            'category',
-            'category.id = :categoryId',
-            {
-              categoryId: category,
-            },
-          )
-          .where('wiki.id = :id AND wiki.hidden = false', { id })
-          .getOne())
+          { url: coingeckoProfileUrl },
+        )
+        .where('wiki.id = :id AND wiki.hidden = false', { id })
+        .getOne()) ||
+      (await wikiQuery
+        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
+          categoryId: category,
+        })
+        .where('wiki.id = :id AND wiki.hidden = false', { id })
+        .getOne())
 
-      const [founders, blockchain] = await Promise.all([
-        (async () => {
-          if (wikiResult?.linkedWikis?.founders) {
-            const founderResults = []
-            for (const f of wikiResult.linkedWikis.founders) {
-              const result = await baseQuery
-                .where('wiki.id = :id AND wiki.hidden = false', {
-                  id: f,
-                })
-                .getOne()
-              if (result) {
-                founderResults.push(result)
-              }
+    const [founders, blockchain] = await Promise.all([
+      (async () => {
+        if (wikiResult?.linkedWikis?.founders) {
+          const founderResults = []
+          for (const f of wikiResult.linkedWikis.founders) {
+            const result = await baseQuery
+              .where('wiki.id = :id AND wiki.hidden = false', {
+                id: f,
+              })
+              .getOne()
+            if (result) {
+              founderResults.push(result)
             }
-            return founderResults
           }
-          return []
-        })(),
-        (async () => {
-          if (wikiResult?.linkedWikis?.blockchains) {
-            const blockchainResults = []
-            for (const b of wikiResult.linkedWikis.blockchains) {
-              const result = await baseQuery
-                .where('wiki.id = :id AND wiki.hidden = false', {
-                  id: b,
-                })
-                .getOne()
-              if (result) {
-                blockchainResults.push(result)
-              }
+          return founderResults
+        }
+        return []
+      })(),
+      (async () => {
+        if (wikiResult?.linkedWikis?.blockchains) {
+          const blockchainResults = []
+          for (const b of wikiResult.linkedWikis.blockchains) {
+            const result = await baseQuery
+              .where('wiki.id = :id AND wiki.hidden = false', {
+                id: b,
+              })
+              .getOne()
+            if (result) {
+              blockchainResults.push(result)
             }
-            return blockchainResults
           }
-          return []
-        })(),
-      ])
+          return blockchainResults
+        }
+        return []
+      })(),
+    ])
 
-      const events =
-        (await eventsRepository.query(
-          `SELECT * FROM events WHERE "wikiId" = $1`,
-          [wikiResult?.id],
-        )) || []
+    const events =
+      (await eventsRepository.query(
+        `SELECT * FROM events WHERE "wikiId" = $1`,
+        [wikiResult?.id],
+      )) || []
 
-      const wiki = wikiResult && { ...wikiResult, events }
+    const wiki = wikiResult && { ...wikiResult, events }
 
-      const result = { wiki, founders, blockchain }
+    const result = { wiki, founders, blockchain }
 
-      if (this.INCOMING_WIKI_ID === wiki?.id) {
-        this.CACHED_WIKI = result as RankPageWiki
-      }
-
-      await this.cacheManager.set(id, result, 60 * 60 * 1000) // Set cache for 1 hour
-
-      return result as unknown as RankPageWiki
+    if (this.INCOMING_WIKI_ID === wiki?.id) {
+      this.CACHED_WIKI = result as RankPageWiki
     }
-    const processedCachedWiki = {
-      ...cachedWiki,
-      wiki: {
-        ...cachedWiki.wiki,
-        created: new Date(cachedWiki.wiki.created),
-      },
-    }
-    return processedCachedWiki as RankPageWiki
+
+    await this.cacheManager.set(id, result, 60 * 60 * 1000) // Set cache for 1 hour
+
+    return result as unknown as RankPageWiki
   }
 
   async getWikiData(
@@ -454,7 +450,7 @@ class MarketCapService {
   async wildcardSearch(args: MarketCapSearchInputs) {
     const data: MarketCapSearchType | null | undefined =
       await this.cacheManager.get('marketCapSearch')
-
+    console.log(data, args.search)
     if (!data || !args.search) {
       return [] as (TokenRankListData | NftRankListData)[]
     }
