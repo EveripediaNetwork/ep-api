@@ -41,7 +41,7 @@ interface RankPageWiki {
 
 @Injectable()
 class MarketCapService {
-  private RANK_LIMIT = 1000
+  private RANK_LIMIT = 2000
 
   private API_KEY: string
 
