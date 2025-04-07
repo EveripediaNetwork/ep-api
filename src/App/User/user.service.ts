@@ -68,8 +68,8 @@ class UserService {
       throw new HttpException('Invalid JSON format', HttpStatus.BAD_REQUEST)
     }
 
-    const validator = new UserProfileValidator()
-    validator.validate(data)
+    // const validator = new UserProfileValidator()
+    // validator.validate(data)
 
     const validDateId = this.tokenValidator.validateToken(token, data.id, false)
 

@@ -42,7 +42,6 @@ class MarketCapSearch implements OnModuleInit {
         marketCapSearchSubscription: false,
       })
       this.buildRankpageSearchData()
-      console.log('Starting API rate limit tester...')
     }, 15000)
   }
 
