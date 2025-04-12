@@ -2,22 +2,23 @@ import { Field, GraphQLISODateTime, ObjectType } from '@nestjs/graphql'
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm'
 import tokenDecimalMiddleware from './middlewares/tokenDecimalMiddleware'
 
 @ObjectType()
 @Entity()
 class HiIQHolderAddress {
-  @PrimaryGeneratedColumn()
+  @Column('integer', {
+    generated: 'increment',
+    nullable: false,
+  })
   id!: number
 
   @Field(() => String)
-  @Column('varchar', {
-    unique: true,
-  })
+  @PrimaryColumn('varchar')
   address!: string
 
   @Field(() => String, { middleware: [tokenDecimalMiddleware] })

@@ -2,16 +2,19 @@ import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql'
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm'
 
 @ObjectType()
 @Entity()
 class HiIQHolder {
   @Field(() => ID)
-  @PrimaryGeneratedColumn()
+  @Column('integer', {
+    generated: 'increment',
+    nullable: false,
+  })
   id!: number
 
   @Field(() => Int)
@@ -19,7 +22,7 @@ class HiIQHolder {
   amount!: number
 
   @Field(() => GraphQLISODateTime)
-  @Column('date')
+  @PrimaryColumn('date')
   day!: Date
 
   @Field(() => GraphQLISODateTime)

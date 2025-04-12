@@ -275,15 +275,15 @@ class HiIQHolderService {
       .getCount()
 
     if (intermittentCheck) {
+      console.log('HIIQ HOLDERS INTERMITTENT CHECK - LOGS FOUND: ', logs.length)
       const newDay = !lastCountTimestamp
         ? '2021-06-01'
         : new Date(next * 1000).toISOString()
-      console.log('hiiq holders intermittent indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
 
-      if (!existCount) {
+      if (!existCount && new Date(newDay) <= new Date()) {
         const totalHolders = this.hiIQHoldersRepo.create({
           amount: count,
           day: newDay,
@@ -308,19 +308,23 @@ class HiIQHolderService {
       }
     } else {
       const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
-      console.log('hiiq holders historical indexing')
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
       if (!existCount && new Date(newDay) <= new Date()) {
-        const totalHolders = this.hiIQHoldersRepo.create({
-          amount: count,
-          day: newDay,
-          created: newDay,
-          updated: newDay,
-        })
-        await this.hiIQHoldersRepo.save(totalHolders)
-        console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+        console.log('hiiq holders historical indexing')
+        try {
+          const totalHolders = this.hiIQHoldersRepo.create({
+            amount: count,
+            day: newDay,
+            created: newDay,
+            updated: newDay,
+          })
+          await this.hiIQHoldersRepo.save(totalHolders)
+          console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+        } catch (error) {
+          console.log(error)
+        }
       }
     }
     job.start()
