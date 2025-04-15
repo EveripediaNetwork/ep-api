@@ -12,8 +12,8 @@ export default class SentryMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     Sentry.init({
       dsn: this.configService.get<string>('SENTRY_DSN'),
-      tracesSampleRate: 0.3,
-      profilesSampleRate: 0.5,
+      tracesSampleRate: 0.2,
+      profilesSampleRate: 0.2,
       integrations: [Sentry.graphqlIntegration()],
       ignoreErrors: ['RangeError'],
     })
