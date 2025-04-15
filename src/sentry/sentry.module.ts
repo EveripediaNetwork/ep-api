@@ -12,6 +12,7 @@ import { SentryModule } from '@ntegral/nestjs-sentry'
         environment: cfg.get('NODE_ENV'),
         logLevels: ['debug'],
         tracesSampleRate: 0.3,
+        ignoreErrors: ['RangeError'],
       }),
       inject: [ConfigService],
     }),

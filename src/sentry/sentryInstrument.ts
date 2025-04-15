@@ -6,4 +6,5 @@ Sentry.init({
   integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 0.3,
   profilesSampleRate: 0.5,
+  ignoreErrors: ['RangeError'],
 })
