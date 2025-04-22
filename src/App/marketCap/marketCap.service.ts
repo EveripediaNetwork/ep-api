@@ -39,6 +39,7 @@ interface RankPageWiki {
   blockchain: (Wiki | null)[]
 }
 
+// TODO: refactor this, needs optimization
 @Injectable()
 class MarketCapService {
   private RANK_LIMIT = 2000

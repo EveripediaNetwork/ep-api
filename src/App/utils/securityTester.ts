@@ -198,7 +198,6 @@ class SecurityTestingService {
     }
 
     const data = await this.checkContentRecursive(input)
-    console.log('the ', data)
     return data
   }
 }

@@ -26,6 +26,7 @@ class MirrorApiService {
     query: string,
     variables: Record<string, any>,
   ): Promise<T> {
+    // TODO: catch errors
     const headers = { Origin: this.origin }
     const response = await this.httpService
       .post(this.apiUrl, { query, variables }, { headers })

@@ -68,6 +68,7 @@ class UserService {
       throw new HttpException('Invalid JSON format', HttpStatus.BAD_REQUEST)
     }
 
+    // TODO: refactor validator
     // const validator = new UserProfileValidator()
     // validator.validate(data)
 

@@ -70,6 +70,8 @@ class PinResolver {
           destinationPath,
           newFilename,
         )
+        // TODO: catch errors
+
         if (optimizedFile) {
           const result = await this.pinService.pinImage(uploadPath)
           if (result) {
