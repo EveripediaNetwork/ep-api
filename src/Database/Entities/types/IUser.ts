@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { Field, ObjectType } from '@nestjs/graphql'
-import { IsOptional, IsString, Max, MaxLength } from 'class-validator'
+import { IsOptional, IsString, MaxLength } from 'class-validator'
 import { IWiki } from './IWiki'
 
 export interface IUser {

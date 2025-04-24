@@ -13,6 +13,15 @@ import {
   ID,
   ObjectType,
 } from '@nestjs/graphql'
+import { Type } from 'class-transformer'
+import {
+  IsString,
+  MaxLength,
+  IsEmail,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+} from 'class-validator'
 import { Links, Notifications, AdvancedSettings } from './types/IUser'
 import Wiki from './wiki.entity'
 import skipMiddleware from './middlewares/skipMiddleware'
@@ -33,6 +42,9 @@ class UserProfile {
     nullable: true,
     unique: true,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(25)
   username?: string
 
   @Field({ nullable: true })
@@ -40,6 +52,9 @@ class UserProfile {
     length: 250,
     nullable: true,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(250)
   bio?: string
 
   @Directive('@isUser')
@@ -48,6 +63,9 @@ class UserProfile {
     length: 100,
     nullable: true,
   })
+  @IsEmail()
+  @IsOptional()
+  @MaxLength(100)
   email?: string
 
   @Field({ nullable: true })
@@ -55,6 +73,9 @@ class UserProfile {
     length: 46,
     nullable: true,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(46)
   avatar?: string
 
   @Field({ nullable: true })
@@ -62,8 +83,15 @@ class UserProfile {
     length: 46,
     nullable: true,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(46)
   banner?: string
 
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Links)
   @Field(() => [Links], { nullable: true })
   @Column('jsonb', { default: [] })
   links?: Links[]

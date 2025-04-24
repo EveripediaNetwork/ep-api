@@ -1,48 +1,10 @@
-import {
-  IsArray,
-  IsEmail,
-  IsOptional,
-  IsString,
-  MaxLength,
-  validate,
-  ValidateNested,
-} from 'class-validator'
-import { plainToClass, Type } from 'class-transformer'
+import { validate } from 'class-validator'
+import { plainToClass } from 'class-transformer'
 import { BadRequestException } from '@nestjs/common'
-import { Links } from '../../Database/Entities/types/IUser'
+import { PartialType } from '@nestjs/graphql'
+import UserProfile from '../../Database/Entities/userProfile.entity'
 
-export class UserProfileDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(25)
-  username?: string
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(250)
-  bio?: string
-
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(100)
-  email?: string
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(46)
-  avatar?: string
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(46)
-  banner?: string
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Links)
-  links?: Links[]
-}
+export class UserProfileDto extends PartialType(UserProfile) {}
 
 class UserProfileValidator {
   async validate(data: any): Promise<UserProfileDto> {
@@ -57,7 +19,6 @@ class UserProfileValidator {
 
     const userProfileInstance = plainToClass(UserProfileDto, profileData)
 
-    // Validate the instance
     const errors = await validate(userProfileInstance)
 
     if (errors.length > 0) {
