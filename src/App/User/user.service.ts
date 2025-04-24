@@ -26,6 +26,7 @@ class UserService {
     private dataSource: DataSource,
     private configService: ConfigService,
     private tokenValidator: TokenValidator,
+    private profileValidator: UserProfileValidator,
   ) {}
 
   private provider() {
@@ -61,17 +62,9 @@ class UserService {
     profileInfo: string,
     token: string,
   ): Promise<UserProfile | boolean | string> {
-    let data: UserProfile
-    try {
-      data = JSON.parse(profileInfo)
-    } catch (error) {
-      throw new HttpException('Invalid JSON format', HttpStatus.BAD_REQUEST)
-    }
+    await this.profileValidator.validate(profileInfo)
 
-    // TODO: refactor validator
-    // const validator = new UserProfileValidator()
-    // validator.validate(data)
-
+    const data = JSON.parse(profileInfo)
     const validDateId = this.tokenValidator.validateToken(token, data.id, false)
 
     if (
