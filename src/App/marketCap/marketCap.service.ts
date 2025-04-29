@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 import { DataSource } from 'typeorm'
@@ -39,7 +40,6 @@ interface RankPageWiki {
   blockchain: (Wiki | null)[]
 }
 
-// TODO: refactor this, needs optimization
 @Injectable()
 class MarketCapService {
   private RANK_LIMIT = 2000
@@ -196,158 +196,246 @@ class MarketCapService {
   }
 
   async getWikiData(
-    coinsData: Record<any, any> | undefined,
+    coinsData: Record<any, any>[] | undefined,
     kind: RankType,
     delay = false,
-  ): Promise<RankPageWiki[]> {
-    const k = kind.toLowerCase()
-
-    const batchSize = 50
-    const allWikis: (RankPageWiki | null)[] = []
-
-    if (coinsData) {
-      for (let i = 0; i < coinsData.length; i += batchSize) {
-        const batch = coinsData.slice(i, i + batchSize)
-
-        const batchPromises = batch.map((element: any) =>
-          this.findWiki(element.id, k),
-        )
-        const batchWikis = await Promise.all(batchPromises)
-
-        allWikis.push(...batchWikis)
-        if (delay) {
-          await new Promise((r) => setTimeout(r, 2000))
-        }
-      }
+  ): Promise<RankPageWiki[] | null> {
+    if (!coinsData?.length) {
+      return []
     }
 
-    return allWikis as RankPageWiki[]
+    const kindLower = kind.toLowerCase()
+    const BATCH_SIZE = 50
+    const DELAY_MS = 2000
+    const results: (RankPageWiki | null)[] = []
+
+    try {
+      for (let i = 0; i < coinsData.length; i += BATCH_SIZE) {
+        const batchEnd = Math.min(i + BATCH_SIZE, coinsData.length)
+        const batchPromises = []
+
+        for (let j = i; j < batchEnd; j += 1) {
+          const element = coinsData[j]
+
+          if (!element?.id) continue
+
+          batchPromises.push(this.findWiki(element.id, kindLower))
+        }
+
+        const batchResults = await Promise.all(batchPromises)
+
+        results.push(...(batchResults.filter(Boolean) as RankPageWiki[]))
+
+        if (delay && batchEnd < coinsData.length) {
+          await new Promise((resolve) => setTimeout(resolve, DELAY_MS))
+        }
+      }
+
+      return results as RankPageWiki[]
+    } catch (error) {
+      console.error(
+        'Error retrieving wiki data:',
+        error instanceof Error ? error.message : error,
+      )
+      return null
+    }
   }
 
   async marketData(args: MarketCapInputs, reset = false) {
     const { kind } = args
 
     const data = await this.cgMarketDataApiCall(args, reset)
-    const wikis = await this.getWikiData(data, kind)
+    const wikis = await this.getWikiData(data || [], kind)
 
-    const processElement = (element: any, rankpageWiki: any) => {
-      const tokenData =
-        kind === RankType.TOKEN
-          ? {
-              image: element.image || '',
-              id: element.id,
-              name: element.name || '',
-              alias: element.symbol || '',
-              current_price: element.current_price || 0,
-              market_cap: element.market_cap || 0,
-              market_cap_rank: element.market_cap_rank || 0,
-              price_change_24h: element.price_change_percentage_24h || 0,
-              market_cap_change_24h: element.market_cap_change_24h || 0,
-            }
-          : {
-              alias: null,
-              id: element.id,
-              name: element.name || '',
-              image: element.image?.small || '',
-              native_currency: element.native_currency || '',
-              native_currency_symbol: element.native_currency_symbol || '',
-              floor_price_eth: element.floor_price?.native_currency || 0,
-              floor_price_usd: element.floor_price?.usd || 0,
-              market_cap_usd: element.market_cap?.usd || 0,
-              h24_volume_usd: element.volume_24h?.usd || 0,
-              h24_volume_native_currency:
-                element.volume_24h?.native_currency || 0,
-              floor_price_in_usd_24h_percentage_change:
-                element.floor_price_in_usd_24h_percentage_change || 0,
-            }
+    if (!data?.length || !wikis?.length) {
+      return []
+    }
 
-      const marketData = {
-        [kind === RankType.TOKEN ? 'tokenMarketData' : 'nftMarketData']: {
-          hasWiki: !!rankpageWiki.wiki,
-          ...tokenData,
-        },
-      }
+    const processedResults = await Promise.all(
+      data.map((element: any, index: number) => {
+        const wiki = index < wikis.length ? wikis[index] : null
+        return this.processMarketElement(element, wiki, kind)
+      }),
+    )
 
-      if (!rankpageWiki.wiki) {
-        return {
-          ...noContentWiki,
-          id: tokenData.name,
-          title: tokenData.name,
-          ...marketData,
-        }
-      }
+    return processedResults
+  }
 
+  private processMarketElement(
+    element: any,
+    rankpageWiki: any,
+    kind: RankType,
+  ) {
+    const tokenData =
+      kind === RankType.TOKEN
+        ? {
+            image: element.image || '',
+            id: element.id,
+            name: element.name || '',
+            alias: element.symbol || '',
+            current_price: element.current_price || 0,
+            market_cap: element.market_cap || 0,
+            market_cap_rank: element.market_cap_rank || 0,
+            price_change_24h: element.price_change_percentage_24h || 0,
+            market_cap_change_24h: element.market_cap_change_24h || 0,
+          }
+        : {
+            alias: null,
+            id: element.id,
+            name: element.name || '',
+            image: element.image?.small || '',
+            native_currency: element.native_currency || '',
+            native_currency_symbol: element.native_currency_symbol || '',
+            floor_price_eth: element.floor_price?.native_currency || 0,
+            floor_price_usd: element.floor_price?.usd || 0,
+            market_cap_usd: element.market_cap?.usd || 0,
+            h24_volume_usd: element.volume_24h?.usd || 0,
+            h24_volume_native_currency:
+              element.volume_24h?.native_currency || 0,
+            floor_price_in_usd_24h_percentage_change:
+              element.floor_price_in_usd_24h_percentage_change || 0,
+          }
+
+    const marketData = {
+      [kind === RankType.TOKEN ? 'tokenMarketData' : 'nftMarketData']: {
+        hasWiki: !!rankpageWiki?.wiki,
+        ...tokenData,
+      },
+    }
+
+    if (!rankpageWiki?.wiki) {
       return {
-        ...rankpageWiki.wiki,
-        tags: rankpageWiki.wiki.__tags__,
-        founderWikis: rankpageWiki.founders,
-        blockchainWikis: rankpageWiki.blockchain,
+        ...noContentWiki,
+        id: tokenData.name,
+        title: tokenData.name,
         ...marketData,
       }
     }
 
-    const result = await Promise.all(
-      data?.map((element: any, index: number) =>
-        processElement(element, wikis[index]),
-      ),
-    )
-
-    return result
+    return {
+      ...rankpageWiki.wiki,
+      tags: rankpageWiki.wiki.__tags__,
+      founderWikis: rankpageWiki.founders,
+      blockchainWikis: rankpageWiki.blockchain,
+      ...marketData,
+    }
   }
 
   async cgMarketDataApiCall(
     args: MarketCapInputs,
-    reset: boolean,
-  ): Promise<Record<any, any> | undefined> {
-    const { kind, category, limit, offset } = args
+    reset = false,
+  ): Promise<Record<any, any>[] | undefined> {
+    try {
+      const { kind, category, limit = 250, offset = 0 } = args
+      const results = await this.fetchMarketData(
+        kind,
+        category,
+        limit,
+        offset,
+        reset,
+      )
+      return results?.slice(0, this.RANK_LIMIT)
+    } catch (error) {
+      console.error(
+        'Failed to fetch market data:',
+        error instanceof Error ? error.message : error,
+      )
+      return []
+    }
+  }
+
+  private async fetchMarketData(
+    kind: RankType,
+    category?: string,
+    limit = 250,
+    offset = 0,
+    reset = false,
+  ): Promise<Record<any, any>[] | undefined> {
+    const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
+    const perPage = limit
+    const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
+    const startPage = Math.ceil(offset / perPage) + 1
     const categoryParam = category ? `category=${category}&` : ''
 
-    const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
+    const allData: Record<any, any>[] = []
+    let lastUrl: string | undefined
 
-    const perPage = limit || 250
-    const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
-    const pageToFetch = offset ? Math.ceil(offset / perPage) + 1 : 1
+    for (let page = startPage; page <= totalPages; page += 1) {
+      const url = this.buildApiUrl(baseUrl, kind, categoryParam, perPage, page)
+      lastUrl = url
 
-    const allData = []
-    let url
-    try {
-      for (let page = pageToFetch; page <= totalPages; page += 1) {
-        url =
-          kind === RankType.TOKEN
-            ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${perPage}&page=${page}`
-            : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${perPage}&page=${page}`
-        if (reset) {
-          await this.cacheManager.del(url)
-        }
-
-        const finalCachedResult: any | undefined =
-          await this.cacheManager.get(url)
-
-        if (finalCachedResult && !reset) {
-          allData.push(...finalCachedResult)
-          break
-        } else {
-          const response = await this.httpService
-            .get(url, {
-              headers: {
-                'x-cg-pro-api-key': this.API_KEY,
-              },
-            })
-            .toPromise()
-          if (response?.data) {
-            allData.push(...response.data)
-            await this.cacheManager.set(url, allData, 180 * 1000)
-          }
-        }
-        if (allData.length >= limit) {
-          break
-        }
+      const cachedData = await this.tryGetFromCache(url, reset)
+      if (cachedData) {
+        allData.push(...cachedData)
+        break
       }
-    } catch (err: any) {
-      console.error(err.message)
+
+      const freshData = await this.fetchAndCacheData(url)
+      if (freshData) {
+        allData.push(...freshData)
+      }
+
+      if (allData.length >= limit) {
+        break
+      }
     }
-    Globals.REFRESH_CACHE_KEY = url as string
-    return allData.slice(0, this.RANK_LIMIT)
+
+    if (lastUrl) {
+      Globals.REFRESH_CACHE_KEY = lastUrl
+    }
+
+    return allData
+  }
+
+  private async tryGetFromCache<T = Record<string, any>>(
+    url: string,
+    reset: boolean,
+  ): Promise<T[] | null> {
+    if (reset) {
+      await this.cacheManager.del(url)
+      return null
+    }
+
+    const cachedResult = await this.cacheManager.get<T[]>(url)
+    return cachedResult ?? null
+  }
+
+  private buildApiUrl(
+    baseUrl: string,
+    kind: RankType,
+    categoryParam: string,
+    perPage: number,
+    page: number,
+  ): string {
+    return kind === RankType.TOKEN
+      ? `${baseUrl}coins/markets?vs_currency=usd&${categoryParam}order=market_cap_desc&per_page=${perPage}&page=${page}`
+      : `${baseUrl}nfts/markets?order=h24_volume_usd_desc&per_page=${perPage}&page=${page}`
+  }
+
+  private async fetchAndCacheData(
+    url: string,
+  ): Promise<Record<any, any>[] | null> {
+    try {
+      const response = await this.httpService
+        .get(url, {
+          headers: {
+            'x-cg-pro-api-key': this.API_KEY,
+          },
+        })
+        .toPromise()
+
+      if (response?.data) {
+        await this.cacheManager.set(url, response.data, 180 * 1000) // Cache for 3 minutes
+        return response.data
+      }
+      return null
+    } catch (error) {
+      console.error(
+        `API request failed for ${url}:`,
+        error instanceof Error ? error.message : error,
+      )
+      return null
+    }
   }
 
   async ranks(
