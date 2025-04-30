@@ -18,7 +18,6 @@ class ETHProviderService {
     return new ethers.providers.JsonRpcProvider(this.providerUrl())
   }
 
-  // TODO: back off if no network, log error to discord
   public async checkNetwork(): Promise<void> {
     const rpcProvider = this.getRpcProvider()
     try {

@@ -208,7 +208,6 @@ class HiIQHolderService {
           if (decodelog.eventName === 'Deposit') {
             const { provider, value } = decodelog.args
             if (value !== undefined) {
-              // catch error on balanceOf
               const existingHolder = await this.checkExistingHolders(provider)
               const timestamp = Number.parseInt(log.timeStamp, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
