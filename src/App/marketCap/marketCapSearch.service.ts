@@ -76,7 +76,6 @@ class MarketCapSearch implements OnModuleInit {
       }
 
       const info = JSON.stringify(data)
-
       this.pm2Service.sendDataToProcesses(
         'ep-api',
         'updateCache [marketCapSearch]',

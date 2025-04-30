@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { Field, ObjectType } from '@nestjs/graphql'
-import { Max } from 'class-validator'
+import { IsOptional, IsString, MaxLength } from 'class-validator'
 import { IWiki } from './IWiki'
 
 export interface IUser {
@@ -10,21 +10,28 @@ export interface IUser {
 
 @ObjectType()
 export class Links {
-  // TODO: add validations for links
   @Field({ nullable: true })
-  @Max(255)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   instagram?: string
 
   @Field({ nullable: true })
-  @Max(255)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   twitter?: string
 
   @Field({ nullable: true })
-  @Max(255)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   lens?: string
 
   @Field({ nullable: true })
-  @Max(255)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   website?: string
 }
 

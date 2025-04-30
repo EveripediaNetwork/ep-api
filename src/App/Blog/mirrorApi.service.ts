@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { gql } from 'graphql-request'
+import { lastValueFrom } from 'rxjs'
 import { Blog } from './blog.dto'
 
 @Injectable()
@@ -22,16 +23,19 @@ class MirrorApiService {
       'https://mirror.xyz'
   }
 
-  private async executeQuery<T>(
-    query: string,
-    variables: Record<string, any>,
-  ): Promise<T> {
+  private async executeQuery(query: string, variables: Record<string, any>) {
     const headers = { Origin: this.origin }
-    const response = await this.httpService
-      .post(this.apiUrl, { query, variables }, { headers })
-      .toPromise()
 
-    return response?.data?.data || {}
+    try {
+      const response = await lastValueFrom(
+        this.httpService.post(this.apiUrl, { query, variables }, { headers }),
+      )
+
+      return response?.data?.data
+    } catch (error) {
+      console.error('Query execution failed:', error)
+      return null
+    }
   }
 
   async getBlogs(address: string): Promise<Blog[]> {
@@ -69,7 +73,7 @@ class MirrorApiService {
       }
     `
 
-    const result = await this.executeQuery<{ entries: Blog[] }>(query, {
+    const result = await this.executeQuery(query, {
       projectAddress: address,
     })
     return result.entries || []
@@ -109,7 +113,7 @@ class MirrorApiService {
       }
     `
 
-    const result = await this.executeQuery<{ entry: Blog }>(query, { digest })
+    const result = await this.executeQuery(query, { digest })
     return result.entry || null
   }
 }
