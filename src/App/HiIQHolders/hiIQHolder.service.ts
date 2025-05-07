@@ -210,6 +210,7 @@ class HiIQHolderService {
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
               const timestamp = Number.parseInt(log.timeStamp, 16)
+              const block = Number.parseInt(log.blockNumber, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
               const balance = await tokenContract.balanceOf(provider)
               const [decimals] = await Promise.all([
@@ -221,14 +222,12 @@ class HiIQHolderService {
                 decimals,
               )
               if (existingHolder && formattedBalance !== '0.0') {
-                await this.hiIQHoldersAddressRepo
-                  .createQueryBuilder()
-                  .update(HiIQHolderAddress)
-                  .set({ tokens: formattedBalance, updated: logTime })
-                  .where('address = :address', {
-                    address: existingHolder.address,
-                  })
-                  .execute()
+                await this.hiIQHoldersAddressRepo.query(
+                  `UPDATE "hi_iq_holder_address" 
+                    SET "tokens" = $1, "updated" = $2, "block" = $3
+                    WHERE "address" = $4`,
+                  [formattedBalance, logTime, block, existingHolder.address],
+                )
               }
               if (!existingHolder && formattedBalance !== '0.0') {
                 try {
@@ -237,6 +236,7 @@ class HiIQHolderService {
                     tokens: `${formattedBalance}`,
                     created: logTime,
                     updated: logTime,
+                    block,
                   })
                   await this.hiIQHoldersAddressRepo.save(newHolder)
                 } catch (e: any) {

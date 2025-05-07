@@ -1,4 +1,4 @@
-import { Field, GraphQLISODateTime, ObjectType } from '@nestjs/graphql'
+import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql'
 import {
   Entity,
   Column,
@@ -32,6 +32,10 @@ class HiIQHolderAddress {
   @Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
   updated!: Date
+
+  @Field(() => Int)
+  @Column('integer')
+  block!: number
 }
 
 export default HiIQHolderAddress
