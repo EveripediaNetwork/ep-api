@@ -153,7 +153,10 @@ class BlogService {
       }),
     ).then((blogArrays) => blogArrays.flat())
 
-    await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+    if (blogs.length > 0) {
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+    }
+
     return blogs
   }
 
@@ -165,7 +168,7 @@ class BlogService {
 
     let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!blogs) {
-      blogs = await Promise.all(
+      const successfulBlog = await Promise.all(
         accounts.map(async (account) => {
           try {
             if (!account) return []
@@ -181,8 +184,14 @@ class BlogService {
           }
         }),
       ).then((blogArrays) => blogArrays.flat())
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+
+      if (successfulBlog.length > 0) {
+        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+      }
+
+      blogs = successfulBlog
     }
+
     return this.filterHiddenBlogs(blogs || [])
   }
 
