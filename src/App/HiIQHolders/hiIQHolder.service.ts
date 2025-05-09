@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { decodeEventLog, erc20Abi } from 'viem'
 import { ethers } from 'ethers'
+import { lastValueFrom } from 'rxjs'
 import HiIQHolderRepository from './hiIQHolder.repository'
 import HiIQHolder from '../../Database/Entities/hiIQHolder.entity'
 import HiIQHolderAddressRepository from './hiIQHolderAddress.repository'
@@ -39,9 +40,11 @@ const HIIQ_DAILY_COUNT = 'HIIQ_DAILY_COUNT'
 class HiIQHolderService {
   private HIIQ_CONTRACT_START_TIMESTAMP = 1622505600
 
+  private HIIQ_CONTRACT_START_BLOCK = 12548031
+
   private IS_INTERMITTENT_INDEXING = false
 
-  private TWENTY_HOURS_IN_SECONDS = 86400
+  private TWENTY_FOUR_HOURS_IN_SECONDS = 86400
 
   constructor(
     private configService: ConfigService,
@@ -65,7 +68,7 @@ class HiIQHolderService {
     return null
   }
 
-  async lastUpdatedHiIQHolder(): Promise<Date | null> {
+  async lastUpdatedHiIQHolder(): Promise<number> {
     const holder = await this.hiIQHoldersAddressRepo.find({
       order: {
         updated: 'DESC',
@@ -73,9 +76,10 @@ class HiIQHolderService {
       take: 1,
     })
     if (holder.length !== 0) {
-      return holder[0].updated
+      const { block } = holder[0]
+      return block
     }
-    return null
+    return this.HIIQ_CONTRACT_START_BLOCK
   }
 
   async checkExistingHolders(
@@ -132,10 +136,7 @@ class HiIQHolderService {
     job.stop()
 
     const lastCount = await this.lastHolderRecord()
-    const lastUpdatedHolder = await this.lastUpdatedHiIQHolder()
-    const lastUpdatedHolderTimestamp = Math.floor(
-      new Date(`${lastUpdatedHolder}`).getTime() / 1000,
-    )
+    const block = await this.lastUpdatedHiIQHolder()
     const lastCountTimestamp = Math.floor(
       new Date(`${lastCount}`).getTime() / 1000,
     )
@@ -146,40 +147,12 @@ class HiIQHolderService {
     let latest = false
 
     if (intermittentCheck) {
-      if (
-        Number.isNaN(lastUpdatedHolderTimestamp) &&
-        Number.isNaN(lastCountTimestamp)
-      ) {
-        previous = this.HIIQ_CONTRACT_START_TIMESTAMP
-        next = this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS
-      } else if (
-        Number.isNaN(lastUpdatedHolderTimestamp) &&
-        !Number.isNaN(lastCountTimestamp)
-      ) {
-        if (currentTime - lastCountTimestamp > this.TWENTY_HOURS_IN_SECONDS) {
-          previous = lastCountTimestamp
-          next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
-        } else {
-          previous = lastCountTimestamp
-          next = currentTime
-        }
-      } else if (
-        currentTime - lastUpdatedHolderTimestamp >
-        this.TWENTY_HOURS_IN_SECONDS
-      ) {
-        previous = lastCountTimestamp
-        next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
-      } else {
-        previous =
-          lastCountTimestamp > lastUpdatedHolderTimestamp
-            ? lastCountTimestamp + 1
-            : lastUpdatedHolderTimestamp
-        next = currentTime
-        latest = true
-      }
+      previous = block
+      next = currentTime
+      latest = true
     } else {
       previous = lastCountTimestamp
-      next = lastCountTimestamp + this.TWENTY_HOURS_IN_SECONDS
+      next = lastCountTimestamp + this.TWENTY_FOUR_HOURS_IN_SECONDS
     }
 
     const logs =
@@ -187,7 +160,8 @@ class HiIQHolderService {
         ? await this.getOldLogs(previous, next, latest)
         : await this.getOldLogs(
             this.HIIQ_CONTRACT_START_TIMESTAMP,
-            this.HIIQ_CONTRACT_START_TIMESTAMP + this.TWENTY_HOURS_IN_SECONDS,
+            this.HIIQ_CONTRACT_START_TIMESTAMP +
+              this.TWENTY_FOUR_HOURS_IN_SECONDS,
           )
 
     await this.ethProviderService.checkNetwork()
@@ -210,7 +184,7 @@ class HiIQHolderService {
             if (value !== undefined) {
               const existingHolder = await this.checkExistingHolders(provider)
               const timestamp = Number.parseInt(log.timeStamp, 16)
-              const block = Number.parseInt(log.blockNumber, 16)
+              const blockNumber = Number.parseInt(log.blockNumber, 16)
               const logTime = new Date(timestamp * 1000).toISOString()
               const balance = await tokenContract.balanceOf(provider)
               const [decimals] = await Promise.all([
@@ -226,7 +200,12 @@ class HiIQHolderService {
                   `UPDATE "hi_iq_holder_address" 
                     SET "tokens" = $1, "updated" = $2, "block" = $3
                     WHERE "address" = $4`,
-                  [formattedBalance, logTime, block, existingHolder.address],
+                  [
+                    formattedBalance,
+                    logTime,
+                    blockNumber,
+                    existingHolder.address,
+                  ],
                 )
               }
               if (!existingHolder && formattedBalance !== '0.0') {
@@ -236,7 +215,7 @@ class HiIQHolderService {
                     tokens: `${formattedBalance}`,
                     created: logTime,
                     updated: logTime,
-                    block,
+                    block: blockNumber,
                   })
                   await this.hiIQHoldersAddressRepo.save(newHolder)
                 } catch (e: any) {
@@ -275,7 +254,9 @@ class HiIQHolderService {
       .getCount()
 
     if (intermittentCheck) {
-      console.log('HIIQ HOLDERS INTERMITTENT CHECK - LOGS FOUND: ', logs.length)
+      console.log(
+        `HIIQ HOLDERS INTERMITTENT CHECK - LAST BLOCK: ${block}, LOGS FOUND: ${logs.length}`,
+      )
       const newDay = !lastCountTimestamp
         ? '2021-06-01'
         : new Date(next * 1000).toISOString()
@@ -307,7 +288,9 @@ class HiIQHolderService {
         )
       }
     } else {
-      const newDay = next ? new Date(next * 1000).toISOString() : '2021-06-01' // contract start date
+      const newDay = next
+        ? new Date(next * 1000).toISOString()
+        : new Date(this.HIIQ_CONTRACT_START_TIMESTAMP * 1000).toISOString()
       const existCount = await this.hiIQHoldersRepo.findOneBy({
         day: new Date(newDay),
       })
@@ -338,26 +321,28 @@ class HiIQHolderService {
     let blockNumberForQuery1
     let blockNumberForQuery2
     try {
-      const [response1, response2] = await Promise.all([
-        this.httpService.get(buildUrl(previous)).toPromise(),
-        this.httpService.get(buildUrl(next)).toPromise(),
-      ])
-
-      blockNumberForQuery1 = response1?.data.result
-      blockNumberForQuery2 = response2?.data.result
+      const promise2 = lastValueFrom(this.httpService.get(buildUrl(next)))
+      if (latest) {
+        const promise1 = lastValueFrom(this.httpService.get(buildUrl(previous)))
+        const [response1, response2] = await Promise.all([promise1, promise2])
+        blockNumberForQuery1 = response1?.data.result
+        blockNumberForQuery2 = response2?.data.result
+      } else {
+        const response2 = await promise2
+        blockNumberForQuery2 = response2?.data.result
+      }
     } catch (e: any) {
       console.error('Error requesting block number', e.data)
     }
 
     const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
-      latest ? blockNumberForQuery1 + 1 : blockNumberForQuery1
+      latest ? previous + 1 : blockNumberForQuery1
     }&toBlock=${
-      latest ? blockNumberForQuery1 - 30 : blockNumberForQuery2
+      latest ? 'latest' : blockNumberForQuery2
     }&page=1&offset=1000&apikey=${key}`
-
     let logs
     try {
-      const resp = await this.httpService.get(logsFor1Day).toPromise()
+      const resp = await lastValueFrom(this.httpService.get(logsFor1Day))
       logs = resp?.data.result
     } catch (e: any) {
       console.error('Error requesting log data', e)
