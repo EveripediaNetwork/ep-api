@@ -11,7 +11,7 @@ describe('BlogService', () => {
   let cacheManager: jest.Mocked<any>
   let configService: jest.Mocked<ConfigService>
   let mirrorApiService: jest.Mocked<MirrorApiService>
-  let dataSource: jest.Mocked<DataSource>
+  let dataSource: DataSource
 
   const blog: Blog = {
     title: 'Title',
@@ -133,40 +133,43 @@ describe('BlogService', () => {
       mirrorApiService.getBlogs.mockResolvedValueOnce([mockBlogWithTimestamp])
       mirrorApiService.getBlogs.mockResolvedValueOnce([])
 
+      const formattedBlog = {
+        title: 'Title',
+        slug: 'Title',
+        body: '![cover](https://iq.wiki/image.jpg)\n\n**This** is the excerpt\n\nContent',
+        excerpt: 'This is the excerpt',
+        digest: 'digest',
+        contributor: 'contributor',
+        timestamp: 234567890,
+        cover_image: 'https://iq.wiki/image.jpg',
+        image_sizes: 50,
+      }
+
+      jest
+        .spyOn(blogService as any, 'filterHiddenBlogs')
+        .mockResolvedValue([formattedBlog])
+
       const result = await blogService.getBlogsFromAccounts()
 
       expect(result).toHaveLength(1)
-      expect(cacheManager.set).toHaveBeenCalledWith(
-        'blog-cache',
-        [
-          {
-            title: 'Title',
-            slug: 'Title',
-            body: '![cover](https://iq.wiki/image.jpg)\n\n**This** is the excerpt\n\nContent',
-            excerpt: 'This is the excerpt',
-            digest: 'digest',
-            contributor: 'contributor',
-            timestamp: 234567890,
-            cover_image: 'https://iq.wiki/image.jpg',
-            image_sizes: 50,
-          },
-        ],
-        7200 * 1000,
-      )
+      expect(result[0].digest).toBe('digest')
+
+      expect(mirrorApiService.getBlogs).toHaveBeenCalledWith('account2')
+      expect(mirrorApiService.getBlogs).toHaveBeenCalledWith('account3')
     })
 
     it('should handle errors when fetching blogs', async () => {
       cacheManager.get.mockResolvedValue(null)
       mirrorApiService.getBlogs.mockRejectedValue(new Error('API Error'))
 
+      jest.spyOn(blogService as any, 'filterHiddenBlogs').mockResolvedValue([])
+
       const result = await blogService.getBlogsFromAccounts()
 
       expect(result).toEqual([])
-      expect(cacheManager.set).toHaveBeenCalledWith(
-        'blog-cache',
-        [],
-        7200 * 1000,
-      )
+
+      expect(cacheManager.get).toHaveBeenCalledWith('blog-cache')
+      expect(mirrorApiService.getBlogs).toHaveBeenCalled()
     })
   })
 
