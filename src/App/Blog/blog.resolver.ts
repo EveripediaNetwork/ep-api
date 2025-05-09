@@ -1,7 +1,6 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql'
 import BlogService from './blog.service'
 import { Blog } from './blog.dto'
-import HiddenBlog from './hideBlog.entity'
 
 @Resolver(() => Blog)
 class BlogResolver {
