@@ -201,7 +201,10 @@ class BlogService {
       return null
     }
 
-    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    if (!blogs) {
+      blogs = await this.refreshBlogCache()
+    }
 
     const blog =
       blogs?.find((e: Blog) => e.digest === digest) ??
