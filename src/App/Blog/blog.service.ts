@@ -1,9 +1,9 @@
-import { Injectable, Inject } from '@nestjs/common'
+import { Injectable, Inject, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { InjectDataSource } from '@nestjs/typeorm'
-import { DataSource } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import Arweave from 'arweave'
 import slugify from 'slugify'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
@@ -35,13 +35,17 @@ export type RawTransactions = {
 
 @Injectable()
 class BlogService {
-  private EVERIPEDIA_BLOG_ACCOUNT2: string
-
-  private EVERIPEDIA_BLOG_ACCOUNT3: string
+  private logger = new Logger(BlogService.name)
 
   private BLOG_CACHE_KEY = 'blog-cache'
 
   private HIDDEN_BLOGS_CACHE_KEY = 'hidden-blogs-cache'
+
+  private CACHE_TTL = 7200 * 1000
+
+  private readonly hiddenBlogRepository: Repository<HiddenBlog>
+
+  private readonly blogAccounts: string[]
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -49,12 +53,21 @@ class BlogService {
     private readonly mirrorApiService: MirrorApiService,
     @InjectDataSource() private dataSource: DataSource,
   ) {
-    this.EVERIPEDIA_BLOG_ACCOUNT2 = this.configService.get(
-      'EVERIPEDIA_BLOG_ACCOUNT2',
-    ) as string
-    this.EVERIPEDIA_BLOG_ACCOUNT3 = this.configService.get(
-      'EVERIPEDIA_BLOG_ACCOUNT3',
-    ) as string
+    this.hiddenBlogRepository = this.dataSource.getRepository(HiddenBlog)
+    this.blogAccounts = [
+      this.configService.get('EVERIPEDIA_BLOG_ACCOUNT2') as string,
+      this.configService.get('EVERIPEDIA_BLOG_ACCOUNT3') as string,
+    ].filter(Boolean)
+  }
+
+  private extractCoverImage(body?: string): string {
+    if (!body) return ''
+
+    const firstParagraph = body.split('\n\n')[0]
+    const match = firstParagraph.match(
+      /!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m,
+    )
+    return match?.[1] || ''
   }
 
   async formatEntry(
@@ -70,12 +83,7 @@ class BlogService {
       contributor: blog.contributor || '',
       transaction: transactionId,
       timestamp,
-      cover_image: blog.body
-        ? (blog.body
-            .split('\n\n')[0]
-            .match(/!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/m) || [])?.[1] ||
-          ''
-        : undefined,
+      cover_image: this.extractCoverImage(blog.body),
       image_sizes: 50,
     }
   }
@@ -110,15 +118,15 @@ class BlogService {
     )
 
     if (!hiddenDigests) {
-      const hiddenBlogs = await this.dataSource
-        .getRepository(HiddenBlog)
-        .find({ select: ['digest'] })
+      const hiddenBlogs = await this.hiddenBlogRepository.find({
+        select: ['digest'],
+      })
 
       hiddenDigests = hiddenBlogs.map((blog) => blog.digest)
       await this.cacheManager.set(
         this.HIDDEN_BLOGS_CACHE_KEY,
         hiddenDigests,
-        7200 * 1000,
+        this.CACHE_TTL,
       )
     }
 
@@ -130,66 +138,43 @@ class BlogService {
     return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
-  private async refreshBlogCache(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
-
-    const blogs = await Promise.all(
-      accounts.map(async (account) => {
+  private async fetchBlogsFromAllAccounts(): Promise<Blog[]> {
+    const blogsFromAccounts = await Promise.all(
+      this.blogAccounts.map(async (account) => {
         try {
-          if (!account) return []
           const entries = await this.mirrorApiService.getBlogs(account)
           return (
             entries
               ?.filter((entry) => entry.publishedAtTimestamp)
-              .map((b: Blog) => this.formatBlog(b, true)) || []
+              .map((blog: Blog) => this.formatBlog(blog, true)) || []
           )
         } catch (error) {
-          console.error(`Error fetching blogs for account ${account}:`, error)
+          this.logger.error(
+            `Error fetching blogs for account ${account}:`,
+            error,
+          )
           return []
         }
       }),
-    ).then((blogArrays) => blogArrays.flat())
+    )
+
+    return blogsFromAccounts.flat()
+  }
+
+  private async refreshBlogCache(): Promise<Blog[]> {
+    const blogs = await this.fetchBlogsFromAllAccounts()
 
     if (blogs.length > 0) {
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, this.CACHE_TTL)
     }
 
     return blogs
   }
 
   async getBlogsFromAccounts(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
-
     let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!blogs) {
-      const successfulBlog = await Promise.all(
-        accounts.map(async (account) => {
-          try {
-            if (!account) return []
-            const entries = await this.mirrorApiService.getBlogs(account)
-            return (
-              entries
-                ?.filter((entry) => entry.publishedAtTimestamp)
-                .map((b: Blog) => this.formatBlog(b, true)) || []
-            )
-          } catch (error) {
-            console.log(`Error fetching blogs for account ${account}:`, error)
-            return []
-          }
-        }),
-      ).then((blogArrays) => blogArrays.flat())
-
-      if (successfulBlog.length > 0) {
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
-      }
-
-      blogs = successfulBlog
+      blogs = await this.refreshBlogCache()
     }
 
     return this.filterHiddenBlogs(blogs || [])
@@ -206,9 +191,10 @@ class BlogService {
       blogs = await this.refreshBlogCache()
     }
 
-    const blog =
-      blogs?.find((e: Blog) => e.digest === digest) ??
-      (await this.mirrorApiService.getBlog(digest))
+    let blog = blogs?.find((e: Blog) => e.digest === digest)
+    if (!blog) {
+      blog = await this.mirrorApiService.getBlog(digest)
+    }
 
     return blog ? this.formatBlog(blog as Blog, true) : null
   }
@@ -307,12 +293,12 @@ class BlogService {
 
   async hideBlogByDigest(digest: string): Promise<boolean> {
     try {
-      const hiddenBlogRepo = this.dataSource.getRepository(HiddenBlog)
-
-      const existing = await hiddenBlogRepo.findOne({ where: { digest } })
+      const existing = await this.hiddenBlogRepository.findOne({
+        where: { digest },
+      })
       if (!existing) {
-        const hiddenBlog = hiddenBlogRepo.create({ digest })
-        await hiddenBlogRepo.save(hiddenBlog)
+        const hiddenBlog = this.hiddenBlogRepository.create({ digest })
+        await this.hiddenBlogRepository.save(hiddenBlog)
       }
 
       await Promise.all([
@@ -329,11 +315,11 @@ class BlogService {
 
   async unhideBlogByDigest(digest: string): Promise<boolean> {
     try {
-      const hiddenBlogRepo = this.dataSource.getRepository(HiddenBlog)
-
-      const existing = await hiddenBlogRepo.findOne({ where: { digest } })
+      const existing = await this.hiddenBlogRepository.findOne({
+        where: { digest },
+      })
       if (existing) {
-        await hiddenBlogRepo.remove(existing)
+        await this.hiddenBlogRepository.remove(existing)
       }
 
       await Promise.all([
@@ -349,8 +335,7 @@ class BlogService {
   }
 
   async getHiddenBlogs(): Promise<Blog[]> {
-    const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
-    const hiddenBlogs = await hiddenBlogsRepo.find({
+    const hiddenBlogs = await this.hiddenBlogRepository.find({
       order: { hiddenAt: 'DESC' },
     })
 
