@@ -1,5 +1,5 @@
 /* eslint-disable array-callback-return */
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import gql from 'graphql-tag'
 import Activity from '../../Database/Entities/activity.entity'
@@ -20,8 +20,23 @@ import {
 import ActivityService from './activity.service'
 import { hasField } from '../Wiki/wiki.dto'
 
+interface ContentField {
+  name: string
+  selections: Array<string | { name: string; selections: string[] }>
+}
+
+type QueryCondition = 'all' | 'user' | 'wikiId'
+
+interface QueryParams {
+  lang?: string
+  id?: string
+  wikiId?: string
+}
+
 @Injectable()
 class ActivityRepository extends Repository<Activity> {
+  private readonly logger = new Logger(ActivityRepository.name)
+
   constructor(
     private dataSource: DataSource,
     private service: ActivityService,
@@ -29,103 +44,62 @@ class ActivityRepository extends Repository<Activity> {
     super(Activity, dataSource.createEntityManager())
   }
 
-  async countUserActivity(
-    userId: string,
-    intervalInHours: number,
-  ): Promise<number> {
-    const cr = await this.createQueryBuilder('activity')
-      .select('COUNT(*)')
-      .where(
-        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${intervalInHours} HOURS'`,
-        {
-          id: userId,
-        },
-      )
-      .getRawOne()
-    return parseInt(cr.count, 10)
-  }
-
-  activityContentFields(fields: string[]): string[] {
-    const arr = fields.filter((e) => typeof e !== 'string')
-    return arr.flatMap((e: any) => {
-      const t: any[] = []
-      if (e.name === 'content') {
-        e.selections.filter((ee: string | { name: string }) => {
-          if (typeof ee !== 'string' && ee.name !== undefined) {
-            if (ee.name !== 'user') {
-              t.push(`activity.a_${ee.name}`)
-            }
-          } else if (ee !== 'id') {
-            t.push(`activity.a_${ee}`)
-          }
-        })
-      }
-      return t
-    })
-  }
-
-  async activityQueryBuilder(
-    args: any,
-    query: string,
-    fields: string[],
-    condition: string,
-  ): Promise<Activity[]> {
-    let activityContent: string[] = []
-    const ast = gql`
-      ${query}
-    `
-    if (hasField(ast, 'content')) {
-      activityContent = this.activityContentFields(fields)
-    }
-
-    let whereCondition = ''
-
-    if (condition === 'all') {
-      whereCondition = 'activity.language = :lang AND w."hidden" = false'
-    } else if (condition === 'user') {
-      whereCondition = 'w."hidden" = false AND activity.user = :id'
-    } else if (condition === 'wikiId') {
-      whereCondition = 'activity.wikiId = :wikiId AND w. "hidden" = false'
-    }
-
-    const data = await this.createQueryBuilder('activity')
+  private buildBaseQuery() {
+    return this.createQueryBuilder('activity')
       .select([
         'activity.id',
-        'activity.wikiId',
-        'activity.userAddress',
-        'activity.ipfs',
+        'activity.block',
         'activity.type',
         'activity.datetime',
-        'activity.block',
-        'w.hidden',
-        ...activityContent,
+        'activity.ipfs',
+        'activity.updated_timestamp',
+        'activity.created_timestamp',
+        'activity.wikiId',
       ])
       .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-      .leftJoinAndSelect('activity.user', 'user')
+      .leftJoin('activity.user', 'user')
+  }
 
-      .where(whereCondition, {
-        lang: args.lang,
-        id: args.userId,
-        wikiId: args.wikiId,
-      })
+  private applyConditions(
+    query: any,
+    condition: QueryCondition,
+    params: QueryParams,
+  ) {
+    let whereCondition = ''
+    switch (condition) {
+      case 'all':
+        whereCondition = 'activity.language = :lang AND w."hidden" = false'
+        break
+      case 'user':
+        whereCondition = 'w."hidden" = false AND activity.user = :id'
+        break
+      case 'wikiId':
+        whereCondition = 'activity.wikiId = :wikiId AND w."hidden" = false'
+        break
+      default:
+        throw new Error(`Invalid condition: ${condition}`)
+    }
+    return query.where(whereCondition, params)
+  }
 
-      .limit(args.limit)
-      .offset(args.offset)
-      .orderBy('datetime', 'DESC')
-      .getMany()
-
-    const result = data.map((e: any) => {
+  private mapResults(data: any[]): Activity[] {
+    return data.map((e: any) => {
       let authorId = null
 
       if (e.a_author !== null && typeof e.a_author === 'string') {
         try {
-          if (e.a_author.includes('{')) {
-            authorId = JSON.parse(e.a_author).id
+          authorId = e.a_author.includes('{')
+            ? JSON.parse(e.a_author).id
+            : e.a_author
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            this.logger.error(
+              `Error parsing author data: ${error.message}`,
+              error.stack,
+            )
           } else {
-            authorId = e.a_author
+            this.logger.error('Unknown error parsing author data')
           }
-        } catch (err) {
-          console.error(err)
         }
       }
 
@@ -156,7 +130,87 @@ class ActivityRepository extends Repository<Activity> {
         ],
       }
     })
-    return result as Activity[]
+  }
+
+  activityContentFields(fields: Array<string | ContentField>): string[] {
+    const contentFields = fields.filter(
+      (e): e is ContentField =>
+        typeof e === 'object' && e !== null && 'name' in e,
+    )
+
+    return contentFields.flatMap((e: ContentField) => {
+      const t: string[] = []
+      if (e.name === 'content') {
+        e.selections.forEach((ee) => {
+          if (typeof ee === 'object' && ee.name !== undefined) {
+            if (ee.name !== 'user') {
+              t.push(`activity.a_${ee.name}`)
+            }
+          } else if (ee !== 'id') {
+            t.push(`activity.a_${ee}`)
+          }
+        })
+      }
+      return t
+    })
+  }
+
+  async activityQueryBuilder(
+    args: ActivityArgs | ActivityArgsByUser,
+    query: string,
+    fields: Array<string | ContentField>,
+    condition: QueryCondition,
+  ): Promise<Activity[]> {
+    try {
+      const ast = gql`
+        ${query}
+      `
+      const activityContent = hasField(ast, 'content')
+        ? this.activityContentFields(fields)
+        : []
+
+      const baseQuery = this.buildBaseQuery().addSelect(activityContent)
+
+      const queryWithConditions = this.applyConditions(baseQuery, condition, {
+        lang: 'lang' in args ? args.lang : undefined,
+        id: 'userId' in args ? args.userId : undefined,
+        wikiId: 'wikiId' in args ? args.wikiId : undefined,
+      })
+
+      const data = await queryWithConditions
+        .limit(args.limit)
+        .offset(args.offset)
+        .orderBy('datetime', 'DESC')
+        .getMany()
+
+      return this.mapResults(data)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error in activityQueryBuilder: ${error.message}`,
+          error.stack,
+        )
+      } else {
+        this.logger.error('Unknown error in activityQueryBuilder')
+      }
+      throw error
+    }
+  }
+
+  async countUserActivity(
+    userId: string,
+    intervalInHours: number,
+  ): Promise<number> {
+    const cr = await this.createQueryBuilder('activity')
+      .select('COUNT(*)')
+      .where(
+        `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${intervalInHours} HOURS'`,
+        {
+          id: userId,
+        },
+      )
+      .getRawOne()
+    return parseInt(cr.count, 10)
   }
 
   async getActivities(
@@ -200,12 +254,12 @@ class ActivityRepository extends Repository<Activity> {
       .getMany()
   }
 
-  async getActivitiesByUser(
-    args: ActivityArgsByUser,
-    query: string,
-    fields: any[],
-  ): Promise<Activity[]> {
-    return this.activityQueryBuilder(args, query, fields, 'user')
+  async getActivitiesByUser(userAddress: string): Promise<Activity[]> {
+    const query = this.buildBaseQuery()
+      .where('activity.userAddress = :userAddress', { userAddress })
+      .orderBy('activity.datetime', 'DESC')
+
+    return query.getMany()
   }
 
   async getActivitiesById(id: string): Promise<Activity | null> {

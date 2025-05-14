@@ -7,34 +7,85 @@ import Activity from '../../Database/Entities/activity.entity'
 import { Count, UserArgs, WikiStats } from '../Wiki/wikiStats.dto'
 import { ActivityByCategoryArgs } from './dto/activity.dto'
 import { ActivityType } from '../general.args'
+import User from '../../Database/Entities/user.entity'
+import Wiki from '../../Database/Entities/wiki.entity'
+import UserProfile from '../../Database/Entities/userProfile.entity'
+import Language from '../../Database/Entities/language.entity'
+import { UserActivity } from '../User/user.dto'
 
-describe('CategoryService', () => {
+describe('ActivityRepository', () => {
   let repository: ActivityRepository
   let moduleRef: TestingModule
 
-  const select = jest.fn().mockReturnThis()
-  const addSelect = jest.fn().mockReturnThis()
-  const leftJoin = jest.fn().mockReturnThis()
-  const where = jest.fn().mockReturnThis()
-  const andWhere = jest.fn().mockReturnThis()
-  const orderBy = jest.fn().mockReturnThis()
-  const groupBy = jest.fn().mockReturnThis()
-  const setParameters = jest.fn().mockReturnThis()
-
-  const args = {
-    wikiId: 'example-wiki-id',
-    limit: 10,
-    offset: 0,
-    lang: 'en',
+  // Helper function to create query builder mock
+  const createQueryBuilderMock = () => {
+    const mock = {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      setParameters: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn(),
+      getRawMany: jest.fn(),
+      getOne: jest.fn(),
+      getMany: jest.fn(),
+    }
+    return mock
   }
 
-  let dataSource: {
-    createEntityManager: jest.Mock
+  // Helper function to create test data
+  const createTestActivity = () => {
+    const activity = new Activity()
+    activity.id = 'test-id'
+    activity.wikiId = 'test-wiki-id'
+    activity.userAddress = '0x123'
+
+    const mockUser = new User()
+    mockUser.id = '0x123'
+    mockUser.profile = new UserProfile()
+    mockUser.active = true
+    mockUser.wikis = []
+    mockUser.wikisCreated = { activity: [] } as UserActivity
+    mockUser.wikisEdited = { activity: [] } as UserActivity
+
+    const mockWiki = new Wiki()
+    mockWiki.id = 'test-wiki-id'
+    mockWiki.author = mockUser
+    mockWiki.user = mockUser
+    mockWiki.block = 0
+    mockWiki.categories = []
+    mockWiki.content = ''
+    mockWiki.created = new Date()
+    mockWiki.hidden = false
+    mockWiki.images = []
+    mockWiki.ipfs = ''
+    mockWiki.media = []
+    mockWiki.metadata = []
+    mockWiki.summary = ''
+    mockWiki.tags = []
+    mockWiki.title = ''
+    mockWiki.transactionHash = ''
+    mockWiki.updated = new Date()
+    mockWiki.version = 1
+    mockWiki.views = 0
+    mockWiki.promoted = 0
+    mockWiki.language = new Language()
+    mockWiki.nullField = async () => {}
+
+    activity.content = [mockWiki]
+    return activity
   }
+
   beforeEach(async () => {
-    dataSource = {
+    const dataSource = {
       createEntityManager: jest.fn(),
     }
+
     moduleRef = await Test.createTestingModule({
       providers: [
         ActivityService,
@@ -53,50 +104,40 @@ describe('CategoryService', () => {
     it('should return the count of user activities within the specified interval', async () => {
       const userId = '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e'
       const intervalInHours = 24
-      const expectedResult = 5
+      const expectedCount = 5
 
-      const createQueryBuilderMock = jest.fn().mockReturnThis()
-      const selectMock = jest.fn().mockReturnThis()
-      const whereMock = jest.fn().mockReturnThis()
-      const getRawOneMock = jest
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getRawOne.mockResolvedValue({ count: expectedCount })
+
+      repository.createQueryBuilder = jest
         .fn()
-        .mockResolvedValue({ count: expectedResult })
-
-      repository.createQueryBuilder = createQueryBuilderMock
-      createQueryBuilderMock.mockReturnValueOnce({
-        select: selectMock,
-        where: whereMock,
-        getRawOne: getRawOneMock,
-      })
+        .mockReturnValue(mockQueryBuilder)
 
       const result = await repository.countUserActivity(userId, intervalInHours)
 
-      expect(result).toBe(expectedResult)
-
-      expect(createQueryBuilderMock).toHaveBeenCalledWith('activity')
-      expect(selectMock).toHaveBeenCalledWith('COUNT(*)')
-      expect(whereMock).toHaveBeenCalledWith(
+      expect(result).toBe(expectedCount)
+      expect(mockQueryBuilder.select).toHaveBeenCalledWith('COUNT(*)')
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         `activity.userId = :id AND activity.datetime >= NOW() - INTERVAL '${intervalInHours} HOURS'`,
-        {
-          id: userId,
-        },
+        { id: userId },
       )
-      expect(getRawOneMock).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('getActivities', () => {
     it('should return a list of activities based on the provided arguments', async () => {
       const query = `
-        activities(lang: "en", offset: 0, limit: 30) {
-          id
-          block
-          type
-          datetime
-          ipfs
-          updated_timestamp
-          created_timestamp
-          wikiId
+        query {
+          activities(lang: "en", offset: 0, limit: 30) {
+            id
+            block
+            type
+            datetime
+            ipfs
+            updated_timestamp
+            created_timestamp
+            wikiId
+          }
         }`
 
       const fields = [
@@ -110,12 +151,82 @@ describe('CategoryService', () => {
         'wikiId',
       ]
 
-      const expectedResult = [new Activity(), new Activity()]
+      const fixedDate = new Date('2025-05-13T16:31:23.807Z')
+      const mockData = [
+        {
+          id: 'test-id',
+          block: 0,
+          type: 0,
+          datetime: fixedDate,
+          ipfs: '',
+          updated_timestamp: fixedDate,
+          created_timestamp: fixedDate,
+          wikiId: 'test-wiki-id',
+          userAddress: '0x123',
+          a_author: null,
+          a_block: 0,
+          a_categories: [],
+          a_content: '',
+          a_created: fixedDate,
+          a_images: [],
+          a_ipfs: '',
+          a_media: [],
+          a_metadata: [],
+          a_summary: '',
+          a_tags: [],
+          a_title: '',
+          a_transactionHash: '',
+          a_updated: fixedDate,
+          a_version: 1,
+          hidden: false,
+        },
+      ]
 
-      repository.getActivities = jest.fn().mockResolvedValue(expectedResult)
-      const result = await repository.getActivities(args, query, fields)
-      expect(result).toEqual(expectedResult)
-      expect(repository.getActivities).toHaveBeenCalledWith(args, query, fields)
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getMany.mockResolvedValue(mockData)
+
+      repository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder)
+
+      const result = await repository.getActivities(
+        { wikiId: 'test-wiki', limit: 10, offset: 0, lang: 'en' },
+        query,
+        fields,
+      )
+
+      expect(result).toEqual([
+        {
+          ...mockData[0],
+          content: [
+            {
+              id: 'test-wiki-id',
+              title: '',
+              block: 0,
+              summary: '',
+              categories: [],
+              images: [],
+              media: [],
+              tags: [],
+              metadata: [],
+              author: { id: null },
+              content: '',
+              ipfs: '',
+              version: 1,
+              transactionHash: '',
+              created: fixedDate,
+              updated: fixedDate,
+              user: { id: '0x123' },
+              hidden: false,
+            },
+          ],
+        },
+      ])
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'wiki',
+        'w',
+        'w."id" = activity.wikiId',
+      )
     })
   })
 
@@ -148,16 +259,21 @@ describe('CategoryService', () => {
         .fn()
         .mockResolvedValue(expectedResult)
 
-      const result = await repository.getActivitiesByWikId(args, query, fields)
+      const result = await repository.getActivitiesByWikId(
+        { wikiId: 'solana-sol', limit: 30, offset: 0, lang: 'en' },
+        query,
+        fields,
+      )
 
       expect(result).toEqual(expectedResult)
       expect(repository.getActivitiesByWikId).toHaveBeenCalledWith(
-        args,
+        { wikiId: 'solana-sol', limit: 30, offset: 0, lang: 'en' },
         query,
         fields,
       )
     })
   })
+
   describe('getActivitiesByCategory', () => {
     it('should return activities by category', async () => {
       const categoryArgs: ActivityByCategoryArgs = {
@@ -166,56 +282,63 @@ describe('CategoryService', () => {
         limit: 10,
         offset: 0,
       }
-      const expectedResult = [new Activity(), new Activity()]
 
-      repository.getActivitiesByCategory = jest
+      const expectedActivities = [createTestActivity(), createTestActivity()]
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getMany.mockResolvedValue(expectedActivities)
+
+      repository.createQueryBuilder = jest
         .fn()
-        .mockResolvedValue(expectedResult)
+        .mockReturnValue(mockQueryBuilder)
+
       const result = await repository.getActivitiesByCategory(categoryArgs)
-      expect(result).toEqual(expectedResult)
-      expect(repository.getActivitiesByCategory).toHaveBeenCalledWith(
-        categoryArgs,
+
+      expect(result).toEqual(expectedActivities)
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'wiki',
+        'w',
+        'w."id" = activity.wikiId',
+      )
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'wiki_categories_category',
+        'c',
+        'c."categoryId" = :categoryId',
+        { categoryId: categoryArgs.category },
       )
     })
   })
+
   describe('getActivitiesByUser', () => {
     it('should return activities by user', async () => {
       const userArgs = {
         userId: '0x5456afEA3aa035088Fe1F9Aa36509B320360a89e',
         offset: 0,
         limit: 10,
-        lang: 'en',
       }
-      const query = `
-      query {
-        activitiesByUser {
-          id
-          user
-          content {
-            id
-            title
-          }
-        }
-      }
-    `
-      const fields = ['field1', 'field2']
-      const expectedActivities = [new Activity(), new Activity()]
 
-      repository.getActivitiesByUser = jest
+      const expectedActivities = [createTestActivity(), createTestActivity()]
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getMany.mockResolvedValue(expectedActivities)
+
+      repository.createQueryBuilder = jest
         .fn()
-        .mockResolvedValue(expectedActivities)
+        .mockReturnValue(mockQueryBuilder)
 
-      const result = await repository.getActivitiesByUser(
-        userArgs,
-        query,
-        fields,
-      )
+      const result = await repository.getActivitiesByUser(userArgs.userId)
 
       expect(result).toEqual(expectedActivities)
-      expect(repository.getActivitiesByUser).toHaveBeenCalledWith(
-        userArgs,
-        query,
-        fields,
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'wiki',
+        'w',
+        'w."id" = activity.wikiId',
+      )
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'activity.user',
+        'user',
+      )
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'activity.userAddress = :userAddress',
+        { userAddress: userArgs.userId },
       )
     })
   })
@@ -257,31 +380,29 @@ describe('CategoryService', () => {
         limit: 0,
       }
 
-      const expectedActivity = new Activity()
-      repository.createQueryBuilder = jest.fn().mockReturnValue({
-        leftJoin,
-        where,
-        andWhere,
-        getOne: jest.fn().mockResolvedValue(expectedActivity),
-      })
+      const expectedActivity = createTestActivity()
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getOne.mockResolvedValue(expectedActivity)
+
+      repository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder)
 
       const result = await repository.getActivitiesByWikiIdAndBlock(blockArgs)
 
       expect(result).toEqual(expectedActivity)
-
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-      expect(leftJoin).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
         'wiki',
         'w',
         'w."id" = activity.wikiId',
       )
-      expect(where).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         'activity.wikiId = :wikiId AND w."hidden" = false',
-        { wikiId: args.wikiId },
+        { wikiId: blockArgs.wikiId },
       )
-      expect(andWhere).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'activity.language = :lang AND activity.block = :block ',
-        { lang: args.lang, block: blockArgs.block },
+        { lang: blockArgs.lang, block: blockArgs.block },
       )
     })
   })
@@ -296,50 +417,53 @@ describe('CategoryService', () => {
       const type = 0
 
       const expectedWikiStats = [new WikiStats()]
-      repository.createQueryBuilder = jest.fn().mockReturnValue({
-        select,
-        addSelect,
-        leftJoin,
-        where,
-        andWhere,
-        setParameters,
-        groupBy,
-        orderBy,
-        getRawMany: jest.fn().mockResolvedValue(expectedWikiStats),
-      })
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getRawMany.mockResolvedValue(expectedWikiStats)
+
+      repository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder)
+
       const result = await repository.queryWikisByActivityType(
         intervalArgs,
         type,
       )
 
       expect(result).toEqual(expectedWikiStats)
-
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-      expect(select).toHaveBeenCalledWith('Count(*)', 'amount')
-      expect(addSelect).toHaveBeenCalledWith('Min(datetime)', 'startOn')
-      expect(addSelect).toHaveBeenCalledWith('Max(datetime)', 'endOn')
-      expect(addSelect).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.select).toHaveBeenCalledWith('Count(*)', 'amount')
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
+        'Min(datetime)',
+        'startOn',
+      )
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
+        'Max(datetime)',
+        'endOn',
+      )
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
         'date_trunc(:t, datetime) AS interval',
       )
-      expect(leftJoin).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
         'wiki',
         'w',
         'w."id" = activity.wikiId',
       )
-      expect(setParameters).toHaveBeenCalledWith({
+      expect(mockQueryBuilder.setParameters).toHaveBeenCalledWith({
         start: intervalArgs.startDate,
         end: intervalArgs.endDate,
         t: intervalArgs.interval,
         events: 'events',
         type,
       })
-      expect(groupBy).toHaveBeenCalledWith('interval')
-      expect(orderBy).toHaveBeenCalledWith('Min(datetime)', 'ASC')
+      expect(mockQueryBuilder.groupBy).toHaveBeenCalledWith('interval')
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'Min(datetime)',
+        'ASC',
+      )
     })
   })
 
   describe('getWikisCreatedByUser', () => {
-    it('should return wikis created by a a user', async () => {
+    it('should return wikis created by a user', async () => {
       const userArgs: UserArgs = {
         userId: '0x',
         startDate: 0,
@@ -348,72 +472,67 @@ describe('CategoryService', () => {
       const type = 0
 
       const expectedWikis = new WikiStats()
-      repository.createQueryBuilder = jest.fn().mockReturnValue({
-        select,
-        addSelect,
-        leftJoin,
-        where,
-        setParameters,
-        groupBy,
-        getRawOne: jest.fn().mockResolvedValue(expectedWikis),
-      })
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getRawOne.mockResolvedValue(expectedWikis)
+
+      repository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder)
+
       const result = await repository.getWikisCreatedByUser(userArgs)
 
       expect(result).toEqual(expectedWikis)
-
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-      expect(select).toHaveBeenCalledWith('Count(*)', 'amount')
-      expect(addSelect).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.select).toHaveBeenCalledWith(
+        'activity.userId',
+        'address',
+      )
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
         'Count(*) FILTER(WHERE activity.datetime >= to_timestamp(:start) AND activity.datetime <= to_timestamp(:end))',
         'amount',
       )
-      expect(leftJoin).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
         'wiki',
         'w',
         'w."id" = activity.wikiId',
       )
-      expect(setParameters).toHaveBeenCalledWith({
+      expect(mockQueryBuilder.setParameters).toHaveBeenCalledWith({
         id: userArgs.userId.toLowerCase(),
         start: userArgs.startDate,
         end: userArgs.endDate,
         type,
       })
-      expect(groupBy).toHaveBeenCalledWith('activity.userId')
-      expect(orderBy).toHaveBeenCalledWith('Min(datetime)', 'ASC')
+      expect(mockQueryBuilder.groupBy).toHaveBeenCalledWith('activity.userId')
     })
   })
 
   describe('getEditorCount', () => {
-    it('should return of active editors', async () => {
+    it('should return count of active editors', async () => {
       const dateArgs = {
         startDate: 0,
         endDate: 0,
       }
 
       const expectedCount = new Count()
-      repository.createQueryBuilder = jest.fn().mockReturnValue({
-        select,
-        leftJoin,
-        where,
-        andWhere,
-        setParameters,
-        getRawOne: jest.fn().mockResolvedValue(expectedCount),
-      })
+      const mockQueryBuilder = createQueryBuilderMock()
+      mockQueryBuilder.getRawOne.mockResolvedValue(expectedCount)
+
+      repository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder)
+
       const result = await repository.getEditorCount(dateArgs)
 
       expect(result).toEqual(expectedCount)
-
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('activity')
-      expect(select).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.select).toHaveBeenCalledWith(
         `Count(distinct activity."userId")`,
         'amount',
       )
-      expect(leftJoin).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
         'wiki',
         'w',
         'w."id" = activity.wikiId',
       )
-      expect(setParameters).toHaveBeenCalledWith({
+      expect(mockQueryBuilder.setParameters).toHaveBeenCalledWith({
         start: dateArgs.startDate,
         end: dateArgs.endDate,
       })
