@@ -17,7 +17,6 @@ describe('ActivityRepository', () => {
   let repository: ActivityRepository
   let moduleRef: TestingModule
 
-  // Helper function to create query builder mock
   const createQueryBuilderMock = () => {
     const mock = {
       select: jest.fn().mockReturnThis(),
@@ -38,7 +37,6 @@ describe('ActivityRepository', () => {
     return mock
   }
 
-  // Helper function to create test data
   const createTestActivity = () => {
     const activity = new Activity()
     activity.id = 'test-id'
