@@ -10,6 +10,7 @@ import Feedback, {
   RatingsCount,
 } from '../../Database/Entities/feedback.entity'
 import ContentFeedbackSite from '../../Database/Entities/types/IFeedback'
+import CacheTTL from '../../config/cache.config'
 
 @Injectable()
 class ContentFeedbackService {
@@ -167,7 +168,7 @@ class ContentFeedbackService {
   async checkIP(ip: string): Promise<boolean> {
     const cached: string | null | undefined = await this.cacheManager.get(ip)
     if (!cached) {
-      await this.cacheManager.set(ip, ip, 60 * 1000)
+      await this.cacheManager.set(ip, ip, CacheTTL.ONE_MINUTE)
       return true
     }
     return false

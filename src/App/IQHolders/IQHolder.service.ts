@@ -16,6 +16,7 @@ import { stopJob } from '../StakedIQ/stakedIQ.utils'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { LockingService } from './IQHolders.dto'
 import ETHProviderService from '../utils/ethProviderService'
+import CacheTTL from '../../config/cache.config'
 
 export const IQContract = '0x579CEa1889991f68aCc35Ff5c3dd0621fF29b0C9'
 
@@ -146,7 +147,7 @@ class IQHolderService {
     } catch (e: any) {
       console.log(e)
       await queryRunner.rollbackTransaction()
-      await this.cacheManager.set(cronIndexerId, true, 900 * 1000)
+      await this.cacheManager.set(cronIndexerId, true, CacheTTL.FIFTEEN_MINUTES)
       this.lockingService.releaseLock(cronIndexerId)
       await queryRunner.release()
       return

@@ -9,6 +9,7 @@ import slugify from 'slugify'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
+import CacheTTL from '../../config/cache.config'
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -118,7 +119,7 @@ class BlogService {
       await this.cacheManager.set(
         this.HIDDEN_BLOGS_CACHE_KEY,
         hiddenDigests,
-        7200 * 1000,
+        CacheTTL.TWO_HOURS,
       )
     }
 
@@ -154,7 +155,11 @@ class BlogService {
     ).then((blogArrays) => blogArrays.flat())
 
     if (blogs.length > 0) {
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+      await this.cacheManager.set(
+        this.BLOG_CACHE_KEY,
+        blogs,
+        CacheTTL.TWO_HOURS,
+      )
     }
 
     return blogs
@@ -186,7 +191,11 @@ class BlogService {
       ).then((blogArrays) => blogArrays.flat())
 
       if (successfulBlog.length > 0) {
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+        await this.cacheManager.set(
+          this.BLOG_CACHE_KEY,
+          blogs,
+          CacheTTL.TWO_HOURS,
+        )
       }
 
       blogs = successfulBlog

@@ -22,6 +22,11 @@ import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Events from '../../Database/Entities/Event.entity'
 import Pm2Service from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
+import CacheTTL from '../../config/cache.config'
+import { API_CONFIG } from '../../config/api.config'
+import { TIME_CONFIG } from '../../config/time.config'
+import { LIMITS_CONFIG } from '../../config/limits.config'
+import { LISTS_CONFIG } from '../../config/lists.config'
 
 const noContentWiki = {
   id: 'no-content',
@@ -42,7 +47,7 @@ interface RankPageWiki {
 
 @Injectable()
 class MarketCapService {
-  private RANK_LIMIT = 2000
+  private RANK_LIMIT = LIMITS_CONFIG.RANK.DEFAULT
 
   private API_KEY: string
 
@@ -50,13 +55,13 @@ class MarketCapService {
 
   private CACHED_WIKI!: RankPageWiki
 
-  private RANK_LIST = 'default-list'
+  private RANK_LIST = LISTS_CONFIG.RANK.DEFAULT
 
-  private RANK_STABLECOINS_LIST = 'stablecoins-list'
+  private RANK_STABLECOINS_LIST = LISTS_CONFIG.RANK.STABLECOINS
 
-  private RANK_AI_LIST = 'ai-coins-list'
+  private RANK_AI_LIST = LISTS_CONFIG.RANK.AI_COINS
 
-  private RANK_NFT_LIST = 'nft-list'
+  private RANK_NFT_LIST = LISTS_CONFIG.RANK.NFT
 
   constructor(
     private dataSource: DataSource,
@@ -190,7 +195,7 @@ class MarketCapService {
       this.CACHED_WIKI = result as RankPageWiki
     }
 
-    await this.cacheManager.set(id, result, 60 * 60 * 1000) // Set cache for 1 hour
+    await this.cacheManager.set(id, result, CacheTTL.ONE_HOUR) // Set cache for 1 hour
 
     return result as unknown as RankPageWiki
   }
@@ -205,8 +210,8 @@ class MarketCapService {
     }
 
     const kindLower = kind.toLowerCase()
-    const BATCH_SIZE = 50
-    const DELAY_MS = 2000
+    const BATCH_SIZE = TIME_CONFIG.BATCH.SIZE
+    const DELAY_MS = TIME_CONFIG.DELAY.DEFAULT
     const results: (RankPageWiki | null)[] = []
 
     try {
@@ -326,14 +331,7 @@ class MarketCapService {
     reset = false,
   ): Promise<Record<any, any>[] | undefined> {
     try {
-      const { kind, category, limit = 250, offset = 0 } = args
-      const results = await this.fetchMarketData(
-        kind,
-        category,
-        limit,
-        offset,
-        reset,
-      )
+      const results = await this.fetchMarketData(args, reset)
       return results?.slice(0, this.RANK_LIMIT)
     } catch (error) {
       console.error(
@@ -345,13 +343,16 @@ class MarketCapService {
   }
 
   private async fetchMarketData(
-    kind: RankType,
-    category?: string,
-    limit = 250,
-    offset = 0,
+    args: MarketCapInputs,
     reset = false,
   ): Promise<Record<any, any>[] | undefined> {
-    const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
+    const {
+      kind,
+      category,
+      limit = LIMITS_CONFIG.RANK.PAGE_SIZE,
+      offset = 0,
+    } = args
+    const baseUrl = API_CONFIG.COINGECKO.API_URL
     const perPage = limit
     const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
     const startPage = Math.ceil(offset / perPage) + 1
@@ -425,7 +426,7 @@ class MarketCapService {
         .toPromise()
 
       if (response?.data) {
-        await this.cacheManager.set(url, response.data, 180 * 1000) // Cache for 3 minutes
+        await this.cacheManager.set(url, response.data, CacheTTL.THREE_MINUTES) // Cache for 3 minutes
         return response.data
       }
       return null

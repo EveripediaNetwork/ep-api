@@ -7,6 +7,7 @@ import PageViewsService from './pageViews.service'
 import PageViewsResolver from './pageViews.resolver'
 import { ProviderEnum, getProviders } from '../utils/test-helpers/testHelpers'
 import { ArgsById } from '../general.args'
+import CacheTTL from '../../config/cache.config'
 
 jest.mock('fs')
 
@@ -37,7 +38,7 @@ describe('PageViewsResolver', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600,
+          ttl: CacheTTL.ONE_HOUR,
           store: mockCacheStore,
         }),
       ],

@@ -9,6 +9,7 @@ import MailService from '../mailer/mail.service'
 import Wiki from '../../Database/Entities/wiki.entity'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Activity from '../../Database/Entities/activity.entity'
+import CacheTTL from '../../config/cache.config'
 
 interface CommandOptions {
   loop: boolean
@@ -84,7 +85,7 @@ class NotificationsCommand implements CommandRunner {
         ORDER BY d."datetime" DESC
         LIMIT 10
     `)
-    await this.cacheManager.set(id, result, 900 * 1000)
+    await this.cacheManager.set(id, result, CacheTTL.FIFTEEN_MINUTES)
     return result
   }
 

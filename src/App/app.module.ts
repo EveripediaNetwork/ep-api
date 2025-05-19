@@ -68,6 +68,7 @@ import MarketCapSearch from './marketCap/marketCapSearch.service'
 import Pm2Module from './utils/pm2Module'
 import UserProfileValidator from './User/userProfileValidator.service'
 import SentryMiddleware from '../sentry/sentry.middleware'
+import CacheTTL from '../config/cache.config'
 
 // istanbul ignore next
 @Module({
@@ -77,7 +78,7 @@ import SentryMiddleware from '../sentry/sentry.middleware'
       isGlobal: true,
     }),
     CacheModule.register({
-      ttl: 3600,
+      ttl: CacheTTL.ONE_HOUR,
       max: process.env.API_LEVEL === 'prod' ? 10000 : 2500,
       isGlobal: true,
     }),

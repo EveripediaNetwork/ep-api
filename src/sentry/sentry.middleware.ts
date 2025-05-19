@@ -1,33 +1,39 @@
 import { Injectable, NestMiddleware } from '@nestjs/common'
-import Sentry from '@sentry/nestjs'
-import { NextFunction, Request, Response } from 'express'
-import { ConfigService } from '@nestjs/config'
-
-const ignoredEndpoints = ['/brainpass/nft-events', '/indexer']
+import { Request, Response, NextFunction } from 'express'
+import * as Sentry from '@sentry/node'
+import { ENDPOINTS_CONFIG } from '../config/endpoints.config'
 
 @Injectable()
 export default class SentryMiddleware implements NestMiddleware {
-  constructor(private configService: ConfigService) {}
-
   use(req: Request, res: Response, next: NextFunction) {
-    Sentry.init({
-      dsn: this.configService.get<string>('SENTRY_DSN'),
-      tracesSampleRate: 0.2,
-      profilesSampleRate: 0.2,
-      integrations: [Sentry.graphqlIntegration()],
-      ignoreErrors: ['RangeError'],
-    })
-
-    process.setMaxListeners(0)
-
-    process.on('uncaughtException', (error) => {
-      Sentry.captureException(error)
-    })
-
-    if (ignoredEndpoints.includes(req.originalUrl)) {
+    if (
+      ENDPOINTS_CONFIG.IGNORED.includes(
+        req.path as (typeof ENDPOINTS_CONFIG.IGNORED)[number],
+      )
+    ) {
       return next()
     }
-    ;(req as any).sentry = Sentry
+
+    process.setMaxListeners(0)
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV,
+      tracesSampleRate: 1.0,
+    })
+
+    const transaction = Sentry.startTransaction({
+      op: 'http.server',
+      name: `${req.method} ${req.path}`,
+    })
+
+    Sentry.configureScope((scope) => {
+      scope.setSpan(transaction)
+    })
+
+    res.on('finish', () => {
+      transaction.setHttpStatus(res.statusCode)
+      transaction.finish()
+    })
 
     return next()
   }

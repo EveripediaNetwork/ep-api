@@ -8,6 +8,7 @@ import { getProviders, ProviderEnum } from '../utils/test-helpers/testHelpers'
 import PaginationArgs from '../pagination.args'
 import CategoryResolver from './category.resolver'
 import CategoryService from './category.service'
+import CacheTTL from '../../config/cache.config'
 
 describe('CategoryResolver', () => {
   let resolver: CategoryResolver
@@ -115,7 +116,7 @@ describe('CategoryResolver', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600 * 1000,
+          ttl: CacheTTL.ONE_HOUR,
           store: mockCacheStore,
         }),
       ],
