@@ -6,10 +6,11 @@ import WikiService from '../App/Wiki/wiki.service'
 import { ValidSlug } from '../App/utils/validSlug'
 import CategoryService from '../App/Category/category.service'
 import DiscordModule from '../App/utils/discord.module'
+import CacheTTL from '../config/cache.config'
 
 @Module({
   imports: [
-    CacheModule.register({ ttl: 3600 * 1000 }),
+    CacheModule.register({ ttl: CacheTTL.ONE_HOUR }),
     httpModule(10000),
     DiscordModule,
   ],

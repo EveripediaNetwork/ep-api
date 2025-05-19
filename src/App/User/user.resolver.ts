@@ -24,6 +24,7 @@ import UserService from './user.service'
 import { UsersByEditArgs, UsersByIdArgs, UserStateArgs } from './user.dto'
 import SelectedFields from '../utils/getFields'
 import { ArgsById } from '../general.args'
+import CacheTTL from '../../config/cache.config'
 
 @UseInterceptors(AdminLogsInterceptor)
 @Resolver(() => User)
@@ -151,7 +152,11 @@ class UserResolver {
 
     if (!cached) {
       const a = await this.userService.getUserProfile(fields, { id })
-      await this.cacheManager.set(key as unknown as string, a, 180 * 1000)
+      await this.cacheManager.set(
+        key as unknown as string,
+        a,
+        CacheTTL.THREE_MINUTES,
+      )
       return a
     }
     return cached

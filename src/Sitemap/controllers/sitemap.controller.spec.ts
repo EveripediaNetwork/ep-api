@@ -8,6 +8,7 @@ import SitemapController from './sitemap.controller'
 import WikiService from '../../App/Wiki/wiki.service'
 import { ValidSlug } from '../../App/utils/validSlug'
 import CategoryService from '../../App/Category/category.service'
+import CacheTTL from '../../config/cache.config'
 
 // Mock the dependencies
 jest.mock('../../App/Wiki/wiki.service')
@@ -26,7 +27,7 @@ describe('SitemapController', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600 * 1000,
+          ttl: CacheTTL.ONE_HOUR,
           store: mockCacheStore,
         }),
       ],

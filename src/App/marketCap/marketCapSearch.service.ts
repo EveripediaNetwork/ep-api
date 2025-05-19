@@ -9,6 +9,7 @@ import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType, TokenCategory } from './marketcap.dto'
 import Pm2Service from '../utils/pm2Service'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import CacheTTL from '../../config/cache.config'
 
 export const query = gql`
   query {
@@ -21,8 +22,6 @@ export const query = gql`
 @Injectable()
 class MarketCapSearch implements OnModuleInit {
   private pubSub: PubSub
-
-  private SIX_MINUTES_TTL = 6 * 60 * 1000
 
   constructor(
     private marketCapService: MarketCapService,
@@ -82,12 +81,12 @@ class MarketCapSearch implements OnModuleInit {
         {
           data: info,
           key: 'marketCapSearch',
-          ttl: this.SIX_MINUTES_TTL,
+          ttl: CacheTTL.SIX_MINUTES,
         },
         Number(process.env.pm_id),
       )
 
-      this.cacheManager.set('marketCapSearch', data, this.SIX_MINUTES_TTL)
+      this.cacheManager.set('marketCapSearch', data, CacheTTL.SIX_MINUTES)
 
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,

@@ -6,11 +6,12 @@ import WebhookHandler from './discordWebhookHandler'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
 import httpModule from '../../httpModule'
+import CacheTTL from '../../config/cache.config'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Wiki, UserProfile]),
-    CacheModule.register({ ttl: 3600 * 1000 }),
+    CacheModule.register({ ttl: CacheTTL.ONE_HOUR }),
     httpModule(10000),
   ],
   providers: [WebhookHandler, DiscordWebhookService],

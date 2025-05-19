@@ -13,6 +13,7 @@ import {
 } from '../../../App/utils/test-helpers/testHelpers'
 import AlchemyNotifyService from '../../../ExternalServices/alchemyNotify.service'
 import { mockCacheStore } from '../../../App/utils/test-helpers/reuseableTestObjects'
+import CacheTTL from '../../../config/cache.config'
 
 describe('IndexerWebhookController', () => {
   let controller: IndexerWebhookController
@@ -41,7 +42,7 @@ describe('IndexerWebhookController', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600 * 1000,
+          ttl: CacheTTL.ONE_HOUR,
           store: mockCacheStore,
         }),
         PosthogModule.forRootAsync({

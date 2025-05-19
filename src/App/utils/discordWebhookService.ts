@@ -5,6 +5,7 @@ import { Cache } from 'cache-manager'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { ActionTypes } from './utilTypes'
 import WebhookHandler from './discordWebhookHandler'
+import CacheTTL from '../../config/cache.config'
 
 const addressToWikiCacheKey = 'address_to_wiki_cache'
 
@@ -49,7 +50,7 @@ class DiscordWebhookService {
       await this.cacheManager.set(
         addressToWikiCacheKey,
         cachedData,
-        7200 * 1000,
+        CacheTTL.TWO_HOURS,
       )
     }
 

@@ -8,6 +8,7 @@ import { getProviders, ProviderEnum } from '../utils/test-helpers/testHelpers'
 import TagResolver from './tag.resolver'
 import TagService from './tag.service'
 import PaginationArgs from '../pagination.args'
+import CacheTTL from '../../config/cache.config'
 
 describe('TagResolver', () => {
   let resolver: TagResolver
@@ -25,7 +26,7 @@ describe('TagResolver', () => {
       imports: [
         HttpModule,
         CacheModule.register({
-          ttl: 3600,
+          ttl: CacheTTL.ONE_HOUR,
           store: mockCacheStore,
         }),
       ],

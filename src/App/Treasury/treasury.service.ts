@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import TreasuryRepository from './treasury.repository'
 import { firstLevelNodeProcess } from './treasury.dto'
+import CacheTTL from '../../config/cache.config'
 
 @Injectable()
 class TreasuryService {
@@ -30,7 +31,11 @@ class TreasuryService {
         await this.cacheManager.get('treasuryBalance')
       if (!value) {
         value = await this.requestTotalbalance()
-        await this.cacheManager.set('treasuryBalance', value, 7200 * 1000)
+        await this.cacheManager.set(
+          'treasuryBalance',
+          value,
+          CacheTTL.TWO_HOURS,
+        )
       }
       await this.repo.saveData(`${value}`)
     }

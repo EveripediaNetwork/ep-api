@@ -28,6 +28,7 @@ import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
 import { eventWiki } from '../Tag/tag.dto'
+import CacheTTL from '../../config/cache.config'
 
 @Injectable()
 class WikiService {
@@ -148,7 +149,7 @@ class WikiService {
       .orderBy('id', 'ASC')
       .getRawMany()
 
-    await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
+    await this.cacheManager.set('wikiIdsList', response, CacheTTL.ONE_HOUR)
     return response
   }
 
@@ -605,7 +606,7 @@ class WikiService {
     }
 
     const response = await query.getRawOne()
-    await this.cacheManager.set(args.category, response, 3600 * 1000)
+    await this.cacheManager.set(args.category, response, CacheTTL.ONE_HOUR)
     return response
   }
 

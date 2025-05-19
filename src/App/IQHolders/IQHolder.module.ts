@@ -11,11 +11,12 @@ import IQHolderAddressRepository from './IQHolderAddress.repository'
 import IQHoldersResolver from './IQHolder.resolver'
 import { LockingService } from './IQHolders.dto'
 import ETHProviderService from '../utils/ethProviderService'
+import CacheTTL from '../../config/cache.config'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([IQHolderAddress, IQHolder]),
-    CacheModule.register({ ttl: 3600 * 1000 }),
+    CacheModule.register({ ttl: CacheTTL.ONE_HOUR }),
     HttpModule,
   ],
   providers: [

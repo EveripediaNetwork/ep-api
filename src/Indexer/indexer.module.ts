@@ -19,6 +19,7 @@ import AutoInjestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 import AppService from '../App/app.service'
+import CacheTTL from '../config/cache.config'
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import AppService from '../App/app.service'
     }),
     DatabaseModule,
     httpModule(20000),
-    CacheModule.register({ ttl: 3600 * 1000 }),
+    CacheModule.register({ ttl: CacheTTL.ONE_HOUR }),
     PosthogModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
