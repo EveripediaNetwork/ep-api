@@ -32,29 +32,6 @@ class StatsGetterService {
     private configService: ConfigService,
   ) {}
 
-  private async cmcApiCall(name: string): Promise<any> {
-    let response
-    try {
-      const url =
-        'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
-      const key = this.configService.get('COINMARKETCAP_API_KEY')
-      response = await this.httpService
-        .get(`${url}?slug=${name}`, {
-          headers: {
-            'X-CMC_PRO_API_KEY': key,
-          },
-        })
-        .toPromise()
-    } catch (e: any) {
-      console.error(
-        `COINMARKETCAP ERROR ${e.response.status}`,
-        e.response.statusText,
-        `for ${name}`,
-      )
-    }
-    return response
-  }
-
   private async cgApiCall(name: string): Promise<any> {
     const key = this.configService.get('COINGECKO_API_KEY')
     const marketChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
@@ -82,37 +59,32 @@ class StatsGetterService {
       ])
     } catch (e: any) {
       console.error(
-        `COINGECKO  ERROR ${e.response.status}`,
-        e.response.statusText,
+        `COINGECKO  ERROR ${e.response.status || 'unknown'}`,
+        e.response.statusText || 'Error',
         `for ${name}`,
       )
     }
     return { marketChangeResult, volumeChangeResult }
   }
 
-  async getStats(name: string, cmcName?: string): Promise<any> {
-    const cmc = cmcName
-      ? await this.cmcApiCall(cmcName)
-      : await this.cmcApiCall(name)
-    const cg = await this.cgApiCall(name)
+  async getStats(name: string, cgAltName?: string): Promise<any> {
+    let cg = await this.cgApiCall(name)
 
-    const cgMarketData = cg?.marketChangeResult?.data[0] || {
-      image: '',
-      current_price: 0,
-      market_cap_change_percentage_24h: 0,
-      price_change_percentage_24h: 0,
+    if (
+      (!cg?.marketChangeResult?.data ||
+        cg.marketChangeResult.data.length === 0) &&
+      cgAltName
+    ) {
+      cg = await this.cgApiCall(cgAltName)
     }
+
+    const cgMarketData = cg?.marketChangeResult?.data?.[0] || noData
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
         [1, 1],
         [1, 1],
       ],
     }
-
-    const dat = cmc || noData
-    const d = dat.data
-    const res: any = Object.values(d.data)
-    const cmcData: any = res[0].quote.USD
 
     const volumeChange =
       cgVolumeData.total_volumes.length === 1
@@ -122,31 +94,21 @@ class StatsGetterService {
             cgVolumeData.total_volumes[0][1]) *
           100
 
-    let marketCap
-
-    if (cgMarketData.market_cap !== 0 && cmcData.market_cap !== 0) {
-      marketCap = cgMarketData.market_cap
-    } else if (cgMarketData.market_cap === 0) {
-      marketCap = cmcData.market_cap
-    } else {
-      marketCap = cgMarketData.market_cap
-    }
-
     const tokenStats: TokenData = {
-      id: res[0].slug,
-      symbol: res[0].symbol,
-      name: res[0].name,
-      token_image_url: cgMarketData.image,
-      token_price_in_usd: cgMarketData.current_price,
-      market_cap: marketCap || 0,
+      id: cgMarketData.id || 'not_found',
+      symbol: cgMarketData.symbol || 'NOT_FOUND',
+      name: cgMarketData.name || 'not_found',
+      token_image_url: cgMarketData.image || '',
+      token_price_in_usd: cgMarketData.current_price || 0,
+      market_cap: cgMarketData.market_cap || 0,
       market_cap_percentage_change:
-        cgMarketData.market_cap_change_percentage_24h,
-      price_percentage_change: cgMarketData.price_change_percentage_24h,
-      diluted_market_cap: cmcData.fully_diluted_market_cap,
+        cgMarketData.market_cap_change_percentage_24h || 0,
+      price_percentage_change: cgMarketData.price_change_percentage_24h || 0,
+      diluted_market_cap: cgMarketData.fully_diluted_valuation || 0,
       diluted_market_cap_percentage_change:
-        cgMarketData.market_cap_change_percentage_24h,
-      volume: cmcData.volume_24h,
-      volume_percentage_change: volumeChange,
+        cgMarketData.market_cap_change_percentage_24h || 0,
+      volume: cgMarketData.total_volume || 0,
+      volume_percentage_change: volumeChange || 0,
     }
     return tokenStats
   }

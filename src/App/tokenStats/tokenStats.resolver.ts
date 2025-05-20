@@ -10,7 +10,7 @@ class TokenStatsResolver {
   async getTokenStats(@Args() args: TokenStatArgs): Promise<TokenData> {
     const result = await this.tokenStatsService.getStats(
       args.tokenName.toLowerCase(),
-      args.cmcTokenName?.toLowerCase(),
+      args.cgAltTokenName?.toLowerCase(),
     )
     return result
   }
