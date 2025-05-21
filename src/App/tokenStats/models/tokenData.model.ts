@@ -47,7 +47,7 @@ export class TokenStatArgs {
   @Validate(ValidStringParams)
   tokenName!: string
 
-  @Field(() => String, { nullable: true, name: 'cmcTokenName' })
+  @Field(() => String, { nullable: true, name: 'cgAltTokenName' })
   @Validate(ValidStringParams)
-  cmcTokenName?: string
+  cgAltTokenName?: string
 }
