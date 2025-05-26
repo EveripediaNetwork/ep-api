@@ -90,9 +90,9 @@ class HiIQHolderService {
     })
   }
 
-  //   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
-  //     name: HIIQ_DAILY_COUNT,
-  //   })
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: HIIQ_DAILY_COUNT,
+  })
   async dailyHiIQHolders() {
     const job = this.schedulerRegistry.getCronJob(HIIQ_DAILY_COUNT)
     if (firstLevelNodeProcess() && !job) {
@@ -100,9 +100,9 @@ class HiIQHolderService {
     }
   }
 
-  //   @Cron('*/2 * * * * *', {
-  //     name: HISTORICAL_INDEXING,
-  //   })
+  @Cron('*/2 * * * * *', {
+    name: HISTORICAL_INDEXING,
+  })
   async storeHiIQHolderCount() {
     const job = this.schedulerRegistry.getCronJob(HISTORICAL_INDEXING)
     this.IS_INTERMITTENT_INDEXING = await stopJob(this.hiIQHoldersRepo, job)
@@ -116,9 +116,9 @@ class HiIQHolderService {
     }
   }
 
-  //   @Cron(CronExpression.EVERY_10_MINUTES, {
-  //     name: INTERMITTENT_INDEXING,
-  //   })
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: INTERMITTENT_INDEXING,
+  })
   async intermittentCheck() {
     const job = this.schedulerRegistry.getCronJob(HISTORICAL_INDEXING)
     if (
