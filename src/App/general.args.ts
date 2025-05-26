@@ -10,6 +10,7 @@ export enum OrderBy {
   UPDATED = 'updated',
   DAY = 'day',
   DATE = 'date',
+  TOKENS = 'tokens',
 }
 
 export enum ActivityType {
