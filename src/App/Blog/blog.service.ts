@@ -6,9 +6,12 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import Arweave from 'arweave'
 import slugify from 'slugify'
+// import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import Pm2Service from '../utils/pm2Service'
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -44,10 +47,12 @@ class BlogService {
   private HIDDEN_BLOGS_CACHE_KEY = 'hidden-blogs-cache'
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private pm2Service: Pm2Service,
     private configService: ConfigService,
+    // private eventEmitter: EventEmitter2,
     private readonly mirrorApiService: MirrorApiService,
     @InjectDataSource() private dataSource: DataSource,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.EVERIPEDIA_BLOG_ACCOUNT2 = this.configService.get(
       'EVERIPEDIA_BLOG_ACCOUNT2',
@@ -55,6 +60,13 @@ class BlogService {
     this.EVERIPEDIA_BLOG_ACCOUNT3 = this.configService.get(
       'EVERIPEDIA_BLOG_ACCOUNT3',
     ) as string
+  }
+
+  async onModuleInit() {
+    setTimeout(async () => {
+      await this.getHiddenBlogDigests()
+      await this.loadBlogs()
+    }, 7000)
   }
 
   async formatEntry(
@@ -104,6 +116,7 @@ class BlogService {
     return newBlog
   }
 
+  // TODO: change only when update to hidden blogs occur
   private async getHiddenBlogDigests(): Promise<string[]> {
     let hiddenDigests = await this.cacheManager.get<string[]>(
       this.HIDDEN_BLOGS_CACHE_KEY,
@@ -118,7 +131,7 @@ class BlogService {
       await this.cacheManager.set(
         this.HIDDEN_BLOGS_CACHE_KEY,
         hiddenDigests,
-        7200 * 1000,
+        86400 * 1000,
       )
     }
 
@@ -130,45 +143,16 @@ class BlogService {
     return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
-  private async refreshBlogCache(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
+  //   @OnEvent('refreshBlogCache', { async: true })
+  private async loadBlogs() {
+    console.log('Loading blogs')
+    if (firstLevelNodeProcess()) {
+      const accounts = [
+        this.EVERIPEDIA_BLOG_ACCOUNT2,
+        this.EVERIPEDIA_BLOG_ACCOUNT3,
+      ]
 
-    const blogs = await Promise.all(
-      accounts.map(async (account) => {
-        try {
-          if (!account) return []
-          const entries = await this.mirrorApiService.getBlogs(account)
-          return (
-            entries
-              ?.filter((entry) => entry.publishedAtTimestamp)
-              .map((b: Blog) => this.formatBlog(b, true)) || []
-          )
-        } catch (error) {
-          console.error(`Error fetching blogs for account ${account}:`, error)
-          return []
-        }
-      }),
-    ).then((blogArrays) => blogArrays.flat())
-
-    if (blogs.length > 0) {
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
-    }
-
-    return blogs
-  }
-
-  async getBlogsFromAccounts(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
-
-    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!blogs) {
-      const successfulBlog = await Promise.all(
+      const allBlogs = await Promise.all(
         accounts.map(async (account) => {
           try {
             if (!account) return []
@@ -185,13 +169,29 @@ class BlogService {
         }),
       ).then((blogArrays) => blogArrays.flat())
 
-      if (successfulBlog.length > 0) {
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+      if (allBlogs.length > 0) {
+        const info = JSON.stringify(allBlogs)
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'updateCache [blogService]',
+          {
+            data: info,
+            key: this.BLOG_CACHE_KEY,
+            ttl: 7200 * 1000,
+          },
+          Number(process.env.pm_id),
+        )
+        await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, 7200 * 1000)
       }
-
-      blogs = successfulBlog
     }
+    console.log('done')
+  }
 
+  async getBlogsFromAccounts(): Promise<Blog[]> {
+    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    if (!blogs) {
+      return []
+    }
     return this.filterHiddenBlogs(blogs || [])
   }
 
@@ -201,9 +201,10 @@ class BlogService {
       return null
     }
 
-    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!blogs) {
-      blogs = await this.refreshBlogCache()
+      //   blogs = await this.refreshBlogCache()
+      //   this.eventEmitter.emit('refreshBlogCache')
     }
 
     const blog =
@@ -348,29 +349,29 @@ class BlogService {
     }
   }
 
-  async getHiddenBlogs(): Promise<Blog[]> {
-    const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
-    const hiddenBlogs = await hiddenBlogsRepo.find({
-      order: { hiddenAt: 'DESC' },
-    })
+  //   async getHiddenBlogs(): Promise<Blog[]> {
+  //     const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
+  //     const hiddenBlogs = await hiddenBlogsRepo.find({
+  //       order: { hiddenAt: 'DESC' },
+  //     })
 
-    let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!allBlogs) {
-      allBlogs = await this.refreshBlogCache()
-    }
+  //     let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+  //     if (!allBlogs) {
+  //       allBlogs = await this.refreshBlogCache()
+  //     }
 
-    const hiddenBlogsWithInfo = allBlogs.filter((blog) =>
-      hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
-    )
+  //     const hiddenBlogsWithInfo = allBlogs.filter(blog =>
+  //       hiddenBlogs.some(hiddenBlog => hiddenBlog.digest === blog.digest),
+  //     )
 
-    return hiddenBlogsWithInfo.map((blog) => {
-      const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
-      return {
-        ...blog,
-        hiddenAt: hiddenBlog?.hiddenAt,
-      }
-    })
-  }
+  //     return hiddenBlogsWithInfo.map(blog => {
+  //       const hiddenBlog = hiddenBlogs.find(hb => hb.digest === blog.digest)
+  //       return {
+  //         ...blog,
+  //         hiddenAt: hiddenBlog?.hiddenAt,
+  //       }
+  //     })
+  //   }
 }
 
 export default BlogService

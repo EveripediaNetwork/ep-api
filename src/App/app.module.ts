@@ -63,11 +63,13 @@ import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
-import BlogModule from './Blog/blog.module'
+// import BlogModule from './Blog/blog.module'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
-import Pm2Module from './utils/pm2Module'
 import UserProfileValidator from './User/userProfileValidator.service'
 import SentryMiddleware from '../sentry/sentry.middleware'
+import Pm2Service from './utils/pm2Service'
+import BlogResolver from './Blog/blog.resolver'
+import MirrorApiService from './Blog/mirrorApi.service'
 
 // istanbul ignore next
 @Module({
@@ -120,9 +122,8 @@ import SentryMiddleware from '../sentry/sentry.middleware'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
-    BlogModule,
+    // BlogModule,
     SentryMod,
-    Pm2Module,
   ],
   controllers: [UploadController, WikiController],
   providers: [
@@ -130,6 +131,7 @@ import SentryMiddleware from '../sentry/sentry.middleware'
     SecurityTestingService,
     ConfigService,
     WikiResolver,
+    BlogResolver,
     WikiService,
     LanguageResolver,
     CategoryResolver,
@@ -157,6 +159,8 @@ import SentryMiddleware from '../sentry/sentry.middleware'
     MarketCapService,
     MarketCapSearch,
     SentryPlugin,
+    Pm2Service,
+    MirrorApiService,
     BlogService,
     EventsService,
     UserProfileValidator,
