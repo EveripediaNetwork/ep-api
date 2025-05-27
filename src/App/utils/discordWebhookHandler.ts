@@ -79,21 +79,7 @@ export default class WebhookHandler {
           }  📌 \n\n _Performed by_ ***${adminUser}***`
           break
         }
-        case AdminMutations.REVALIDATE_PAGE: {
-          const { urlId } = payload
-          const baseUrl = this.getWebpageUrl()
-          const koUrl = `${baseUrl}/ko${urlId}`
-          const zhUrl = `${baseUrl}/zh${urlId}`
 
-          message = `
-            **Routes revalidated**  
-            - ${baseUrl}${urlId}  ♻️ 
-            - ${koUrl}  ♻️ 
-            - ${zhUrl}  ♻️ 
-            \n\n_Performed by_ ***${adminUser}***
-            `
-          break
-        }
         case AdminMutations.TOGGLE_USER_STATE: {
           if (!payload?.choice) {
             message = `**User banned** - ${this.getWebpageUrl()}/account/${
