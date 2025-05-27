@@ -106,8 +106,9 @@ export default class WebhookHandler {
           },
         ],
       })
-
-      await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
+      if (message !== '') {
+        await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
+      }
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
       const user = await userProfileRepo.findOneBy({
