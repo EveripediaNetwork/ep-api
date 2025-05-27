@@ -9,13 +9,9 @@ import Tag from '../../Database/Entities/tag.entity'
 import Category from '../../Database/Entities/category.entity'
 import { Hash } from '../Provider/graph.service'
 import Activity, { Status } from '../../Database/Entities/activity.entity'
-import {
-  RevalidateEndpoints,
-  RevalidatePageService,
-} from '../../App/revalidatePage/revalidatePage.service'
+import { RevalidatePageService } from '../../App/revalidatePage/revalidatePage.service'
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
-import { eventWiki } from '../../App/Tag/tag.dto'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 @Injectable()
@@ -225,13 +221,7 @@ class DBStoreService {
       }
 
       if (!ipfsTime) {
-        await this.revalidate.revalidatePage(
-          RevalidateEndpoints.STORE_WIKI,
-          existWiki.user.id,
-          existWiki.id,
-          existWiki.promoted,
-          eventWiki(tags),
-        )
+        await this.revalidate.revalidatePage(wiki.id)
       }
 
       return true
@@ -275,13 +265,7 @@ class DBStoreService {
     )
 
     if (!ipfsTime) {
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.STORE_WIKI,
-        newWiki.user.id,
-        newWiki.id,
-        undefined,
-        eventWiki(tags),
-      )
+      await this.revalidate.revalidatePage(wiki.id)
     }
     return true
   }

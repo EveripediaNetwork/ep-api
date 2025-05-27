@@ -106,6 +106,7 @@ export default class WebhookHandler {
           },
         ],
       })
+
       await this.sendToChannel(boundary, jsonContent, braindaoAlarms)
     }
     if (actionType === ActionTypes.FLAG_WIKI) {
