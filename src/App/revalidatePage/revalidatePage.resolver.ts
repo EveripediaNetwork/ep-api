@@ -38,7 +38,7 @@ class RevalidatePageResolver {
   @UseGuards(AuthGuard)
   async revalidatePage(@Args() args: RouteArgs, @Context() ctx: any) {
     const cacheId = ctx.req.ip + args.route
-    const c = await this.revalidateService.revalidate(args.route)
+    const c = await this.revalidateService.revalidatePage(args.route)
     if (c) {
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }

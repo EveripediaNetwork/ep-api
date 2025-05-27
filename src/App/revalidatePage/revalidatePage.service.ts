@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { Cache } from 'cache-manager'
 import { Cron, CronExpression } from '@nestjs/schedule'
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom, lastValueFrom } from 'rxjs'
 import { RankType } from '../marketCap/marketcap.dto'
 import Category from '../../Database/Entities/category.entity'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -34,54 +34,22 @@ export interface RevalidateStatus {
 export class RevalidatePageService {
   private failedUrls = new Map()
 
+  private url: string
+
   constructor(
     private httpService: HttpService,
     private dataSource: DataSource,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
-
-  private getSecrets() {
-    const secret = this.configService.get<string>('REVALIDATE_SECRET')
-    const url = this.configService.get<string>('WEBSITE_URL')
-
-    return { secret, url }
+  ) {
+    this.url = this.configService.get<string>('WEBSITE_URL') as string
   }
 
-  async revalidate(route: string, id?: string, slug?: string): Promise<any> {
-    const { url, secret } = this.getSecrets()
+  async revalidatePage(slug?: string): Promise<boolean> {
+    const revalidateUrl = `${this.url}/api/revalidation?wikiId=${slug}`
 
-    const revalidateUrl = `${url}/api/revalidate?secret=${secret}`
-
-    let path = route
-
-    if (slug) {
-      path += `/${slug}`
-    } else if (id) {
-      path += `/${id}`
-    }
-
-    const urlsToRevalidate = [
-      `${revalidateUrl}&path=/en${path}`,
-      `${revalidateUrl}&path=/zh${path}`,
-      `${revalidateUrl}&path=/ko${path}`,
-    ]
-
-    await Promise.all(
-      urlsToRevalidate.map(async (urlToRevalidate) => {
-        try {
-          await this.httpService.get(urlToRevalidate).toPromise()
-        } catch (e: any) {
-          console.error(
-            'Error revalidating path',
-            e.response?.config?.url || e.message,
-            urlToRevalidate,
-          )
-          this.failedUrls.set(urlToRevalidate, 3)
-        }
-      }),
-    )
-    return true
+    const response = await lastValueFrom(this.httpService.post(revalidateUrl))
+    return response?.data.revalidated
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
@@ -111,44 +79,46 @@ export class RevalidatePageService {
     }
   }
 
-  async revalidatePage(
-    page: RevalidateEndpoints,
-    id?: string,
-    slug?: string,
-    level?: number,
-    events = false,
-  ) {
-    try {
-      if (page === RevalidateEndpoints.STORE_WIKI) {
-        if ((level && level > 0) || (await this.checkCategory(slug))) {
-          await this.revalidate(Routes.HOMEPAGE)
-        }
-        await Promise.all([
-          this.revalidate(Routes.ACTIVITY),
-          this.revalidate(Routes.EVENTS),
-          this.revalidate(Routes.WIKI_PAGE, undefined, slug),
-          events && this.revalidate(Routes.EVENTS, undefined, slug),
-          this.revalidate(`/wiki/${slug}/history`),
-          this.revalidate(`/wiki/${slug}/events`),
-        ])
-      }
-      if (page === RevalidateEndpoints.PROMOTE_WIKI) {
-        await this.revalidate(Routes.HOMEPAGE)
-      }
-      if (page === RevalidateEndpoints.HIDE_WIKI) {
-        if (level && level > 0) {
-          await this.revalidate(Routes.HOMEPAGE)
-        }
-        await Promise.all([
-          this.revalidate(Routes.ACTIVITY),
-          this.revalidate(Routes.WIKI_PAGE, undefined, slug),
-          events && this.revalidate(Routes.EVENTS, undefined, slug),
-        ])
-      }
-    } catch (e: any) {
-      console.error('Failed to revalidate page')
-    }
-  }
+  //   async revalidatePage(
+  //     page: RevalidateEndpoints,
+  //     id?: string,
+  //     slug?: string,
+  //     level?: number,
+  //     events = false,
+  //   ) {
+  //     // https://iq.wiki/api/revalidation?secret=k5vPiaNKCX4NyQ85EgEcx5AD6BNzvnzbFQ85EgE&path=/wiki/iq-v3
+  //     // ${env.NEXT_PUBLIC_IQ_WIKI_BASE_URL}/api/revalidation?wikiId=${wiki.id}
+  //     try {
+  //       if (page === RevalidateEndpoints.STORE_WIKI) {
+  //         if ((level && level > 0) || (await this.checkCategory(slug))) {
+  //           await this.revalidate(Routes.HOMEPAGE)
+  //         }
+  //         await Promise.all([
+  //           this.revalidate(Routes.ACTIVITY),
+  //           this.revalidate(Routes.EVENTS),
+  //           this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+  //           events && this.revalidate(Routes.EVENTS, undefined, slug),
+  //           this.revalidate(`/wiki/${slug}/history`),
+  //           this.revalidate(`/wiki/${slug}/events`),
+  //         ])
+  //       }
+  //       if (page === RevalidateEndpoints.PROMOTE_WIKI) {
+  //         await this.revalidate(Routes.HOMEPAGE)
+  //       }
+  //       if (page === RevalidateEndpoints.HIDE_WIKI) {
+  //         if (level && level > 0) {
+  //           await this.revalidate(Routes.HOMEPAGE)
+  //         }
+  //         await Promise.all([
+  //           this.revalidate(Routes.ACTIVITY),
+  //           this.revalidate(Routes.WIKI_PAGE, undefined, slug),
+  //           events && this.revalidate(Routes.EVENTS, undefined, slug),
+  //         ])
+  //       }
+  //     } catch (e: any) {
+  //       console.error('Failed to revalidate page')
+  //     }
+  //   }
 
   async checkCategory(id: string | undefined): Promise<boolean | undefined> {
     const wikiRepository = this.dataSource.getRepository(Wiki)

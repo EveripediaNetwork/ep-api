@@ -14,10 +14,7 @@ import gql from 'graphql-tag'
 import Wiki from '../../Database/Entities/wiki.entity'
 import AuthGuard from '../utils/admin.guard'
 import { SlugResult } from '../utils/validSlug'
-import {
-  RevalidatePageService,
-  RevalidateEndpoints,
-} from '../revalidatePage/revalidatePage.service'
+import { RevalidatePageService } from '../revalidatePage/revalidatePage.service'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import {
   ByIdArgs,
@@ -37,7 +34,6 @@ import { IWiki } from '../../Database/Entities/types/IWiki'
 import PageviewsPerDay from '../../Database/Entities/pageviewsPerPage.entity'
 import { PageViewArgs, VistArgs } from '../pageViews/pageviews.dto'
 import { updateDates } from '../utils/queryHelpers'
-import { eventWiki } from '../Tag/tag.dto'
 import Explorer, {
   ExplorerCount,
 } from '../../Database/Entities/explorer.entity'
@@ -158,7 +154,7 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
     const wiki = await this.wikiService.promoteWiki(args)
     if (wiki) {
-      await this.revalidate.revalidatePage(RevalidateEndpoints.PROMOTE_WIKI)
+      await this.revalidate.revalidatePage(wiki.id)
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
     return wiki
@@ -170,15 +166,9 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.hideWiki(args)
-    const tags = (await wiki?.tags) || []
+
     if (wiki) {
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.HIDE_WIKI,
-        undefined,
-        wiki.id,
-        wiki.promoted,
-        eventWiki(tags),
-      )
+      await this.revalidate.revalidatePage(wiki.id)
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
     return wiki
@@ -190,16 +180,9 @@ class WikiResolver {
     const cacheId = ctx.req.ip + args.id
 
     const wiki = await this.wikiService.unhideWiki(args)
-    const tags = (await wiki?.tags) || []
 
     if (wiki) {
-      await this.revalidate.revalidatePage(
-        RevalidateEndpoints.HIDE_WIKI,
-        undefined,
-        wiki.id,
-        wiki.promoted,
-        eventWiki(tags),
-      )
+      await this.revalidate.revalidatePage(wiki.id)
       this.eventEmitter.emit('admin.action', `${cacheId}`)
     }
     return wiki
