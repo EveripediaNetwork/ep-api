@@ -93,7 +93,7 @@ export default class WebhookHandler {
           break
         }
         default:
-          break
+          message = ''
       }
 
       const jsonContent = JSON.stringify({
