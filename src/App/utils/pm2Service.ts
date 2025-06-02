@@ -13,7 +13,6 @@ class Pm2Service {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   async onModuleInit() {
-    console.log('Ai')
     setTimeout(() => {
       pm2.connect(() => {
         pm2.list((_err: unknown, list: any) => {
@@ -30,8 +29,43 @@ class Pm2Service {
     processName: string,
     topic: string,
     data: any,
-    ignoreId?: number,
+    ignoreId?: number | string,
+    id?: number,
   ) {
+    const process = (processId: number) => {
+      pm2.connect((err: unknown) => {
+        if (err) {
+          console.error('Error connecting to PM2:', err)
+          return
+        }
+        pm2.sendDataToProcessId(
+          {
+            id: processId,
+            type: 'process:msg',
+            topic,
+            data,
+          },
+          () => {
+            if (err) {
+              console.error(
+                `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
+                err,
+              )
+            } else {
+              console.log(
+                `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
+              )
+            }
+          },
+        )
+      })
+    }
+    if (String(ignoreId) && ignoreId === 'all') {
+      return process(0)
+    }
+    if (String(ignoreId) && ignoreId === 'one' && id) {
+      return process(id)
+    }
     for (const [k, v] of this.pm2Ids) {
       if (
         v === processName &&
@@ -39,34 +73,10 @@ class Pm2Service {
       ) {
         const processId = k
         await new Promise((r) => setTimeout(r, 800))
-        pm2.connect((err: unknown) => {
-          if (err) {
-            console.error('Error connecting to PM2:', err)
-            return
-          }
-          pm2.sendDataToProcessId(
-            {
-              id: processId,
-              type: 'process:msg',
-              topic,
-              data,
-            },
-            () => {
-              if (err) {
-                console.error(
-                  `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
-                  err,
-                )
-              } else {
-                console.log(
-                  `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
-                )
-              }
-            },
-          )
-        })
+        process(processId)
       }
     }
+    return 0
   }
 
   @OnEvent('updateCache')

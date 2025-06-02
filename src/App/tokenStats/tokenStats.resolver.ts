@@ -1,10 +1,10 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
-import TokenStatsService from './tokenStats.service'
 import TokenData, { TokenStatArgs } from './models/tokenData.model'
+import StatsGetterService from './stats-getter.service'
 
 @Resolver()
 class TokenStatsResolver {
-  constructor(private readonly tokenStatsService: TokenStatsService) {}
+  constructor(private readonly tokenStatsService: StatsGetterService) {}
 
   @Query(() => TokenData, { name: 'tokenStats' })
   async getTokenStats(@Args() args: TokenStatArgs): Promise<TokenData> {

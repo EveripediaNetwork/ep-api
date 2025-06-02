@@ -6,7 +6,8 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import Arweave from 'arweave'
 import slugify from 'slugify'
-// import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
+import { OnEvent } from '@nestjs/event-emitter'
+import { firstValueFrom, race, take, timer, Subject, mapTo } from 'rxjs'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
@@ -38,6 +39,8 @@ export type RawTransactions = {
 
 @Injectable()
 class BlogService {
+  private blogDataSubject = new Subject<Blog[]>()
+
   private EVERIPEDIA_BLOG_ACCOUNT2: string
 
   private EVERIPEDIA_BLOG_ACCOUNT3: string
@@ -49,7 +52,6 @@ class BlogService {
   constructor(
     private pm2Service: Pm2Service,
     private configService: ConfigService,
-    // private eventEmitter: EventEmitter2,
     private readonly mirrorApiService: MirrorApiService,
     @InjectDataSource() private dataSource: DataSource,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -116,7 +118,6 @@ class BlogService {
     return newBlog
   }
 
-  // TODO: change only when update to hidden blogs occur
   private async getHiddenBlogDigests(): Promise<string[]> {
     let hiddenDigests = await this.cacheManager.get<string[]>(
       this.HIDDEN_BLOGS_CACHE_KEY,
@@ -143,7 +144,6 @@ class BlogService {
     return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
-  //   @OnEvent('refreshBlogCache', { async: true })
   private async loadBlogs() {
     console.log('Loading blogs')
     if (firstLevelNodeProcess()) {
@@ -190,6 +190,30 @@ class BlogService {
   async getBlogsFromAccounts(): Promise<Blog[]> {
     const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
     if (!blogs) {
+      if (!firstLevelNodeProcess()) {
+        const data = JSON.stringify({ processId: process.env.pm_id })
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'blogRequestData [blogService]',
+          {
+            data,
+          },
+          'all',
+        )
+
+        const timeout$ = timer(30000).pipe(mapTo([] as Blog[]), take(1))
+
+        const data$ = this.blogDataSubject.pipe(take(1))
+
+        try {
+          const result = await firstValueFrom(race([data$, timeout$]))
+          this.blogDataSubject = new Subject()
+          await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+          return await this.filterHiddenBlogs(result)
+        } catch (error) {
+          return []
+        }
+      }
       return []
     }
     return this.filterHiddenBlogs(blogs || [])
@@ -201,11 +225,7 @@ class BlogService {
       return null
     }
 
-    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!blogs) {
-      //   blogs = await this.refreshBlogCache()
-      //   this.eventEmitter.emit('refreshBlogCache')
-    }
+    const blogs = await this.getBlogsFromAccounts()
 
     const blog =
       blogs?.find((e: Blog) => e.digest === digest) ??
@@ -349,29 +369,54 @@ class BlogService {
     }
   }
 
-  //   async getHiddenBlogs(): Promise<Blog[]> {
-  //     const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
-  //     const hiddenBlogs = await hiddenBlogsRepo.find({
-  //       order: { hiddenAt: 'DESC' },
-  //     })
+  async getHiddenBlogs(): Promise<Blog[]> {
+    const hiddenBlogsRepo = this.dataSource.getRepository(HiddenBlog)
+    const hiddenBlogs = await hiddenBlogsRepo.find({
+      order: { hiddenAt: 'DESC' },
+    })
 
-  //     let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-  //     if (!allBlogs) {
-  //       allBlogs = await this.refreshBlogCache()
-  //     }
+    const allBlogs = await this.getBlogsFromAccounts()
 
-  //     const hiddenBlogsWithInfo = allBlogs.filter(blog =>
-  //       hiddenBlogs.some(hiddenBlog => hiddenBlog.digest === blog.digest),
-  //     )
+    const hiddenBlogsWithInfo = allBlogs.filter((blog) =>
+      hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
+    )
 
-  //     return hiddenBlogsWithInfo.map(blog => {
-  //       const hiddenBlog = hiddenBlogs.find(hb => hb.digest === blog.digest)
-  //       return {
-  //         ...blog,
-  //         hiddenAt: hiddenBlog?.hiddenAt,
-  //       }
-  //     })
-  //   }
+    return hiddenBlogsWithInfo.map((blog) => {
+      const hiddenBlog = hiddenBlogs.find((hb) => hb.digest === blog.digest)
+      return {
+        ...blog,
+        hiddenAt: hiddenBlog?.hiddenAt,
+      }
+    })
+  }
+
+  @OnEvent('blogRequestData', { async: true })
+  async requestData(payload: any): Promise<void> {
+    const { processId } = JSON.parse(payload.data.data)
+    const id = Number(processId)
+
+    let blogs = await this.getBlogsFromAccounts()
+
+    if (blogs.length === 0) {
+      await this.loadBlogs()
+      blogs = await this.getBlogsFromAccounts()
+    }
+
+    const data = JSON.stringify(blogs)
+    await this.pm2Service.sendDataToProcesses(
+      'ep-api',
+      'blogSendData [blogService]',
+      { data },
+      'one',
+      id,
+    )
+  }
+
+  @OnEvent('blogSendData', { async: true })
+  async sendData(payload: any) {
+    const blogs = JSON.parse(payload.data.data)
+    this.blogDataSubject.next(blogs)
+  }
 }
 
 export default BlogService

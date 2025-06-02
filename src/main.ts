@@ -69,7 +69,18 @@ async function bootstrapApplication() {
     if (packet.topic.includes('deleteCache')) {
       eventEmitter.emit('deleteCache', packet)
     }
-
+    if (packet.topic.includes('blogRequestData')) {
+      eventEmitter.emit('blogRequestData', packet)
+    }
+    if (packet.topic.includes('blogSendData')) {
+      eventEmitter.emit('blogSendData', packet)
+    }
+    if (packet.topic.includes('statsRequestData')) {
+      eventEmitter.emit('statsRequestData', packet)
+    }
+    if (packet.topic.includes('statsSendData')) {
+      eventEmitter.emit('statsSendData', packet)
+    }
     if (packet.topic === 'buildSearchData') {
       eventEmitter.emit('buildSearchData', {
         id: Number(process.env.pm_id),

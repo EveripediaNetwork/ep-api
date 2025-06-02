@@ -8,7 +8,6 @@ class BlogResolver {
 
   @Query(() => [Blog], { nullable: 'items' })
   async getBlogs(): Promise<Blog[]> {
-    console.log('=======', process.env.pm_id)
     return this.blogService.getBlogsFromAccounts()
   }
 
@@ -16,7 +15,6 @@ class BlogResolver {
   async getBlog(
     @Args('digest', { type: () => String }) digest: string,
   ): Promise<Blog | null> {
-    console.log('=======', process.env.pm_id)
     return this.blogService.getBlogByDigest(digest)
   }
 
@@ -44,11 +42,11 @@ class BlogResolver {
     return this.blogService.unhideBlogByDigest(digest)
   }
 
-  //   @Query(() => [Blog], { nullable: 'items' })
-  //   async getHiddenBlogs(): Promise<Blog[]> {
-  //     const hiddenBlogs = await this.blogService.getHiddenBlogs()
-  //     return hiddenBlogs
-  //   }
+  @Query(() => [Blog], { nullable: 'items' })
+  async getHiddenBlogs(): Promise<Blog[]> {
+    const hiddenBlogs = await this.blogService.getHiddenBlogs()
+    return hiddenBlogs
+  }
 }
 
 export default BlogResolver

@@ -20,7 +20,6 @@ import UserResolver from './User/user.resolver'
 import PinMiddleware from './pinJSONAndImage/pin.middleware'
 import DatabaseModule from '../Database/database.module'
 import RelayerModule from '../Relayer/relayer.module'
-import TokenStatsModule from './tokenStats/tokenStats.module'
 import UserProfileResolver from './User/userProfile.resolver'
 import UserService from './User/user.service'
 import userDirectiveTransformer from './utils/userDirectiveTransformer'
@@ -63,13 +62,14 @@ import EventsService from './Wiki/events.service'
 import AppService from './app.service'
 import WikiController from './Wiki/controllers/wiki.controller'
 import BlogService from './Blog/blog.service'
-// import BlogModule from './Blog/blog.module'
 import MarketCapSearch from './marketCap/marketCapSearch.service'
 import UserProfileValidator from './User/userProfileValidator.service'
 import SentryMiddleware from '../sentry/sentry.middleware'
 import Pm2Service from './utils/pm2Service'
 import BlogResolver from './Blog/blog.resolver'
 import MirrorApiService from './Blog/mirrorApi.service'
+import StatsGetterService from './tokenStats/stats-getter.service'
+import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 
 // istanbul ignore next
 @Module({
@@ -113,7 +113,6 @@ import MirrorApiService from './Blog/mirrorApi.service'
     PinModule,
     DatabaseModule,
     RelayerModule,
-    TokenStatsModule,
     BrainPassModule,
     ActivityModule,
     IndexerWebhookModule,
@@ -122,7 +121,6 @@ import MirrorApiService from './Blog/mirrorApi.service'
     HiIQHolderModule,
     IQHolderModule,
     DiscordModule,
-    // BlogModule,
     SentryMod,
   ],
   controllers: [UploadController, WikiController],
@@ -158,6 +156,8 @@ import MirrorApiService from './Blog/mirrorApi.service'
     MarketCapResolver,
     MarketCapService,
     MarketCapSearch,
+    TokenStatsResolver,
+    StatsGetterService,
     SentryPlugin,
     Pm2Service,
     MirrorApiService,
