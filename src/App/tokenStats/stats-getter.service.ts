@@ -31,11 +31,6 @@ const noData = {
   },
 }
 
-interface CombinedMarketData {
-  cg: any | null
-  cmc: any | null
-}
-
 @Injectable()
 class StatsGetterService {
   private statsData = new Subject()
@@ -78,6 +73,7 @@ class StatsGetterService {
         }),
       )
     } catch (e: any) {
+      console.log(e)
       if (e.response.status === 429) {
         this.rateLimitHit()
       }
@@ -126,55 +122,12 @@ class StatsGetterService {
     return { marketChangeResult, volumeChangeResult }
   }
 
-  async fetchMarketData(
-    name: string,
-    cmcName?: string,
-  ): Promise<{ cmc: any; cg: any }> {
+  async initiateExternalApiCalls(name: string, cmcName?: string) {
     const cacheKey = `${name}-${cmcName}`
-    const cachedData = await this.cacheManager.get<CombinedMarketData>(cacheKey)
-
-    if (cachedData?.cg && cachedData?.cmc) {
-      return cachedData
-    }
-
-    if (!firstLevelNodeProcess() && !cachedData?.cg && !cachedData?.cmc) {
-      const requestData = JSON.stringify({
-        processId: process.env.pm_id,
-        name,
-        cmcName,
-      })
-
-      this.pm2Service.sendDataToProcesses(
-        'ep-api',
-        'statsRequestData [statsGetterService]',
-        { data: requestData },
-        'all',
-      )
-
-      const timeout$ = timer(10000).pipe(
-        take(1),
-        map(() => ({ cmc: null, cg: null })),
-      )
-
-      const data$ = this.statsData.pipe(take(1))
-      const result = (await firstValueFrom(race([data$, timeout$]))) as {
-        cmc: any
-        cg: any
-      }
-      this.statsData = new Subject()
-
-      return result
-    }
-
     const [cmc, cg] = await Promise.all([
       this.cmcApiCall(cmcName || name),
       this.cgApiCall(name),
     ])
-    return { cmc, cg }
-  }
-
-  async getStats(name: string, cmcName?: string): Promise<any> {
-    const { cmc, cg } = await this.fetchMarketData(name, cmcName)
 
     const cgMarketData = cg?.marketChangeResult?.data[0] || {
       image: '',
@@ -228,27 +181,64 @@ class StatsGetterService {
       volume: cmcData.volume_24h,
       volume_percentage_change: volumeChange,
     }
+    await this.cacheManager.set(cacheKey, tokenStats, 60 * 1000)
     return tokenStats
+  }
+
+  async fetchMarketDataFromRoot(
+    name: string,
+    cmcName?: string,
+  ): Promise<TokenData> {
+    const requestData = JSON.stringify({
+      processId: process.env.pm_id,
+      name,
+      cmcName,
+    })
+
+    this.pm2Service.sendDataToProcesses(
+      'ep-api',
+      'statsRequestData [statsGetterService]',
+      { data: requestData },
+      'all',
+    )
+
+    const timeout$ = timer(10000).pipe(
+      take(1),
+      map(() => ({ result: TokenData })),
+    )
+    const data$ = this.statsData.pipe(take(1))
+    const result = (await firstValueFrom(race([data$, timeout$]))) as TokenData
+    this.statsData = new Subject()
+    return result
+  }
+
+  async getStats(name: string, cmcName?: string): Promise<any> {
+    const cacheKey = `${name}-${cmcName}`
+    const cachedData = await this.cacheManager.get<TokenData>(cacheKey)
+    if (cachedData) {
+      return cachedData
+    }
+
+    if (!firstLevelNodeProcess()) {
+      return this.fetchMarketDataFromRoot(name, cmcName)
+    }
+    return this.initiateExternalApiCalls(name, cmcName)
   }
 
   @OnEvent('statsRequestData', { async: true })
   async requestData(payload: any): Promise<void> {
     const { processId, name, cmcName } = JSON.parse(payload.data.data)
-    const cacheKey = `${name}-${cmcName}`
     const id = Number(processId)
 
-    const { cmc, cg } = await this.fetchMarketData(name, cmcName)
-    if (cmc && cg) {
-      await this.cacheManager.set(cacheKey, { cmc, cg }, 60 * 1000)
-      const data = JSON.stringify({ cmc, cg })
-      await this.pm2Service.sendDataToProcesses(
-        'ep-api',
-        'statsSendData [statsGetterService]',
-        { data },
-        'one',
-        id,
-      )
-    }
+    const tokenData = await this.initiateExternalApiCalls(name, cmcName)
+    const data = JSON.stringify(tokenData)
+    await this.pm2Service.sendDataToProcesses(
+      'ep-api',
+      'statsSendData [statsGetterService]',
+      { data },
+      'one',
+      id,
+    )
   }
 
   @OnEvent('statsSendData', { async: true })
