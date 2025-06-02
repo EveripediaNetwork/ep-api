@@ -539,7 +539,7 @@ class MarketCapService {
   async wildcardSearch(args: MarketCapSearchInputs) {
     const data: MarketCapSearchType | null | undefined =
       await this.cacheManager.get('marketCapSearch')
-    console.log(data, args.search)
+
     if (!data || !args.search) {
       return [] as (TokenRankListData | NftRankListData)[]
     }

@@ -6,9 +6,13 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import Arweave from 'arweave'
 import slugify from 'slugify'
+import { OnEvent } from '@nestjs/event-emitter'
+import { firstValueFrom, race, take, timer, Subject, mapTo } from 'rxjs'
 import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
+import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
+import Pm2Service from '../utils/pm2Service'
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -35,6 +39,8 @@ export type RawTransactions = {
 
 @Injectable()
 class BlogService {
+  private blogDataSubject = new Subject<Blog[]>()
+
   private EVERIPEDIA_BLOG_ACCOUNT2: string
 
   private EVERIPEDIA_BLOG_ACCOUNT3: string
@@ -44,10 +50,11 @@ class BlogService {
   private HIDDEN_BLOGS_CACHE_KEY = 'hidden-blogs-cache'
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private pm2Service: Pm2Service,
     private configService: ConfigService,
     private readonly mirrorApiService: MirrorApiService,
     @InjectDataSource() private dataSource: DataSource,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.EVERIPEDIA_BLOG_ACCOUNT2 = this.configService.get(
       'EVERIPEDIA_BLOG_ACCOUNT2',
@@ -55,6 +62,13 @@ class BlogService {
     this.EVERIPEDIA_BLOG_ACCOUNT3 = this.configService.get(
       'EVERIPEDIA_BLOG_ACCOUNT3',
     ) as string
+  }
+
+  async onModuleInit() {
+    setTimeout(async () => {
+      await this.getHiddenBlogDigests()
+      await this.loadBlogs()
+    }, 7000)
   }
 
   async formatEntry(
@@ -118,7 +132,7 @@ class BlogService {
       await this.cacheManager.set(
         this.HIDDEN_BLOGS_CACHE_KEY,
         hiddenDigests,
-        7200 * 1000,
+        86400 * 1000,
       )
     }
 
@@ -130,45 +144,15 @@ class BlogService {
     return blogs.filter((blog) => !hiddenDigests.includes(blog.digest))
   }
 
-  private async refreshBlogCache(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
+  private async loadBlogs() {
+    console.log('Loading blogs')
+    if (firstLevelNodeProcess()) {
+      const accounts = [
+        this.EVERIPEDIA_BLOG_ACCOUNT2,
+        this.EVERIPEDIA_BLOG_ACCOUNT3,
+      ]
 
-    const blogs = await Promise.all(
-      accounts.map(async (account) => {
-        try {
-          if (!account) return []
-          const entries = await this.mirrorApiService.getBlogs(account)
-          return (
-            entries
-              ?.filter((entry) => entry.publishedAtTimestamp)
-              .map((b: Blog) => this.formatBlog(b, true)) || []
-          )
-        } catch (error) {
-          console.error(`Error fetching blogs for account ${account}:`, error)
-          return []
-        }
-      }),
-    ).then((blogArrays) => blogArrays.flat())
-
-    if (blogs.length > 0) {
-      await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
-    }
-
-    return blogs
-  }
-
-  async getBlogsFromAccounts(): Promise<Blog[]> {
-    const accounts = [
-      this.EVERIPEDIA_BLOG_ACCOUNT2,
-      this.EVERIPEDIA_BLOG_ACCOUNT3,
-    ]
-
-    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!blogs) {
-      const successfulBlog = await Promise.all(
+      const allBlogs = await Promise.all(
         accounts.map(async (account) => {
           try {
             if (!account) return []
@@ -185,13 +169,53 @@ class BlogService {
         }),
       ).then((blogArrays) => blogArrays.flat())
 
-      if (successfulBlog.length > 0) {
-        await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+      if (allBlogs.length > 0) {
+        const info = JSON.stringify(allBlogs)
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'updateCache [blogService]',
+          {
+            data: info,
+            key: this.BLOG_CACHE_KEY,
+            ttl: 7200 * 1000,
+          },
+          Number(process.env.pm_id),
+        )
+        await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, 7200 * 1000)
       }
-
-      blogs = successfulBlog
     }
+    console.log('done')
+  }
 
+  async getBlogsFromAccounts(): Promise<Blog[]> {
+    const blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
+    if (!blogs) {
+      if (!firstLevelNodeProcess()) {
+        const data = JSON.stringify({ processId: process.env.pm_id })
+        this.pm2Service.sendDataToProcesses(
+          'ep-api',
+          'blogRequestData [blogService]',
+          {
+            data,
+          },
+          'all',
+        )
+
+        const timeout$ = timer(15000).pipe(mapTo([] as Blog[]), take(1))
+
+        const data$ = this.blogDataSubject.pipe(take(1))
+
+        try {
+          const result = await firstValueFrom(race([data$, timeout$]))
+          this.blogDataSubject = new Subject()
+          await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+          return await this.filterHiddenBlogs(result)
+        } catch (error) {
+          return []
+        }
+      }
+      return []
+    }
     return this.filterHiddenBlogs(blogs || [])
   }
 
@@ -201,10 +225,7 @@ class BlogService {
       return null
     }
 
-    let blogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!blogs) {
-      blogs = await this.refreshBlogCache()
-    }
+    const blogs = await this.getBlogsFromAccounts()
 
     const blog =
       blogs?.find((e: Blog) => e.digest === digest) ??
@@ -354,10 +375,7 @@ class BlogService {
       order: { hiddenAt: 'DESC' },
     })
 
-    let allBlogs = await this.cacheManager.get<Blog[]>(this.BLOG_CACHE_KEY)
-    if (!allBlogs) {
-      allBlogs = await this.refreshBlogCache()
-    }
+    const allBlogs = await this.getBlogsFromAccounts()
 
     const hiddenBlogsWithInfo = allBlogs.filter((blog) =>
       hiddenBlogs.some((hiddenBlog) => hiddenBlog.digest === blog.digest),
@@ -370,6 +388,34 @@ class BlogService {
         hiddenAt: hiddenBlog?.hiddenAt,
       }
     })
+  }
+
+  @OnEvent('blogRequestData', { async: true })
+  async requestData(payload: any): Promise<void> {
+    const { processId } = JSON.parse(payload.data.data)
+    const id = Number(processId)
+
+    let blogs = await this.getBlogsFromAccounts()
+
+    if (blogs.length === 0) {
+      await this.loadBlogs()
+      blogs = await this.getBlogsFromAccounts()
+    }
+
+    const data = JSON.stringify(blogs)
+    await this.pm2Service.sendDataToProcesses(
+      'ep-api',
+      'blogSendData [blogService]',
+      { data },
+      'one',
+      id,
+    )
+  }
+
+  @OnEvent('blogSendData', { async: true })
+  async sendData(payload: any) {
+    const blogs = JSON.parse(payload.data.data)
+    this.blogDataSubject.next(blogs)
   }
 }
 

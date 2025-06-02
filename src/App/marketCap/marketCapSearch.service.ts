@@ -97,19 +97,6 @@ class MarketCapSearch implements OnModuleInit {
       console.log('Rankpage search cache service not runnning')
     }
   }
-
-  @OnEvent('updateCache')
-  async setCacheData(payload: any) {
-    const data = JSON.parse(payload.data.data)
-    await this.cacheManager.set(payload.data.key, data, payload.data.ttl)
-  }
-
-  @OnEvent('deleteCache')
-  async deleteCacheData(payload: any) {
-    for (const key of payload.data.keys) {
-      this.cacheManager.del(key)
-    }
-  }
 }
 
 export default MarketCapSearch

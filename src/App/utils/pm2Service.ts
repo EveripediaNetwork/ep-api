@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Injectable, OnModuleInit } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
+import { Inject, Injectable } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 
 const pm2 = require('pm2')
 
 @Injectable()
-class Pm2Service implements OnModuleInit {
+class Pm2Service {
   private pm2Ids = new Map()
+
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   async onModuleInit() {
     setTimeout(() => {
@@ -24,8 +29,43 @@ class Pm2Service implements OnModuleInit {
     processName: string,
     topic: string,
     data: any,
-    ignoreId?: number,
+    ignoreId?: number | string,
+    id?: number,
   ) {
+    const process = (processId: number) => {
+      pm2.connect((err: unknown) => {
+        if (err) {
+          console.error('Error connecting to PM2:', err)
+          return
+        }
+        pm2.sendDataToProcessId(
+          {
+            id: processId,
+            type: 'process:msg',
+            topic,
+            data,
+          },
+          () => {
+            if (err) {
+              console.error(
+                `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
+                err,
+              )
+            } else {
+              console.log(
+                `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
+              )
+            }
+          },
+        )
+      })
+    }
+    if (String(ignoreId) && ignoreId === 'all') {
+      return process(0)
+    }
+    if (String(ignoreId) && ignoreId === 'one' && id) {
+      return process(id)
+    }
     for (const [k, v] of this.pm2Ids) {
       if (
         v === processName &&
@@ -33,33 +73,22 @@ class Pm2Service implements OnModuleInit {
       ) {
         const processId = k
         await new Promise((r) => setTimeout(r, 800))
-        pm2.connect((err: unknown) => {
-          if (err) {
-            console.error('Error connecting to PM2:', err)
-            return
-          }
-          pm2.sendDataToProcessId(
-            {
-              id: processId,
-              type: 'process:msg',
-              topic,
-              data,
-            },
-            () => {
-              if (err) {
-                console.error(
-                  `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
-                  err,
-                )
-              } else {
-                console.log(
-                  `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
-                )
-              }
-            },
-          )
-        })
+        process(processId)
       }
+    }
+    return 0
+  }
+
+  @OnEvent('updateCache')
+  async setCacheData(payload: any) {
+    const data = JSON.parse(payload.data.data)
+    await this.cacheManager.set(payload.data.key, data, payload.data.ttl)
+  }
+
+  @OnEvent('deleteCache')
+  async deleteCacheData(payload: any) {
+    for (const key of payload.data.keys) {
+      this.cacheManager.del(key)
     }
   }
 }
