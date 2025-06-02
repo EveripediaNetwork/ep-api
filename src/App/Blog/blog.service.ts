@@ -201,7 +201,7 @@ class BlogService {
           'all',
         )
 
-        const timeout$ = timer(30000).pipe(mapTo([] as Blog[]), take(1))
+        const timeout$ = timer(15000).pipe(mapTo([] as Blog[]), take(1))
 
         const data$ = this.blogDataSubject.pipe(take(1))
 
