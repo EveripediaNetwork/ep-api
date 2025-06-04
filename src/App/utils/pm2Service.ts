@@ -1,13 +1,25 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 
 const pm2 = require('pm2')
 
+export enum Pm2Events {
+  UPDATE_CACHE = 'updateCache',
+  DELETE_CACHE = 'deleteCache',
+  BLOG_REQUEST_DATA = 'blogRequestData',
+  BLOG_SEND_DATA = 'blogSendData',
+  STATS_REQUEST_DATA = 'statsRequestData',
+  STATS_SEND_DATA = 'statsSendData',
+  BUILD_RANK_SEARCH_DATA = 'buildSearchData',
+}
+
 @Injectable()
 class Pm2Service {
+  private readonly logger = new Logger(Pm2Service.name)
+
   private pm2Ids = new Map()
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
@@ -26,16 +38,16 @@ class Pm2Service {
   }
 
   async sendDataToProcesses(
-    processName: string,
     topic: string,
     data: any,
     ignoreId?: number | string,
     id?: number,
+    processName = 'ep-api',
   ) {
     const process = (processId: number) => {
       pm2.connect((err: unknown) => {
         if (err) {
-          console.error('Error connecting to PM2:', err)
+          this.logger.error('Error connecting to PM2:', err)
           return
         }
         pm2.sendDataToProcessId(
@@ -47,12 +59,12 @@ class Pm2Service {
           },
           () => {
             if (err) {
-              console.error(
+              this.logger.error(
                 `TOPIC - { ${topic} } | Error sending data to process ${processId}:`,
                 err,
               )
             } else {
-              console.log(
+              this.logger.log(
                 `TOPIC - { ${topic} } | Data successfully sent to process ${processId}`,
               )
             }
@@ -72,7 +84,7 @@ class Pm2Service {
         ((ignoreId && k !== ignoreId) || (k !== 0 && !ignoreId))
       ) {
         const processId = k
-        await new Promise((r) => setTimeout(r, 800))
+        // await new Promise(r => setTimeout(r, 800))
         process(processId)
       }
     }

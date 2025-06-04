@@ -1,96 +1,49 @@
-/* eslint-disable no-console */
-import { Injectable, Inject } from '@nestjs/common'
+import { Injectable, Inject, Logger } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import { OnEvent } from '@nestjs/event-emitter'
 import { firstValueFrom, map, race, Subject, take, timer } from 'rxjs'
+import { DataSource } from 'typeorm'
 import TokenData from './models/tokenData.model'
-import Pm2Service from '../utils/pm2Service'
+import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
-
-const noData = {
-  data: {
-    data: {
-      '0': {
-        id: 0,
-        name: 'not_found',
-        symbol: 'NOT_FOUND',
-        slug: 'not_found',
-        quote: {
-          USD: {
-            volume_24h: 0,
-            market_cap: 0,
-            market_cap_change_percentage_24h: 0,
-            fully_diluted_market_cap: 0,
-          },
-        },
-      },
-    },
-  },
-}
+import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 
 @Injectable()
 class StatsGetterService {
+  private readonly logger = new Logger(StatsGetterService.name)
+
   private statsData = new Subject()
 
-  private lastBlockedTime = 0
+  private readonly STATS_DATA_TIMEOUT_MS = 10000
 
-  private readonly cooldownPeriod = 60 * 1000
+  private API_KEY: string
 
   constructor(
     private pm2Service: Pm2Service,
+    private dataSource: DataSource,
     private httpService: HttpService,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
-
-  public canCallApi(): boolean {
-    const currentTime = Date.now()
-    return currentTime > this.lastBlockedTime + this.cooldownPeriod
-  }
-
-  public rateLimitHit(): void {
-    this.lastBlockedTime = Date.now()
-  }
-
-  private async cmcApiCall(name: string): Promise<any> {
-    if (!this.canCallApi()) {
-      console.warn('COINMARKETCAP API cooloff')
-      return null
-    }
-    let response
-    try {
-      const url =
-        'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
-      const key = this.configService.get('COINMARKETCAP_API_KEY')
-      response = await firstValueFrom(
-        this.httpService.get(`${url}?slug=${name}`, {
-          headers: {
-            'X-CMC_PRO_API_KEY': key,
-          },
-        }),
-      )
-    } catch (e: any) {
-      console.log(e)
-      if (e.response.status === 429) {
-        this.rateLimitHit()
-      }
-      console.error(
-        `COINMARKETCAP ERROR ${e.response.status}`,
-        e.response.statusText,
-        `for ${name}`,
-      )
-    }
-
-    return response
+  ) {
+    this.API_KEY = this.configService.get('COINGECKO_API_KEY') as string
   }
 
   private async cgApiCall(name: string): Promise<any> {
-    const key = this.configService.get('COINGECKO_API_KEY')
-    const marketChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${name}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`
-    const volumeChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1&interval=daily`
+    const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
+    const id = await marketCapIdRepository.findOne({
+      where: { wikiId: name },
+      select: ['coingeckoId'],
+    })
+
+    const marketChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${
+      id?.coingeckoId || name
+    }&order=market_cap_desc&sparkline=false&price_change_percentage=24h`
+    const volumeChangeUrl = `https://pro-api.coingecko.com/api/v3/coins/${
+      id?.coingeckoId || name
+    }/market_chart?vs_currency=usd&days=1&interval=daily`
 
     let marketChangeResult
     let volumeChangeResult
@@ -100,53 +53,35 @@ class StatsGetterService {
         firstValueFrom(
           this.httpService.get(marketChangeUrl, {
             headers: {
-              'x-cg-pro-api-key': key,
+              'x-cg-pro-api-key': this.API_KEY,
             },
           }),
         ),
         firstValueFrom(
           this.httpService.get(volumeChangeUrl, {
             headers: {
-              'x-cg-pro-api-key': key,
+              'x-cg-pro-api-key': this.API_KEY,
             },
           }),
         ),
       ])
     } catch (e: any) {
-      console.error(
-        `COINGECKO  ERROR ${e.response.status}`,
-        e.response.statusText,
-        `for ${name}`,
+      this.logger.error(
+        `COINGECKO ERROR ${e.response.status} ${e.response.statusText} for ${name}`,
       )
     }
     return { marketChangeResult, volumeChangeResult }
   }
 
-  async initiateExternalApiCalls(name: string, cmcName?: string) {
-    const cacheKey = `${name}-${cmcName}`
-    const [cmc, cg] = await Promise.all([
-      this.cmcApiCall(cmcName || name),
-      this.cgApiCall(name),
-    ])
-
-    const cgMarketData = cg?.marketChangeResult?.data[0] || {
-      image: '',
-      current_price: 0,
-      market_cap_change_percentage_24h: 0,
-      price_change_percentage_24h: 0,
-    }
+  async initiateExternalApiCalls(name: string) {
+    const cg = await this.cgApiCall(name)
+    const cgMarketData = cg?.marketChangeResult?.data[0] || {}
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
         [1, 1],
         [1, 1],
       ],
     }
-
-    const dat = cmc || noData
-    const d = dat.data
-    const res: any = Object.values(d.data)
-    const cmcData: any = res[0].quote.USD
-
     const volumeChange =
       cgVolumeData.total_volumes.length === 1
         ? 0
@@ -155,33 +90,25 @@ class StatsGetterService {
             cgVolumeData.total_volumes[0][1]) *
           100
 
-    let marketCap
-
-    if (cgMarketData.market_cap !== 0 && cmcData.market_cap !== 0) {
-      marketCap = cgMarketData.market_cap
-    } else if (cgMarketData.market_cap === 0) {
-      marketCap = cmcData.market_cap
-    } else {
-      marketCap = cgMarketData.market_cap
-    }
-
     const tokenStats: TokenData = {
-      id: res[0].slug,
-      symbol: res[0].symbol,
-      name: res[0].name,
+      id: cgMarketData.id,
+      symbol: cgMarketData.symbol,
+      name: cgMarketData.name,
       token_image_url: cgMarketData.image,
       token_price_in_usd: cgMarketData.current_price,
-      market_cap: marketCap || 0,
+      market_cap: cgMarketData.market_cap,
       market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
       price_percentage_change: cgMarketData.price_change_percentage_24h,
-      diluted_market_cap: cmcData.fully_diluted_market_cap,
+      diluted_market_cap: cgMarketData.fully_diluted_valuation,
       diluted_market_cap_percentage_change:
         cgMarketData.market_cap_change_percentage_24h,
-      volume: cmcData.volume_24h,
+      volume: cgMarketData.total_volume,
       volume_percentage_change: volumeChange,
     }
-    await this.cacheManager.set(cacheKey, tokenStats, 60 * 1000)
+    if (cgMarketData.id) {
+      await this.cacheManager.set(name, tokenStats, 60 * 1000)
+    }
     return tokenStats
   }
 
@@ -196,52 +123,50 @@ class StatsGetterService {
     })
 
     this.pm2Service.sendDataToProcesses(
-      'ep-api',
-      'statsRequestData [statsGetterService]',
+      `${Pm2Events.STATS_REQUEST_DATA} ${StatsGetterService.name}`,
       { data: requestData },
       'all',
     )
 
-    const timeout$ = timer(10000).pipe(
+    const timeout$ = timer(this.STATS_DATA_TIMEOUT_MS).pipe(
       take(1),
       map(() => ({ result: TokenData })),
     )
     const data$ = this.statsData.pipe(take(1))
     const result = (await firstValueFrom(race([data$, timeout$]))) as TokenData
     this.statsData = new Subject()
+    if (result.id) {
+      await this.cacheManager.set(name, result, 60 * 1000)
+    }
     return result
   }
 
-  async getStats(name: string, cmcName?: string): Promise<any> {
-    const cacheKey = `${name}-${cmcName}`
-    const cachedData = await this.cacheManager.get<TokenData>(cacheKey)
+  async getStats(name: string): Promise<any> {
+    const cachedData = await this.cacheManager.get<TokenData>(name)
     if (cachedData) {
       return cachedData
     }
 
     if (!firstLevelNodeProcess()) {
-      return this.fetchMarketDataFromRoot(name, cmcName)
+      return this.fetchMarketDataFromRoot(name)
     }
-    return this.initiateExternalApiCalls(name, cmcName)
+    return this.initiateExternalApiCalls(name)
   }
 
-  @OnEvent('statsRequestData', { async: true })
+  @OnEvent(Pm2Events.STATS_REQUEST_DATA, { async: true })
   async requestData(payload: any): Promise<void> {
-    const { processId, name, cmcName } = JSON.parse(payload.data.data)
-    const id = Number(processId)
+    const { name } = JSON.parse(payload.data.data)
 
-    const tokenData = await this.initiateExternalApiCalls(name, cmcName)
+    const tokenData = await this.initiateExternalApiCalls(name)
     const data = JSON.stringify(tokenData)
     await this.pm2Service.sendDataToProcesses(
-      'ep-api',
-      'statsSendData [statsGetterService]',
+      `${Pm2Events.STATS_SEND_DATA} ${StatsGetterService.name}`,
       { data },
-      'one',
-      id,
+      0,
     )
   }
 
-  @OnEvent('statsSendData', { async: true })
+  @OnEvent(Pm2Events.STATS_SEND_DATA, { async: true })
   async sendData(payload: any) {
     const stats = JSON.parse(payload.data.data)
     this.statsData.next(stats)

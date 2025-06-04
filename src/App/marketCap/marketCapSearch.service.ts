@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Cron, CronExpression } from '@nestjs/schedule'
@@ -7,7 +7,7 @@ import { gql } from 'graphql-request'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import MarketCapService from './marketCap.service'
 import { MarketCapInputs, RankType, TokenCategory } from './marketcap.dto'
-import Pm2Service from '../utils/pm2Service'
+import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 
 export const query = gql`
@@ -19,7 +19,9 @@ export const query = gql`
 `
 
 @Injectable()
-class MarketCapSearch implements OnModuleInit {
+class MarketCapSearch {
+  private readonly logger = new Logger(MarketCapSearch.name)
+
   private pubSub: PubSub
 
   private SIX_MINUTES_TTL = 6 * 60 * 1000
@@ -36,20 +38,18 @@ class MarketCapSearch implements OnModuleInit {
     return this.pubSub
   }
 
-  async onModuleInit() {
-    setTimeout(() => {
-      this.pubSub.publish('marketCapSearchSubscription', {
-        marketCapSearchSubscription: false,
-      })
-      this.buildRankpageSearchData()
-    }, 15000)
+  async onApplicationBootstrap() {
+    this.pubSub.publish('marketCapSearchSubscription', {
+      marketCapSearchSubscription: false,
+    })
+    this.buildRankpageSearchData()
   }
 
-  @OnEvent('buildSearchData', { async: true })
+  @OnEvent(Pm2Events.BUILD_RANK_SEARCH_DATA, { async: true })
   @Cron(CronExpression.EVERY_5_MINUTES)
   private async buildRankpageSearchData() {
     if (firstLevelNodeProcess()) {
-      console.log('Fetching rankpage search data')
+      this.logger.log('Fetching rankpage search data')
       const tokens = await this.marketCapService.marketData({
         kind: RankType.TOKEN,
       } as MarketCapInputs)
@@ -77,8 +77,7 @@ class MarketCapSearch implements OnModuleInit {
 
       const info = JSON.stringify(data)
       this.pm2Service.sendDataToProcesses(
-        'ep-api',
-        'updateCache [marketCapSearch]',
+        `${Pm2Events.UPDATE_CACHE} ${MarketCapSearch.name}`,
         {
           data: info,
           key: 'marketCapSearch',
@@ -92,9 +91,9 @@ class MarketCapSearch implements OnModuleInit {
       this.pubSub.publish('marketCapSearchSubscription', {
         marketCapSearchSubscription: true,
       })
-      console.log('Rankpage search data loaded successfully')
+      this.logger.log('Rankpage search data loaded successfully')
     } else {
-      console.log('Rankpage search cache service not runnning')
+      this.logger.log('Rankpage search cache service not runnning')
     }
   }
 }

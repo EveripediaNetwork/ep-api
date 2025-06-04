@@ -1,12 +1,12 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable no-console */
 import { DataSource } from 'typeorm'
 import { HttpService } from '@nestjs/axios'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
+import { firstValueFrom } from 'rxjs'
 import {
   MarketCapInputs,
   MarketCapSearchInputs,
@@ -20,7 +20,7 @@ import {
 import Wiki from '../../Database/Entities/wiki.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Events from '../../Database/Entities/Event.entity'
-import Pm2Service from '../utils/pm2Service'
+import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 
 const noContentWiki = {
@@ -42,6 +42,8 @@ interface RankPageWiki {
 
 @Injectable()
 class MarketCapService {
+  private readonly logger = new Logger(MarketCapService.name)
+
   private RANK_LIMIT = 2000
 
   private API_KEY: string
@@ -233,7 +235,7 @@ class MarketCapService {
 
       return results as RankPageWiki[]
     } catch (error) {
-      console.error(
+      this.logger.error(
         'Error retrieving wiki data:',
         error instanceof Error ? error.message : error,
       )
@@ -336,7 +338,7 @@ class MarketCapService {
       )
       return results?.slice(0, this.RANK_LIMIT)
     } catch (error) {
-      console.error(
+      this.logger.error(
         'Failed to fetch market data:',
         error instanceof Error ? error.message : error,
       )
@@ -416,13 +418,13 @@ class MarketCapService {
     url: string,
   ): Promise<Record<any, any>[] | null> {
     try {
-      const response = await this.httpService
-        .get(url, {
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
           headers: {
             'x-cg-pro-api-key': this.API_KEY,
           },
-        })
-        .toPromise()
+        }),
+      )
 
       if (response?.data) {
         await this.cacheManager.set(url, response.data, 180 * 1000) // Cache for 3 minutes
@@ -430,7 +432,7 @@ class MarketCapService {
       }
       return null
     } catch (error) {
-      console.error(
+      this.logger.error(
         `API request failed for ${url}:`,
         error instanceof Error ? error.message : error,
       )
@@ -493,8 +495,7 @@ class MarketCapService {
         await this.cacheManager.del(existingRecord.coingeckoId)
 
         this.pm2Service.sendDataToProcesses(
-          'ep-api',
-          'deleteCache [linkWikiToRank]',
+          `${Pm2Events.DELETE_CACHE} ${MarketCapService.name}`,
           {
             keys: [existingRecord.wikiId, existingRecord.coingeckoId],
           },
@@ -522,8 +523,7 @@ class MarketCapService {
 
       if (Number(process.env.pm_id) && this.CACHED_WIKI) {
         this.pm2Service.sendDataToProcesses(
-          'ep-api',
-          'updateCache [linkWikiToRank]',
+          `${Pm2Events.UPDATE_CACHE} ${MarketCapService.name}`,
           { data: this.CACHED_WIKI, key: this.INCOMING_WIKI_ID },
           Number(process.env.pm_id),
         )
@@ -531,7 +531,7 @@ class MarketCapService {
 
       return true
     } catch (e) {
-      console.error('Error in updateMistachIds:', e)
+      this.logger.error('Error in updateMistachIds:', e)
       return false
     }
   }

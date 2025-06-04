@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common'
+import { Injectable, Inject, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
@@ -12,7 +12,7 @@ import { Blog, BlogTag, EntryPath, FormatedBlogType } from './blog.dto'
 import MirrorApiService from './mirrorApi.service'
 import HiddenBlog from './hideBlog.entity'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
-import Pm2Service from '../utils/pm2Service'
+import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -39,6 +39,8 @@ export type RawTransactions = {
 
 @Injectable()
 class BlogService {
+  private readonly logger = new Logger(BlogService.name)
+
   private blogDataSubject = new Subject<Blog[]>()
 
   private EVERIPEDIA_BLOG_ACCOUNT2: string
@@ -64,11 +66,9 @@ class BlogService {
     ) as string
   }
 
-  async onModuleInit() {
-    setTimeout(async () => {
-      await this.getHiddenBlogDigests()
-      await this.loadBlogs()
-    }, 7000)
+  async onApplicationBootstrap() {
+    await this.getHiddenBlogDigests() // TODO: master process
+    await this.loadBlogs()
   }
 
   async formatEntry(
@@ -145,8 +145,8 @@ class BlogService {
   }
 
   private async loadBlogs() {
-    console.log('Loading blogs')
     if (firstLevelNodeProcess()) {
+      this.logger.log('Loading blogs')
       const accounts = [
         this.EVERIPEDIA_BLOG_ACCOUNT2,
         this.EVERIPEDIA_BLOG_ACCOUNT3,
@@ -163,7 +163,10 @@ class BlogService {
                 .map((b: Blog) => this.formatBlog(b, true)) || []
             )
           } catch (error) {
-            console.log(`Error fetching blogs for account ${account}:`, error)
+            this.logger.error(
+              `Error fetching blogs for account ${account}:`,
+              error,
+            )
             return []
           }
         }),
@@ -172,8 +175,7 @@ class BlogService {
       if (allBlogs.length > 0) {
         const info = JSON.stringify(allBlogs)
         this.pm2Service.sendDataToProcesses(
-          'ep-api',
-          'updateCache [blogService]',
+          `${Pm2Events.UPDATE_CACHE} ${BlogService.name}`,
           {
             data: info,
             key: this.BLOG_CACHE_KEY,
@@ -184,7 +186,7 @@ class BlogService {
         await this.cacheManager.set(this.BLOG_CACHE_KEY, allBlogs, 7200 * 1000)
       }
     }
-    console.log('done')
+    this.logger.log('done')
   }
 
   async getBlogsFromAccounts(): Promise<Blog[]> {
@@ -193,8 +195,7 @@ class BlogService {
       if (!firstLevelNodeProcess()) {
         const data = JSON.stringify({ processId: process.env.pm_id })
         this.pm2Service.sendDataToProcesses(
-          'ep-api',
-          'blogRequestData [blogService]',
+          `${Pm2Events.BLOG_REQUEST_DATA} ${BlogService.name}`,
           {
             data,
           },
@@ -208,7 +209,13 @@ class BlogService {
         try {
           const result = await firstValueFrom(race([data$, timeout$]))
           this.blogDataSubject = new Subject()
-          await this.cacheManager.set(this.BLOG_CACHE_KEY, blogs, 7200 * 1000)
+          if (result.length !== 0) {
+            await this.cacheManager.set(
+              this.BLOG_CACHE_KEY,
+              result,
+              7200 * 1000,
+            )
+          }
           return await this.filterHiddenBlogs(result)
         } catch (error) {
           return []
@@ -292,7 +299,7 @@ class BlogService {
       }
       return undefined
     } catch (_error) {
-      console.error(`Error mapping entry: ${entry.path}`, _error)
+      this.logger.error(`Error mapping entry: ${entry.path}`, _error)
       return null
     }
   }
@@ -343,7 +350,7 @@ class BlogService {
 
       return true
     } catch (error) {
-      console.error('Error hiding blog:', error)
+      this.logger.error('Error hiding blog:', error)
       return false
     }
   }
@@ -364,7 +371,7 @@ class BlogService {
 
       return true
     } catch (error) {
-      console.error('Error unhiding blog:', error)
+      this.logger.error('Error unhiding blog:', error)
       return false
     }
   }
@@ -390,7 +397,7 @@ class BlogService {
     })
   }
 
-  @OnEvent('blogRequestData', { async: true })
+  @OnEvent(Pm2Events.BLOG_REQUEST_DATA, { async: true })
   async requestData(payload: any): Promise<void> {
     const { processId } = JSON.parse(payload.data.data)
     const id = Number(processId)
@@ -404,15 +411,14 @@ class BlogService {
 
     const data = JSON.stringify(blogs)
     await this.pm2Service.sendDataToProcesses(
-      'ep-api',
-      'blogSendData [blogService]',
+      `${Pm2Events.BLOG_SEND_DATA} ${BlogService.name}`,
       { data },
       'one',
       id,
     )
   }
 
-  @OnEvent('blogSendData', { async: true })
+  @OnEvent(Pm2Events.BLOG_SEND_DATA, { async: true })
   async sendData(payload: any) {
     const blogs = JSON.parse(payload.data.data)
     this.blogDataSubject.next(blogs)
