@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import {
   DefenderRelayProvider,
   DefenderRelaySigner,
@@ -17,6 +17,8 @@ import { ActionTypes, WebhookPayload } from '../../App/utils/utilTypes'
 
 @Injectable()
 class RelayerService {
+  private readonly logger = new Logger(RelayerService.name)
+
   private signer: any
 
   private wikiInstance: any
@@ -53,8 +55,6 @@ class RelayerService {
             speed: 'fast',
           })
 
-    const signerUsed = Object.keys(signer)[Object.keys(signer).length - 1]
-    console.log(signerUsed !== 'relayer' ? 'PRIVATE SIGNER' : 'RELAYER SIGNER')
     return signer
   }
 
@@ -76,7 +76,7 @@ class RelayerService {
           )
           .pipe(
             catchError((error: AxiosError) => {
-              console.error(error?.response?.data)
+              this.logger.error(error?.response?.data)
               throw new Error(
                 'An error occurred while fetching matic gas price',
               )
@@ -101,7 +101,7 @@ class RelayerService {
         description: 'Error fetching GasPrice',
         content: error,
       } as unknown as WebhookPayload)
-      console.error('Error fetching GasPrice', error)
+      this.logger.error('Error fetching GasPrice', error)
       return null
     }
   }

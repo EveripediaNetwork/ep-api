@@ -4,40 +4,40 @@ import { ValidStringParams } from '../../utils/customValidator'
 
 @ObjectType()
 export default class TokenData {
-  @Field()
+  @Field({ defaultValue: 'not_found' })
   id!: string
 
-  @Field()
+  @Field({ defaultValue: 'not_found' })
   symbol!: string
 
-  @Field()
+  @Field({ defaultValue: 'not_found' })
   name!: string
 
-  @Field()
+  @Field({ defaultValue: 'not_found' })
   token_image_url!: string
 
-  @Field()
+  @Field({ defaultValue: 0 })
   token_price_in_usd!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   market_cap!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   market_cap_percentage_change!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   price_percentage_change!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   diluted_market_cap!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   diluted_market_cap_percentage_change!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   volume!: number
 
-  @Field()
+  @Field({ defaultValue: 0 })
   volume_percentage_change!: number
 }
 
@@ -46,8 +46,4 @@ export class TokenStatArgs {
   @Field(() => String, { nullable: true, name: 'tokenName' })
   @Validate(ValidStringParams)
   tokenName!: string
-
-  @Field(() => String, { nullable: true, name: 'cmcTokenName' })
-  @Validate(ValidStringParams)
-  cmcTokenName?: string
 }
