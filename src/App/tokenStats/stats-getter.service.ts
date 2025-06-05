@@ -106,8 +106,9 @@ class StatsGetterService {
       volume: cgMarketData.total_volume,
       volume_percentage_change: volumeChange,
     }
+
     if (cgMarketData.id) {
-      await this.cacheManager.set(name, tokenStats, 60 * 1000)
+      await this.cacheManager.set(`${name}-token`, tokenStats, 60 * 1000)
     }
     return tokenStats
   }
@@ -136,13 +137,14 @@ class StatsGetterService {
     const result = (await firstValueFrom(race([data$, timeout$]))) as TokenData
     this.statsData = new Subject()
     if (result.id) {
-      await this.cacheManager.set(name, result, 60 * 1000)
+      await this.cacheManager.set(`${name}-token`, result, 60 * 1000)
     }
     return result
   }
 
   async getStats(name: string): Promise<any> {
-    const cachedData = await this.cacheManager.get<TokenData>(name)
+    const cachedData = await this.cacheManager.get<TokenData>(`${name}-token`)
+
     if (cachedData) {
       return cachedData
     }
