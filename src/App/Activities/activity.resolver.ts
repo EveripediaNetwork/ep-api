@@ -59,15 +59,8 @@ class ActivityResolver {
   }
 
   @Query(() => [Activity])
-  async activitiesByUser(
-    @Args() args: ActivityArgsByUser,
-    @Context() context: any,
-    @SelectedFields({ nested: true, path: 'content' }) fields: string[],
-  ) {
-    const { req } = context
-    const { query } = req.body
-
-    return this.activityRepository.getActivitiesByUser(args, query, fields)
+  async activitiesByUser(@Args() args: ActivityArgsByUser) {
+    return this.activityRepository.getActivitiesByUser(args.userId)
   }
 
   @Query(() => Activity)
