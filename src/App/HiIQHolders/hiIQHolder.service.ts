@@ -313,8 +313,9 @@ class HiIQHolderService {
 
   async getOldLogs(previous: number, next: number, latest = false) {
     const key = this.blockchainService.etherScanApiKey()
+    const url = this.blockchainService.etherScanApiBaseUrl()
     const buildUrl = (fallbackTimestamp: number) =>
-      `${this.blockchainService.etherScanApiBaseUrl()}&module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
+      `${url}&module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
 
     let blockNumberForQuery1
     let blockNumberForQuery2
@@ -333,7 +334,7 @@ class HiIQHolderService {
       this.logger.error('Error requesting block number', e.data)
     }
 
-    const logsFor1Day = `${this.blockchainService.etherScanApiBaseUrl()}&module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
+    const logsFor1Day = `${url}&module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
       latest ? previous + 1 : blockNumberForQuery1
     }&toBlock=${
       latest ? 'latest' : blockNumberForQuery2
