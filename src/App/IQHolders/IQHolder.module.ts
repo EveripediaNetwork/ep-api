@@ -10,7 +10,7 @@ import IQHolderRepository from './IQHolder.repository'
 import IQHolderAddressRepository from './IQHolderAddress.repository'
 import IQHoldersResolver from './IQHolder.resolver'
 import { LockingService } from './IQHolders.dto'
-import ETHProviderService from '../utils/ethProviderService'
+import BlockchainProviderService from '../utils/BlockchainProviderService'
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import ETHProviderService from '../utils/ethProviderService'
     HttpModule,
   ],
   providers: [
-    ETHProviderService,
+    BlockchainProviderService,
     IQHolderService,
     IQHoldersResolver,
     IQHolderRepository,

@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ConfigService } from '@nestjs/config'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { ethers } from 'ethers'
 import { DataSource, EntityTarget, Repository } from 'typeorm'
 import { gql } from 'graphql-tag'
 import UserProfile from '../../Database/Entities/userProfile.entity'
@@ -19,20 +17,16 @@ import Activity from '../../Database/Entities/activity.entity'
 import { queryWikisCreated, queryWikisEdited } from '../utils/queryHelpers'
 import { hasField } from '../Wiki/wiki.dto'
 import UserProfileValidator from './userProfileValidator.service'
+import BlockchainProviderService from '../utils/BlockchainProviderService'
 
 @Injectable()
 class UserService {
   constructor(
     private dataSource: DataSource,
-    private configService: ConfigService,
+    private blockchainService: BlockchainProviderService,
     private tokenValidator: TokenValidator,
     private profileValidator: UserProfileValidator,
   ) {}
-
-  private provider() {
-    const apiKey = this.configService.get<string>('etherScanApiKey')
-    return new ethers.providers.EtherscanProvider('mainnet', apiKey)
-  }
 
   async userRepository(): Promise<Repository<User>> {
     return this.dataSource.getRepository(User)
@@ -47,7 +41,9 @@ class UserService {
     addrFromRequest: string,
   ): Promise<boolean> {
     if (addr.username?.endsWith('.eth')) {
-      const address = await this.provider().resolveName(addr.username)
+      const address = await this.blockchainService
+        .getRpcProvider()
+        .resolveName(addr.username)
       if (!(address?.toLowerCase() === addrFromRequest.toLowerCase())) {
         throw new HttpException(
           'Invalid ENS, validate your ENS name or use a plain string.',

@@ -70,6 +70,7 @@ import BlogResolver from './Blog/blog.resolver'
 import MirrorApiService from './Blog/mirrorApi.service'
 import StatsGetterService from './tokenStats/stats-getter.service'
 import TokenStatsResolver from './tokenStats/tokenStats.resolver'
+import BlockchainProviderService from './utils/BlockchainProviderService'
 
 // istanbul ignore next
 @Module({
@@ -126,6 +127,7 @@ import TokenStatsResolver from './tokenStats/tokenStats.resolver'
   controllers: [UploadController, WikiController],
   providers: [
     AppService,
+    BlockchainProviderService,
     SecurityTestingService,
     ConfigService,
     WikiResolver,

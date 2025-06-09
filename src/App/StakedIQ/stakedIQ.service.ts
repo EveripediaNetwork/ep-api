@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import { ethers } from 'ethers'
@@ -7,16 +7,18 @@ import erc20Abi from '../utils/erc20Abi'
 import StakedIQRepository from './stakedIQ.repository'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import { existRecord, stopJob, getDates, insertOldData } from './stakedIQ.utils'
-import ETHProviderService from '../utils/ethProviderService'
+import BlockchainProviderService from '../utils/BlockchainProviderService'
 
 @Injectable()
 class StakedIQService {
+  private readonly logger = new Logger(StakedIQService.name)
+
   constructor(
     private repo: StakedIQRepository,
     private configService: ConfigService,
     private httpService: HttpService,
     private schedulerRegistry: SchedulerRegistry,
-    private ethProviderService: ETHProviderService,
+    private blockchainService: BlockchainProviderService,
   ) {}
 
   private address(): { hiIQ: string; iq: string } {
@@ -54,12 +56,12 @@ class StakedIQService {
   }
 
   async getTVL(block?: string): Promise<number> {
-    await this.ethProviderService.checkNetwork()
+    await this.blockchainService.checkNetwork()
     const iface = new ethers.utils.Interface(erc20Abi)
     const iq = new ethers.Contract(
       this.address().iq,
       iface,
-      this.ethProviderService.getRpcProvider(),
+      this.blockchainService.getRpcProvider(),
     )
 
     const value = block
@@ -73,18 +75,15 @@ class StakedIQService {
   async previousStakedIQ(): Promise<void> {
     const { time, incomingDate } = await getDates(this.repo)
 
-    const key = this.ethProviderService.etherScanApiKey()
-    const mainnet = this.configService.get<string>('API_LEVEL') === 'prod'
-    const url = `https://api.etherscan.io/api?${
-      !mainnet && 'chainid=11155111'
-    }module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
+    const key = this.blockchainService.etherScanApiKey()
+    const url = `${this.blockchainService.etherScanApiBaseUrl()}&module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${key}`
 
     let blockNumberForQuery
     try {
       const response = await this.httpService.get(url).toPromise()
       blockNumberForQuery = response?.data.result
     } catch (e: any) {
-      console.error('Error requesting block number', e.data)
+      this.logger.error('Error requesting block number', e.data)
     }
     let previousLockedBalance
     try {
@@ -93,7 +92,7 @@ class StakedIQService {
       )) as unknown as number
       previousLockedBalance = balanceIQ
     } catch (error) {
-      console.error('Error retrieving balance:', error)
+      this.logger.error('Error retrieving balance:', error)
     }
 
     await insertOldData(
