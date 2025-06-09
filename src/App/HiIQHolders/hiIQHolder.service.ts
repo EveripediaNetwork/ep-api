@@ -164,6 +164,7 @@ class HiIQHolderService {
             this.HIIQ_CONTRACT_START_TIMESTAMP,
             this.HIIQ_CONTRACT_START_TIMESTAMP +
               this.TWENTY_FOUR_HOURS_IN_SECONDS,
+            latest,
           )
 
     await this.blockchainService.checkNetwork()
@@ -311,7 +312,7 @@ class HiIQHolderService {
     job.start()
   }
 
-  async getOldLogs(previous: number, next: number, latest = false) {
+  async getOldLogs(previous: number, next: number, latest: boolean) {
     const key = this.blockchainService.etherScanApiKey()
     const url = this.blockchainService.etherScanApiBaseUrl()
     const buildUrl = (fallbackTimestamp: number) =>
@@ -321,7 +322,7 @@ class HiIQHolderService {
     let blockNumberForQuery2
     try {
       const promise2 = lastValueFrom(this.httpService.get(buildUrl(next)))
-      if (latest) {
+      if (!latest) {
         const promise1 = lastValueFrom(this.httpService.get(buildUrl(previous)))
         const [response1, response2] = await Promise.all([promise1, promise2])
         blockNumberForQuery1 = response1?.data.result
