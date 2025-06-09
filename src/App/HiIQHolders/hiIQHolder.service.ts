@@ -312,7 +312,6 @@ class HiIQHolderService {
   }
 
   async getOldLogs(previous: number, next: number, latest = false) {
-    this.logger.error({ previous, next, latest })
     const key = this.blockchainService.etherScanApiKey()
     const buildUrl = (fallbackTimestamp: number) =>
       `${this.blockchainService.etherScanApiBaseUrl()}&module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
