@@ -6,7 +6,7 @@ import StakedIQRepository from './stakedIQ.repository'
 import StakedIQResolver from './stakedIQ.resolver'
 import StakedIQService from './stakedIQ.service'
 import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
-import ETHProviderService from '../utils/ethProviderService'
+import ETHProviderService from '../utils/BlockchainProviderService'
 
 @Module({
   imports: [TypeOrmModule.forFeature([StakedIQ]), HttpModule],

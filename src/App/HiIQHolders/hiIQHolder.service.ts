@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/no-mutable-exports */
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
@@ -17,7 +17,7 @@ import hiIQAbi from '../utils/hiIQAbi'
 import HiIQHolderArgs from './hiIQHolders.dto'
 import { IntervalByDays } from '../general.args'
 import { HiIQHoldersRankArgs } from '../pagination.args'
-import ETHProviderService from '../utils/ethProviderService'
+import BlockchainProviderService from '../utils/BlockchainProviderService'
 
 export const hiIQCOntract = '0x1bF5457eCAa14Ff63CC89EFd560E251e814E16Ba'
 
@@ -38,6 +38,8 @@ const HIIQ_DAILY_COUNT = 'HIIQ_DAILY_COUNT'
 
 @Injectable()
 class HiIQHolderService {
+  private readonly logger = new Logger(HiIQHolderService.name)
+
   private HIIQ_CONTRACT_START_TIMESTAMP = 1622505600
 
   private HIIQ_CONTRACT_START_BLOCK = 12548031
@@ -52,7 +54,7 @@ class HiIQHolderService {
     private hiIQHoldersRepo: HiIQHolderRepository,
     private hiIQHoldersAddressRepo: HiIQHolderAddressRepository,
     private schedulerRegistry: SchedulerRegistry,
-    private ethProviderService: ETHProviderService,
+    private blockchainService: BlockchainProviderService,
   ) {}
 
   async lastHolderRecord(): Promise<Date | null> {
@@ -164,7 +166,7 @@ class HiIQHolderService {
               this.TWENTY_FOUR_HOURS_IN_SECONDS,
           )
 
-    await this.ethProviderService.checkNetwork()
+    await this.blockchainService.checkNetwork()
 
     if (logs.length !== 0) {
       for (const log of logs) {
@@ -177,7 +179,7 @@ class HiIQHolderService {
           const tokenContract = new ethers.Contract(
             hiIQCOntract,
             erc20Abi,
-            this.ethProviderService.getRpcProvider(),
+            this.blockchainService.getRpcProvider(),
           )
           if (decodelog.eventName === 'Deposit') {
             const { provider, value } = decodelog.args
@@ -209,21 +211,17 @@ class HiIQHolderService {
                 )
               }
               if (!existingHolder && formattedBalance !== '0.0') {
-                try {
-                  const newHolder = this.hiIQHoldersAddressRepo.create({
-                    address: provider,
-                    tokens: `${formattedBalance}`,
-                    created: logTime,
-                    updated: logTime,
-                    block: blockNumber,
-                  })
-                  await this.hiIQHoldersAddressRepo.save(newHolder)
-                } catch (e: any) {
-                  console.error(e.message)
-                }
+                const newHolder = this.hiIQHoldersAddressRepo.create({
+                  address: provider,
+                  tokens: `${formattedBalance}`,
+                  created: logTime,
+                  updated: logTime,
+                  block: blockNumber,
+                })
+                await this.hiIQHoldersAddressRepo.save(newHolder)
               }
             } else {
-              console.error('Value is undefined for event:', decodelog)
+              this.logger.error('Value is undefined for event:', decodelog)
             }
           }
           if (decodelog.eventName === 'Withdraw') {
@@ -243,7 +241,7 @@ class HiIQHolderService {
           }
         } catch (error: any) {
           if (error.message !== 'topics is not iterable') {
-            console.log(error.message, intermittentCheck)
+            this.logger.error(error.message, intermittentCheck)
           }
         }
       }
@@ -254,7 +252,7 @@ class HiIQHolderService {
       .getCount()
 
     if (intermittentCheck) {
-      console.log(
+      this.logger.debug(
         `HIIQ HOLDERS INTERMITTENT CHECK - LAST BLOCK: ${block}, LOGS FOUND: ${logs.length}`,
       )
       const newDay = !lastCountTimestamp
@@ -272,7 +270,7 @@ class HiIQHolderService {
           updated: newDay,
         })
         await this.hiIQHoldersRepo.save(totalHolders)
-        console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+        this.logger.debug(`hiIQ holder Count for day ${newDay} saved 📈`)
       }
       if (existCount && count !== existCount.amount) {
         await this.hiIQHoldersRepo
@@ -281,7 +279,7 @@ class HiIQHolderService {
           .set({ amount: count })
           .where('day = :day', { day: existCount.day })
           .execute()
-        console.log(
+        this.logger.debug(
           `hiIQ holder count for present day: updated value: ${count}  ${
             existCount.amount > count ? '🔴' : '🟢'
           } `,
@@ -295,7 +293,7 @@ class HiIQHolderService {
         day: new Date(newDay),
       })
       if (!existCount && new Date(newDay) <= new Date()) {
-        console.log('hiiq holders historical indexing')
+        this.logger.debug('hiiq holders historical indexing')
         try {
           const totalHolders = this.hiIQHoldersRepo.create({
             amount: count,
@@ -304,9 +302,9 @@ class HiIQHolderService {
             updated: newDay,
           })
           await this.hiIQHoldersRepo.save(totalHolders)
-          console.log(`hiIQ holder Count for day ${newDay} saved 📈`)
+          this.logger.debug(`hiIQ holder Count for day ${newDay} saved 📈`)
         } catch (error) {
-          console.log(error)
+          this.logger.error(error)
         }
       }
     }
@@ -314,9 +312,10 @@ class HiIQHolderService {
   }
 
   async getOldLogs(previous: number, next: number, latest = false) {
-    const key = this.ethProviderService.etherScanApiKey()
+    this.logger.error({ previous, next, latest })
+    const key = this.blockchainService.etherScanApiKey()
     const buildUrl = (fallbackTimestamp: number) =>
-      `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
+      `${this.blockchainService.etherScanApiBaseUrl()}&module=block&action=getblocknobytime&timestamp=${fallbackTimestamp}&closest=before&apikey=${key}`
 
     let blockNumberForQuery1
     let blockNumberForQuery2
@@ -332,20 +331,21 @@ class HiIQHolderService {
         blockNumberForQuery2 = response2?.data.result
       }
     } catch (e: any) {
-      console.error('Error requesting block number', e.data)
+      this.logger.error('Error requesting block number', e.data)
     }
 
-    const logsFor1Day = `https://api.etherscan.io/api?module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
+    const logsFor1Day = `${this.blockchainService.etherScanApiBaseUrl()}&module=logs&action=getLogs&address=${hiIQCOntract}&fromBlock=${
       latest ? previous + 1 : blockNumberForQuery1
     }&toBlock=${
       latest ? 'latest' : blockNumberForQuery2
     }&page=1&offset=1000&apikey=${key}`
     let logs
+
     try {
       const resp = await lastValueFrom(this.httpService.get(logsFor1Day))
       logs = resp?.data.result
     } catch (e: any) {
-      console.error('Error requesting log data', e)
+      this.logger.error('Error requesting log data', e)
     }
     return logs
   }
