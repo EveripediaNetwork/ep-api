@@ -1,12 +1,9 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
 import { DataSource } from 'typeorm'
-import { HttpService } from '@nestjs/axios'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
-import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
 import {
   MarketCapInputs,
   MarketCapSearchInputs,
@@ -22,6 +19,7 @@ import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import Events from '../../Database/Entities/Event.entity'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
+import GatewayService from '../utils/gatewayService'
 
 const noContentWiki = {
   id: 'no-content',
@@ -46,8 +44,6 @@ class MarketCapService {
 
   private RANK_LIMIT = 2000
 
-  private API_KEY: string
-
   private INCOMING_WIKI_ID!: string
 
   private CACHED_WIKI!: RankPageWiki
@@ -63,12 +59,9 @@ class MarketCapService {
   constructor(
     private dataSource: DataSource,
     private pm2Service: Pm2Service,
-    private httpService: HttpService,
-    private configService: ConfigService,
+    private gateway: GatewayService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {
-    this.API_KEY = this.configService.get('COINGECKO_API_KEY') as string
-  }
+  ) {}
 
   private async findWiki(
     id: string,
@@ -418,17 +411,11 @@ class MarketCapService {
     url: string,
   ): Promise<Record<any, any>[] | null> {
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(url, {
-          headers: {
-            'x-cg-pro-api-key': this.API_KEY,
-          },
-        }),
-      )
+      const data = await this.gateway.fetchData<Record<string, any>>(url, 30)
 
-      if (response?.data) {
-        await this.cacheManager.set(url, response.data, 180 * 1000) // Cache for 3 minutes
-        return response.data
+      if (data) {
+        await this.cacheManager.set(url, data, 180 * 1000)
+        return data as Record<any, any>[]
       }
       return null
     } catch (error) {

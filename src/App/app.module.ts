@@ -71,6 +71,7 @@ import MirrorApiService from './Blog/mirrorApi.service'
 import StatsGetterService from './tokenStats/stats-getter.service'
 import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 import BlockchainProviderService from './utils/BlockchainProviderService'
+import GatewayService from './utils/gatewayService'
 
 // istanbul ignore next
 @Module({
@@ -127,6 +128,7 @@ import BlockchainProviderService from './utils/BlockchainProviderService'
   controllers: [UploadController, WikiController],
   providers: [
     AppService,
+    GatewayService,
     BlockchainProviderService,
     SecurityTestingService,
     ConfigService,

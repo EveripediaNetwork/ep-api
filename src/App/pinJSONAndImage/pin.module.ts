@@ -9,12 +9,14 @@ import SecurityTestingService from '../utils/securityTester'
 import PinataService from '../../ExternalServices/pinata.service'
 import ActivityModule from '../Activities/activity.module'
 import DatabaseModule from '../../Database/database.module'
+import GatewayService from '../utils/gatewayService'
 
 @Module({
   imports: [HttpModule, ActivityModule, DatabaseModule],
   providers: [
     PinResolver,
     PinService,
+    GatewayService,
     IPFSValidatorService,
     SecurityTestingService,
     MetadataChangesService,

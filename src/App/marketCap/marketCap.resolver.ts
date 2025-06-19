@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
-import { UseGuards } from '@nestjs/common'
+import { Logger, UseGuards } from '@nestjs/common'
 import {
   MarketCapInputs,
   MarketCapSearchInputs,
@@ -22,6 +22,8 @@ export function extractSlug(url: string) {
 
 @Resolver(() => MarketRankData)
 class MarketCapResolver {
+  private readonly logger = new Logger(MarketCapResolver.name)
+
   constructor(
     private marketCapService: MarketCapService,
     private marketCapSearch: MarketCapSearch,
@@ -51,7 +53,7 @@ class MarketCapResolver {
       }
 
       if (!wikiId) {
-        console.error('Invalid wiki ID')
+        this.logger.error('Invalid wiki ID')
         return false
       }
 
@@ -59,7 +61,7 @@ class MarketCapResolver {
 
       return true
     } catch (error) {
-      console.error(error)
+      this.logger.error(error)
       return false
     }
   }

@@ -12,6 +12,7 @@ import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import SecurityTestingService from '../utils/securityTester'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
+import GatewayService from '../utils/gatewayService'
 
 jest.mock('fs')
 
@@ -54,10 +55,16 @@ describe('PinService', () => {
             get: jest.fn(),
           },
         },
+        GatewayService,
         {
-          provide: ConfigService,
+          provide: ConfigService, // This is how you mock ConfigService
           useValue: {
-            get: jest.fn().mockReturnValue('mock-api-key'),
+            getOrThrow: jest.fn((key: string) => {
+              // Provide mock values for your environment variables
+              if (key === 'IQ_GATEWAY_URL') return 'mock-gateway-url'
+              if (key === 'IQ_GATEWAY_KEY') return 'mock-gateway-key'
+              throw new Error(`Missing config key: ${key}`) // Ensure it throws if not mocked
+            }),
           },
         },
         {

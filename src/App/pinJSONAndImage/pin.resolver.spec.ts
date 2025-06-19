@@ -17,6 +17,7 @@ import SecurityTestingService from '../utils/securityTester'
 import ActivityRepository from '../Activities/activity.repository'
 import ActivityService from '../Activities/activity.service'
 import PinataService from '../../ExternalServices/pinata.service'
+import GatewayService from '../utils/gatewayService'
 
 jest.mock('fs')
 
@@ -65,6 +66,13 @@ describe('PinResolver', () => {
           },
         },
         IPFSValidatorService,
+        GatewayService,
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn(),
+          },
+        },
         SecurityTestingService,
         {
           provide: DataSource,

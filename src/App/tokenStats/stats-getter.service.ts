@@ -1,8 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common'
-import { HttpService } from '@nestjs/axios'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
-import { ConfigService } from '@nestjs/config'
 import { OnEvent } from '@nestjs/event-emitter'
 import { firstValueFrom, map, race, Subject, take, timer } from 'rxjs'
 import { DataSource } from 'typeorm'
@@ -10,6 +8,7 @@ import TokenData from './models/tokenData.model'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import GatewayService from '../utils/gatewayService'
 
 @Injectable()
 class StatsGetterService {
@@ -19,17 +18,12 @@ class StatsGetterService {
 
   private readonly STATS_DATA_TIMEOUT_MS = 10000
 
-  private API_KEY: string
-
   constructor(
     private pm2Service: Pm2Service,
     private dataSource: DataSource,
-    private httpService: HttpService,
-    private configService: ConfigService,
+    private gateway: GatewayService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {
-    this.API_KEY = this.configService.get('COINGECKO_API_KEY') as string
-  }
+  ) {}
 
   private async cgApiCall(name: string): Promise<any> {
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
@@ -50,20 +44,8 @@ class StatsGetterService {
 
     try {
       ;[marketChangeResult, volumeChangeResult] = await Promise.all([
-        firstValueFrom(
-          this.httpService.get(marketChangeUrl, {
-            headers: {
-              'x-cg-pro-api-key': this.API_KEY,
-            },
-          }),
-        ),
-        firstValueFrom(
-          this.httpService.get(volumeChangeUrl, {
-            headers: {
-              'x-cg-pro-api-key': this.API_KEY,
-            },
-          }),
-        ),
+        this.gateway.fetchData<Record<string, any>>(marketChangeUrl),
+        this.gateway.fetchData<Record<string, any>>(volumeChangeUrl),
       ])
     } catch (e: any) {
       this.logger.error(
@@ -75,7 +57,7 @@ class StatsGetterService {
 
   async initiateExternalApiCalls(name: string) {
     const cg = await this.cgApiCall(name)
-    const cgMarketData = cg?.marketChangeResult?.data[0] || {}
+    const cgMarketData = cg?.marketChangeResult[0] || {}
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
         [1, 1],

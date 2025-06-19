@@ -1,6 +1,6 @@
 /* eslint-disable guard-for-in */
 /* eslint-disable new-cap */
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import {
   EventAction,
@@ -8,8 +8,6 @@ import {
   Wiki as WikiType,
 } from '@everipedia/iq-utils'
 import { DataSource, In } from 'typeorm'
-import { HttpService } from '@nestjs/axios'
-import { ConfigService } from '@nestjs/config'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
 import { USER_ACTIVITY_LIMIT } from '../../globalVars'
@@ -23,6 +21,7 @@ import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Events from '../../Database/Entities/Event.entity'
+import GatewayService from '../utils/gatewayService'
 
 interface CgApiIdList {
   id: string
@@ -33,21 +32,18 @@ interface CgApiIdList {
 const contentCheckDate = 1699269216 // 6/11/23
 @Injectable()
 class PinService {
-  private CG_API_KEY: string
+  private readonly logger = new Logger(PinService.name)
 
   constructor(
     private dataSource: DataSource,
-    private httpService: HttpService,
-    private configService: ConfigService,
+    private gateway: GatewayService,
     private pinateService: PinataService,
     private validator: IPFSValidatorService,
     private testSecurity: SecurityTestingService,
     private activityRepository: ActivityRepository,
     private metadataChanges: MetadataChangesService,
     private readonly pinJSONErrorWebhook: WebhookHandler,
-  ) {
-    this.CG_API_KEY = this.configService.get('COINGECKO_API_KEY') as string
-  }
+  ) {}
 
   async pinImage(file: fs.PathLike): Promise<IpfsHash | any> {
     const readableStreamForFile = fs.createReadStream(file)
@@ -331,7 +327,7 @@ class PinService {
         const newWiki = { ...wiki }
         newWiki.metadata[index].value =
           `https://www.coingecko.com/en/coins/${apiId}`
-        console.info('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
+        this.logger.debug('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
           const matchedId = marketCapIdRepo.create({
             wikiId: wiki.id,
@@ -355,18 +351,11 @@ class PinService {
   async getCgApiId(url: string): Promise<string> {
     let apiId
     try {
-      const response = await this.httpService
-        .get(
-          'https://pro-api.coingecko.com/api/v3/coins/list?include_platform=false',
-          {
-            headers: {
-              'x-cg-pro-api-key': this.CG_API_KEY,
-            },
-          },
-        )
-        .toPromise()
-
-      const coinsList: CgApiIdList[] = response?.data
+      const data = await this.gateway.fetchData<CgApiIdList[]>(
+        'https://pro-api.coingecko.com/api/v3/coins/list?include_platform=false',
+        30,
+      )
+      const coinsList: CgApiIdList[] = data
       const urlSplit = url.split('/')
       const slugId = urlSplit[5]
       for (const coin of coinsList) {
@@ -378,12 +367,11 @@ class PinService {
           slugId === coin.id
         ) {
           apiId = coin.id
-          console.log(apiId)
           break
         }
       }
     } catch (error) {
-      console.error('Error fetching coingecko api id for wiki')
+      this.logger.error('Error fetching coingecko api id for wiki')
     }
     return apiId as string
   }
