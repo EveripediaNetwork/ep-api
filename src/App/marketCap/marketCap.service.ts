@@ -411,7 +411,10 @@ class MarketCapService {
     url: string,
   ): Promise<Record<any, any>[] | null> {
     try {
-      const data = await this.gateway.fetchData<Record<string, any>>(url, 30)
+      const data = await this.gateway.fetchData<Record<string, any>>(
+        url,
+        60 * 60,
+      )
 
       if (data) {
         await this.cacheManager.set(url, data, 180 * 1000)

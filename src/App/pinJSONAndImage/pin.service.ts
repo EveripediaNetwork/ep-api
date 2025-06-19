@@ -353,7 +353,7 @@ class PinService {
     try {
       const data = await this.gateway.fetchData<CgApiIdList[]>(
         'https://pro-api.coingecko.com/api/v3/coins/list?include_platform=false',
-        30,
+        24 * 60 * 60,
       )
       const coinsList: CgApiIdList[] = data
       const urlSplit = url.split('/')

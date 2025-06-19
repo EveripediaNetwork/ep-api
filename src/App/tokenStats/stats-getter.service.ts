@@ -44,8 +44,14 @@ class StatsGetterService {
 
     try {
       ;[marketChangeResult, volumeChangeResult] = await Promise.all([
-        this.gateway.fetchData<Record<string, any>>(marketChangeUrl),
-        this.gateway.fetchData<Record<string, any>>(volumeChangeUrl),
+        this.gateway.fetchData<Record<string, any>>(
+          marketChangeUrl,
+          24 * 60 * 60,
+        ),
+        this.gateway.fetchData<Record<string, any>>(
+          volumeChangeUrl,
+          24 * 60 * 60,
+        ),
       ])
     } catch (e: any) {
       this.logger.error(
