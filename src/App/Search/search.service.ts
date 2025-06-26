@@ -106,7 +106,7 @@ class SearchService {
       const result = JSON.parse(response.text) as WikiSearchResult
       return result.wikis || []
     } catch (e) {
-      throw new Error('Invalid JSON from Gemini response')
+      throw new Error(`Invalid JSON from Gemini response: ${e.message}`);
     }
   }
 
