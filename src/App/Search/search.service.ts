@@ -6,24 +6,11 @@ import { GoogleGenAI, Type } from '@google/genai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
 
-type WikiData = {
-  id: string
-  title: string
-  summary: string
-}
-
+type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 type WikiSearchResult = {
-  wikis: {
-    id: string
-    title: string
-  }[]
+  wikis: Pick<Wiki, 'id' | 'title'>[]
 }
-
-type WikiContent = {
-  id: string
-  title: string
-  content: string
-}
+type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'>
 
 const wikiSuggestionSchema = {
   type: Type.OBJECT,
