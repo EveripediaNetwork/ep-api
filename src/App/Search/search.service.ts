@@ -35,7 +35,7 @@ const wikiSuggestionSchema = {
 class SearchService {
   private ai: GoogleGenAI
 
-  private readonly modelName = 'gemini-2.5-flash'
+  private readonly modelName = 'gemini-2.0-flash'
 
   constructor(
     private configService: ConfigService,
@@ -51,10 +51,14 @@ class SearchService {
     return this.dataSource.manager.getRepository(Wiki)
   }
 
-  private async fetchAllWikis() {
-    const { data } = await this.httpService.axiosRef.get(
-      'https://api.iq.wiki/wiki',
-    )
+  private async fetchAllWikis(): Promise<WikiData[]> {
+    const wikiApiUrl = this.configService.get<string>('WIKI_API_URL')
+    if (!wikiApiUrl) {
+      throw new Error('WIKI_API_URL is not defined in configuration.')
+    }
+
+    const { data } = await this.httpService.axiosRef.get(`${wikiApiUrl}/wiki`)
+
     return data as WikiData[]
   }
 
