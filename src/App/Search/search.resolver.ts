@@ -1,4 +1,5 @@
 import { Args, Query, Resolver, Field, ObjectType } from '@nestjs/graphql'
+import { BadRequestException } from '@nestjs/common'
 import SearchService from './search.service'
 
 @ObjectType()
@@ -25,6 +26,9 @@ class SearchResolver {
 
   @Query(() => SearchResult)
   async search(@Args('query') query: string): Promise<SearchResult> {
+    if (!query?.trim()) {
+      throw new BadRequestException('Search query cannot be empty.')
+    }
     return this.searchService.search(query)
   }
 }
