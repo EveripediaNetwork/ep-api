@@ -33,18 +33,24 @@ const wikiSuggestionSchema = {
 
 @Injectable()
 class SearchService {
-  private ai: GoogleGenAI
+  private ai: GoogleGenAI | null = null
 
   private readonly modelName = 'gemini-2.0-flash'
+
+  private readonly isProduction: boolean
 
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
     private dataSource: DataSource,
   ) {
-    this.ai = new GoogleGenAI({
-      apiKey: this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY'),
-    })
+    this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
+
+    if (this.isProduction) {
+      this.ai = new GoogleGenAI({
+        apiKey: this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY'),
+      })
+    }
   }
 
   async repository() {
@@ -63,6 +69,10 @@ class SearchService {
   }
 
   private async getWikiSuggestions(wikis: WikiData[], query: string) {
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
     const wikiEntries = wikis
       .map(
         (wiki) =>
@@ -143,6 +153,10 @@ class SearchService {
   }
 
   private async answerQuestion(query: string, wikiContents: WikiContent[]) {
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
     const contextContent = wikiContents
       .map((wiki) => `WIKI: ${wiki.title}\nCONTENT: ${wiki.content}\n---`)
       .join('\n\n')
