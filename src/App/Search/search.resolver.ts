@@ -3,7 +3,7 @@ import SearchService from './search.service'
 
 @ObjectType()
 class WikiSuggestion {
-  @Field(() => String)
+  @Field(() => ID)
   id!: string
 
   @Field(() => String)
