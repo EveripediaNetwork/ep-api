@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { HttpService } from '@nestjs/axios'
+import { HttpService as AxiosHttpService } from '@nestjs/axios'
 import { DataSource } from 'typeorm'
 import { GoogleGenAI, Type } from '@google/genai'
 import endent from 'endent'
@@ -10,6 +10,12 @@ type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 type WikiSearchResult = {
   wikis: Pick<Wiki, 'id' | 'title'>[]
 }
+
+enum ApiLevel {
+  PROD = 'prod',
+  DEV = 'dev',
+}
+
 type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'>
 
 const wikiSuggestionSchema = {
@@ -41,14 +47,17 @@ class SearchService {
 
   constructor(
     private configService: ConfigService,
-    private httpService: HttpService,
+    private readonly httpService: AxiosHttpService,
     private dataSource: DataSource,
   ) {
-    this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
+    this.isProduction =
+      this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
 
     if (this.isProduction) {
       this.ai = new GoogleGenAI({
-        apiKey: this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY'),
+        apiKey: this.configService.getOrThrow<string>(
+          'GOOGLE_GENERATIVE_AI_API_KEY',
+        ),
       })
     }
   }
