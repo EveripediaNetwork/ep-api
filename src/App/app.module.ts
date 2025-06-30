@@ -72,6 +72,7 @@ import StatsGetterService from './tokenStats/stats-getter.service'
 import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
+import SearchModule from './Search/search.module'
 
 // istanbul ignore next
 @Module({
@@ -124,6 +125,7 @@ import GatewayService from './utils/gatewayService'
     IQHolderModule,
     DiscordModule,
     SentryMod,
+    SearchModule,
   ],
   controllers: [UploadController, WikiController],
   providers: [
