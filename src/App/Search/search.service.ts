@@ -103,6 +103,7 @@ class SearchService {
   }
 
   private async getIQWikiContent(wikiId: string) {
+    console.log(`Fetching wiki ${wikiId}`)
     try {
       const wiki = await (await this.repository())
         .createQueryBuilder('wiki')
@@ -149,12 +150,19 @@ class SearchService {
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: endent`Based on the following wiki content, please answer this question: "${query}"
+      contents: endent`You are a wiki expert. Answer this question directly and concisely: "${query}"
 
-      WIKI CONTEXT:
+      CONTEXT:
       ${contextContent}
 
-      Please provide a comprehensive answer based on the information available in the wikis. If the information is not sufficient to answer the question completely, please indicate what is available and what might be missing.`,
+      Provide a comprehensive answer that includes:
+      1. Main definition/explanation
+      2. Key features and components
+      3. How it works or functions
+      4. Important relationships or connections
+      5. Any relevant technical details
+
+      Use all available information from the wikis to give a complete picture. `,
     })
 
     return response.text || 'No answer generated'
