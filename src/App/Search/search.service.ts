@@ -103,7 +103,6 @@ class SearchService {
   }
 
   private async getIQWikiContent(wikiId: string) {
-    console.log(`Fetching wiki ${wikiId}`)
     try {
       const wiki = await (await this.repository())
         .createQueryBuilder('wiki')
