@@ -144,6 +144,7 @@ class WikiService {
       .createQueryBuilder('wiki')
       .select('id')
       .addSelect('title')
+      .addSelect('summary')
       .where('hidden = false')
       .orderBy('id', 'ASC')
       .getRawMany()

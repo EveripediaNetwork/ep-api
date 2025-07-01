@@ -1,4 +1,4 @@
-import { Args, Query, Resolver, Field, ObjectType } from '@nestjs/graphql'
+import { Args, Query, Resolver, Field, ObjectType, ID } from '@nestjs/graphql'
 import { BadRequestException } from '@nestjs/common'
 import SearchService from './search.service'
 
