@@ -53,7 +53,7 @@ class SearchService {
     private dataSource: DataSource,
   ) {
     this.isProduction =
-      this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
+      this.configService.get<string>('API_LEVEL') !== ApiLevel.PROD
 
     if (this.isProduction) {
       this.ai = new GoogleGenAI({
@@ -179,7 +179,7 @@ class SearchService {
         CONTEXT:
         ${contextContent}
 
-        Provide a comprehensive answer using all available information from the wikis to give a complete picture.`,
+        Provide a comprehensive answer using all available information.`,
     })
 
     return response.text || 'No answer generated'
