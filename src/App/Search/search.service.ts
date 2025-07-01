@@ -179,7 +179,7 @@ class SearchService {
         CONTEXT:
         ${contextContent}
 
-        Provide a comprehensive answer using all available information.`,
+        Provide a comprehensive answer using all available information from the wikis to give a complete picture.`,
     })
 
     return response.text || 'No answer generated'
