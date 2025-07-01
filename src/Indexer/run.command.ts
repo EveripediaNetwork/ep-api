@@ -211,7 +211,7 @@ class RunCommand implements CommandRunner {
     return hashes
   }
 
-  async run(passedParam: string[], options?: CommandOptions): Promise<void> {
+  async run(_passedParam: string[], options?: CommandOptions): Promise<void> {
     let unixtime = 0
     const loop = options?.loop || false
     const useIpfs = options?.ipfsTime || false

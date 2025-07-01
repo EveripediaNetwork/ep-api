@@ -9,7 +9,7 @@ const ignoredEndpoints = ['/brainpass/nft-events', '/indexer']
 export default class SentryMiddleware implements NestMiddleware {
   constructor(private configService: ConfigService) {}
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: Request, _res: Response, next: NextFunction) {
     Sentry.init({
       dsn: this.configService.get<string>('SENTRY_DSN'),
       tracesSampleRate: 0.2,

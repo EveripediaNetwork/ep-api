@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { HttpService as AxiosHttpService } from '@nestjs/axios'
 import { DataSource } from 'typeorm'
@@ -39,6 +39,8 @@ const wikiSuggestionSchema = {
 
 @Injectable()
 class SearchService {
+  private readonly logger = new Logger(SearchService.name)
+
   private ai: GoogleGenAI | null = null
 
   private readonly modelName = 'gemini-2.0-flash'
@@ -140,7 +142,7 @@ class SearchService {
         content: wiki.content,
       }
     } catch (error) {
-      console.error(`Error fetching wiki ${wikiId}:`, error)
+      this.logger.error(`Error fetching wiki ${wikiId}:`, error)
       return null
     }
   }
@@ -209,7 +211,7 @@ class SearchService {
         answer,
       }
     } catch (error) {
-      console.error('Error in searchWithoutCache:', error)
+      this.logger.error('Error in searchWithoutCache:', error)
       throw error
     }
   }

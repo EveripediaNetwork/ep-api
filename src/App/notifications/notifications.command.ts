@@ -156,7 +156,7 @@ class NotificationsCommand implements CommandRunner {
     }
   }
 
-  async run(passedParam: string[], options?: CommandOptions): Promise<void> {
+  async run(_passedParam: string[], options?: CommandOptions): Promise<void> {
     const loop = options?.loop || false
     const newNotifications = await this.getPedingNotifications()
 

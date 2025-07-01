@@ -1,7 +1,11 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
-  "organizeImports": {
-    "enabled": false
+  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
   },
   "formatter": {
     "enabled": true,
@@ -15,14 +19,14 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "off"
+        "noUnusedVariables": "off",
+        "noUndeclaredVariables": "error"
       },
       "performance": {
         "noDelete": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
-        "useShorthandArrayType": "error",
         "useNodejsImportProtocol": "off",
         "noUselessElse": "off",
         "useImportType": "off",
@@ -50,6 +54,7 @@
     "parser": {
       "unsafeParameterDecoratorsEnabled": true
     },
+    "globals": ["jest"],
     "formatter": {
       "quoteStyle": "single",
       "lineEnding": "lf",

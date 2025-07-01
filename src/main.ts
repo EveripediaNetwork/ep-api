@@ -3,11 +3,11 @@ import './sentry/sentryInstrument'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import fs from 'fs'
-import { ValidationPipe } from '@nestjs/common'
 import rateLimit from 'express-rate-limit'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { urlencoded, json } from 'express'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { ValidationPipe } from '@nestjs/common'
 import AppModule from './App/app.module'
 
 const pm2 = require('pm2')
@@ -32,6 +32,7 @@ async function bootstrapApplication() {
       : await NestFactory.create(AppModule)
 
   app.enableCors()
+  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS app method, not a React Hook
   app.useGlobalPipes(new ValidationPipe())
   app.set('trust proxy', 1)
 

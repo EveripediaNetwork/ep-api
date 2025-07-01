@@ -2,7 +2,7 @@
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql'
 
 const enumMiddleWare: FieldMiddleware = async (
-  ctx: MiddlewareContext,
+  _ctx: MiddlewareContext,
   next: NextFn,
 ) => {
   const value = await next()
