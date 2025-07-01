@@ -174,19 +174,12 @@ class SearchService {
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: endent`You are a wiki expert. Answer this question directly and concisely: "${query}"
+      contents: endent`You are a wiki expert. Based on the provided context, answer the following question directly and concisely: "${query}"
 
-      CONTEXT:
-      ${contextContent}
+        CONTEXT:
+        ${contextContent}
 
-      Provide a comprehensive answer that includes:
-      1. Main definition/explanation
-      2. Key features and components
-      3. How it works or functions
-      4. Important relationships or connections
-      5. Any relevant technical details
-
-      Use all available information from the wikis to give a complete picture. `,
+        Provide a comprehensive answer using all available information from the wikis to give a complete picture.`,
     })
 
     return response.text || 'No answer generated'
