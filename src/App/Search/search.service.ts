@@ -53,7 +53,7 @@ class SearchService {
     private dataSource: DataSource,
   ) {
     this.isProduction =
-      this.configService.get<string>('API_LEVEL') !== ApiLevel.PROD
+      this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
 
     if (this.isProduction) {
       this.ai = new GoogleGenAI({
