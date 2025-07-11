@@ -9,6 +9,9 @@ class WikiSuggestion {
 
   @Field(() => String)
   title!: string
+
+  @Field(() => Number)
+  score!: number
 }
 
 @ObjectType()
