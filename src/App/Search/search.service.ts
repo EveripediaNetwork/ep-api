@@ -149,9 +149,7 @@ class SearchService {
   }
 
   private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
-    return suggestions
-      .filter((wiki) => wiki.score >= this.SCORE_THRESHOLD)
-      .sort((a, b) => b.score - a.score)
+    return suggestions.filter((wiki) => wiki.score >= this.SCORE_THRESHOLD)
   }
 
   private async getIQWikiContent(wikiId: string) {
