@@ -8,7 +8,13 @@ import Wiki from '../../Database/Entities/wiki.entity'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 type WikiSearchResult = {
-  wikis: Pick<Wiki, 'id' | 'title'>[]
+  wikis: WikiSuggestion[]
+}
+
+type WikiSuggestion = {
+  id: string
+  title: string
+  score: number
 }
 
 enum ApiLevel {
@@ -28,10 +34,18 @@ const wikiSuggestionSchema = {
         properties: {
           id: { type: Type.STRING, description: 'The wiki ID' },
           title: { type: Type.STRING, description: 'The wiki title' },
+          score: {
+            type: Type.NUMBER,
+            description:
+              'Relevance score from 1-10 (10 = extremely relevant to the query, 1 = barely relevant)',
+            minimum: 1,
+            maximum: 10,
+          },
         },
-        required: ['id', 'title'],
+        required: ['id', 'title', 'score'],
       },
-      description: 'Array of most relevant wikis for the query (max 5)',
+      description:
+        'Array of wikis with relevance scores (max 10, sorted by score descending)',
     },
   },
   required: ['wikis'],
@@ -46,6 +60,8 @@ class SearchService {
   private readonly modelName = 'gemini-2.0-flash'
 
   private readonly isProduction: boolean
+
+  private readonly SCORE_THRESHOLD = 8
 
   constructor(
     private configService: ConfigService,
@@ -99,11 +115,20 @@ class SearchService {
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: endent`Based on the following wiki knowledge base, suggest the most relevant wikis (maximum 5) that would help answer this query: "${query}"
+      contents: endent`Based on the following wiki knowledge base, suggest the most relevant wikis that would help answer this query: "${query}"
 
       ${wikiContent}
 
-      Please analyze the titles and summaries to find the most relevant wikis.`,
+      For each wiki, provide a relevance score from 1-10 where:
+      - 10 = extremely relevant to the query (directly addresses the topic)
+      - 8-9 = highly relevant (closely related to the query)
+      - 6-7 = moderately relevant (somewhat related)
+      - 5 = minimally relevant (tangentially related)
+      - 1-4 = barely relevant (should be excluded)
+
+      Only include wikis with a score of 5 or higher.
+
+      Return up to 10 wikis sorted by score (highest first).`,
       config: {
         responseMimeType: 'application/json',
         responseSchema: wikiSuggestionSchema,
@@ -121,6 +146,10 @@ class SearchService {
       const errorMessage = e instanceof Error ? e.message : String(e)
       throw new Error(`Invalid JSON from Gemini response: ${errorMessage}`)
     }
+  }
+
+  private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
+    return suggestions.filter((wiki) => wiki.score >= this.SCORE_THRESHOLD)
   }
 
   private async getIQWikiContent(wikiId: string) {
@@ -188,8 +217,10 @@ class SearchService {
   async searchWithoutCache(query: string) {
     try {
       const allWikis = await this.fetchAllWikis()
-      const suggestions = await this.getWikiSuggestions(allWikis, query)
-      const wikiIds = suggestions.map((wiki) => wiki.id)
+      const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
+      const filteredSuggestions = this.filterByScore(rawSuggestions)
+
+      const wikiIds = filteredSuggestions.map((wiki) => wiki.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
 
       let answer =
@@ -200,7 +231,7 @@ class SearchService {
       }
 
       return {
-        suggestions,
+        suggestions: filteredSuggestions,
         answer,
       }
     } catch (error) {
@@ -210,11 +241,8 @@ class SearchService {
   }
 
   async search(query: string) {
-    const { suggestions, answer } = await this.searchWithoutCache(query)
-    return {
-      suggestions,
-      answer,
-    }
+    const result = await this.searchWithoutCache(query)
+    return result
   }
 }
 
