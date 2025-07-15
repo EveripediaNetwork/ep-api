@@ -63,7 +63,7 @@ class StatsGetterService {
 
   async initiateExternalApiCalls(name: string) {
     const cg = await this.cgApiCall(name)
-    const cgMarketData = cg?.marketChangeResult[0] || {}
+    const cgMarketData = cg?.marketChangeResult?.[0] || {}
     const cgVolumeData = cg?.volumeChangeResult?.data || {
       total_volumes: [
         [1, 1],
