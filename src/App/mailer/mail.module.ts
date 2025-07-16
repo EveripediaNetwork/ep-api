@@ -5,12 +5,15 @@ import { ConfigService } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { SentryInterceptor } from '@ntegral/nestjs-sentry'
 import { join } from 'path'
+import { SentryModule } from '@sentry/nestjs/setup'
 import SentryMod from '../../sentry/sentry.module'
 import MailService from './mail.service'
+import SentryPlugin from '../../sentry/sentryPlugin'
 
 @Global()
 @Module({
   imports: [
+    SentryModule.forRoot(),
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => ({
         transport: {
@@ -37,6 +40,7 @@ import MailService from './mail.service'
     SentryMod,
   ],
   providers: [
+    SentryPlugin,
     MailService,
     {
       provide: APP_INTERCEPTOR,
