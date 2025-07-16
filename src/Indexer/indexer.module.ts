@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common'
 import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { APP_INTERCEPTOR } from '@nestjs/core'
 import { PosthogModule, PosthogService } from 'nestjs-posthog'
-import { SentryGlobalFilter } from '@sentry/nestjs/setup'
+import { SentryModule } from '@sentry/nestjs/setup'
 import RunCommand from './run.command'
 import GraphProviderService from './Provider/graph.service'
 import HistoryProviderService from './Provider/history.service'
@@ -19,9 +18,11 @@ import AutoInjestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 import AppService from '../App/app.service'
+import SentryPlugin from '../sentry/sentryPlugin'
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -57,10 +58,7 @@ import AppService from '../App/app.service'
     LockingService,
     RPCProviderService,
     AppService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: SentryGlobalFilter,
-    },
+    SentryPlugin,
   ],
 })
 class IndexerModule {}
