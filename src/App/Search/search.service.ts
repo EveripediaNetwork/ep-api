@@ -115,21 +115,31 @@ class SearchService {
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: endent`Based on the following wiki knowledge base, suggest the most relevant wikis that would help answer this query: "${query}"
+      contents: endent`You are an expert at analyzing wiki content relevance. Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
 
       ${wikiContent}
 
-      For each wiki, provide a relevance score from 1-10 where:
-      - 10 = extremely relevant to the query (directly addresses the topic)
-      - 8-9 = highly relevant (closely related to the query)
-      - 6-7 = moderately relevant (somewhat related)
-      - 5 = minimally relevant (tangentially related)
-      - 1-4 = barely relevant (should be excluded)
+      INSTRUCTIONS:
+      1. First, analyze the query to understand what information is being sought
+      2. For each wiki, think through:
+        - Does the title directly relate to the query topic?
+        - Does the summary contain information that would help answer the query?
+        - How well does the wiki content match what the user is asking for?
+      3. Be precise and thoughtful in your scoring - only suggest wikis that genuinely help answer the query
+      4. Consider semantic relationships, not just keyword matching
+
+      SCORING CRITERIA:
+      - 10 = Directly answers the query or provides essential information
+      - 8-9 = Highly relevant, contains key information needed
+      - 6-7 = Moderately relevant, provides some useful context
+      - 5 = Minimally relevant, tangentially related
+      - 1-4 = Not relevant to the query (exclude these)
 
       Only include wikis with a score of 5 or higher.
-
-      Return up to 10 wikis sorted by score (highest first).`,
+      Return up to 10 wikis sorted by score (highest first).
+      Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
+        temperature: 0,
         responseMimeType: 'application/json',
         responseSchema: wikiSuggestionSchema,
       },
@@ -203,12 +213,26 @@ class SearchService {
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: endent`You are a wiki expert. Based on the provided context, answer the following question directly and concisely: "${query}"
+      contents: endent`You are a wiki expert tasked with providing accurate, comprehensive answers based on the provided context.
+
+        QUERY: "${query}"
 
         CONTEXT:
         ${contextContent}
 
-        Provide a comprehensive answer using all available information from the wikis to give a complete picture.`,
+        INSTRUCTIONS:
+        1. Carefully analyze the query to understand exactly what information is being requested
+        2. Review all the provided wiki content to identify relevant information
+        3. Think through how well the available content matches what the user is asking for
+        4. If the content directly answers the query, provide a comprehensive response
+        5. If the content is related but doesn't fully answer the query, clearly state what information is available and what might be missing
+        6. Be honest about the limitations of the available information
+        7. Structure your answer clearly and cite which wikis provide specific information when relevant
+
+        Provide a thoughtful, well-reasoned answer that makes the best use of the available information while being transparent about its completeness.`,
+      config: {
+        temperature: 0,
+      },
     })
 
     return response.text || 'No answer generated'
