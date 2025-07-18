@@ -135,7 +135,7 @@ class SearchService {
       - 5 = Minimally relevant, tangentially related
       - 1-4 = Not relevant to the query (exclude these)
 
-      Only include wikis with a score of 5 or higher.
+      Only include wikis with a score of ${this.SCORE_THRESHOLD} or higher.
       Return up to 10 wikis sorted by score (highest first).
       Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
