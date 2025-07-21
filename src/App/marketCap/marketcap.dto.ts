@@ -88,6 +88,7 @@ export interface MarketCapSearchType {
   nfts: NftRankListData[]
   tokens: TokenRankListData[]
   aiTokens: TokenRankListData[]
+  memeTokens: TokenRankListData[]
   stableCoins: TokenRankListData[]
 }
 
@@ -121,6 +122,7 @@ export enum RankType {
 }
 export enum TokenCategory {
   AI = 'artificial-intelligence',
+  MEME_TOKENS = 'meme-token',
   STABLE_COINS = 'stablecoins',
 }
 
