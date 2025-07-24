@@ -6,7 +6,15 @@ import { GoogleGenAI, Type } from '@google/genai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
 
-type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
+type WikiMetadata = {
+  id: string
+  value: string
+}
+
+type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'> & {
+  metadata?: WikiMetadata[]
+}
+
 type WikiSearchResult = {
   wikis: WikiSuggestion[]
 }
@@ -15,6 +23,7 @@ type WikiSuggestion = {
   id: string
   title: string
   score: number
+  metadata?: { url: string; title: string }[]
 }
 
 enum ApiLevel {
@@ -22,7 +31,9 @@ enum ApiLevel {
   DEV = 'dev',
 }
 
-type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'>
+type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
+  metadata?: { url: string; title: string }[]
+}
 
 const wikiSuggestionSchema = {
   type: Type.OBJECT,
@@ -84,6 +95,44 @@ class SearchService {
     return this.dataSource.manager.getRepository(Wiki)
   }
 
+  private formatMetadataKey(key: string): string {
+    return (
+      {
+        website: 'Website',
+        twitter_profile: 'Twitter Profile',
+        github_profile: 'GitHub Profile',
+        coinmarketcap_url: 'CoinMarketCap Link',
+        coingecko_profile: 'Coingecko Link',
+      }[key] || key
+    )
+  }
+
+  private filterMetadata(
+    metadata?: WikiMetadata[],
+  ): Record<string, string> | undefined {
+    if (!metadata || metadata.length === 0) {
+      return undefined
+    }
+
+    const allowedMetadata = [
+      'website',
+      'twitter_profile',
+      'github_profile',
+      'coinmarketcap_url',
+      'coingecko_profile',
+    ]
+
+    const filtered: Record<string, string> = {}
+
+    metadata.forEach((meta) => {
+      if (allowedMetadata.includes(meta.id)) {
+        filtered[meta.id] = meta.value
+      }
+    })
+
+    return Object.keys(filtered).length > 0 ? filtered : undefined
+  }
+
   private async fetchAllWikis(): Promise<WikiData[]> {
     const wikiApiUrl = this.configService.get<string>('WIKI_API_URL')
     if (!wikiApiUrl) {
@@ -91,7 +140,6 @@ class SearchService {
     }
 
     const { data } = await this.httpService.axiosRef.get(`${wikiApiUrl}/wiki`)
-
     return data as WikiData[]
   }
 
@@ -129,9 +177,8 @@ class SearchService {
       4. Consider semantic relationships, not just keyword matching
 
       SCORING CRITERIA:
-      - 10 = Directly answers the query or provides essential information
-      - 8-9 = Highly relevant, contains key information needed
-      - 6-7 = Moderately relevant, provides some useful context
+      - 8-10 = Directly answers the query or provides essential information
+      - 6-7 = Highly relevant, contains key information needed
       - 5 = Minimally relevant, tangentially related
       - 1-4 = Not relevant to the query (exclude these)
 
@@ -139,7 +186,7 @@ class SearchService {
       Return up to 10 wikis sorted by score (highest first).
       Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
-        temperature: 0,
+        temperature: 0.1,
         responseMimeType: 'application/json',
         responseSchema: wikiSuggestionSchema,
       },
@@ -162,7 +209,7 @@ class SearchService {
     return suggestions.filter((wiki) => wiki.score >= this.SCORE_THRESHOLD)
   }
 
-  private async getIQWikiContent(wikiId: string) {
+  private async getIQWikiContent(wikiId: string): Promise<WikiContent | null> {
     try {
       const wiki = await (await this.repository())
         .createQueryBuilder('wiki')
@@ -175,10 +222,20 @@ class SearchService {
         return null
       }
 
+      const filtered = this.filterMetadata(wiki.metadata)
+
+      const metadata: { url: string; title: string }[] | undefined =
+        filtered &&
+        Object.entries(filtered).map(([key, value]) => ({
+          url: value,
+          title: `${wiki.title}'s ${this.formatMetadataKey(key)}`,
+        }))
+
       return {
-        id: wikiId,
+        id: wiki.id,
         title: wiki.title,
         content: wiki.content,
+        metadata,
       }
     } catch (error) {
       this.logger.error(`Error fetching wiki ${wikiId}:`, error)
@@ -243,9 +300,17 @@ class SearchService {
       const allWikis = await this.fetchAllWikis()
       const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
       const filteredSuggestions = this.filterByScore(rawSuggestions)
-
       const wikiIds = filteredSuggestions.map((wiki) => wiki.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
+
+      const metadataMap = new Map(
+        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
+      )
+
+      const enrichedSuggestions = filteredSuggestions.map((suggestion) => ({
+        ...suggestion,
+        metadata: metadataMap.get(suggestion.id),
+      }))
 
       let answer =
         'No wiki content was successfully fetched to answer the question.'
@@ -255,7 +320,7 @@ class SearchService {
       }
 
       return {
-        suggestions: filteredSuggestions,
+        suggestions: enrichedSuggestions,
         answer,
       }
     } catch (error) {
