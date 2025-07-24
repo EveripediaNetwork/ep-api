@@ -177,12 +177,11 @@ class SearchService {
       4. Consider semantic relationships, not just keyword matching
 
       SCORING CRITERIA:
-      - 8-10 = Directly answers the query or provides essential information
-      - 6-7 = Highly relevant, contains key information needed
+      - 7-10 = Directly answers the query or provides essential information
+      - 6 = Highly relevant, contains key information needed
       - 5 = Minimally relevant, tangentially related
       - 1-4 = Not relevant to the query (exclude these)
 
-      Only include wikis with a score of ${this.SCORE_THRESHOLD} or higher.
       Return up to 10 wikis sorted by score (highest first).
       Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
@@ -206,7 +205,7 @@ class SearchService {
   }
 
   private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
-    return suggestions.filter((wiki) => wiki.score >= this.SCORE_THRESHOLD)
+    return suggestions.filter((wiki) => wiki.score > this.SCORE_THRESHOLD)
   }
 
   private async getIQWikiContent(wikiId: string): Promise<WikiContent | null> {
