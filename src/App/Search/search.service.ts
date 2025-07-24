@@ -80,6 +80,14 @@ class SearchService {
     'coingecko_profile',
   ])
 
+  private static readonly METADATA_KEY_MAP: Record<string, string> = {
+    website: 'Website',
+    twitter_profile: 'Twitter Profile',
+    github_profile: 'GitHub Profile',
+    coinmarketcap_url: 'CoinMarketCap Link',
+    coingecko_profile: 'Coingecko Link',
+  }
+
   constructor(
     private configService: ConfigService,
     private readonly httpService: AxiosHttpService,
@@ -99,14 +107,6 @@ class SearchService {
 
   async repository() {
     return this.dataSource.manager.getRepository(Wiki)
-  }
-
-  private static readonly METADATA_KEY_MAP: Record<string, string> = {
-    website: 'Website',
-    twitter_profile: 'Twitter Profile',
-    github_profile: 'GitHub Profile',
-    coinmarketcap_url: 'CoinMarketCap Link',
-    coingecko_profile: 'Coingecko Link',
   }
 
   private formatMetadataKey(key: string): string {
