@@ -74,6 +74,14 @@ class SearchService {
 
   private readonly SCORE_THRESHOLD = 8
 
+  private static readonly ALLOWED_METADATA = new Set([
+    'website',
+    'twitter_profile',
+    'github_profile',
+    'coinmarketcap_url',
+    'coingecko_profile',
+  ])
+
   constructor(
     private configService: ConfigService,
     private readonly httpService: AxiosHttpService,
@@ -114,21 +122,13 @@ class SearchService {
       return undefined
     }
 
-    const allowedMetadata = [
-      'website',
-      'twitter_profile',
-      'github_profile',
-      'coinmarketcap_url',
-      'coingecko_profile',
-    ]
-
     const filtered: Record<string, string> = {}
 
-    metadata.forEach((meta) => {
-      if (allowedMetadata.includes(meta.id)) {
+    for (const meta of metadata) {
+      if (SearchService.ALLOWED_METADATA.has(meta.id)) {
         filtered[meta.id] = meta.value
       }
-    })
+    }
 
     return Object.keys(filtered).length > 0 ? filtered : undefined
   }
