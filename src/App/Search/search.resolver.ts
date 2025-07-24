@@ -3,6 +3,15 @@ import { BadRequestException } from '@nestjs/common'
 import SearchService from './search.service'
 
 @ObjectType()
+class WikiMetadata {
+  @Field(() => String)
+  url!: string
+
+  @Field(() => String)
+  title!: string
+}
+
+@ObjectType()
 class WikiSuggestion {
   @Field(() => ID)
   id!: string
@@ -12,6 +21,9 @@ class WikiSuggestion {
 
   @Field(() => Number)
   score!: number
+
+  @Field(() => [WikiMetadata], { nullable: true })
+  metadata?: WikiMetadata[]
 }
 
 @ObjectType()
