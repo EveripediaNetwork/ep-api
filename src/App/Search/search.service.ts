@@ -225,7 +225,7 @@ class SearchService {
         filtered &&
         Object.entries(filtered).map(([key, value]) => ({
           url: value,
-          title: `${wiki.title}'s ${this.formatMetadataKey(key)}`,
+          title: `${wiki.title}${wiki.title.endsWith('s') ? "'" : "'s"} ${this.formatMetadataKey(key)}`
         }))
 
       return {
