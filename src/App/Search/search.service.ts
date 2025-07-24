@@ -11,9 +11,7 @@ type WikiMetadata = {
   value: string
 }
 
-type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'> & {
-  metadata?: WikiMetadata[]
-}
+type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
 type WikiSearchResult = {
   wikis: WikiSuggestion[]
