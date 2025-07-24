@@ -101,16 +101,17 @@ class SearchService {
     return this.dataSource.manager.getRepository(Wiki)
   }
 
-  private formatMetadataKey(key: string): string {
-    return (
-      {
-        website: 'Website',
-        twitter_profile: 'Twitter Profile',
-        github_profile: 'GitHub Profile',
-        coinmarketcap_url: 'CoinMarketCap Link',
-        coingecko_profile: 'Coingecko Link',
-      }[key] || key
-    )
+private static readonly METADATA_KEY_MAP: Record<string, string> = {
+  website: 'Website',
+  twitter_profile: 'Twitter Profile',
+  github_profile: 'GitHub Profile',
+  coinmarketcap_url: 'CoinMarketCap Link',
+  coingecko_profile: 'Coingecko Link',
+};
+
+private formatMetadataKey(key: string): string {
+  return SearchService.METADATA_KEY_MAP[key] || key;
+}
   }
 
   private filterMetadata(
