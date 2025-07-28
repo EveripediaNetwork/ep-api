@@ -7,7 +7,7 @@ class WikiController {
 
   @Get()
   async wikiIdAndTitle() {
-    return this.wikiService.getWikiIdAndTitle()
+    return this.wikiService.getWikiIdTitleAndSummary()
   }
 }
 export default WikiController
