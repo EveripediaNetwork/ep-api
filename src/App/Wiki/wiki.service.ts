@@ -136,9 +136,13 @@ class WikiService {
     return promotedWikis
   }
 
-  async getWikiIdAndTitle(): Promise<{ id: string; title: string }[] | []> {
-    const wikiIdsList: { id: string; title: string }[] | null | undefined =
-      await this.cacheManager.get('wikiIdsList')
+  async getWikiIdTitleAndSummary(): Promise<
+    { id: string; title: string; summary: string }[]
+  > {
+    const wikiIdsList:
+      | { id: string; title: string; summary: string }[]
+      | null
+      | undefined = await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
     const response = await (await this.repository())
       .createQueryBuilder('wiki')

@@ -6,8 +6,8 @@ class WikiController {
   constructor(private wikiService: WikiService) {}
 
   @Get()
-  async wikiIdAndTitle() {
-    return this.wikiService.getWikiIdAndTitle()
+  async wikiIdTitleAndSummary() {
+    return this.wikiService.getWikiIdTitleAndSummary()
   }
 }
 export default WikiController

@@ -1,39 +1,7 @@
-import { Args, Query, Resolver, Field, ObjectType, ID } from '@nestjs/graphql'
+import { Args, Query, Resolver } from '@nestjs/graphql'
 import { BadRequestException } from '@nestjs/common'
 import SearchService from './search.service'
-
-@ObjectType()
-class WikiMetadata {
-  @Field(() => String)
-  url!: string
-
-  @Field(() => String)
-  title!: string
-}
-
-@ObjectType()
-class WikiSuggestion {
-  @Field(() => ID)
-  id!: string
-
-  @Field(() => String)
-  title!: string
-
-  @Field(() => Number)
-  score!: number
-
-  @Field(() => [WikiMetadata], { nullable: true })
-  metadata?: WikiMetadata[]
-}
-
-@ObjectType()
-class SearchResult {
-  @Field(() => [WikiSuggestion], { nullable: true })
-  suggestions?: WikiSuggestion[]
-
-  @Field(() => String, { nullable: true })
-  answer?: string
-}
+import { SearchResult } from './search.types'
 
 @Resolver(() => SearchResult)
 class SearchResolver {
