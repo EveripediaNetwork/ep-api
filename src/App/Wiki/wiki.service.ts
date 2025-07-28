@@ -137,7 +137,7 @@ class WikiService {
   }
 
   async getWikiIdTitleAndSummary(): Promise<
-    { id: string; title: string; summary: string }[] | []
+    { id: string; title: string; summary: string }[]
   > {
     const wikiIdsList:
       | { id: string; title: string; summary: string }[]
