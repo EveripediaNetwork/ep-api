@@ -6,7 +6,7 @@ class WikiController {
   constructor(private wikiService: WikiService) {}
 
   @Get()
-  async wikiIdAndTitle() {
+  async wikiIdTitleAndSummary() {
     return this.wikiService.getWikiIdTitleAndSummary()
   }
 }
