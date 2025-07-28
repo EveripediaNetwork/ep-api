@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { HttpService as AxiosHttpService } from '@nestjs/axios'
 import { DataSource } from 'typeorm'
 import { GoogleGenAI, Type } from '@google/genai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
+import WikiService from '../Wiki/wiki.service'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 type WikiSearchResult = {
@@ -65,8 +65,8 @@ class SearchService {
 
   constructor(
     private configService: ConfigService,
-    private readonly httpService: AxiosHttpService,
     private dataSource: DataSource,
+    private readonly wikiService: WikiService,
   ) {
     this.isProduction =
       this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
@@ -82,17 +82,6 @@ class SearchService {
 
   async repository() {
     return this.dataSource.manager.getRepository(Wiki)
-  }
-
-  private async fetchAllWikis(): Promise<WikiData[]> {
-    const wikiApiUrl = this.configService.get<string>('WIKI_API_URL')
-    if (!wikiApiUrl) {
-      throw new Error('WIKI_API_URL is not defined in configuration.')
-    }
-
-    const { data } = await this.httpService.axiosRef.get(`${wikiApiUrl}/wiki`)
-
-    return data as WikiData[]
   }
 
   private async getWikiSuggestions(wikis: WikiData[], query: string) {
@@ -240,7 +229,7 @@ class SearchService {
 
   async searchWithoutCache(query: string) {
     try {
-      const allWikis = await this.fetchAllWikis()
+      const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
       const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
       const filteredSuggestions = this.filterByScore(rawSuggestions)
 
@@ -256,6 +245,7 @@ class SearchService {
 
       return {
         suggestions: filteredSuggestions,
+        wikiContents,
         answer,
       }
     } catch (error) {
