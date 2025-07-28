@@ -1,6 +1,15 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql'
 
 @ObjectType()
+class WikiMetadata {
+  @Field(() => String)
+  url!: string
+
+  @Field(() => String)
+  title!: string
+}
+
+@ObjectType()
 export class WikiSuggestion {
   @Field(() => ID)
   id!: string
@@ -10,6 +19,9 @@ export class WikiSuggestion {
 
   @Field(() => Number)
   score!: number
+
+  @Field(() => [WikiMetadata], { nullable: true })
+  metadata?: WikiMetadata[]
 }
 
 @ObjectType()

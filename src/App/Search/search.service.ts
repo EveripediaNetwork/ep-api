@@ -131,16 +131,6 @@ class SearchService {
     return Object.keys(filtered).length > 0 ? filtered : undefined
   }
 
-  private async fetchAllWikis(): Promise<WikiData[]> {
-    const wikiApiUrl = this.configService.get<string>('WIKI_API_URL')
-    if (!wikiApiUrl) {
-      throw new Error('WIKI_API_URL is not defined in configuration.')
-    }
-
-    const { data } = await this.httpService.axiosRef.get(`${wikiApiUrl}/wiki`)
-    return data as WikiData[]
-  }
-
   private async getWikiSuggestions(wikis: WikiData[], query: string) {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
