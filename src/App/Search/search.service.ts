@@ -282,7 +282,7 @@ class SearchService {
     return response.text || 'No answer generated'
   }
 
-  async searchWithoutCache(query: string) {
+  async searchWithoutCache(query: string, withAnswer: boolean) {
     try {
       const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
       const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
@@ -302,7 +302,7 @@ class SearchService {
       let answer =
         'No wiki content was successfully fetched to answer the question.'
 
-      if (wikiContents.length > 0) {
+      if (wikiContents.length > 0 && withAnswer) {
         answer = await this.answerQuestion(query, wikiContents)
       }
 
@@ -317,8 +317,8 @@ class SearchService {
     }
   }
 
-  async search(query: string) {
-    const result = await this.searchWithoutCache(query)
+  async search(query: string, withAnswer: boolean) {
+    const result = await this.searchWithoutCache(query, withAnswer)
     return result
   }
 }
