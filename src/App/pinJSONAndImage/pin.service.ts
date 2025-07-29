@@ -185,8 +185,13 @@ class PinService {
     const repository = this.dataSource.getRepository(Events)
 
     if (!wiki.events || wiki.events.length === 0) {
+      this.logger.debug('No events to process for wiki:', wiki.id)
       return { createdEvents: [], updatedEvents: [], deletedEvents: [] }
     }
+
+    this.logger.debug(
+      `Processing ${wiki.events.length} events for wiki: ${wiki.id}`,
+    )
 
     let createEvents = wiki.events.filter(
       (event) => event.action === EventAction.CREATE,
@@ -196,6 +201,10 @@ class PinService {
     )
     const deleteEvents = wiki.events.filter(
       (event) => event.action === EventAction.DELETE,
+    )
+
+    this.logger.debug(
+      `Event breakdown - Create: ${createEvents.length}, Update: ${updateEvents.length}, Delete: ${deleteEvents.length}`,
     )
 
     createEvents = createEvents.map((e) => {
@@ -256,9 +265,67 @@ class PinService {
       const eventsToBeDeleted = deleteEvents.map(({ action, ...rest }) => ({
         ...rest,
       }))
-      const idValues = eventsToBeDeleted.map((obj) => obj.id)
-      await repository.delete({ id: In(idValues) })
-      deletedEvents.push(...eventsToBeDeleted)
+
+      // Validate that all events have valid IDs
+      const validDeleteEvents = eventsToBeDeleted.filter(
+        (event) =>
+          event.id &&
+          typeof event.id === 'string' &&
+          event.id.trim().length > 0,
+      )
+
+      if (validDeleteEvents.length === 0) {
+        this.logger.warn('No valid event IDs found for deletion')
+      } else {
+        try {
+          const idValues = validDeleteEvents.map((obj) => obj.id)
+          this.logger.debug(
+            `Attempting to delete ${
+              idValues.length
+            } events with IDs: ${idValues.join(', ')}`,
+          )
+
+          const deleteResult = await repository.delete({ id: In(idValues) })
+
+          this.logger.log(
+            `Successfully deleted ${
+              deleteResult.affected || 0
+            } events from database`,
+          )
+          deletedEvents.push(...validDeleteEvents)
+
+          // Log any events that couldn't be deleted
+          if ((deleteResult.affected || 0) < validDeleteEvents.length) {
+            this.logger.warn(
+              `Expected to delete ${
+                validDeleteEvents.length
+              } events but only deleted ${deleteResult.affected || 0}`,
+            )
+          }
+        } catch (error) {
+          this.logger.error('Failed to delete events from database:', error)
+          throw new HttpException(
+            {
+              status: HttpStatus.INTERNAL_SERVER_ERROR,
+              error: 'Failed to delete events',
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          )
+        }
+      }
+
+      // Log invalid events that were skipped
+      const invalidEvents = eventsToBeDeleted.filter(
+        (event) =>
+          !event.id ||
+          typeof event.id !== 'string' ||
+          event.id.trim().length === 0,
+      )
+      if (invalidEvents.length > 0) {
+        this.logger.warn(
+          `Skipped ${invalidEvents.length} events with invalid IDs for deletion`,
+        )
+      }
     }
     return { createdEvents, updatedEvents, deletedEvents }
   }
@@ -269,26 +336,61 @@ class PinService {
     deletedEvents: Events[],
   ): Promise<void> {
     const repository = this.dataSource.getRepository(Events)
-    const idValues = createdIds.map((obj) => obj.id)
-    await repository.delete({ id: In(idValues) })
 
-    if (updatedEvents.length !== 0) {
-      for (const event of updatedEvents) {
-        await repository.update({ id: event.id }, event)
-      }
-    }
-    if (deletedEvents.length !== 0) {
-      await repository
-        .createQueryBuilder()
-        .insert()
-        .into(Events)
-        .values(
-          deletedEvents.map(({ id, ...eventWithoutId }) => ({
-            id,
-            ...eventWithoutId,
-          })),
+    try {
+      // Revert created events (delete them)
+      if (createdIds.length > 0) {
+        const validCreatedIds = createdIds.filter(
+          (obj) =>
+            obj.id && typeof obj.id === 'string' && obj.id.trim().length > 0,
         )
-        .execute()
+
+        if (validCreatedIds.length > 0) {
+          const idValues = validCreatedIds.map((obj) => obj.id)
+          this.logger.debug(`Reverting ${idValues.length} created events`)
+          await repository.delete({ id: In(idValues) })
+        }
+      }
+
+      // Revert updated events (restore original values)
+      if (updatedEvents.length > 0) {
+        this.logger.debug(`Reverting ${updatedEvents.length} updated events`)
+        for (const event of updatedEvents) {
+          await repository.update({ id: event.id }, event)
+        }
+      }
+
+      // Revert deleted events (recreate them)
+      if (deletedEvents.length > 0) {
+        const validDeletedEvents = deletedEvents.filter(
+          (event) =>
+            event.id &&
+            typeof event.id === 'string' &&
+            event.id.trim().length > 0,
+        )
+
+        if (validDeletedEvents.length > 0) {
+          this.logger.debug(
+            `Reverting ${validDeletedEvents.length} deleted events (recreating them)`,
+          )
+          await repository
+            .createQueryBuilder()
+            .insert()
+            .into(Events)
+            .values(
+              validDeletedEvents.map(({ id, ...eventWithoutId }) => ({
+                id,
+                ...eventWithoutId,
+              })),
+            )
+            .execute()
+        }
+      }
+
+      this.logger.log('Successfully reverted all event changes')
+    } catch (error) {
+      this.logger.error('Failed to revert event changes:', error)
+      // Don't throw here as this is already in an error recovery scenario
     }
   }
 
