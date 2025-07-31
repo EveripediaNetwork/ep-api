@@ -66,11 +66,11 @@ class SearchService {
 
   private ai: GoogleGenAI | null = null
 
-  private readonly modelName = 'gemini-2.0-flash'
+  private readonly modelName = 'gemini-2.5-flash'
 
   private readonly isProduction: boolean
 
-  private readonly SCORE_THRESHOLD = 8
+  private readonly SCORE_THRESHOLD = 6
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -94,7 +94,7 @@ class SearchService {
     private readonly wikiService: WikiService,
   ) {
     this.isProduction =
-      this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
+      this.configService.get<string>('API_LEVEL') !== ApiLevel.PROD
 
     if (this.isProduction) {
       this.ai = new GoogleGenAI({
@@ -139,41 +139,40 @@ class SearchService {
     const wikiEntries = wikis
       .map(
         (wiki) =>
-          `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}\n---`,
+          `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}`,
       )
       .join('\n\n')
-
-    const wikiContent = endent`WIKI KNOWLEDGE BASE (${wikis.length} entries)
-              ===========================================
-
-              ${wikiEntries}
-`
 
     const response = await this.ai.models.generateContent({
       model: this.modelName,
       contents: endent`You are an expert at analyzing wiki content relevance. Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
 
-      ${wikiContent}
+      WIKI KNOWLEDGE BASE (${wikis.length} entries):
+      ${wikiEntries}
 
-      INSTRUCTIONS:
+    INSTRUCTIONS:
       1. First, analyze the query to understand what information is being sought
       2. For each wiki, think through:
         - Does the title directly relate to the query topic?
         - Does the summary contain information that would help answer the query?
         - How well does the wiki content match what the user is asking for?
-      3. Be precise and thoughtful in your scoring - only suggest wikis that genuinely help answer the query
-      4. Consider semantic relationships, not just keyword matching
+      3. Be thoughtful in your scoring, but do not overlook surface matches:
+        - If the query term appears in the title or summary, give it at least a score of 5
+        - Include all entries that mention the query term, even if they are only tangentially related
+        - Use deeper semantic reasoning to elevate the most directly helpful entries
+      4. Return only the most relevant wikis, up to 10 in total, sorted by score (highest first)
+      5. Be precise and honest — do not score highly unless the entry clearly helps address the query
 
       SCORING CRITERIA:
       - 7-10 = Directly answers the query or provides essential information
       - 6 = Highly relevant, contains key information needed
-      - 5 = Minimally relevant, tangentially related
+      - 5 = Mentions the query term but only tangentially helpful
       - 1-4 = Not relevant to the query (exclude these)
 
-      Return up to 10 wikis sorted by score (highest first).
       Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
-        temperature: 0.1,
+        temperature: 0,
+        seed: 420,
         responseMimeType: 'application/json',
         responseSchema: wikiSuggestionSchema,
       },
@@ -276,6 +275,7 @@ class SearchService {
         Provide a thoughtful, well-reasoned answer that makes the best use of the available information while being transparent about its completeness.`,
       config: {
         temperature: 0,
+        seed: 420,
       },
     })
 
