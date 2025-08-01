@@ -66,7 +66,7 @@ class SearchService {
 
   private ai: GoogleGenAI | null = null
 
-  private static readonly modelName = 'gemini-2.5-flash'
+  private static readonly modelName = 'gemini-2.5-flash-lite'
 
   private readonly isProduction: boolean
 
@@ -305,8 +305,7 @@ class SearchService {
         metadata: metadataMap.get(suggestion.id),
       }))
 
-      let answer =
-        'No wiki content was successfully fetched to answer the question.'
+      let answer: string | undefined
 
       if (wikiContents.length > 0 && withAnswer) {
         answer = await this.answerQuestion(query, wikiContents)
@@ -319,7 +318,13 @@ class SearchService {
       }
     } catch (error) {
       this.logger.error('Error in searchWithoutCache:', error)
-      throw error
+      return {
+        suggestions: [],
+        wikiContents: [],
+        answer: `Search failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      }
     }
   }
 
