@@ -72,6 +72,10 @@ class SearchService {
 
   private readonly SCORE_THRESHOLD = 6
 
+  private static readonly SEED = 420
+
+  private static readonly TEMPERATURE = 0
+
   private static readonly ALLOWED_METADATA = new Set([
     'website',
     'twitter_profile',
@@ -171,8 +175,8 @@ class SearchService {
 
       Think carefully about whether each wiki truly helps answer the specific query.`,
       config: {
-        temperature: 0,
-        seed: 420,
+        temperature: SearchService.TEMPERATURE,
+        seed: SearchService.SEED,
         responseMimeType: 'application/json',
         responseSchema: wikiSuggestionSchema,
       },
@@ -274,8 +278,8 @@ class SearchService {
 
         Provide a thoughtful, well-reasoned answer that makes the best use of the available information while being transparent about its completeness.`,
       config: {
-        temperature: 0,
-        seed: 420,
+        temperature: SearchService.TEMPERATURE,
+        seed: SearchService.SEED,
       },
     })
 
