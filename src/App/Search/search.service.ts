@@ -66,11 +66,11 @@ class SearchService {
 
   private ai: GoogleGenAI | null = null
 
-  private readonly modelName = 'gemini-2.5-flash'
+  private static readonly modelName = 'gemini-2.5-flash'
 
   private readonly isProduction: boolean
 
-  private readonly SCORE_THRESHOLD = 6
+  private static readonly SCORE_THRESHOLD = 6
 
   private static readonly SEED = 420
 
@@ -148,7 +148,7 @@ class SearchService {
       .join('\n\n')
 
     const response = await this.ai.models.generateContent({
-      model: this.modelName,
+      model: SearchService.modelName,
       contents: endent`You are an expert at analyzing wiki content relevance. Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
 
       WIKI KNOWLEDGE BASE (${wikis.length} entries):
@@ -196,7 +196,9 @@ class SearchService {
   }
 
   private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
-    return suggestions.filter((wiki) => wiki.score > this.SCORE_THRESHOLD)
+    return suggestions.filter(
+      (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
+    )
   }
 
   private async getIQWikiContent(wikiId: string): Promise<WikiContent | null> {
@@ -259,7 +261,7 @@ class SearchService {
       .join('\n\n')
 
     const response = await this.ai.models.generateContent({
-      model: this.modelName,
+      model: SearchService.modelName,
       contents: endent`You are a wiki expert tasked with providing accurate, comprehensive answers based on the provided context.
 
         QUERY: "${query}"
