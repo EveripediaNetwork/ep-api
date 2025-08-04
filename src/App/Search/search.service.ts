@@ -76,7 +76,11 @@ class SearchService {
 
   private static readonly TEMPERATURE = 0
 
-  private static readonly MAX_WIKIS_PER_BATCH = 500
+  private static readonly MAX_WIKIS_PER_BATCH = 1000
+
+  private static readonly MIN_HIGH_SCORE_RESULTS = 5
+
+  private static readonly HIGH_SCORE_THRESHOLD = 9
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -230,12 +234,36 @@ class SearchService {
       `Processing ${wikis.length} wikis in ${batches.length} batches`,
     )
 
-    const batchPromises = batches.map((batch) =>
-      this.processBatch(batch, query),
-    )
-    const batchResults = await Promise.all(batchPromises)
+    const allSuggestions: WikiSuggestion[] = []
 
-    const allSuggestions = batchResults.flat()
+    for (const batch of batches) {
+      const batchResults = await this.processBatch(batch, query)
+      allSuggestions.push(...batchResults)
+
+      const sortedResults = allSuggestions.sort((a, b) => b.score - a.score)
+
+      // Early termination: if we have enough high-scoring results, stop processing
+      const highScoreResults = sortedResults.filter(
+        (wiki) => wiki.score >= SearchService.HIGH_SCORE_THRESHOLD,
+      )
+      if (highScoreResults.length >= SearchService.MIN_HIGH_SCORE_RESULTS) {
+        this.logger.debug(
+          `Early termination: found ${highScoreResults.length} high-scoring results`,
+        )
+        return sortedResults.slice(0, 5)
+      }
+
+      // If we already have 5+ results with score > threshold, stop processing
+      const goodResults = sortedResults.filter(
+        (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
+      )
+      if (goodResults.length >= 5 && batches.indexOf(batch) >= 2) {
+        this.logger.debug(
+          `Early termination: found ${goodResults.length} good results after ${batches.indexOf(batch) + 1} batches`,
+        )
+        return sortedResults.slice(0, 5)
+      }
+    }
 
     return allSuggestions.sort((a, b) => b.score - a.score).slice(0, 5)
   }
