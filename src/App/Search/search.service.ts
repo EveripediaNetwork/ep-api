@@ -66,7 +66,7 @@ class SearchService {
 
   private ai: OpenAI | null = null
 
-  private static readonly modelName = 'gpt-4o-mini'
+  private static readonly modelName = 'gpt-4.1-mini'
 
   private readonly isProduction: boolean
 
@@ -75,16 +75,6 @@ class SearchService {
   private static readonly SEED = 420
 
   private static readonly TEMPERATURE = 0
-
-  private static readonly MAX_WIKIS_PER_BATCH = 1000
-
-  private static readonly MIN_HIGH_SCORE_RESULTS = 5
-
-  private static readonly HIGH_SCORE_THRESHOLD = 9
-
-  private static readonly MIN_GOOD_RESULTS = 5
-
-  private static readonly MIN_BATCHES_BEFORE_GOOD_TERMINATION = 2
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -143,20 +133,21 @@ class SearchService {
     return Object.keys(filtered).length > 0 ? filtered : undefined
   }
 
-  private async processBatch(
-    wikis: WikiData[],
-    query: string,
-  ): Promise<WikiSuggestion[]> {
+  private async getWikiSuggestions(wikis: WikiData[], query: string) {
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
+    if (wikis.length === 0) {
+      return []
+    }
+
     const wikiEntries = wikis
       .map(
         (wiki) =>
           `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}`,
       )
       .join('\n\n')
-
-    if (!this.ai) {
-      throw new Error('AI service not available - production mode required')
-    }
 
     const response = await this.ai.chat.completions.create({
       model: SearchService.modelName,
@@ -218,64 +209,6 @@ class SearchService {
       const errorMessage = e instanceof Error ? e.message : String(e)
       throw new Error(`Invalid JSON from OpenAI response: ${errorMessage}`)
     }
-  }
-
-  private async getWikiSuggestions(wikis: WikiData[], query: string) {
-    if (!this.ai) {
-      throw new Error('AI service not available - production mode required')
-    }
-
-    if (wikis.length === 0) {
-      return []
-    }
-
-    const batches: WikiData[][] = []
-    for (let i = 0; i < wikis.length; i += SearchService.MAX_WIKIS_PER_BATCH) {
-      batches.push(wikis.slice(i, i + SearchService.MAX_WIKIS_PER_BATCH))
-    }
-
-    this.logger.debug(
-      `Processing ${wikis.length} wikis in ${batches.length} batches`,
-    )
-
-    const allSuggestions: WikiSuggestion[] = []
-
-    for (const batch of batches) {
-      const batchResults = await this.processBatch(batch, query)
-      allSuggestions.push(...batchResults)
-
-      // Early termination: if we have enough high-scoring results, stop processing
-      const highScoreResults = allSuggestions.filter(
-        (wiki) => wiki.score >= SearchService.HIGH_SCORE_THRESHOLD,
-      )
-      if (highScoreResults.length >= SearchService.MIN_HIGH_SCORE_RESULTS) {
-        this.logger.debug(
-          `Early termination: found ${highScoreResults.length} high-scoring results`,
-        )
-        return allSuggestions
-          .sort((a, b) => b.score - a.score)
-          .slice(0, SearchService.MIN_GOOD_RESULTS)
-      }
-
-      // If we already have 5+ results with score > threshold, stop processing
-      const goodResults = allSuggestions.filter(
-        (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
-      )
-      if (
-        goodResults.length >= SearchService.MIN_GOOD_RESULTS &&
-        batches.indexOf(batch) >=
-          SearchService.MIN_BATCHES_BEFORE_GOOD_TERMINATION
-      ) {
-        this.logger.debug(
-          `Early termination: found ${goodResults.length} good results after ${batches.indexOf(batch) + 1} batches`,
-        )
-        return allSuggestions
-          .sort((a, b) => b.score - a.score)
-          .slice(0, SearchService.MIN_GOOD_RESULTS)
-      }
-    }
-
-    return allSuggestions.sort((a, b) => b.score - a.score).slice(0, 5)
   }
 
   private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
