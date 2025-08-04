@@ -101,12 +101,12 @@ class SearchService {
   ) {
     this.isProduction =
       this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
-    this.ai = new OpenAI({
-      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
-    })
-    // if (this.isProduction) {
 
-    // }
+    if (this.isProduction) {
+      this.ai = new OpenAI({
+        apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
+      })
+    }
   }
 
   async repository() {
@@ -146,7 +146,11 @@ class SearchService {
       )
       .join('\n\n')
 
-    const response = await this.ai!.chat.completions.create({
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
+    const response = await this.ai.chat.completions.create({
       model: SearchService.modelName,
       messages: [
         {
@@ -301,7 +305,11 @@ class SearchService {
       .map((wiki) => `WIKI: ${wiki.title}\nCONTENT: ${wiki.content}\n---`)
       .join('\n\n')
 
-    const response = await this.ai!.chat.completions.create({
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
+    const response = await this.ai.chat.completions.create({
       model: SearchService.modelName,
       messages: [
         {
