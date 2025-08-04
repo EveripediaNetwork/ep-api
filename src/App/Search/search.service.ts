@@ -82,6 +82,10 @@ class SearchService {
 
   private static readonly HIGH_SCORE_THRESHOLD = 9
 
+  private static readonly MIN_GOOD_RESULTS = 5
+
+  private static readonly MIN_BATCHES_BEFORE_GOOD_TERMINATION = 2
+
   private static readonly ALLOWED_METADATA = new Set([
     'website',
     'twitter_profile',
@@ -240,28 +244,34 @@ class SearchService {
       const batchResults = await this.processBatch(batch, query)
       allSuggestions.push(...batchResults)
 
-      const sortedResults = allSuggestions.sort((a, b) => b.score - a.score)
-
       // Early termination: if we have enough high-scoring results, stop processing
-      const highScoreResults = sortedResults.filter(
+      const highScoreResults = allSuggestions.filter(
         (wiki) => wiki.score >= SearchService.HIGH_SCORE_THRESHOLD,
       )
       if (highScoreResults.length >= SearchService.MIN_HIGH_SCORE_RESULTS) {
         this.logger.debug(
           `Early termination: found ${highScoreResults.length} high-scoring results`,
         )
-        return sortedResults.slice(0, 5)
+        return allSuggestions
+          .sort((a, b) => b.score - a.score)
+          .slice(0, SearchService.MIN_GOOD_RESULTS)
       }
 
       // If we already have 5+ results with score > threshold, stop processing
-      const goodResults = sortedResults.filter(
+      const goodResults = allSuggestions.filter(
         (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
       )
-      if (goodResults.length >= 5 && batches.indexOf(batch) >= 2) {
+      if (
+        goodResults.length >= SearchService.MIN_GOOD_RESULTS &&
+        batches.indexOf(batch) >=
+          SearchService.MIN_BATCHES_BEFORE_GOOD_TERMINATION
+      ) {
         this.logger.debug(
           `Early termination: found ${goodResults.length} good results after ${batches.indexOf(batch) + 1} batches`,
         )
-        return sortedResults.slice(0, 5)
+        return allSuggestions
+          .sort((a, b) => b.score - a.score)
+          .slice(0, SearchService.MIN_GOOD_RESULTS)
       }
     }
 
