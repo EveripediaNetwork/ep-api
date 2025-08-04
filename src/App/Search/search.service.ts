@@ -343,10 +343,6 @@ class SearchService {
       .map((wiki) => `WIKI: ${wiki.title}\nCONTENT: ${wiki.content}\n---`)
       .join('\n\n')
 
-    if (!this.ai) {
-      throw new Error('AI service not available - production mode required')
-    }
-
     const response = await this.ai.chat.completions.create({
       model: SearchService.modelName,
       messages: [
