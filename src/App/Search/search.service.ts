@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
-import { GoogleGenAI, Type } from '@google/genai'
+import OpenAI from 'openai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
@@ -34,17 +34,17 @@ type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
 }
 
 const wikiSuggestionSchema = {
-  type: Type.OBJECT,
+  type: 'object',
   properties: {
     wikis: {
-      type: Type.ARRAY,
+      type: 'array',
       items: {
-        type: Type.OBJECT,
+        type: 'object',
         properties: {
-          id: { type: Type.STRING, description: 'The wiki ID' },
-          title: { type: Type.STRING, description: 'The wiki title' },
+          id: { type: 'string', description: 'The wiki ID' },
+          title: { type: 'string', description: 'The wiki title' },
           score: {
-            type: Type.NUMBER,
+            type: 'number',
             description:
               'Relevance score from 1-10 (10 = extremely relevant to the query, 1 = barely relevant)',
             minimum: 1,
@@ -54,7 +54,7 @@ const wikiSuggestionSchema = {
         required: ['id', 'title', 'score'],
       },
       description:
-        'Array of wikis with relevance scores (max 10, sorted by score descending)',
+        'Array of wikis with relevance scores (max 5, sorted by score descending)',
     },
   },
   required: ['wikis'],
@@ -64,13 +64,17 @@ const wikiSuggestionSchema = {
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
 
-  private ai: GoogleGenAI | null = null
+  private ai: OpenAI | null = null
 
-  private readonly modelName = 'gemini-2.0-flash'
+  private static readonly modelName = 'gpt-4.1-mini'
 
   private readonly isProduction: boolean
 
-  private readonly SCORE_THRESHOLD = 8
+  private static readonly SCORE_THRESHOLD = 6
+
+  private static readonly SEED = 420
+
+  private static readonly TEMPERATURE = 0
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -97,10 +101,8 @@ class SearchService {
       this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
 
     if (this.isProduction) {
-      this.ai = new GoogleGenAI({
-        apiKey: this.configService.getOrThrow<string>(
-          'GOOGLE_GENERATIVE_AI_API_KEY',
-        ),
+      this.ai = new OpenAI({
+        apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
       })
     }
   }
@@ -136,64 +138,83 @@ class SearchService {
       throw new Error('AI service not available - production mode required')
     }
 
+    if (wikis.length === 0) {
+      return []
+    }
+
     const wikiEntries = wikis
       .map(
         (wiki) =>
-          `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}\n---`,
+          `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}`,
       )
       .join('\n\n')
 
-    const wikiContent = endent`WIKI KNOWLEDGE BASE (${wikis.length} entries)
-              ===========================================
+    const response = await this.ai.chat.completions.create({
+      model: SearchService.modelName,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an expert at analyzing wiki content relevance. Return a valid JSON response matching the requested schema.',
+        },
+        {
+          role: 'user',
+          content: endent`Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
 
-              ${wikiEntries}
-`
+      WIKI KNOWLEDGE BASE (${wikis.length} entries):
+      ${wikiEntries}
 
-    const response = await this.ai.models.generateContent({
-      model: this.modelName,
-      contents: endent`You are an expert at analyzing wiki content relevance. Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
-
-      ${wikiContent}
-
-      INSTRUCTIONS:
+    INSTRUCTIONS:
       1. First, analyze the query to understand what information is being sought
       2. For each wiki, think through:
         - Does the title directly relate to the query topic?
         - Does the summary contain information that would help answer the query?
         - How well does the wiki content match what the user is asking for?
-      3. Be precise and thoughtful in your scoring - only suggest wikis that genuinely help answer the query
-      4. Consider semantic relationships, not just keyword matching
+      3. Be thoughtful in your scoring, but do not overlook surface matches:
+        - If the query term appears in the title or summary, give it at least a score of 5
+        - Include all entries that mention the query term, even if they are only tangentially related
+        - Use deeper semantic reasoning to elevate the most directly helpful entries
+      4. Return only the most relevant wikis, up to 5 in total, sorted by score (highest first)
+      5. Be precise and honest — do not score highly unless the entry clearly helps address the query
 
       SCORING CRITERIA:
       - 7-10 = Directly answers the query or provides essential information
       - 6 = Highly relevant, contains key information needed
-      - 5 = Minimally relevant, tangentially related
+      - 5 = Mentions the query term but only tangentially helpful
       - 1-4 = Not relevant to the query (exclude these)
 
-      Return up to 10 wikis sorted by score (highest first).
       Think carefully about whether each wiki truly helps answer the specific query.`,
-      config: {
-        temperature: 0.1,
-        responseMimeType: 'application/json',
-        responseSchema: wikiSuggestionSchema,
+        },
+      ],
+      temperature: SearchService.TEMPERATURE,
+      seed: SearchService.SEED,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'wiki_suggestions',
+          schema: wikiSuggestionSchema,
+        },
       },
     })
 
-    if (!response.text) {
-      throw new Error('Gemini returned no response text')
+    const content = response.choices[0]?.message?.content
+    if (!content) {
+      throw new Error('OpenAI returned no response content')
     }
 
     try {
-      const result = JSON.parse(response.text) as WikiSearchResult
+      const result = JSON.parse(content) as WikiSearchResult
       return result.wikis || []
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e)
-      throw new Error(`Invalid JSON from Gemini response: ${errorMessage}`)
+      throw new Error(`Invalid JSON from OpenAI response: ${errorMessage}`)
     }
   }
 
   private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
-    return suggestions.filter((wiki) => wiki.score > this.SCORE_THRESHOLD)
+    return suggestions.filter(
+      (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
+    )
   }
 
   private async getIQWikiContent(wikiId: string): Promise<WikiContent | null> {
@@ -255,11 +276,17 @@ class SearchService {
       .map((wiki) => `WIKI: ${wiki.title}\nCONTENT: ${wiki.content}\n---`)
       .join('\n\n')
 
-    const response = await this.ai.models.generateContent({
-      model: this.modelName,
-      contents: endent`You are a wiki expert tasked with providing accurate, comprehensive answers based on the provided context.
-
-        QUERY: "${query}"
+    const response = await this.ai.chat.completions.create({
+      model: SearchService.modelName,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a wiki expert tasked with providing accurate, comprehensive answers based on the provided context.',
+        },
+        {
+          role: 'user',
+          content: endent`QUERY: "${query}"
 
         CONTEXT:
         ${contextContent}
@@ -274,12 +301,13 @@ class SearchService {
         7. Structure your answer clearly and cite which wikis provide specific information when relevant
 
         Provide a thoughtful, well-reasoned answer that makes the best use of the available information while being transparent about its completeness.`,
-      config: {
-        temperature: 0,
-      },
+        },
+      ],
+      temperature: SearchService.TEMPERATURE,
+      seed: SearchService.SEED,
     })
 
-    return response.text || 'No answer generated'
+    return response.choices[0]?.message?.content || 'No answer generated'
   }
 
   async searchWithoutCache(query: string, withAnswer: boolean) {
