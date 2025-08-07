@@ -100,7 +100,7 @@ describe('PageViewsService', () => {
         .spyOn(pageViewsService, 'repository')
         .mockResolvedValue(repository as any)
 
-      const result = await pageViewsService['updatePageViewPerDay']('wiki-id')
+      const result = await pageViewsService.updatePageViewPerDay('wiki-id')
 
       expect(result).toBe(1)
       expect(repository.create).toHaveBeenCalledWith({
@@ -120,7 +120,7 @@ describe('PageViewsService', () => {
         .spyOn(pageViewsService, 'repository')
         .mockResolvedValue(repository as any)
 
-      const result = await pageViewsService['updatePageViewPerDay']('wiki-id')
+      const result = await pageViewsService.updatePageViewPerDay('wiki-id')
 
       expect(result).toBe(1)
       expect(repository.query).toHaveBeenCalledWith(

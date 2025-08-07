@@ -40,6 +40,7 @@ describe('TagResolver', () => {
 
           ProviderEnum.webhookHandler,
           ProviderEnum.discordWebhookService,
+          ProviderEnum.wikiTranslationService,
         ]),
         {
           provide: DataSource,
