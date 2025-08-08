@@ -547,4 +547,39 @@ export default class WikiTranslationService {
       throw error
     }
   }
+
+  async getTranslationStats(): Promise<{
+    totalTranslations: number
+    pendingTranslations: number
+    completedTranslations: number
+    failedTranslations: number
+    totalCost: number
+  }> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const [
+      totalTranslations,
+      pendingTranslations,
+      completedTranslations,
+      failedTranslations,
+    ] = await Promise.all([
+      repository.count(),
+      repository.count({ where: { translationStatus: 'pending' } }),
+      repository.count({ where: { translationStatus: 'completed' } }),
+      repository.count({ where: { translationStatus: 'failed' } }),
+    ])
+
+    const costResult = await repository
+      .createQueryBuilder('translation')
+      .select('SUM(translation.translationCost)', 'totalCost')
+      .getRawOne()
+
+    return {
+      totalTranslations,
+      pendingTranslations,
+      completedTranslations,
+      failedTranslations,
+      totalCost: parseFloat(costResult?.totalCost || '0'),
+    }
+  }
 }

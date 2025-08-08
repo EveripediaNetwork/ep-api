@@ -66,6 +66,24 @@ export class TranslationResponse {
   error?: string
 }
 
+@ObjectType()
+export class TranslationStats {
+  @Field(() => Int)
+  totalTranslations!: number
+
+  @Field(() => Int)
+  pendingTranslations!: number
+
+  @Field(() => Int)
+  completedTranslations!: number
+
+  @Field(() => Int)
+  failedTranslations!: number
+
+  @Field(() => Float)
+  totalCost!: number
+}
+
 export interface TranslationResult {
   success: boolean
   translatedContent?: TranslatedContent
