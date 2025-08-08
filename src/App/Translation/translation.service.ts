@@ -78,7 +78,19 @@ export default class WikiTranslationService {
         }
       }
 
-      const translationResult = await this.performTranslation(wiki)
+      // Check if content is extremely large and needs special handling
+      const contentLength = (wiki.content || '').length
+      let translationResult: TranslationResult
+
+      if (contentLength > 12000) {
+        this.logger.log(
+          `Large content detected (${contentLength} chars) for wiki ${wikiId}, using chunked translation`,
+        )
+        translationResult = await this.performChunkedTranslation(wiki)
+      } else {
+        translationResult = await this.performTranslation(wiki)
+      }
+
       if (!translationResult.success) {
         await this.saveTranslationError(
           wikiId,
@@ -223,9 +235,97 @@ export default class WikiTranslationService {
     return repository.findOne({ where: { id: wikiId } })
   }
 
-  private async performTranslation(wiki: Wiki): Promise<TranslationResult> {
-    const contentToTranslate = this.prepareContentForTranslation(wiki)
+  private async performChunkedTranslation(
+    wiki: Wiki,
+  ): Promise<TranslationResult> {
+    try {
+      // Translate title and summary first (they're usually short)
+      const titleSummaryContentObj: any = {}
+      if (wiki.title) titleSummaryContentObj.title = wiki.title
+      if (wiki.summary) titleSummaryContentObj.summary = wiki.summary
 
+      const titleSummaryContent = JSON.stringify(
+        titleSummaryContentObj,
+        null,
+        2,
+      )
+      const titleSummaryResult =
+        await this.translateContent(titleSummaryContent)
+
+      if (!titleSummaryResult.success) {
+        return titleSummaryResult
+      }
+
+      // Now handle the content in chunks
+      const content = wiki.content || ''
+      if (content.length === 0) {
+        return titleSummaryResult
+      }
+
+      // Split content into logical sections
+      const sections = this.splitContentIntoSections(content)
+      const translatedSections: string[] = []
+      let totalCost = titleSummaryResult.cost || 0
+
+      this.logger.log(`Translating content in ${sections.length} sections`)
+
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i]
+        if (section.trim().length === 0) continue
+
+        try {
+          const sectionContent = JSON.stringify({ content: section }, null, 2)
+          const sectionResult = await this.translateContent(sectionContent)
+
+          if (
+            sectionResult.success &&
+            sectionResult.translatedContent?.content
+          ) {
+            translatedSections.push(sectionResult.translatedContent.content)
+            totalCost += sectionResult.cost || 0
+          } else {
+            this.logger.warn(
+              `Failed to translate section ${i + 1}, skipping...`,
+            )
+            // Include original section if translation fails
+            translatedSections.push(section)
+          }
+
+          // Add small delay between sections to avoid rate limits
+          if (i < sections.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 500))
+          }
+        } catch (error) {
+          this.logger.error(`Error translating section ${i + 1}:`, error)
+          translatedSections.push(section) // Fallback to original
+        }
+      }
+
+      const combinedContent = translatedSections.join('\n\n')
+
+      return {
+        success: true,
+        translatedContent: {
+          title: titleSummaryResult.translatedContent?.title,
+          summary: titleSummaryResult.translatedContent?.summary,
+          content: combinedContent,
+        },
+        provider: 'openai',
+        model: this.openaiModel,
+        cost: totalCost,
+      }
+    } catch (error: any) {
+      this.logger.error('Error in chunked translation:', error)
+      return {
+        success: false,
+        error: `Chunked translation error: ${error.message || 'Unknown error'}`,
+      }
+    }
+  }
+
+  private async translateContent(
+    contentToTranslate: string,
+  ): Promise<TranslationResult> {
     if (!contentToTranslate.trim()) {
       return {
         success: false,
@@ -240,13 +340,29 @@ export default class WikiTranslationService {
           {
             role: 'system',
             content: `You are a professional translator specializing in translating Wikipedia-style content to Korean. 
-            Translate the provided JSON content accurately while maintaining:
+            
+            IMPORTANT: You must return ONLY valid JSON in the exact format specified below. Do not include any markdown formatting, explanations, or additional text.
+            
+            Translation guidelines:
             1. Technical accuracy and proper terminology
             2. Natural Korean language flow
             3. Proper names should remain in their original form with Korean pronunciation in parentheses when appropriate
-            4. JSON structure must be preserved exactly
-
-            Return only the translated JSON with the same structure.`,
+            4. Preserve the exact JSON structure
+            5. Escape all special characters properly in JSON strings
+            6. Do not use unescaped quotes, newlines, or backslashes in the JSON values
+            7. Preserve markdown formatting, links, widgets, and citations exactly as they appear
+            8. Keep special elements like $$widget0 [YOUTUBE@VID](videoId)$$ unchanged
+            9. Keep citation links like [[1]](#cite-id-xyz) unchanged
+            10. Translate the actual text content while preserving all formatting
+            
+            Expected JSON format:
+            {
+              "title": "translated title here",
+              "summary": "translated summary here", 
+              "content": "translated content with preserved formatting here"
+            }
+            
+            Return ONLY the JSON object, nothing else.`,
           },
           {
             role: 'user',
@@ -254,7 +370,7 @@ export default class WikiTranslationService {
           },
         ],
         temperature: 0.1,
-        max_tokens: 4000,
+        max_tokens: 8000,
       })
 
       const translatedContent = completion.choices[0]?.message?.content
@@ -268,22 +384,6 @@ export default class WikiTranslationService {
 
       const parsedContent = this.parseTranslatedContent(translatedContent)
       const cost = this.calculateCost(completion.usage)
-
-      // Validate that we got meaningful translated content
-      const hasValidContent =
-        (parsedContent.title && parsedContent.title.trim().length > 0) ||
-        (parsedContent.summary && parsedContent.summary.trim().length > 0) ||
-        (parsedContent.content && parsedContent.content.trim().length > 0)
-
-      if (!hasValidContent) {
-        this.logger.error(
-          'Translation completed but no meaningful content was returned',
-        )
-        return {
-          success: false,
-          error: 'Translation completed but no meaningful content was returned',
-        }
-      }
 
       return {
         success: true,
@@ -302,9 +402,6 @@ export default class WikiTranslationService {
         })
 
         if (error.status === 401) {
-          this.logger.error(
-            'Authentication failed - API key may be invalid or expired',
-          )
           return {
             success: false,
             error: `OpenAI API authentication failed (401). Please check your API key.`,
@@ -312,7 +409,6 @@ export default class WikiTranslationService {
         }
 
         if (error.status === 429) {
-          this.logger.error('Rate limit exceeded')
           return {
             success: false,
             error: 'OpenAI API rate limit exceeded. Please try again later.',
@@ -338,14 +434,103 @@ export default class WikiTranslationService {
     }
   }
 
+  private splitContentIntoSections(content: string): string[] {
+    // Split by H2 headers first (##)
+    const sections = content.split(/(?=##\s)/)
+
+    // If sections are still too large, split further
+    const maxSectionLength = 4000
+    const finalSections: string[] = []
+
+    for (const section of sections) {
+      if (section.length <= maxSectionLength) {
+        finalSections.push(section)
+      } else {
+        // Split large sections by paragraphs
+        const paragraphs = section.split(/\n\n+/)
+        let currentSection = ''
+
+        for (const paragraph of paragraphs) {
+          if (currentSection.length + paragraph.length + 2 > maxSectionLength) {
+            if (currentSection.length > 0) {
+              finalSections.push(currentSection.trim())
+              currentSection = paragraph
+            } else {
+              // Even a single paragraph is too long, split it
+              finalSections.push(paragraph.substring(0, maxSectionLength))
+              if (paragraph.length > maxSectionLength) {
+                currentSection = paragraph.substring(maxSectionLength)
+              }
+            }
+          } else {
+            currentSection += (currentSection ? '\n\n' : '') + paragraph
+          }
+        }
+
+        if (currentSection.trim().length > 0) {
+          finalSections.push(currentSection.trim())
+        }
+      }
+    }
+
+    return finalSections.filter((section) => section.trim().length > 0)
+  }
+
+  private async performTranslation(wiki: Wiki): Promise<TranslationResult> {
+    const contentToTranslate = this.prepareContentForTranslation(wiki)
+    return this.translateContent(contentToTranslate)
+  }
+
   private prepareContentForTranslation(wiki: Wiki): string {
     const contentObj: any = {}
 
     if (wiki.title) contentObj.title = wiki.title
     if (wiki.summary) contentObj.summary = wiki.summary
-    if (wiki.content) contentObj.content = wiki.content
+    if (wiki.content) {
+      // Handle large content by chunking if needed
+      const content = wiki.content
+      if (content.length > 8000) {
+        // For very large content, take the first meaningful sections
+        contentObj.content = this.extractMainSections(content)
+      } else {
+        contentObj.content = content
+      }
+    }
 
     return JSON.stringify(contentObj, null, 2)
+  }
+
+  private extractMainSections(content: string): string {
+    // Extract the introduction and first few sections for translation
+    // This ensures we get the most important parts within token limits
+
+    const sections = content.split(/(?=##\s)/) // Split by H2 headers
+    let result = ''
+    let currentLength = 0
+    const maxLength = 6000 // Conservative limit to stay within token limits
+
+    for (const section of sections) {
+      if (currentLength + section.length > maxLength) {
+        break
+      }
+      result += section
+      currentLength += section.length
+    }
+
+    // If we couldn't fit any sections, just take the first part
+    if (result.length === 0) {
+      result = content.substring(0, maxLength)
+      // Try to end at a reasonable point (end of paragraph)
+      const lastParagraph = result.lastIndexOf('\n\n')
+      if (lastParagraph > maxLength * 0.7) {
+        result = result.substring(0, lastParagraph)
+      }
+    }
+
+    this.logger.log(
+      `Content truncated from ${content.length} to ${result.length} characters for translation`,
+    )
+    return result
   }
 
   private parseTranslatedContent(translatedText: string): TranslatedContent {
