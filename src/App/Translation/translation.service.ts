@@ -395,14 +395,18 @@ export default class WikiTranslationService {
     }
   }
 
-  private calculateCost(usage?: { total_tokens?: number }): number {
-    if (!usage?.total_tokens) return 0
+  private calculateCost(usage?: OpenAI.CompletionUsage): number {
+    if (!usage?.prompt_tokens || !usage.completion_tokens) return 0
 
     // OpenAI pricing for gpt-4o-mini (as of 2024)
     // Input: $0.15 / 1M tokens, Output: $0.60 / 1M tokens
-    // For simplicity, using average rate of $0.375 / 1M tokens
-    const costPerToken = 0.375 / 1000000
-    return usage.total_tokens * costPerToken
+    const costPerInputToken = 0.15 / 1000000
+    const costPerOutputToken = 0.6 / 1000000
+
+    const inputCost = usage.prompt_tokens * costPerInputToken
+    const outputCost = usage.completion_tokens * costPerOutputToken
+
+    return inputCost + outputCost
   }
 
   private async saveTranslation(
