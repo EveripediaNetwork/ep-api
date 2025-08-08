@@ -73,6 +73,7 @@ import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
+import WikiTranslationService from './Translation/translation.service'
 
 // istanbul ignore next
 @Module({
@@ -126,6 +127,7 @@ import SearchModule from './Search/search.module'
     DiscordModule,
     SentryMod,
     SearchModule,
+    // TranslationModule
   ],
   controllers: [UploadController, WikiController],
   providers: [
@@ -170,6 +172,7 @@ import SearchModule from './Search/search.module'
     BlogService,
     EventsService,
     UserProfileValidator,
+    WikiTranslationService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

@@ -2,7 +2,6 @@ import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PosthogService } from 'nestjs-posthog'
 import { LockingService } from '../../IQHolders/IQHolders.dto'
-// import SentryPlugin from '../../../sentry/sentryPlugin'
 import ActivityResolver from '../../Activities/activity.resolver'
 import ActivityService from '../../Activities/activity.service'
 import CategoryResolver from '../../Category/category.resolver'
@@ -38,11 +37,12 @@ import IPFSValidatorService from '../../../Indexer/Validator/validator.service'
 import WikiSubscriptionService from '../../Subscriptions/subscriptions.service'
 import CategoryService from '../../Category/category.service'
 import TagService from '../../Tag/tag.service'
-import AutoInjestService from '../auto-injest'
+import AutoIngestService from '../auto-injest'
 import DiscordWebhookService from '../discordWebhookService'
 import TagRepository from '../../Tag/tag.repository'
 import RPCProviderService from '../../../Indexer/RPCProvider/RPCProvider.service'
 import AppService from '../../app.service'
+import WikiTranslationService from '../../Translation/translation.service'
 
 export const providerObjects = {
   validSlug: ValidSlug,
@@ -53,7 +53,6 @@ export const providerObjects = {
   wikiService: WikiService,
   userService: UserService,
   userResolver: UserResolver,
-  //   sentryPlugin: SentryPlugin,
   wikiResolver: WikiResolver,
   eventEmitter2: EventEmitter2,
   configService: ConfigService,
@@ -75,7 +74,7 @@ export const providerObjects = {
   pageViewsResolver: PageViewsResolver,
   ipfsGetterService: IPFSGetterService,
   marketCapResolver: MarketCapResolver,
-  autoInjestService: AutoInjestService,
+  autoInjestService: AutoIngestService,
   rpcProviderService: RPCProviderService,
   userProfileResolver: UserProfileResolver,
   ipfsValidatorService: IPFSValidatorService,
@@ -86,6 +85,7 @@ export const providerObjects = {
   revalidatePageService: RevalidatePageService,
   revalidatePageResolver: RevalidatePageResolver,
   metadataChangesService: MetadataChangesService,
+  wikiTranslationService: WikiTranslationService,
   contentFeedbackService: ContentFeedbackService,
   contentFeedbackResolver: ContentFeedbackResolver,
   wikiSubscriptionService: WikiSubscriptionService,
@@ -101,7 +101,6 @@ export enum ProviderEnum {
   wikiService = 'wikiService',
   userService = 'userService',
   userResolver = 'userResolver',
-  //   sentryPlugin = 'sentryPlugin',
   wikiResolver = 'wikiResolver',
   eventEmitter2 = 'eventEmitter2',
   configService = 'configService',
@@ -132,6 +131,7 @@ export enum ProviderEnum {
   discordWebhookService = 'discordWebhookService',
   indexerWebhookService = 'indexerWebhookService',
   revalidatePageService = 'revalidatePageService',
+  wikiTranslationService = 'wikiTranslationService',
   revalidatePageResolver = 'evalidatePageResolver',
   metadataChangesService = 'metadataChangesService',
   contentFeedbackService = 'contentFeedbackService',

@@ -28,6 +28,7 @@ import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
 import { eventWiki } from '../Tag/tag.dto'
+import WikiTranslationService from '../Translation/translation.service'
 
 @Injectable()
 class WikiService {
@@ -38,6 +39,7 @@ class WikiService {
     private httpService: HttpService,
     private discordService: DiscordWebhookService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private wikiTranslationService: WikiTranslationService,
   ) {}
 
   private getWebpageUrl() {
@@ -60,9 +62,29 @@ class WikiService {
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
     const wiki = await (await this.repository())
       .createQueryBuilder('wiki')
-      .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
       .getOne()
+
+    if (!wiki) {
+      return null
+    }
+
+    if (args.lang === 'kr') {
+      const translation =
+        await this.wikiTranslationService.getKoreanTranslation(wiki.id)
+
+      if (translation && translation.translationStatus === 'completed') {
+        if (translation.title) {
+          wiki.title = translation.title
+        }
+        if (translation.summary) {
+          wiki.summary = translation.summary
+        }
+        if (translation.content) {
+          wiki.content = translation.content
+        }
+      }
+    }
 
     return wiki
   }

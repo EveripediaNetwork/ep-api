@@ -1,5 +1,3 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable new-cap */
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import {

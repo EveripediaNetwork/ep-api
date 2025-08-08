@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, ILike, Repository } from 'typeorm'
 import { LanguagesISOEnum } from '@everipedia/iq-utils'
 import { PosthogService } from 'nestjs-posthog'
@@ -13,13 +13,17 @@ import { RevalidatePageService } from '../../App/revalidatePage/revalidatePage.s
 import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
+import WikiTranslationService from '../../App/Translation/translation.service'
 
 @Injectable()
 class DBStoreService {
+  private readonly logger = new Logger(DBStoreService.name)
+
   constructor(
     private dataSource: DataSource,
     private revalidate: RevalidatePageService,
     private posthogService: PosthogService,
+    private translationService: WikiTranslationService,
   ) {}
 
   async existIPFS(newHash: string, oldHash?: string): Promise<boolean> {
@@ -180,7 +184,6 @@ class DBStoreService {
         .execute()
     }
 
-    // TODO: store history and delete?
     if (existWiki) {
       existWiki.version = wiki.version
       existWiki.language = language
@@ -202,6 +205,7 @@ class DBStoreService {
         : existWiki.updated
       existWiki.transactionHash = hash.transactionHash
       await wikiRepository.save(existWiki)
+      this.translateWikiToKorean(existWiki.id)
 
       if (!existIpfs) {
         await activityRepository.save(
@@ -210,6 +214,7 @@ class DBStoreService {
             type: Status.UPDATED,
           } as unknown as Activity),
         )
+
         await this.captureEvent(
           hash.id,
           wiki.id,
@@ -249,6 +254,7 @@ class DBStoreService {
     })
 
     await wikiRepository.save(newWiki)
+    this.translateWikiToKorean(newWiki.id)
     await activityRepository.save(
       createActivity(activityRepository, {
         ...incomingActivity,
@@ -289,6 +295,27 @@ class DBStoreService {
         transactionHash: txhash,
       },
     })
+  }
+
+  private translateWikiToKorean(wikiId: string): void {
+    this.translationService
+      .translateWiki({ wikiId, forceRetranslate: false })
+      .then((result) => {
+        if (result.success) {
+          this.logger.log(
+            `Successfully completed Korean translation for wiki ${wikiId}`,
+          )
+        } else {
+          this.logger.warn(
+            `Korean translation failed for wiki ${wikiId}: ${result.error}`,
+          )
+        }
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Korean translation error for wiki ${wikiId}: ${error}`,
+        )
+      })
   }
 }
 
