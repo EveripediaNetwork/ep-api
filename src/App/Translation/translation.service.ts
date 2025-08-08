@@ -344,13 +344,6 @@ export default class WikiTranslationService {
     if (wiki.title) contentObj.title = wiki.title
     if (wiki.summary) contentObj.summary = wiki.summary
     if (wiki.content) contentObj.content = wiki.content
-    if (wiki.tags && wiki.tags.length > 0) contentObj.tags = wiki.tags
-    if (wiki.categories && wiki.categories.length > 0) {
-      contentObj.categories = wiki.categories.map((cat: any) => ({
-        id: cat.id,
-        title: cat.title,
-      }))
-    }
 
     return JSON.stringify(contentObj, null, 2)
   }
