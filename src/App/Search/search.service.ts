@@ -60,6 +60,12 @@ const wikiSuggestionSchema = {
   required: ['wikis'],
 } as const
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
 @Injectable()
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
@@ -68,13 +74,19 @@ class SearchService {
 
   private static readonly modelName = 'gpt-4.1-mini'
 
-  private readonly isProduction: boolean
-
   private static readonly SCORE_THRESHOLD = 6
 
   private static readonly SEED = 420
 
   private static readonly TEMPERATURE = 0
+
+  private static readonly CHUNK_SIZE = 1000
+
+  private static readonly SHARD_TOP_K = 5
+
+  private static readonly FINAL_TOP_K = 5
+
+  private readonly isProduction: boolean
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -118,75 +130,64 @@ class SearchService {
   private filterMetadata(
     metadata?: WikiMetadata[],
   ): Record<string, string> | undefined {
-    if (!metadata || metadata.length === 0) {
-      return undefined
-    }
+    if (!metadata || metadata.length === 0) return undefined
 
     const filtered: Record<string, string> = {}
-
     for (const meta of metadata) {
-      if (SearchService.ALLOWED_METADATA.has(meta.id)) {
+      if (SearchService.ALLOWED_METADATA.has(meta.id) && meta.value) {
         filtered[meta.id] = meta.value
       }
     }
-
     return Object.keys(filtered).length > 0 ? filtered : undefined
   }
 
-  private async getWikiSuggestions(wikis: WikiData[], query: string) {
+  private async processShard(
+    shard: WikiData[],
+    shardIndex: number,
+    totalShards: number,
+    query: string,
+  ): Promise<WikiSuggestion[]> {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
     }
 
-    if (wikis.length === 0) {
-      return []
-    }
-
-    const wikiEntries = wikis
-      .map(
-        (wiki) =>
-          `ID: ${wiki.id}\nTITLE: ${wiki.title}\nSUMMARY: ${wiki.summary}`,
-      )
+    const kbBlock = shard
+      .map((w) => `ID: ${w.id}\nTITLE: ${w.title}\nSUMMARY: ${w.summary ?? ''}`)
       .join('\n\n')
 
-    const response = await this.ai.chat.completions.create({
-      model: SearchService.modelName,
+    const res = await this.ai.chat.completions.create({
+      model:
+        this.configService.get<string>('AI_MODEL') ?? SearchService.modelName,
       messages: [
         {
           role: 'system',
-          content:
-            'You are an expert at analyzing wiki content relevance. Return a valid JSON response matching the requested schema.',
+          content: endent`
+            You are an expert at analyzing wiki relevance. Follow these rules strictly and return valid JSON only:
+
+            RELEVANCE SCORING (internal policy):
+            - 7–10: Directly answers the query or provides essential information
+            - 6: Highly relevant, contains key information needed
+            - 5: Mentions the query term but only tangentially helpful
+            - 1–4: Not relevant (do not include)
+
+            ADDITIONAL RULES:
+            - If the query term appears in the title or summary, the minimum score is 5.
+            - Return at most ${SearchService.SHARD_TOP_K} entries per shard, sorted by score descending.
+            - The response MUST conform to the provided JSON schema.
+          `,
+        },
+        {
+          role: 'assistant',
+          content: `WIKI KNOWLEDGE BASE SHARD #${shardIndex + 1}/${totalShards} (${shard.length} entries):\n${kbBlock}`,
         },
         {
           role: 'user',
-          content: endent`Your task is to carefully evaluate which wikis would be most helpful for answering the query: "${query}"
-
-      WIKI KNOWLEDGE BASE (${wikis.length} entries):
-      ${wikiEntries}
-
-    INSTRUCTIONS:
-      1. First, analyze the query to understand what information is being sought
-      2. For each wiki, think through:
-        - Does the title directly relate to the query topic?
-        - Does the summary contain information that would help answer the query?
-        - How well does the wiki content match what the user is asking for?
-      3. Be thoughtful in your scoring, but do not overlook surface matches:
-        - If the query term appears in the title or summary, give it at least a score of 5
-        - Include all entries that mention the query term, even if they are only tangentially related
-        - Use deeper semantic reasoning to elevate the most directly helpful entries
-      4. Return only the most relevant wikis, up to 5 in total, sorted by score (highest first)
-      5. Be precise and honest — do not score highly unless the entry clearly helps address the query
-
-      SCORING CRITERIA:
-      - 7-10 = Directly answers the query or provides essential information
-      - 6 = Highly relevant, contains key information needed
-      - 5 = Mentions the query term but only tangentially helpful
-      - 1-4 = Not relevant to the query (exclude these)
-
-      Think carefully about whether each wiki truly helps answer the specific query.`,
+          content: `Query: "${query}"`,
         },
       ],
-      temperature: SearchService.TEMPERATURE,
+      temperature: Number(
+        this.configService.get('AI_TEMPERATURE') ?? SearchService.TEMPERATURE,
+      ),
       seed: SearchService.SEED,
       response_format: {
         type: 'json_schema',
@@ -197,74 +198,77 @@ class SearchService {
       },
     })
 
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('OpenAI returned no response content')
-    }
-
+    const content = res.choices[0]?.message?.content ?? ''
     try {
-      const result = JSON.parse(content) as WikiSearchResult
-      return result.wikis || []
+      const parsed = JSON.parse(content) as WikiSearchResult
+      return parsed?.wikis || []
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e)
-      throw new Error(`Invalid JSON from OpenAI response: ${errorMessage}`)
+      this.logger.warn(
+        `Shard ${shardIndex + 1} returned invalid JSON; skipping. Error: ${
+          (e as Error).message
+        }`,
+      )
+      return []
     }
   }
 
-  private filterByScore(suggestions: WikiSuggestion[]): WikiSuggestion[] {
-    return suggestions.filter(
-      (wiki) => wiki.score > SearchService.SCORE_THRESHOLD,
+  private async getWikiSuggestionsMapOnly(
+    wikis: WikiData[],
+    query: string,
+  ): Promise<WikiSuggestion[]> {
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+    if (wikis.length === 0) return []
+
+    const chunksArr = chunk(wikis, SearchService.CHUNK_SIZE)
+
+    const shardPromises = chunksArr.map((shard, index) =>
+      this.processShard(shard, index, chunksArr.length, query),
     )
-  }
 
-  private async getIQWikiContent(wikiId: string): Promise<WikiContent | null> {
-    try {
-      const wiki = await (await this.repository())
-        .createQueryBuilder('wiki')
-        .where('wiki.languageId = :lang', { lang: 'en' })
-        .andWhere('wiki.id = :id', { id: wikiId })
-        .andWhere('wiki.hidden = false')
-        .getOne()
+    const shardResults = await Promise.all(shardPromises)
+    const allCandidates = shardResults.flat()
 
-      if (!wiki?.content) {
-        return null
-      }
-
-      const filtered = this.filterMetadata(wiki.metadata)
-
-      const metadata: { url: string; title: string }[] | undefined =
-        filtered &&
-        Object.entries(filtered).map(([key, value]) => ({
-          url: value,
-          title: `${wiki.title}${wiki.title.endsWith('s') ? "'" : "'s"} ${this.formatMetadataKey(key)}`,
-        }))
-
-      return {
-        id: wiki.id,
-        title: wiki.title,
-        content: wiki.content,
-        metadata,
-      }
-    } catch (error) {
-      this.logger.error(`Error fetching wiki ${wikiId}:`, error)
-      return null
-    }
+    return allCandidates
+      .filter((c) => c.score >= SearchService.SCORE_THRESHOLD)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, SearchService.FINAL_TOP_K)
   }
 
   private async fetchWikiContents(wikiIds: string[]) {
-    if (!wikiIds || wikiIds.length === 0) {
-      return []
-    }
+    if (!wikiIds || wikiIds.length === 0) return []
 
-    const promises = wikiIds.map((wikiId) => this.getIQWikiContent(wikiId))
-    const results = await Promise.allSettled(promises)
+    const repo = await this.repository()
+    const rows = await repo
+      .createQueryBuilder('wiki')
+      .select(['wiki.id', 'wiki.title', 'wiki.content', 'wiki.metadata'])
+      .where('wiki.languageId = :lang', { lang: 'en' })
+      .andWhere('wiki.hidden = false')
+      .andWhere('wiki.id IN (:...ids)', { ids: wikiIds })
+      .getMany()
 
-    return results
-      .filter(
-        (result): result is PromiseFulfilledResult<WikiContent> =>
-          result.status === 'fulfilled' && result.value !== null,
-      )
-      .map((result) => result.value)
+    return rows
+      .map((wiki) => {
+        if (!wiki?.content) return null
+        const filtered = this.filterMetadata(wiki.metadata)
+        const metadata: { url: string; title: string }[] | undefined =
+          filtered &&
+          Object.entries(filtered)
+            .filter(([, value]) => value.trim())
+            .map(([key, value]) => ({
+              url: value,
+              title: `${wiki.title}${wiki.title.endsWith('s') ? "'" : "'s"} ${this.formatMetadataKey(key)}`,
+            }))
+
+        return {
+          id: wiki.id,
+          title: wiki.title,
+          content: wiki.content,
+          metadata,
+        }
+      })
+      .filter((x) => x !== null)
   }
 
   private async answerQuestion(query: string, wikiContents: WikiContent[]) {
@@ -277,33 +281,26 @@ class SearchService {
       .join('\n\n')
 
     const response = await this.ai.chat.completions.create({
-      model: SearchService.modelName,
+      model:
+        this.configService.get<string>('AI_MODEL') ?? SearchService.modelName,
       messages: [
         {
           role: 'system',
           content:
-            'You are a wiki expert tasked with providing accurate, comprehensive answers based on the provided context.',
+            'You are a wiki expert. Answer strictly from the provided context. If information is missing, say so. Cite supporting wikis inline like (from: <wiki title>).',
+        },
+        {
+          role: 'assistant',
+          content: `CONTEXT:\n${contextContent}`,
         },
         {
           role: 'user',
-          content: endent`QUERY: "${query}"
-
-        CONTEXT:
-        ${contextContent}
-
-        INSTRUCTIONS:
-        1. Carefully analyze the query to understand exactly what information is being requested
-        2. Review all the provided wiki content to identify relevant information
-        3. Think through how well the available content matches what the user is asking for
-        4. If the content directly answers the query, provide a comprehensive response
-        5. If the content is related but doesn't fully answer the query, clearly state what information is available and what might be missing
-        6. Be honest about the limitations of the available information
-        7. Structure your answer clearly and cite which wikis provide specific information when relevant
-
-        Provide a thoughtful, well-reasoned answer that makes the best use of the available information while being transparent about its completeness.`,
+          content: `Query: "${query}"`,
         },
       ],
-      temperature: SearchService.TEMPERATURE,
+      temperature: Number(
+        this.configService.get('AI_TEMPERATURE') ?? SearchService.TEMPERATURE,
+      ),
       seed: SearchService.SEED,
     })
 
@@ -313,29 +310,32 @@ class SearchService {
   async searchWithoutCache(query: string, withAnswer: boolean) {
     try {
       const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
-      const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
-      const filteredSuggestions = this.filterByScore(rawSuggestions)
-      const wikiIds = filteredSuggestions.map((wiki) => wiki.id)
+
+      const topSuggestions = await this.getWikiSuggestionsMapOnly(
+        allWikis,
+        query,
+      )
+
+      const wikiIds = topSuggestions.map((w) => w.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
 
       const metadataMap = new Map(
         wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
       )
 
-      const enrichedSuggestions = filteredSuggestions.map((suggestion) => ({
-        ...suggestion,
-        metadata: metadataMap.get(suggestion.id),
+      const suggestions = topSuggestions.map((s) => ({
+        ...s,
+        metadata: metadataMap.get(s.id),
       }))
 
       let answer =
         'No wiki content was successfully fetched to answer the question.'
-
-      if (wikiContents.length > 0 && withAnswer) {
+      if (withAnswer && wikiContents.length > 0) {
         answer = await this.answerQuestion(query, wikiContents)
       }
 
       return {
-        suggestions: enrichedSuggestions,
+        suggestions,
         wikiContents,
         answer,
       }
@@ -346,8 +346,7 @@ class SearchService {
   }
 
   async search(query: string, withAnswer: boolean) {
-    const result = await this.searchWithoutCache(query, withAnswer)
-    return result
+    return this.searchWithoutCache(query, withAnswer)
   }
 }
 
