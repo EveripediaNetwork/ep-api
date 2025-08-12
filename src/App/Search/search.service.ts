@@ -141,6 +141,77 @@ class SearchService {
     return Object.keys(filtered).length > 0 ? filtered : undefined
   }
 
+  private async processShard(
+    shard: WikiData[],
+    shardIndex: number,
+    totalShards: number,
+    query: string,
+  ): Promise<WikiSuggestion[]> {
+    if (!this.ai) {
+      throw new Error('AI service not available - production mode required')
+    }
+
+    const kbBlock = shard
+      .map((w) => `ID: ${w.id}\nTITLE: ${w.title}\nSUMMARY: ${w.summary ?? ''}`)
+      .join('\n\n')
+
+    const res = await this.ai.chat.completions.create({
+      model:
+        this.configService.get<string>('AI_MODEL') ?? SearchService.modelName,
+      messages: [
+        {
+          role: 'system',
+          content: endent`
+            You are an expert at analyzing wiki relevance. Follow these rules strictly and return valid JSON only:
+
+            RELEVANCE SCORING (internal policy):
+            - 7–10: Directly answers the query or provides essential information
+            - 6: Highly relevant, contains key information needed
+            - 5: Mentions the query term but only tangentially helpful
+            - 1–4: Not relevant (do not include)
+
+            ADDITIONAL RULES:
+            - If the query term appears in the title or summary, the minimum score is 5.
+            - Return at most ${SearchService.SHARD_TOP_K} entries per shard, sorted by score descending.
+            - The response MUST conform to the provided JSON schema.
+          `,
+        },
+        {
+          role: 'assistant',
+          content: `WIKI KNOWLEDGE BASE SHARD #${shardIndex + 1}/${totalShards} (${shard.length} entries):\n${kbBlock}`,
+        },
+        {
+          role: 'user',
+          content: `Query: "${query}"`,
+        },
+      ],
+      temperature: Number(
+        this.configService.get('AI_TEMPERATURE') ?? SearchService.TEMPERATURE,
+      ),
+      seed: SearchService.SEED,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'wiki_suggestions',
+          schema: wikiSuggestionSchema,
+        },
+      },
+    })
+
+    const content = res.choices[0]?.message?.content ?? ''
+    try {
+      const parsed = JSON.parse(content) as WikiSearchResult
+      return parsed?.wikis || []
+    } catch (e) {
+      this.logger.warn(
+        `Shard ${shardIndex + 1} returned invalid JSON; skipping. Error: ${
+          (e as Error).message
+        }`,
+      )
+      return []
+    }
+  }
+
   private async getWikiSuggestionsMapOnly(
     wikis: WikiData[],
     query: string,
@@ -151,74 +222,13 @@ class SearchService {
     if (wikis.length === 0) return []
 
     const chunksArr = chunk(wikis, SearchService.CHUNK_SIZE)
-    const allCandidates: WikiSuggestion[] = []
 
-    for (let s = 0; s < chunksArr.length; s += 1) {
-      const shard = chunksArr[s]
+    const shardPromises = chunksArr.map((shard, index) =>
+      this.processShard(shard, index, chunksArr.length, query),
+    )
 
-      const kbBlock = shard
-        .map(
-          (w) => `ID: ${w.id}\nTITLE: ${w.title}\nSUMMARY: ${w.summary ?? ''}`,
-        )
-        .join('\n\n')
-
-      const res = await this.ai.chat.completions.create({
-        model:
-          this.configService.get<string>('AI_MODEL') ?? SearchService.modelName,
-        messages: [
-          {
-            role: 'system',
-            content: endent`
-              You are an expert at analyzing wiki relevance. Follow these rules strictly and return valid JSON only:
-
-              RELEVANCE SCORING (internal policy):
-              - 7–10: Directly answers the query or provides essential information
-              - 6: Highly relevant, contains key information needed
-              - 5: Mentions the query term but only tangentially helpful
-              - 1–4: Not relevant (do not include)
-
-              ADDITIONAL RULES:
-              - If the query term appears in the title or summary, the minimum score is 5.
-              - Return at most ${SearchService.SHARD_TOP_K} entries per shard, sorted by score descending.
-              - The response MUST conform to the provided JSON schema.
-            `,
-          },
-          {
-            role: 'assistant',
-            content: `WIKI KNOWLEDGE BASE SHARD #${s + 1}/${chunksArr.length} (${shard.length} entries):\n${kbBlock}`,
-          },
-          {
-            role: 'user',
-            content: `Query: "${query}"`,
-          },
-        ],
-        temperature: Number(
-          this.configService.get('AI_TEMPERATURE') ?? SearchService.TEMPERATURE,
-        ),
-        seed: SearchService.SEED,
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'wiki_suggestions',
-            schema: wikiSuggestionSchema,
-          },
-        },
-      })
-
-      const content = res.choices[0]?.message?.content ?? ''
-      try {
-        const parsed = JSON.parse(content) as WikiSearchResult
-        if (parsed?.wikis?.length) {
-          allCandidates.push(...parsed.wikis)
-        }
-      } catch (e) {
-        this.logger.warn(
-          `Shard ${s + 1} returned invalid JSON; skipping. Error: ${
-            (e as Error).message
-          }`,
-        )
-      }
-    }
+    const shardResults = await Promise.all(shardPromises)
+    const allCandidates = shardResults.flat()
 
     return allCandidates
       .filter((c) => c.score >= SearchService.SCORE_THRESHOLD)
@@ -301,19 +311,19 @@ class SearchService {
     try {
       const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
 
-      const rawSuggestions = await this.getWikiSuggestionsMapOnly(
+      const topSuggestions = await this.getWikiSuggestionsMapOnly(
         allWikis,
         query,
       )
 
-      const wikiIds = rawSuggestions.map((w) => w.id)
+      const wikiIds = topSuggestions.map((w) => w.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
 
       const metadataMap = new Map(
         wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
       )
 
-      const suggestions = rawSuggestions.map((s) => ({
+      const suggestions = topSuggestions.map((s) => ({
         ...s,
         metadata: metadataMap.get(s.id),
       }))
