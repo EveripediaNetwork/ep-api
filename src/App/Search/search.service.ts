@@ -255,11 +255,11 @@ class SearchService {
         const metadata: { url: string; title: string }[] | undefined =
           filtered &&
           Object.entries(filtered)
-            .filter(([, v]) => typeof v === 'string' && v.trim())
-            .map(([key, value]) => ({
-              url: value,
-              title: `${wiki.title}${wiki.title.endsWith('s') ? "'" : "'s"} ${this.formatMetadataKey(key)}`,
-            }))
+.filter(([, value]) => value.trim())
+.map(([key, value]) => ({
+  url: value,
+  title: `${wiki.title}${wiki.title.endsWith('s') ? "'" : "'s"} ${this.formatMetadataKey(key)}`,
+}))
 
         return {
           id: wiki.id,
