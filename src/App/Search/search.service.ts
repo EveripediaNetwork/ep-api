@@ -231,7 +231,7 @@ class SearchService {
     const allCandidates = shardResults.flat()
 
     return allCandidates
-      .filter((c) => c.score >= SearchService.SCORE_THRESHOLD)
+      .filter((c) => c.score > SearchService.SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score)
       .slice(0, SearchService.FINAL_TOP_K)
   }
