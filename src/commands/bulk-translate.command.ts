@@ -4,12 +4,12 @@ import WikiTranslationService from '../App/Translation/translation.service'
 import Wiki from '../Database/Entities/wiki.entity'
 
 interface BulkTranslateOptions {
-  limit?: number
-  offset?: number
-  batchSize?: number
-  delayMs?: number
-  forceRetranslate?: boolean
-  wikiIds?: string
+  limit?: number // 0 = no limit (translate all), >0 = limit to that number
+  offset?: number // Skip this many wikis (useful for resuming)
+  batchSize?: number // How many to process in parallel
+  delayMs?: number // Delay between batches
+  forceRetranslate?: boolean // Retranslate even if translation exists
+  wikiIds?: string // Comma-separated specific wiki IDs to translate
 }
 
 @Injectable()
@@ -23,7 +23,7 @@ export default class BulkTranslateCommand {
 
   async run(options: BulkTranslateOptions = {}): Promise<void> {
     const {
-      limit = 100,
+      limit = 0, // 0 means no limit - translate all wikis
       offset = 0,
       batchSize = 5,
       delayMs = 1000,
@@ -45,20 +45,57 @@ export default class BulkTranslateCommand {
       } else {
         const wikiRepository = this.dataSource.getRepository(Wiki)
 
-        const wikis = await wikiRepository
+        // First, get total count for logging
+        const totalCount = await wikiRepository
+          .createQueryBuilder('wiki')
+          .where('wiki.content IS NOT NULL')
+          .andWhere('wiki.summary IS NOT NULL')
+          .andWhere('wiki.hidden = false') // Only translate visible wikis
+          .getCount()
+
+        this.logger.log(`Found ${totalCount} total wikis with content`)
+
+        // Get count of wikis that need translation (excluding already translated ones)
+        const needTranslationCount = await wikiRepository
+          .createQueryBuilder('wiki')
+          .leftJoin('wiki_korean_translations', 'kt', 'kt.wiki_id = wiki.id')
+          .where('wiki.content IS NOT NULL')
+          .andWhere('wiki.summary IS NOT NULL')
+          .andWhere('wiki.hidden = false')
+          .andWhere('kt.wiki_id IS NULL') // No existing translation
+          .getCount()
+
+        this.logger.log(
+          `Found ${needTranslationCount} wikis that need translation`,
+        )
+
+        let query = wikiRepository
           .createQueryBuilder('wiki')
           .select(['wiki.id'])
+          .leftJoin('wiki_korean_translations', 'kt', 'kt.wiki_id = wiki.id')
           .where('wiki.content IS NOT NULL')
-          .andWhere('wiki.title IS NOT NULL')
+          .andWhere('wiki.summary IS NOT NULL')
+          .andWhere('wiki.hidden = false')
+          .andWhere('kt.wiki_id IS NULL') // Exclude wikis that already have translations
           .orderBy('wiki.created', 'DESC')
-          .limit(limit)
           .offset(offset)
-          .getMany()
 
+        // Only apply limit if it's greater than 0
+        if (limit > 0) {
+          query = query.limit(limit)
+          this.logger.log(
+            `Limiting to ${limit} wikis (starting from offset ${offset})`,
+          )
+        } else {
+          this.logger.log(
+            `Translating ALL wikis (starting from offset ${offset})`,
+          )
+        }
+
+        const wikis = await query.getMany()
         targetWikiIds = wikis.map((wiki) => wiki.id)
-        this.logger.log(
-          `Found ${targetWikiIds.length} wikis to translate (limit: ${limit}, offset: ${offset})`,
-        )
+
+        this.logger.log(`Selected ${targetWikiIds.length} wikis to translate`)
       }
 
       if (targetWikiIds.length === 0) {
@@ -85,7 +122,6 @@ export default class BulkTranslateCommand {
         })
       }
 
-      // Display final stats
       const stats = await this.translationService.getTranslationStats()
       this.logger.log('Current translation statistics:')
       this.logger.log(`Total translations: ${stats.totalTranslations}`)

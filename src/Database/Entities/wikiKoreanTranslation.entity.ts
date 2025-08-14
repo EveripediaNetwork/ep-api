@@ -20,7 +20,7 @@ export default class WikiKoreanTranslation {
   wikiId!: string
 
   @Column({ name: 'title', type: 'text', nullable: true })
-  title!: string | null
+  title!: string | null // Note: Title is not translated in current implementation, kept for legacy compatibility
 
   @Column({ name: 'summary', type: 'text', nullable: true })
   summary!: string | null

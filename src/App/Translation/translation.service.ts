@@ -20,21 +20,20 @@ export default class WikiTranslationService {
 
   private readonly openaiModel: string
 
+  private readonly baseUrl: string
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
   ) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY') || ''
+    this.baseUrl = this.configService.get<string>('WEBSITE_URL') || ''
     this.openaiModel =
       this.configService.get<string>('OPENAI_TRANSLATION_MODEL') ||
       'gpt-4o-mini'
-
-    // Initialize OpenAI client
     this.openai = new OpenAI({
       apiKey,
     })
-
-    // Debug API key loading
     if (!apiKey) {
       this.logger.error('OPENAI_API_KEY is not set in environment variables')
     } else if (apiKey.length < 20) {
@@ -53,6 +52,16 @@ export default class WikiTranslationService {
   async translateWiki(request: TranslationInput): Promise<TranslationResult> {
     const { wikiId, forceRetranslate = false } = request
 
+    if (this.baseUrl?.includes('dev')) {
+      this.logger.warn(
+        `Translation skipped for wiki ${wikiId} - running in dev environment`,
+      )
+      return {
+        success: false,
+        error: 'Translation disabled in development environment',
+      }
+    }
+
     try {
       const existingTranslation = await this.getExistingTranslation(wikiId)
       if (existingTranslation && !forceRetranslate) {
@@ -60,7 +69,6 @@ export default class WikiTranslationService {
         return {
           success: true,
           translatedContent: {
-            title: existingTranslation.title || undefined,
             summary: existingTranslation.summary || undefined,
             content: existingTranslation.content || undefined,
           },
@@ -78,7 +86,6 @@ export default class WikiTranslationService {
         }
       }
 
-      // Check if content is extremely large and needs special handling
       const contentLength = (wiki.content || '').length
       let translationResult: TranslationResult
 
@@ -92,16 +99,14 @@ export default class WikiTranslationService {
       }
 
       if (!translationResult.success) {
-        await this.saveTranslationError(
-          wikiId,
-          translationResult.error || 'Unknown error',
+        // Don't save anything to database if translation fails
+        this.logger.error(
+          `Translation failed for wiki ${wikiId}: ${translationResult.error}`,
         )
         return translationResult
       }
 
       const hasValidTranslation =
-        (translationResult.translatedContent?.title &&
-          translationResult.translatedContent.title.trim().length > 0) ||
         (translationResult.translatedContent?.summary &&
           translationResult.translatedContent.summary.trim().length > 0) ||
         (translationResult.translatedContent?.content &&
@@ -111,7 +116,7 @@ export default class WikiTranslationService {
         const errorMsg =
           'Translation API returned success but no meaningful content was translated'
         this.logger.error(`${errorMsg} for wiki ${wikiId}`)
-        await this.saveTranslationError(wikiId, errorMsg)
+        // Don't save anything to database if no meaningful content was translated
         return {
           success: false,
           error: errorMsg,
@@ -124,10 +129,7 @@ export default class WikiTranslationService {
       return translationResult
     } catch (error) {
       this.logger.error(`Failed to translate wiki ${wikiId}:`, error)
-      await this.saveTranslationError(
-        wikiId,
-        error instanceof Error ? error.message : 'Unknown error',
-      )
+      // Don't save error to database - just return the error
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -215,7 +217,6 @@ export default class WikiTranslationService {
 
     if (translation) {
       const hasValidContent =
-        (translation.title && translation.title.trim().length > 0) ||
         (translation.summary && translation.summary.trim().length > 0) ||
         (translation.content && translation.content.trim().length > 0)
 
@@ -239,33 +240,27 @@ export default class WikiTranslationService {
     wiki: Wiki,
   ): Promise<TranslationResult> {
     try {
-      // Translate title and summary first (they're usually short)
-      const titleSummaryContentObj: any = {}
-      if (wiki.title) titleSummaryContentObj.title = wiki.title
-      if (wiki.summary) titleSummaryContentObj.summary = wiki.summary
+      // Translate summary first (usually short)
+      const summaryContentObj: any = {}
+      if (wiki.summary) summaryContentObj.summary = wiki.summary
 
-      const titleSummaryContent = JSON.stringify(
-        titleSummaryContentObj,
-        null,
-        2,
-      )
-      const titleSummaryResult =
-        await this.translateContent(titleSummaryContent)
+      const summaryContent = JSON.stringify(summaryContentObj, null, 2)
+      const summaryResult = await this.translateContent(summaryContent)
 
-      if (!titleSummaryResult.success) {
-        return titleSummaryResult
+      if (!summaryResult.success) {
+        return summaryResult
       }
 
       // Now handle the content in chunks
       const content = wiki.content || ''
       if (content.length === 0) {
-        return titleSummaryResult
+        return summaryResult
       }
 
       // Split content into logical sections
       const sections = this.splitContentIntoSections(content)
       const translatedSections: string[] = []
-      let totalCost = titleSummaryResult.cost || 0
+      let totalCost = summaryResult.cost || 0
 
       this.logger.log(`Translating content in ${sections.length} sections`)
 
@@ -306,8 +301,8 @@ export default class WikiTranslationService {
       return {
         success: true,
         translatedContent: {
-          title: titleSummaryResult.translatedContent?.title,
-          summary: titleSummaryResult.translatedContent?.summary,
+          // Don't translate title - keep original
+          summary: summaryResult.translatedContent?.summary,
           content: combinedContent,
         },
         provider: 'openai',
@@ -357,11 +352,11 @@ export default class WikiTranslationService {
             
             Expected JSON format:
             {
-              "title": "translated title here",
               "summary": "translated summary here", 
               "content": "translated content with preserved formatting here"
             }
             
+            Note: Do not translate titles - only translate summary and content fields.
             Return ONLY the JSON object, nothing else.`,
           },
           {
@@ -484,7 +479,7 @@ export default class WikiTranslationService {
   private prepareContentForTranslation(wiki: Wiki): string {
     const contentObj: any = {}
 
-    if (wiki.title) contentObj.title = wiki.title
+    // Only translate summary and content, not title
     if (wiki.summary) contentObj.summary = wiki.summary
     if (wiki.content) {
       // Handle large content by chunking if needed
@@ -549,14 +544,6 @@ export default class WikiTranslationService {
       const result: TranslatedContent = {}
 
       if (
-        parsed.title &&
-        typeof parsed.title === 'string' &&
-        parsed.title.trim()
-      ) {
-        result.title = parsed.title.trim()
-      }
-
-      if (
         parsed.summary &&
         typeof parsed.summary === 'string' &&
         parsed.summary.trim()
@@ -600,15 +587,7 @@ export default class WikiTranslationService {
   ): Promise<void> {
     const repository = this.dataSource.getRepository(WikiKoreanTranslation)
 
-    const translation =
-      (await repository.findOne({ where: { wikiId } })) ||
-      repository.create({ wikiId })
-
-    // Validate that we have meaningful translated content
-    const hasTitle =
-      result.translatedContent?.title &&
-      typeof result.translatedContent.title === 'string' &&
-      result.translatedContent.title.trim().length > 0
+    // Validate that we have meaningful translated content before even attempting to save
     const hasSummary =
       result.translatedContent?.summary &&
       typeof result.translatedContent.summary === 'string' &&
@@ -618,23 +597,19 @@ export default class WikiTranslationService {
       typeof result.translatedContent.content === 'string' &&
       result.translatedContent.content.trim().length > 0
 
-    // Only save and mark as completed if we have at least one of the main content fields
-    if (!hasTitle && !hasSummary && !hasContent) {
+    // Don't save anything if we don't have meaningful content
+    if (!hasSummary && !hasContent) {
       this.logger.error(
-        `Translation failed for wiki ${wikiId}: No meaningful content translated`,
+        `Cannot save translation for wiki ${wikiId}: No meaningful content to save`,
       )
-      translation.translationStatus = 'failed'
-      translation.errorMessage = 'No meaningful content was translated'
-      // Don't overwrite existing successful translations with null values
-      await repository.save(translation)
-      return
+      throw new Error('No meaningful content was translated')
     }
 
+    const translation =
+      (await repository.findOne({ where: { wikiId } })) ||
+      repository.create({ wikiId })
+
     // Only update fields that have valid translated content
-    // Never set title, summary, or content to null if we don't have a valid translation
-    if (hasTitle && result.translatedContent?.title) {
-      translation.title = result.translatedContent.title.trim()
-    }
     if (hasSummary && result.translatedContent?.summary) {
       translation.summary = result.translatedContent.summary.trim()
     }
@@ -642,7 +617,7 @@ export default class WikiTranslationService {
       translation.content = result.translatedContent.content.trim()
     }
 
-    // Only mark as completed if we successfully saved at least one main content field
+    // Only mark as completed if we successfully have at least one main content field
     translation.translationStatus = 'completed'
     translation.translationProvider = result.provider || 'openai'
     translation.translationModel = result.model || this.openaiModel
@@ -651,7 +626,6 @@ export default class WikiTranslationService {
 
     // Log what was successfully translated
     const translatedFields = []
-    if (hasTitle) translatedFields.push('title')
     if (hasSummary) translatedFields.push('summary')
     if (hasContent) translatedFields.push('content')
 
@@ -660,22 +634,6 @@ export default class WikiTranslationService {
         ', ',
       )} for wiki ${wikiId}`,
     )
-
-    await repository.save(translation)
-  }
-
-  private async saveTranslationError(
-    wikiId: string,
-    error: string,
-  ): Promise<void> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
-
-    const translation =
-      (await repository.findOne({ where: { wikiId } })) ||
-      repository.create({ wikiId })
-
-    translation.translationStatus = 'failed'
-    translation.errorMessage = error
 
     await repository.save(translation)
   }
@@ -697,7 +655,6 @@ export default class WikiTranslationService {
 
       for (const translation of completedTranslations) {
         const hasValidContent =
-          (translation.title && translation.title.trim().length > 0) ||
           (translation.summary && translation.summary.trim().length > 0) ||
           (translation.content && translation.content.trim().length > 0)
 

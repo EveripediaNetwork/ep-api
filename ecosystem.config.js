@@ -18,7 +18,7 @@ module.exports = {
 
       env_development: {
         API_LEVEL: 'dev',
-        max_memory_restart: '768M', 
+        max_memory_restart: '768M',
       },
     },
     {
@@ -50,6 +50,26 @@ module.exports = {
       log_date_format: 'YYYY-MM-DD HH:mm Z',
       exp_backoff_restart_delay: 1000,
       max_memory_restart: '600M',
+    },
+    {
+      name: 'bulk-translate-korean',
+      script: 'dist/src/main.js',
+      args: 'translate:bulk-korean',
+      watch: false,
+      time: true,
+      autorestart: false, // Don't auto-restart after completion
+      ignore_watch: ['[/\\]./', 'uploads'],
+      watch_delay: 10000,
+      cwd: process.cwd(),
+      log_type: 'json',
+      error_file: `./logs/translation-error.json`,
+      out_file: `./logs/translation-out.json`,
+      log_date_format: 'YYYY-MM-DD HH:mm Z',
+      max_memory_restart: '1G',
+
+      env_development: {
+        API_LEVEL: 'dev',
+      },
     },
   ],
 }

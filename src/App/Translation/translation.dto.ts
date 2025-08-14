@@ -26,14 +26,16 @@ export class BulkTranslationInput {
 
 @ObjectType()
 export class TranslatedContent {
-  @Field(() => String, { nullable: true })
-  title?: string
-
-  @Field(() => String, { nullable: true })
+  @Field(() => String, {
+    nullable: true,
+    description: 'Translated summary (title is not translated)',
+  })
   summary?: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String, { nullable: true, description: 'Translated content' })
   content?: string
+
+  // Note: title is intentionally omitted as we don't translate titles
 }
 
 @ObjectType()

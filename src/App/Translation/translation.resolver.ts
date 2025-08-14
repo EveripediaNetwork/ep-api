@@ -34,8 +34,6 @@ export default class WikiTranslationResolver {
         existingTranslation.translationStatus === 'completed'
       ) {
         const hasValidContent =
-          (existingTranslation.title &&
-            existingTranslation.title.trim().length > 0) ||
           (existingTranslation.summary &&
             existingTranslation.summary.trim().length > 0) ||
           (existingTranslation.content &&
@@ -47,7 +45,6 @@ export default class WikiTranslationResolver {
           )
 
           const translatedContent: TranslatedContent = {
-            title: existingTranslation.title || undefined,
             summary: existingTranslation.summary || undefined,
             content: existingTranslation.content || undefined,
           }
@@ -80,7 +77,6 @@ export default class WikiTranslationResolver {
       }
 
       const translatedContent: TranslatedContent = {
-        title: result.translatedContent?.title,
         summary: result.translatedContent?.summary,
         content: result.translatedContent?.content,
       }
