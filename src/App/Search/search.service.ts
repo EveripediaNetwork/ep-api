@@ -80,6 +80,10 @@ class SearchService {
 
   private static readonly TEMPERATURE = 0.1
 
+  private static readonly PREVIOUS_CONTEXT_COUNT = 8
+
+  private static readonly ANSWER_TEMPERATURE = 0.3
+
   private static readonly CHUNK_SIZE = 1000
 
   private static readonly FINAL_TOP_K = 5
@@ -143,7 +147,7 @@ class SearchService {
     let previousContext = ''
     if (previousSuggestions.length > 0) {
       previousContext = `\n\nPREVIOUS TOP SUGGESTIONS FROM OTHER SHARDS:\n${previousSuggestions
-        .slice(0, 8)
+        .slice(0, SearchService.PREVIOUS_CONTEXT_COUNT)
         .map(
           (s) =>
             `- ${s.title} (Score: ${s.score}) - ${s.reasoning || 'No reasoning'}`,
@@ -267,7 +271,7 @@ class SearchService {
         const rawMetadata = wiki.metadata || []
         const validMetadata: { url: string; title: string }[] = []
 
-        for (const meta of rawMetadata) {
+        for (const meta of rawMetadata as any[]) {
           if (
             SearchService.ALLOWED_METADATA.has(meta.id) &&
             meta.value &&
@@ -330,7 +334,7 @@ class SearchService {
           content: query,
         },
       ],
-      temperature: SearchService.TEMPERATURE + 0.2,
+      temperature: SearchService.ANSWER_TEMPERATURE,
       seed: SearchService.SEED,
     })
 
