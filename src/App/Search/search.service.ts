@@ -346,8 +346,6 @@ class SearchService {
 
   async searchWithoutCache(query: string, withAnswer: boolean) {
     try {
-      this.logger.log(`Searching for: "${query}"`)
-
       const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
 
       const topSuggestions = await this.getWikiSuggestionsMapOnly(
@@ -383,8 +381,6 @@ class SearchService {
       if (withAnswer && wikiContents.length > 0) {
         answer = await this.answerQuestion(query, wikiContents)
       }
-
-      this.logger.log(`Found ${suggestions.length} relevant wikis`)
 
       return {
         suggestions,
