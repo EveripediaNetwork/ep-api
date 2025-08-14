@@ -228,9 +228,9 @@ class SearchService {
 
     let cumulativeSuggestions: WikiSuggestion[] = []
 
-    for (let i = 0; i < chunksArr.length; i += 1) {
+    for (const [i, shard] of chunksArr.entries()) {
       const shardSuggestions = await this.processShard(
-        chunksArr[i],
+        shard,
         i,
         chunksArr.length,
         query,
