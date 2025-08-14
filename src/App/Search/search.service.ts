@@ -271,7 +271,7 @@ class SearchService {
         const rawMetadata = wiki.metadata || []
         const validMetadata: { url: string; title: string }[] = []
 
-        for (const meta of rawMetadata as any[]) {
+        for (const meta of rawMetadata as { id: string; value: string }[]) {
           if (
             SearchService.ALLOWED_METADATA.has(meta.id) &&
             meta.value &&
