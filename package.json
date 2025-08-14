@@ -22,6 +22,7 @@
     "console:dev": "ts-node src/console.ts",
     "console-mail": "node dist/src/consoleMail.js",
     "console-mail:dev": "ts-node src/consoleMail.ts",
+    "console-translation": "node dist/src/consoleTranslation.js",
     "copy:templates": "mv ./dist/App/mailer/templates ./dist/src/App/mailer/ && rm -rf ./dist/App",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:migrate": "pnpm typeorm migration:generate -- -n",

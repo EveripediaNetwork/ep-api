@@ -53,8 +53,8 @@ module.exports = {
     },
     {
       name: 'bulk-translate-korean',
-      script: 'dist/src/main.js',
-      args: 'translate:bulk-korean',
+      script: 'pnpm',
+      args: 'run console-translation translate:bulk-korean',
       watch: false,
       time: true,
       autorestart: false, // Don't auto-restart after completion
