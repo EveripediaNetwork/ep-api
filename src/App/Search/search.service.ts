@@ -11,7 +11,7 @@ type WikiMetadata = {
   value: string
 }
 
-type WikiData = Pick<Wiki, 'id' | 'title' | 'summary' | 'hidden'>
+type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
 type WikiSearchResult = {
   wikis: WikiSuggestion[]
@@ -21,7 +21,6 @@ type WikiSuggestion = {
   id: string
   title: string
   score: number
-  hidden: boolean
   metadata?: { url: string; title: string }[]
 }
 
@@ -320,13 +319,13 @@ class SearchService {
       const wikiIds = topSuggestions.map((w) => w.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
 
-      const metadataMap = new Map(
-        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-      )
-
-      const suggestions = topSuggestions.map((s) => ({
-        ...s,
-        metadata: metadataMap.get(s.id),
+      // Use wikiContents to build suggestions to ensure we only return accessible wikis
+      const scoreMap = new Map(topSuggestions.map((s) => [s.id, s.score]))
+      const suggestions = wikiContents.map((wiki) => ({
+        id: wiki.id,
+        title: wiki.title,
+        score: scoreMap.get(wiki.id) || SearchService.SCORE_THRESHOLD + 1, // Fallback if wiki was filtered out during fetchWikiContents
+        metadata: wiki.metadata,
       }))
 
       let answer =

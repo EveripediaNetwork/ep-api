@@ -1,3 +1,4 @@
+// biome-ignore lint: Biome does not fully support TypeScript decorators in NestJS.
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { BadRequestException } from '@nestjs/common'
 import SearchService from './search.service'

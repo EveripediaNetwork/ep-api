@@ -159,10 +159,10 @@ class WikiService {
   }
 
   async getWikiIdTitleAndSummary(): Promise<
-    { id: string; title: string; summary: string; hidden: boolean }[]
+    { id: string; title: string; summary: string }[]
   > {
     const wikiIdsList:
-      | { id: string; title: string; summary: string; hidden: boolean }[]
+      | { id: string; title: string; summary: string }[]
       | null
       | undefined = await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
@@ -171,7 +171,6 @@ class WikiService {
       .select('wiki.id')
       .addSelect('wiki.title')
       .addSelect('wiki.summary')
-      .addSelect('wiki.hidden')
       .where('wiki.hidden = false')
       .orderBy('wiki.id', 'ASC')
       .getMany()
