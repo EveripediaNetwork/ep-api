@@ -20,6 +20,9 @@ export class WikiSuggestion {
   @Field(() => Number)
   score!: number
 
+  @Field(() => Boolean, { nullable: true })
+  hidden?: boolean
+
   @Field(() => [WikiMetadata], { nullable: true })
   metadata?: WikiMetadata[]
 }

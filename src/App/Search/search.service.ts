@@ -11,7 +11,7 @@ type WikiMetadata = {
   value: string
 }
 
-type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
+type WikiData = Pick<Wiki, 'id' | 'title' | 'summary' | 'hidden'>
 
 type WikiSearchResult = {
   wikis: WikiSuggestion[]
@@ -21,6 +21,7 @@ type WikiSuggestion = {
   id: string
   title: string
   score: number
+  hidden: boolean
   metadata?: { url: string; title: string }[]
 }
 
@@ -142,6 +143,9 @@ class SearchService {
       return []
     }
 
+    this.logger.debug({
+      hiddenWikis: wikis.filter((wiki) => wiki.hidden).length,
+    })
     const wikiEntries = wikis
       .map(
         (wiki) =>
@@ -256,6 +260,7 @@ class SearchService {
       return []
     }
 
+    this.logger.debug({ wikiIds })
     const promises = wikiIds.map((wikiId) => this.getIQWikiContent(wikiId))
     const results = await Promise.allSettled(promises)
 
@@ -313,6 +318,11 @@ class SearchService {
   async searchWithoutCache(query: string, withAnswer: boolean) {
     try {
       const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
+      if (!allWikis || allWikis.length === 0) {
+        this.logger.warn('No wikis found for search')
+      }
+
+      this.logger.debug({ wiki: allWikis[0] })
       const rawSuggestions = await this.getWikiSuggestions(allWikis, query)
       const filteredSuggestions = this.filterByScore(rawSuggestions)
       const wikiIds = filteredSuggestions.map((wiki) => wiki.id)

@@ -137,21 +137,22 @@ class WikiService {
   }
 
   async getWikiIdTitleAndSummary(): Promise<
-    { id: string; title: string; summary: string }[]
+    { id: string; title: string; summary: string; hidden: boolean }[]
   > {
     const wikiIdsList:
-      | { id: string; title: string; summary: string }[]
+      | { id: string; title: string; summary: string; hidden: boolean }[]
       | null
       | undefined = await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
     const response = await (await this.repository())
       .createQueryBuilder('wiki')
-      .select('id')
-      .addSelect('title')
-      .addSelect('summary')
-      .where('hidden = false')
-      .orderBy('id', 'ASC')
-      .getRawMany()
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.summary')
+      .addSelect('wiki.hidden')
+      .where('wiki.hidden = false')
+      .orderBy('wiki.id', 'ASC')
+      .getMany()
 
     await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
     return response
