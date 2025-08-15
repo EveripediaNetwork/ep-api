@@ -125,7 +125,7 @@ class SearchService {
     return this.dataSource.manager.getRepository(Wiki)
   }
 
-  private formatMetadataKey(key: string): string {
+  private formatMetadataKey(key: string) {
     return SearchService.METADATA_KEY_MAP[key] || key
   }
 
@@ -135,7 +135,7 @@ class SearchService {
     totalShards: number,
     query: string,
     previousSuggestions: WikiSuggestion[] = [],
-  ): Promise<WikiSuggestion[]> {
+  ) {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
     }
@@ -218,10 +218,7 @@ class SearchService {
     }
   }
 
-  private async getWikiSuggestionsMapOnly(
-    wikis: WikiData[],
-    query: string,
-  ): Promise<WikiSuggestion[]> {
+  private async getWikiSuggestionsMapOnly(wikis: WikiData[], query: string) {
     if (!this.ai || wikis.length === 0) return []
 
     const chunksArr = chunk(wikis, SearchService.CHUNK_SIZE)
