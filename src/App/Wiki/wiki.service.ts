@@ -74,9 +74,6 @@ class WikiService {
         await this.wikiTranslationService.getKoreanTranslation(wiki.id)
 
       if (translation && translation.translationStatus === 'completed') {
-        if (translation.title) {
-          wiki.title = translation.title
-        }
         if (translation.summary) {
           wiki.summary = translation.summary
         }
