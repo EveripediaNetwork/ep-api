@@ -173,6 +173,11 @@ class SearchService {
             - 3-4: Tangentially related, might have keywords but doesn't help answer the query
             - 1-2: Not relevant (DO NOT INCLUDE)
 
+            CRITICAL CONSTRAINT:
+            - ONLY analyze and return wikis from the provided knowledge base shard below
+            - DO NOT generate, invent, or suggest any wikis not explicitly listed in the shard
+            - ONLY use the exact IDs and titles provided in the knowledge base
+
             CRITICAL RULES:
             - Just because a title/summary contains query keywords doesn't make it relevant
             - Focus on whether the wiki actually ANSWERS or HELPS with the specific query
