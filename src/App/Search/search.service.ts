@@ -164,6 +164,11 @@ class SearchService {
           content: endent`
             You are an expert at analyzing wiki relevance. Follow these rules strictly and return valid JSON only:
 
+            CRITICAL CONSTRAINT:
+            - ONLY analyze and return wikis from the provided knowledge base shard below
+            - DO NOT generate, invent, or suggest any wikis not explicitly listed in the shard
+            - ONLY use the exact IDs and titles provided in the knowledge base
+
             RELEVANCE SCORING (internal policy):
             - 7–10: Directly answers the query or provides essential information
             - 6: Highly relevant, contains key information needed
