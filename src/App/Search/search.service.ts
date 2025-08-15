@@ -214,7 +214,7 @@ class SearchService {
       const parsed = JSON.parse(content) as WikiSearchResult
       const suggestions = parsed?.wikis || []
 
-      return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
+      return suggestions.filter((s) => s.score > SearchService.SCORE_THRESHOLD)
     } catch (e) {
       this.logger.warn(
         `Shard ${shardIndex + 1} returned invalid JSON; skipping. Error: ${(e as Error).message}`,
