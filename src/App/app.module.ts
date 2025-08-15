@@ -73,6 +73,8 @@ import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
+import WikiTranslationService from './Translation/translation.service'
+import { KakaoCallbackController } from './kauth/kauth.controller'
 
 // istanbul ignore next
 @Module({
@@ -126,8 +128,9 @@ import SearchModule from './Search/search.module'
     DiscordModule,
     SentryMod,
     SearchModule,
+    // TranslationModule
   ],
-  controllers: [UploadController, WikiController],
+  controllers: [UploadController, WikiController, KakaoCallbackController],
   providers: [
     AppService,
     GatewayService,
@@ -170,6 +173,7 @@ import SearchModule from './Search/search.module'
     BlogService,
     EventsService,
     UserProfileValidator,
+    WikiTranslationService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

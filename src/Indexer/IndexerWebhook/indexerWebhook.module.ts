@@ -13,10 +13,11 @@ import IPFSValidatorService from '../Validator/validator.service'
 import RunCommand from '../run.command'
 import IndexerWebhookService from './services/indexerWebhook.service'
 import AlchemyNotifyService from '../../ExternalServices/alchemyNotify.service'
-import AutoInjestService from '../../App/utils/auto-injest'
+import AutoIngestService from '../../App/utils/auto-injest'
 import { LockingService } from '../../App/IQHolders/IQHolders.dto'
 import RPCProviderService from '../RPCProvider/RPCProvider.service'
 import AppService from '../../App/app.service'
+import TranslationModule from '../../App/Translation/translation.module'
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import AppService from '../../App/app.service'
         mock: false,
       }),
     }),
+    TranslationModule,
   ],
   controllers: [IndexerWebhookController],
   providers: [
@@ -46,7 +48,7 @@ import AppService from '../../App/app.service'
     RevalidatePageService,
     RunCommand,
     AlchemyNotifyService,
-    AutoInjestService,
+    AutoIngestService,
     LockingService,
     RPCProviderService,
     AppService,

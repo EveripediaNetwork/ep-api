@@ -11,7 +11,7 @@ import DBStoreService from './Store/store.service'
 import Wiki from '../Database/Entities/wiki.entity'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { getWikiSummary } from '../App/utils/getWikiSummary'
-import AutoInjestService from '../App/utils/auto-injest'
+import AutoIngestService from '../App/utils/auto-injest'
 import {
   TWENTY_FOUR_HOURS_AGO,
   SLEEP_TIME_QUERY,
@@ -32,7 +32,7 @@ class RunCommand implements CommandRunner {
     private dbStoreService: DBStoreService,
     private dataSource: DataSource,
     private metaChanges: MetadataChangesService,
-    private iqInjest: AutoInjestService,
+    private iqInjest: AutoIngestService,
   ) {}
 
   async getMostRecentWiki(): Promise<Wiki[]> {
@@ -163,7 +163,7 @@ class RunCommand implements CommandRunner {
             this.appService.apiLevel() === 'prod' ||
             this.appService.apiLevel() === 'dev'
           ) {
-            await this.iqInjest.initiateInjest()
+            await this.iqInjest.initiateIngest()
           }
         } else {
           await this.dbStoreService.storeWiki(
@@ -181,9 +181,10 @@ class RunCommand implements CommandRunner {
       if (!webhook) {
         await new Promise((r) => setTimeout(r, reIndex ? 300 : SLEEP_TIME))
       }
-    } catch (ex) {
-      console.error(`${mode} mode: 🛑 Invalid IPFS: ${hash.id}`)
-      console.error(ex)
+    } catch (error: any) {
+      console.error(
+        `${mode} mode: 🛑 Invalid IPFS: ${hash.id} \n Reason: => ${error?.message}`,
+      )
     }
   }
 
