@@ -168,12 +168,12 @@ class WikiService {
     if (wikiIdsList) return wikiIdsList
     const response = await (await this.repository())
       .createQueryBuilder('wiki')
-      .select('id')
-      .addSelect('title')
-      .addSelect('summary')
-      .where('hidden = false')
-      .orderBy('id', 'ASC')
-      .getRawMany()
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.summary')
+      .where('wiki.hidden = false')
+      .orderBy('wiki.id', 'ASC')
+      .getMany()
 
     await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
     return response

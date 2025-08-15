@@ -164,6 +164,11 @@ class SearchService {
           content: endent`
             You are an expert at analyzing wiki relevance. Follow these rules strictly and return valid JSON only:
 
+            CRITICAL CONSTRAINT:
+            - ONLY analyze and return wikis from the provided knowledge base shard below
+            - DO NOT generate, invent, or suggest any wikis not explicitly listed in the shard
+            - ONLY use the exact IDs and titles provided in the knowledge base
+
             RELEVANCE SCORING (internal policy):
             - 7–10: Directly answers the query or provides essential information
             - 6: Highly relevant, contains key information needed
@@ -319,13 +324,13 @@ class SearchService {
       const wikiIds = topSuggestions.map((w) => w.id)
       const wikiContents = await this.fetchWikiContents(wikiIds)
 
-      const metadataMap = new Map(
-        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-      )
-
-      const suggestions = topSuggestions.map((s) => ({
-        ...s,
-        metadata: metadataMap.get(s.id),
+      // Use wikiContents to build suggestions to ensure we only return accessible wikis
+      const scoreMap = new Map(topSuggestions.map((s) => [s.id, s.score]))
+      const suggestions = wikiContents.map((wiki) => ({
+        id: wiki.id,
+        title: wiki.title,
+        score: scoreMap.get(wiki.id)!,
+        metadata: wiki.metadata,
       }))
 
       let answer =
