@@ -329,7 +329,7 @@ class SearchService {
       const suggestions = wikiContents.map((wiki) => ({
         id: wiki.id,
         title: wiki.title,
-        score: scoreMap.get(wiki.id) || SearchService.SCORE_THRESHOLD + 1, // Fallback if wiki was filtered out during fetchWikiContents
+        score: scoreMap.get(wiki.id)!,
         metadata: wiki.metadata,
       }))
 
