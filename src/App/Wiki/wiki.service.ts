@@ -51,34 +51,28 @@ class WikiService {
       return wikis
     }
 
-    const translatedWikis = []
-
     for (const wiki of wikis) {
       try {
         const translation =
           await this.wikiTranslationService.getKoreanTranslation(wiki.id)
 
         if (translation && translation.translationStatus === 'completed') {
-          const translatedWiki = {
-            ...wiki,
-            summary: translation.summary?.trim() || wiki.summary,
-            content: translation.content?.trim() || wiki.content,
+          if (translation.summary && translation.summary.length > 0) {
+            wiki.summary = translation.summary
           }
-
-          translatedWikis.push(translatedWiki)
-        } else {
-          translatedWikis.push(wiki)
+          if (translation.content && translation.content.length > 0) {
+            wiki.content = translation.content
+          }
         }
       } catch (error) {
         console.error(
           `Error applying Korean translation for wiki ${wiki.id}:`,
           error,
         )
-        translatedWikis.push(wiki)
       }
     }
 
-    return translatedWikis as Wiki[]
+    return wikis
   }
 
   async repository(): Promise<Repository<Wiki>> {
