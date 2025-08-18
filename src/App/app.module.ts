@@ -74,7 +74,6 @@ import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
 import WikiTranslationService from './Translation/translation.service'
-import { KakaoCallbackController } from './kauth/kauth.controller'
 
 // istanbul ignore next
 @Module({
@@ -130,7 +129,7 @@ import { KakaoCallbackController } from './kauth/kauth.controller'
     SearchModule,
     // TranslationModule
   ],
-  controllers: [UploadController, WikiController, KakaoCallbackController],
+  controllers: [UploadController, WikiController],
   providers: [
     AppService,
     GatewayService,

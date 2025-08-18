@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
-import OpenAI from 'openai'
+import { generateText } from 'ai'
+import { google } from '@ai-sdk/google'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiKoreanTranslation from '../../Database/Entities/wikiKoreanTranslation.entity'
 import {
@@ -16,9 +17,7 @@ import {
 export default class WikiTranslationService {
   private readonly logger = new Logger(WikiTranslationService.name)
 
-  private readonly openai: OpenAI
-
-  private readonly openaiModel: string
+  private readonly googleModel: string
 
   private readonly baseUrl: string
 
@@ -26,25 +25,27 @@ export default class WikiTranslationService {
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
   ) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY') || ''
     this.baseUrl = this.configService.get<string>('WEBSITE_URL') || ''
-    this.openaiModel =
-      this.configService.get<string>('OPENAI_TRANSLATION_MODEL') ||
-      'gpt-4o-mini'
-    this.openai = new OpenAI({
-      apiKey,
-    })
-    if (!apiKey) {
-      this.logger.error('OPENAI_API_KEY is not set in environment variables')
-    } else if (apiKey.length < 20) {
+    this.googleModel =
+      this.configService.get<string>('GOOGLE_MODEL') || 'gemini-1.5-flash'
+
+    const googleApiKey =
+      this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY') ||
+      this.configService.get<string>('GOOGLE_API_KEY') ||
+      ''
+    if (!googleApiKey) {
       this.logger.error(
-        'OPENAI_API_KEY appears to be too short - may be invalid',
+        'GOOGLE_GENERATIVE_AI_API_KEY is not set in environment variables',
+      )
+    } else if (googleApiKey.length < 20) {
+      this.logger.error(
+        'GOOGLE_GENERATIVE_AI_API_KEY appears to be too short - may be invalid',
       )
     } else {
       this.logger.log(
-        `OPENAI_API_KEY loaded successfully (length: ${
-          apiKey.length
-        }, starts with: ${apiKey.substring(0, 7)}...)`,
+        `GOOGLE_GENERATIVE_AI_API_KEY loaded successfully (length: ${
+          googleApiKey.length
+        }, starts with: ${googleApiKey.substring(0, 7)}...)`,
       )
     }
   }
@@ -242,10 +243,13 @@ export default class WikiTranslationService {
     try {
       // Translate summary first (usually short)
       const summaryContentObj: any = {}
-      if (wiki.summary) summaryContentObj.summary = wiki.summary
+      if (wiki.summary) {
+        summaryContentObj.summary = this.preProcessContent(wiki.summary)
+      }
 
       const summaryContent = JSON.stringify(summaryContentObj, null, 2)
-      const summaryResult = await this.translateContent(summaryContent)
+      const summaryResult =
+        await this.translateContentWithFallback(summaryContent)
 
       if (!summaryResult.success) {
         return summaryResult
@@ -257,8 +261,11 @@ export default class WikiTranslationService {
         return summaryResult
       }
 
+      // Preprocess the content before splitting
+      const preprocessedContent = this.preProcessContent(content)
+
       // Split content into logical sections
-      const sections = this.splitContentIntoSections(content)
+      const sections = this.splitContentIntoSections(preprocessedContent)
       const translatedSections: string[] = []
       let totalCost = summaryResult.cost || 0
 
@@ -270,7 +277,8 @@ export default class WikiTranslationService {
 
         try {
           const sectionContent = JSON.stringify({ content: section }, null, 2)
-          const sectionResult = await this.translateContent(sectionContent)
+          const sectionResult =
+            await this.translateContentWithFallback(sectionContent)
 
           if (
             sectionResult.success &&
@@ -305,8 +313,8 @@ export default class WikiTranslationService {
           summary: summaryResult.translatedContent?.summary,
           content: combinedContent,
         },
-        provider: 'openai',
-        model: this.openaiModel,
+        provider: summaryResult.provider || 'google',
+        model: summaryResult.model || this.googleModel,
         cost: totalCost,
       }
     } catch (error: any) {
@@ -318,7 +326,13 @@ export default class WikiTranslationService {
     }
   }
 
-  private async translateContent(
+  private async translateContentWithFallback(
+    contentToTranslate: string,
+  ): Promise<TranslationResult> {
+    return this.translateContentWithGoogle(contentToTranslate)
+  }
+
+  private async translateContentWithGoogle(
     contentToTranslate: string,
   ): Promise<TranslationResult> {
     if (!contentToTranslate.trim()) {
@@ -328,103 +342,93 @@ export default class WikiTranslationService {
       }
     }
 
-    try {
-      const completion = await this.openai.chat.completions.create({
-        model: this.openaiModel,
-        messages: [
-          {
-            role: 'system',
-            content: `You are a professional translator specializing in translating Wikipedia-style content to Korean. 
-            
-            IMPORTANT: You must return ONLY valid JSON in the exact format specified below. Do not include any markdown formatting, explanations, or additional text.
-            
-            Translation guidelines:
-            1. Technical accuracy and proper terminology
-            2. Natural Korean language flow
-            3. Proper names should remain in their original form with Korean pronunciation in parentheses when appropriate
-            4. Preserve the exact JSON structure
-            5. Escape all special characters properly in JSON strings
-            6. Do not use unescaped quotes, newlines, or backslashes in the JSON values
-            7. Preserve markdown formatting, links, widgets, and citations exactly as they appear
-            8. Keep special elements like $$widget0 [YOUTUBE@VID](videoId)$$ unchanged
-            9. Keep citation links like [[1]](#cite-id-xyz) unchanged
-            10. Translate the actual text content while preserving all formatting
-            
-            Expected JSON format:
-            {
-              "summary": "translated summary here", 
-              "content": "translated content with preserved formatting here"
-            }
-            
-            Note: Do not translate titles - only translate summary and content fields.
-            Return ONLY the JSON object, nothing else.`,
-          },
-          {
-            role: 'user',
-            content: contentToTranslate,
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 8000,
-      })
+    // Check if Google API key is available
+    const googleApiKey =
+      this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY') ||
+      this.configService.get<string>('GOOGLE_API_KEY') ||
+      ''
 
-      const translatedContent = completion.choices[0]?.message?.content
+    if (!googleApiKey) {
+      return {
+        success: false,
+        error:
+          'Google API key is not configured. Set GOOGLE_GENERATIVE_AI_API_KEY environment variable.',
+      }
+    }
+
+    try {
+      const prompt = `You are a professional translator specializing in translating Wikipedia-style content to Korean. 
+
+IMPORTANT: You must return ONLY valid JSON in the exact format specified below. Do not include any markdown formatting, explanations, or additional text.
+
+Translation guidelines:
+1. Technical accuracy and proper terminology
+2. Natural Korean language flow
+3. Proper names should remain in their original form with Korean pronunciation in parentheses when appropriate
+4. Preserve the exact JSON structure
+5. Escape all special characters properly in JSON strings
+6. Do not use unescaped quotes, newlines, or backslashes in the JSON values
+7. Preserve markdown formatting, links, widgets, and citations exactly as they appear
+8. Keep special elements like $$widget0 [YOUTUBE@VID](videoId)$$ unchanged
+9. Keep citation links like [[1]](#cite-id-xyz) unchanged
+10. Translate the actual text content while preserving all formatting
+
+Expected JSON format:
+{
+  "summary": "translated summary here", 
+  "content": "translated content with preserved formatting here"
+}
+
+Note: Do not translate titles - only translate summary and content fields.
+Return ONLY the JSON object, nothing else.
+
+Content to translate:
+${contentToTranslate}`
+
+      const { text: translatedContent } = await generateText({
+        model: google(this.googleModel),
+        temperature: 0,
+        prompt,
+      })
 
       if (!translatedContent) {
         return {
           success: false,
-          error: 'No translation received from OpenAI',
+          error: 'No translation received from Google AI',
         }
       }
 
       const parsedContent = this.parseTranslatedContent(translatedContent)
-      const cost = this.calculateCost(completion.usage)
 
       return {
         success: true,
         translatedContent: parsedContent,
-        provider: 'openai',
-        model: this.openaiModel,
-        cost,
+        provider: 'google',
+        model: this.googleModel,
+        cost: 0, // Google AI SDK doesn't provide usage info in the same way
       }
     } catch (error: any) {
-      // Enhanced error logging for OpenAI API issues
-      if (error.status) {
-        this.logger.error(`OpenAI API Error - Status: ${error.status}`, {
-          status: error.status,
-          message: error.message,
-          type: error.type,
-        })
+      this.logger.error('Error with Google AI request:', error.message || error)
 
-        if (error.status === 401) {
-          return {
-            success: false,
-            error: `OpenAI API authentication failed (401). Please check your API key.`,
-          }
-        }
-
-        if (error.status === 429) {
-          return {
-            success: false,
-            error: 'OpenAI API rate limit exceeded. Please try again later.',
-          }
-        }
-
+      // Enhanced error logging for Google AI API issues
+      if (error.status === 401 || error.message?.includes('API key')) {
         return {
           success: false,
-          error: `OpenAI API error (${error.status}): ${
-            error.message || 'Unknown error'
-          }`,
+          error:
+            'Google AI API authentication failed. Please check your API key.',
         }
       }
 
-      this.logger.error(
-        'Error with OpenAI API request:',
-        error.message || error,
-      )
+      if (error.status === 429) {
+        return {
+          success: false,
+          error: 'Google AI API rate limit exceeded. Please try again later.',
+        }
+      }
+
       return {
         success: false,
-        error: `Request error: ${error.message || 'Unknown error'}`,
+        error: `Google AI request error: ${error.message || 'Unknown error'}`,
       }
     }
   }
@@ -473,22 +477,28 @@ export default class WikiTranslationService {
 
   private async performTranslation(wiki: Wiki): Promise<TranslationResult> {
     const contentToTranslate = this.prepareContentForTranslation(wiki)
-    return this.translateContent(contentToTranslate)
+
+    this.logger.log(`Translating wiki ${wiki.id} with Google AI`)
+    return this.translateContentWithGoogle(contentToTranslate)
   }
 
   private prepareContentForTranslation(wiki: Wiki): string {
     const contentObj: any = {}
 
     // Only translate summary and content, not title
-    if (wiki.summary) contentObj.summary = wiki.summary
+    if (wiki.summary) {
+      contentObj.summary = this.preProcessContent(wiki.summary)
+    }
     if (wiki.content) {
       // Handle large content by chunking if needed
       const content = wiki.content
       if (content.length > 8000) {
         // For very large content, take the first meaningful sections
-        contentObj.content = this.extractMainSections(content)
+        contentObj.content = this.preProcessContent(
+          this.extractMainSections(content),
+        )
       } else {
-        contentObj.content = content
+        contentObj.content = this.preProcessContent(content)
       }
     }
 
@@ -496,10 +506,13 @@ export default class WikiTranslationService {
   }
 
   private extractMainSections(content: string): string {
+    // Preprocess the content first
+    const preprocessedContent = this.preProcessContent(content)
+
     // Extract the introduction and first few sections for translation
     // This ensures we get the most important parts within token limits
 
-    const sections = content.split(/(?=##\s)/) // Split by H2 headers
+    const sections = preprocessedContent.split(/(?=##\s)/) // Split by H2 headers
     let result = ''
     let currentLength = 0
     const maxLength = 6000 // Conservative limit to stay within token limits
@@ -514,7 +527,7 @@ export default class WikiTranslationService {
 
     // If we couldn't fit any sections, just take the first part
     if (result.length === 0) {
-      result = content.substring(0, maxLength)
+      result = preprocessedContent.substring(0, maxLength)
       // Try to end at a reasonable point (end of paragraph)
       const lastParagraph = result.lastIndexOf('\n\n')
       if (lastParagraph > maxLength * 0.7) {
@@ -567,20 +580,6 @@ export default class WikiTranslationService {
     }
   }
 
-  private calculateCost(usage?: OpenAI.CompletionUsage): number {
-    if (!usage?.prompt_tokens || !usage.completion_tokens) return 0
-
-    // OpenAI pricing for gpt-4o-mini (as of 2024)
-    // Input: $0.15 / 1M tokens, Output: $0.60 / 1M tokens
-    const costPerInputToken = 0.15 / 1000000
-    const costPerOutputToken = 0.6 / 1000000
-
-    const inputCost = usage.prompt_tokens * costPerInputToken
-    const outputCost = usage.completion_tokens * costPerOutputToken
-
-    return inputCost + outputCost
-  }
-
   private async saveTranslation(
     wikiId: string,
     result: TranslationResult,
@@ -619,8 +618,8 @@ export default class WikiTranslationService {
 
     // Only mark as completed if we successfully have at least one main content field
     translation.translationStatus = 'completed'
-    translation.translationProvider = result.provider || 'openai'
-    translation.translationModel = result.model || this.openaiModel
+    translation.translationProvider = result.provider || 'google'
+    translation.translationModel = result.model || this.googleModel
     translation.translationCost = result.cost || 0
     translation.errorMessage = null
 
@@ -752,5 +751,55 @@ export default class WikiTranslationService {
         id: translation.wikiId,
         updated: translation.wiki.updated,
       }))
+  }
+
+  // Content preprocessing utility
+  private preProcessContent(content: string, isEditor = false): string {
+    // Replace <br> tags with newlines
+    let sanitizedContent = content.replace(/<br( )*\/?>/g, '\n') || ''
+
+    // Handle widget content that's inside headers (This is a edge case in some old wikis)
+    sanitizedContent = sanitizedContent.replace(
+      /^(#+)\s*(\$\$widget\d.*?\$\$)(.*$)/gm,
+      '$2\n$1 $3',
+    )
+
+    // Auto-convert either of \[text] - (url) or \\[text] - (url) to '[text](url)' for markdown links in quotes
+    sanitizedContent = sanitizedContent.replace(
+      /\\{1,2}\[([^\]]+)\]\s*-\s*\(([^)\s]+)\)/g,
+      '[$1]($2)',
+    )
+
+    // Handle regular widget content
+    const matchRegex = /\$\$widget\d(.*?\))\$\$/
+    const matches = sanitizedContent.match(new RegExp(matchRegex, 'g')) ?? []
+
+    for (const match of matches) {
+      const widgetContent = match.match(matchRegex)?.[1]
+      if (widgetContent) {
+        sanitizedContent = sanitizedContent.replaceAll(
+          match,
+          `\n\n${widgetContent}\n\n`,
+        )
+      }
+    }
+
+    // Add newline before list items that don't have proper spacing
+    sanitizedContent = sanitizedContent.replace(
+      /([^\\-\s](?<!\\))-\s/g,
+      '$1\n- ',
+    )
+
+    // If there are # (h1) headings, level down all headings by 1
+    if (sanitizedContent.includes('\n# ') && !isEditor) {
+      sanitizedContent = sanitizedContent
+        .replace(/^##### /gm, '###### ')
+        .replace(/^#### /gm, '##### ')
+        .replace(/^### /gm, '#### ')
+        .replace(/^## /gm, '### ')
+        .replace(/^# /gm, '## ')
+    }
+
+    return sanitizedContent
   }
 }
