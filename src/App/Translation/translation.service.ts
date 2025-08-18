@@ -721,4 +721,36 @@ export default class WikiTranslationService {
       totalCost: parseFloat(costResult?.totalCost || '0'),
     }
   }
+
+  async getKoreanWikiIds(): Promise<{ id: string; updated: Date }[]> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const translations = await repository.find({
+      where: {
+        translationStatus: 'completed',
+        wiki: {
+          hidden: false,
+        },
+      },
+      relations: ['wiki'],
+      select: {
+        wikiId: true,
+        wiki: {
+          updated: true,
+        },
+      },
+    })
+
+    // Filter out translations that don't have meaningful content
+    return translations
+      .filter(
+        (translation) =>
+          (translation.summary && translation.summary.trim().length > 0) ||
+          (translation.content && translation.content.trim().length > 0),
+      )
+      .map((translation) => ({
+        id: translation.wikiId,
+        updated: translation.wiki.updated,
+      }))
+  }
 }

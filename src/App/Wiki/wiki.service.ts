@@ -46,6 +46,22 @@ class WikiService {
     return this.configService.get<string>('WEBSITE_URL') || ''
   }
 
+  private async applyKoreanTranslations(wikis: Wiki[]): Promise<void> {
+    for (const wiki of wikis) {
+      const translation =
+        await this.wikiTranslationService.getKoreanTranslation(wiki.id)
+
+      if (translation && translation.translationStatus === 'completed') {
+        if (translation.summary) {
+          wiki.summary = translation.summary
+        }
+        if (translation.content) {
+          wiki.content = translation.content
+        }
+      }
+    }
+  }
+
   async repository(): Promise<Repository<Wiki>> {
     return this.dataSource.manager.getRepository(Wiki)
   }
@@ -70,17 +86,7 @@ class WikiService {
     }
 
     if (args.lang === 'kr') {
-      const translation =
-        await this.wikiTranslationService.getKoreanTranslation(wiki.id)
-
-      if (translation && translation.translationStatus === 'completed') {
-        if (translation.summary) {
-          wiki.summary = translation.summary
-        }
-        if (translation.content) {
-          wiki.content = translation.content
-        }
-      }
+      await this.applyKoreanTranslations([wiki])
     }
 
     return wiki
@@ -152,6 +158,12 @@ class WikiService {
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
     const promotedWikis = await queryBuilder.getMany()
+
+    // Apply Korean translations if requested
+    if (args.lang === 'kr') {
+      await this.applyKoreanTranslations(promotedWikis)
+    }
+
     return promotedWikis
   }
 
@@ -349,13 +361,16 @@ class WikiService {
     )
   }
 
-  async getWikisPerVisits(args: PageViewArgs): Promise<Wiki[] | []> {
+  async getWikisPerVisits(
+    args: PageViewArgs,
+    lang: string = 'en',
+  ): Promise<Wiki[] | []> {
     const { start, end } = await updateDates(args)
     const qb = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
       .where('wiki.language = :lang AND hidden = :status', {
-        lang: 'en',
+        lang: 'en', // Keep as 'en' for pageviews data consistency
         status: false,
       })
       .andWhere('p.day >= :start AND p.day <= :end', {
@@ -373,6 +388,11 @@ class WikiService {
     }
 
     const response = await qb.getMany()
+
+    // Apply Korean translations if requested
+    if (lang === 'kr') {
+      await this.applyKoreanTranslations(response)
+    }
 
     return response
   }
