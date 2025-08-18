@@ -167,7 +167,6 @@ class WikiService {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
     queryBuilder
-      .where('wiki.language = :lang', { lang: 'en' })
       .andWhere('wiki.promoted > 0')
       .andWhere('wiki.hidden = false')
       .orderBy('wiki.promoted', args.direction)

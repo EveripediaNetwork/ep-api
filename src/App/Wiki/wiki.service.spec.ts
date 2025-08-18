@@ -171,10 +171,6 @@ describe('WikiService', () => {
       })
 
       expect(result).toEqual(wikis)
-      expect(queryBuilder.where).toHaveBeenCalledWith(
-        'wiki.languageId = :lang',
-        { lang: 'en' },
-      )
       expect(queryBuilder.andWhere).toHaveBeenCalledWith('wiki.promoted > 0')
       expect(queryBuilder.andWhere).toHaveBeenCalledWith('wiki.hidden = false')
     })
