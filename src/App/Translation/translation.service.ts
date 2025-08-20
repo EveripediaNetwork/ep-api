@@ -53,15 +53,15 @@ export default class WikiTranslationService {
   async translateWiki(request: TranslationInput): Promise<TranslationResult> {
     const { wikiId, forceRetranslate = false } = request
 
-    // if (this.baseUrl?.includes('dev')) {
-    //   this.logger.warn(
-    //     `Translation skipped for wiki ${wikiId} - running in dev environment`,
-    //   )
-    //   return {
-    //     success: false,
-    //     error: 'Translation disabled in development environment',
-    //   }
-    // }
+    if (this.baseUrl?.includes('dev')) {
+      this.logger.warn(
+        `Translation skipped for wiki ${wikiId} - running in dev environment`,
+      )
+      return {
+        success: false,
+        error: 'Translation disabled in development environment',
+      }
+    }
 
     try {
       const existingTranslation = await this.getExistingTranslation(wikiId)
