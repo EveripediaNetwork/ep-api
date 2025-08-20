@@ -84,7 +84,7 @@ export default class BulkTranslateCommand implements CommandRunner {
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
           .andWhere('kt.wiki_id IS NULL') // Exclude wikis that already have translations
-          .orderBy('wiki.created', 'DESC')
+          .orderBy('wiki.updated', 'DESC')
           .offset(offset)
 
         // Only apply limit if it's greater than 0

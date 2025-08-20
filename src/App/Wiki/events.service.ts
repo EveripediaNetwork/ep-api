@@ -7,10 +7,14 @@ import Language from '../../Database/Entities/language.entity'
 import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
 import { EventArgs, hasField } from './wiki.dto'
+import WikiService from './wiki.service'
 
 @Injectable()
 class EventsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly wikiService: WikiService,
+  ) {}
 
   async events(ids: string[], args: EventArgs, count = false) {
     try {
@@ -109,7 +113,7 @@ class EventsService {
       `
         : ''
 
-      const events = await this.dataSource.getRepository(Wiki).query(
+      let events = await this.dataSource.getRepository(Wiki).query(
         `
             SELECT
             ${
@@ -149,6 +153,9 @@ class EventsService {
         `,
       )
 
+      if (args.lang === 'kr') {
+        events = await this.wikiService.applyKoreanTranslations(events)
+      }
       return events
     } catch (error) {
       console.error('Error fetching events:', error)

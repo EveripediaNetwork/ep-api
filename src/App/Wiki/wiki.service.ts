@@ -46,7 +46,7 @@ class WikiService {
     return this.configService.get<string>('WEBSITE_URL') || ''
   }
 
-  private async applyKoreanTranslations(wikis: Wiki[]): Promise<Wiki[]> {
+  async applyKoreanTranslations(wikis: Wiki[]): Promise<Wiki[]> {
     if (!wikis || wikis.length === 0) {
       return wikis
     }
@@ -117,17 +117,21 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository())
       .createQueryBuilder('wiki')
-      .where('wiki.languageId = :lang', { lang: args.lang })
-      .andWhere('wiki.hidden = false')
+      .where('wiki.hidden = false')
 
     if (featuredEvents !== undefined) {
       this.filterFeaturedEvents(queryBuilder, featuredEvents)
     }
-    return queryBuilder
+    let wikis = (await queryBuilder
       .orderBy(`wiki.${args.order}`, args.direction)
       .skip(args.offset)
       .take(args.limit)
-      .getMany() as unknown as Wiki[]
+      .getMany()) as unknown as Wiki[]
+
+    if (args.lang === 'kr') {
+      wikis = await this.applyKoreanTranslations(wikis)
+    }
+    return wikis
   }
 
   filterFeaturedEvents(
@@ -212,10 +216,7 @@ class WikiService {
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
         categoryId: args.category,
       })
-      .where('wiki.language = :lang AND hidden = :status', {
-        lang,
-        status: false,
-      })
+      .where('hidden = false')
 
     if (tagIds) {
       query.innerJoin('wiki.tags', 'tag')
@@ -264,7 +265,12 @@ class WikiService {
         break
     }
 
-    return query.limit(limit).offset(offset).getMany()
+    let wikisByCategory = await query.limit(limit).offset(offset).getMany()
+
+    if (lang === 'kr') {
+      wikisByCategory = await this.applyKoreanTranslations(wikisByCategory)
+    }
+    return wikisByCategory
   }
 
   async getWikisByTitle(
@@ -279,14 +285,9 @@ class WikiService {
 
     let query = (await this.repository())
       .createQueryBuilder('wiki')
-      .where(
-        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
-        {
-          lang,
-          title,
-          hidden: false,
-        },
-      )
+      .where('LOWER(wiki.title) LIKE :title AND hidden = false', {
+        title,
+      })
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
@@ -312,7 +313,12 @@ class WikiService {
         break
     }
 
-    return query.limit(limit).offset(offset).getMany()
+    let wikisByTitle = await query.limit(limit).offset(offset).getMany()
+
+    if (lang === 'kr') {
+      wikisByTitle = await this.applyKoreanTranslations(wikisByTitle)
+    }
+    return wikisByTitle
   }
 
   eventsFilter(
