@@ -4,12 +4,12 @@ import PaginationArgs from '../pagination.args'
 import { ValidStringParams } from '../utils/customValidator'
 import Tag from '../../Database/Entities/tag.entity'
 
-@ArgsType()
-class TagIDArgs extends PaginationArgs {
-  @Field(() => String)
-  @Validate(ValidStringParams)
-  id!: string
-}
+// @ArgsType()
+// class TagIDArgs extends PickType(BaseArgs, ['lang'])  {
+//   @Field(() => String)
+//   @Validate(ValidStringParams)
+//   id!: string
+// }
 
 export function eventWiki(tags: Tag[]) {
   if (!tags) {
@@ -18,4 +18,4 @@ export function eventWiki(tags: Tag[]) {
   return tags.some((e: { id: string }) => e.id === 'Events')
 }
 
-export default TagIDArgs
+// export default TagIDArgs

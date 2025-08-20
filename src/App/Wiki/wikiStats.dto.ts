@@ -2,6 +2,7 @@
 import { ObjectType, Field, Int, ArgsType } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import { ValidStringParams } from '../utils/customValidator'
+import { LangArgs } from './wiki.dto'
 
 @ObjectType()
 export class Count {

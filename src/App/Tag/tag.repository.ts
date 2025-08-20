@@ -2,7 +2,6 @@ import { DataSource, Repository } from 'typeorm'
 import { Injectable } from '@nestjs/common'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
-import TagIDArgs from './tag.dto'
 import { DateArgs } from '../Wiki/wikiStats.dto'
 import { ArgsById } from '../general.args'
 
@@ -25,7 +24,7 @@ class TagRepository extends Repository<Tag> {
       .getOne()
   }
 
-  async findTagsById(args: TagIDArgs): Promise<Tag[]> {
+  async findTagsById(args: ArgsById): Promise<Tag[]> {
     return this.createQueryBuilder('tag')
       .where('LOWER(tag.id) LIKE :id', {
         id: `%${args.id.toLowerCase()}%`,

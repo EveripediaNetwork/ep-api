@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
-import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
-import { MinLength, Validate } from 'class-validator'
+import { ArgsType, Field, Int, ObjectType, PickType } from '@nestjs/graphql'
+import { Max, Min, MinLength, Validate } from 'class-validator'
 import {
   ValidStringParams,
   ValidDateParams,

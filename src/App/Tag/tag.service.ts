@@ -2,17 +2,18 @@ import { DataSource } from 'typeorm'
 import { Injectable } from '@nestjs/common'
 import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
-import TagIDArgs from './tag.dto'
 import { DateArgs } from '../Wiki/wikiStats.dto'
-import { ArgsById } from '../general.args'
+import { ArgsById, BaseArgs } from '../general.args'
 import TagRepository from './tag.repository'
 import Wiki from '../../Database/Entities/wiki.entity'
+import WikiService from '../Wiki/wiki.service'
 
 @Injectable()
 class TagService {
   constructor(
     private dataSource: DataSource,
     private tagRepo: TagRepository,
+    private wikiService: WikiService,
   ) {}
 
   async getTags(args: PaginationArgs): Promise<Tag[]> {
@@ -23,7 +24,7 @@ class TagService {
     return this.tagRepo.findTagById(args)
   }
 
-  async getTagsById(args: TagIDArgs): Promise<Tag[]> {
+  async getTagsById(args: ArgsById): Promise<Tag[]> {
     return this.tagRepo.findTagsById(args)
   }
 
@@ -31,9 +32,9 @@ class TagService {
     return this.tagRepo.findTagsPopular(args)
   }
 
-  async wikis(id: string, args: PaginationArgs) {
+  async wikis(id: string, args: BaseArgs) {
     const repository = this.dataSource.getRepository(Wiki)
-    return repository
+    let wikis = await repository
       .createQueryBuilder('wiki')
       .innerJoin('wiki.tags', 'tag', 'tag.id ILIKE :tagId', {
         tagId: id,
@@ -43,6 +44,11 @@ class TagService {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+
+    if (args.lang === 'kr') {
+      wikis = await this.wikiService.applyKoreanTranslations(wikis)
+    }
+    return wikis
   }
 }
 
