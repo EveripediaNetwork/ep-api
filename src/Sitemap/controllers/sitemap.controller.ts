@@ -4,6 +4,7 @@ import { SitemapStream, streamToPromise } from 'sitemap'
 import WikiService from '../../App/Wiki/wiki.service'
 import staticPagesData from '../data/staticPagesData'
 import CategoryService from '../../App/Category/category.service'
+import WikiTranslationService from '../../App/Translation/translation.service'
 
 @Controller()
 export default class SitemapController {
@@ -17,6 +18,7 @@ export default class SitemapController {
     private wikiService: WikiService,
     private configService: ConfigService,
     private categoryService: CategoryService,
+    private wikiTranslationService: WikiTranslationService,
   ) {}
 
   @Get('sitemap.xml')
@@ -40,15 +42,26 @@ export default class SitemapController {
       }),
     )
 
-    const [wikisIds, categoriesId] = await Promise.all([
+    const [wikisIds, categoriesId, koreanWikiIds] = await Promise.all([
       this.wikiService.getWikiIds(),
       this.categoryService.getCategoryIds(),
+      this.wikiTranslationService.getKoreanWikiIds(),
     ])
+
     wikisIds.map((wiki) =>
       smStream.write({
         url: `/wiki/${wiki.id}`,
         changefreq: 'daily',
         priority: 1,
+        lastmod: wiki.updated,
+      }),
+    )
+
+    koreanWikiIds.map((wiki) =>
+      smStream.write({
+        url: `/kr/wiki/${wiki.id}`,
+        changefreq: 'daily',
+        priority: 0.9,
         lastmod: wiki.updated,
       }),
     )

@@ -740,17 +740,12 @@ ${contentToTranslate}`
       },
     })
 
-    // Filter out translations that don't have meaningful content
-    return translations
-      .filter(
-        (translation) =>
-          (translation.summary && translation.summary.trim().length > 0) ||
-          (translation.content && translation.content.trim().length > 0),
-      )
-      .map((translation) => ({
-        id: translation.wikiId,
-        updated: translation.wiki.updated,
-      }))
+    const validTranslations = translations.map((translation) => ({
+      id: translation.wikiId,
+      updated: translation.wiki.updated,
+    }))
+
+    return validTranslations
   }
 
   // Content preprocessing utility
