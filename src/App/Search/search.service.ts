@@ -5,6 +5,7 @@ import OpenAI from 'openai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
+import { crawlIQLearnEnglish } from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
@@ -89,6 +90,9 @@ class SearchService {
   private static readonly FINAL_TOP_K = 5
 
   private readonly isProduction: boolean
+
+  private learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>> | null =
+    null
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -332,6 +336,10 @@ class SearchService {
           content: `AVAILABLE WIKIS:\n${contextContent}`,
         },
         {
+          role: 'assistant',
+          content: await this.getLearnDocs(),
+        },
+        {
           role: 'user',
           content: query,
         },
@@ -387,12 +395,29 @@ class SearchService {
       return {
         suggestions,
         wikiContents,
+        learnDocs: await this.getLearnDocs(),
         answer,
       }
     } catch (error) {
       this.logger.error('Error in searchWithoutCache:', error)
       throw error
     }
+  }
+
+  private async getLearnDocs() {
+    this.learnDocs = await crawlIQLearnEnglish()
+    if (!this.learnDocs?.length) return ''
+
+    const header = endent`
+    ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
+    These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
+    Use them as supplemental context`
+
+    const body = this.learnDocs
+      .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
+      .join('\n')
+
+    return `\n\n${header}\n\n${body}\n`
   }
 
   async search(query: string, withAnswer: boolean) {
