@@ -285,8 +285,9 @@ class WikiService {
 
     let query = (await this.repository())
       .createQueryBuilder('wiki')
-      .where('LOWER(wiki.title) LIKE :title AND hidden = false', {
+      .where('LOWER(wiki.title) LIKE :title AND hidden = :status', {
         title,
+        status: args.hidden,
       })
 
     if (eventArgs) {
