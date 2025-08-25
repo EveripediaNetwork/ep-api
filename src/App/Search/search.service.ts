@@ -405,15 +405,15 @@ class SearchService {
   }
 
   private async getLearnDocs() {
-    this.learnDocs = await crawlIQLearnEnglish()
-    if (!this.learnDocs?.length) return ''
+    const learnDocs = await crawlIQLearnEnglish()
+    if (!learnDocs?.length) return ''
 
     const header = endent`
     ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
     These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
     Use them as supplemental context`
 
-    const body = this.learnDocs
+    const body = learnDocs
       .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
       .join('\n')
 
