@@ -54,34 +54,56 @@ async function fetchEnglishLinks() {
 }
 
 export async function crawlIQLearnEnglish() {
-  const urls = await fetchEnglishLinks()
+  try {
+    const urls = await fetchEnglishLinks()
 
-  const results = await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const res = await fetch(url, { headers: { 'User-Agent': UA } })
-        if (!res.ok) {
+    if (!urls || urls.length === 0) {
+      console.warn('No English links found from index')
+      return []
+    }
+
+    const results = await Promise.all(
+      urls.map(async (url) => {
+        try {
+          const res = await fetch(url, { headers: { 'User-Agent': UA } })
+          if (!res.ok) {
+            console.error(
+              `Failed to fetch learn doc at ${url}: HTTP ${res.status}`,
+            )
+            return null
+          }
+
+          let content = await res.text()
+          content = cleanMarkdown(content)
+
+          const h1 = content.match(/^#\s+(.*)$/m)?.[1]?.trim()
+          const fallback = decodeURIComponent(
+            new URL(url).pathname.split('/').filter(Boolean).pop() ||
+              'Untitled',
+          ).replace(/\.md$/i, '')
+          let title = h1 || fallback
+
+          if (title.toLowerCase() === 'contracts') {
+            title = 'View IQ token contract addresses on different chains'
+          }
+
+          return { title, content } as LearnDoc
+        } catch (error: any) {
+          console.error(
+            `Failed to fetch or process learn doc at ${url}:`,
+            error.message || error,
+          )
           return null
         }
-        let content = await res.text()
-        content = cleanMarkdown(content)
+      }),
+    )
 
-        const h1 = content.match(/^#\s+(.*)$/m)?.[1]?.trim()
-        const fallback = decodeURIComponent(
-          new URL(url).pathname.split('/').filter(Boolean).pop() || 'Untitled',
-        ).replace(/\.md$/i, '')
-        let title = h1 || fallback
-
-        if (title.toLowerCase() === 'contracts') {
-          title = 'View IQ token contract addresses on different chains'
-        }
-
-        return { title, content } as LearnDoc
-      } catch (e: any) {
-        return null
-      }
-    }),
-  )
-
-  return results.filter((x): x is LearnDoc => x !== null)
+    return results.filter((x): x is LearnDoc => x !== null)
+  } catch (error: any) {
+    console.error(
+      'Failed to fetch English links index:',
+      error.message || error,
+    )
+    return []
+  }
 }

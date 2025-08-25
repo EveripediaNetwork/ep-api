@@ -301,7 +301,11 @@ class SearchService {
       .filter((x) => x !== null)
   }
 
-  private async answerQuestion(query: string, wikiContents: WikiContent[]) {
+  private async answerQuestion(
+    query: string,
+    wikiContents: WikiContent[],
+    learnDocsContent: string,
+  ) {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
     }
@@ -337,7 +341,7 @@ class SearchService {
         },
         {
           role: 'assistant',
-          content: await this.getLearnDocs(),
+          content: learnDocsContent,
         },
         {
           role: 'user',
@@ -387,15 +391,22 @@ class SearchService {
           metadata: metadataMap.get(s.id),
         }))
 
+      const learnDocs = await this.fetchLearnDocs()
+      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+
       let answer = 'No wiki content was available to answer the question.'
       if (withAnswer && wikiContents.length > 0) {
-        answer = await this.answerQuestion(query, wikiContents)
+        answer = await this.answerQuestion(
+          query,
+          wikiContents,
+          learnDocsContent,
+        )
       }
 
       return {
         suggestions,
         wikiContents,
-        learnDocs: await this.getLearnDocs(),
+        learnDocs,
         answer,
       }
     } catch (error) {
@@ -404,16 +415,27 @@ class SearchService {
     }
   }
 
-  private async getLearnDocs() {
-    this.learnDocs = await crawlIQLearnEnglish()
-    if (!this.learnDocs?.length) return ''
+  private async fetchLearnDocs() {
+    try {
+      const learnDocs = await crawlIQLearnEnglish()
+      return learnDocs || []
+    } catch (error) {
+      this.logger.error('Failed to fetch learn docs:', error)
+      return []
+    }
+  }
+
+  private formatLearnDocsForAI(
+    learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>>,
+  ) {
+    if (!learnDocs?.length) return ''
 
     const header = endent`
     ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
     These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
     Use them as supplemental context`
 
-    const body = this.learnDocs
+    const body = learnDocs
       .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
       .join('\n')
 
