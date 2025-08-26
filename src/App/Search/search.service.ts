@@ -367,40 +367,48 @@ class SearchService {
         query,
       )
 
-      if (topSuggestions.length === 0) {
+      const learnDocs = await this.fetchLearnDocs()
+      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+
+      if (topSuggestions.length === 0 && !learnDocsContent.trim()) {
         return {
           suggestions: [],
           wikiContents: [],
+          learnDocs,
           answer:
             'No relevant wikis found for your query. Try rephrasing or using different keywords.',
         }
       }
 
-      const wikiIds = topSuggestions.map((w) => w.id)
-      const wikiContents = await this.fetchWikiContents(wikiIds)
+      let wikiContents: WikiContent[] = []
+      let suggestions: WikiSuggestion[] = []
 
-      const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
-      const metadataMap = new Map(
-        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-      )
+      if (topSuggestions.length > 0) {
+        const wikiIds = topSuggestions.map((w) => w.id)
+        wikiContents = await this.fetchWikiContents(wikiIds)
 
-      const suggestions = topSuggestions
-        .filter((s) => fetchedWikiIds.has(s.id))
-        .map((s) => ({
-          ...s,
-          metadata: metadataMap.get(s.id),
-        }))
-
-      const learnDocs = await this.fetchLearnDocs()
-      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
-
-      let answer = 'No wiki content was available to answer the question.'
-      if (withAnswer && wikiContents.length > 0) {
-        answer = await this.answerQuestion(
-          query,
-          wikiContents,
-          learnDocsContent,
+        const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
+        const metadataMap = new Map(
+          wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
         )
+
+        suggestions = topSuggestions
+          .filter((s) => fetchedWikiIds.has(s.id))
+          .map((s) => ({
+            ...s,
+            metadata: metadataMap.get(s.id),
+          }))
+      }
+
+      let answer = 'No content was available to answer the question.'
+      if (withAnswer) {
+        if (wikiContents.length > 0 || learnDocsContent.trim()) {
+          answer = await this.answerQuestion(
+            query,
+            wikiContents,
+            learnDocsContent,
+          )
+        }
       }
 
       return {
