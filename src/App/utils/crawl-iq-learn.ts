@@ -58,7 +58,7 @@ async function fetchEnglishBlock(logger: Logger) {
 
   const block = lines.slice(start, end).join('\n').trim()
   if (!block) {
-    logger?.warn?.(
+    logger.warn(
       'English block parsed as empty; upstream format may have changed',
     )
   }
