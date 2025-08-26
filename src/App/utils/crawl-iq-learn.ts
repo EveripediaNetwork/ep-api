@@ -1,8 +1,8 @@
+import { LearnDocs } from '../Search/search.types'
+
 const INDEX_URL = 'https://learn.iq.wiki/iq/llms.txt'
 const ORIGIN = 'https://learn.iq.wiki'
 const UA = 'Mozilla/5.0 (NodeBot)'
-
-export type LearnDoc = { title: string; content: string }
 
 function cleanMarkdown(content: string) {
   return (
@@ -87,7 +87,7 @@ export async function crawlIQLearnEnglish() {
             title = 'View IQ token contract addresses on different chains'
           }
 
-          return { title, content } as LearnDoc
+          return { title, content } as LearnDocs
         } catch (error: any) {
           console.error(
             `Failed to fetch or process learn doc at ${url}:`,
@@ -98,7 +98,7 @@ export async function crawlIQLearnEnglish() {
       }),
     )
 
-    return results.filter((x): x is LearnDoc => x !== null)
+    return results.filter((x): x is LearnDocs => x !== null)
   } catch (error: any) {
     console.error(
       'Failed to fetch English links index:',
