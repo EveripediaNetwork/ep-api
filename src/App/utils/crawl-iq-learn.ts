@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import { LearnDocs } from '../Search/search.types'
 
 const INDEX_URL = 'https://learn.iq.wiki/iq/llms.txt'
@@ -18,26 +19,53 @@ function cleanMarkdown(content: string) {
   )
 }
 
-async function fetchEnglishBlock() {
+/**
+ * NOTE: This parser depends on the external format of llms.txt.
+ * It searches for a heading like "# English" (any level 1–6) and
+ * captures content until the next heading of the same or higher level.
+ * If the upstream file changes heading text or structure, this may break.
+ */
+async function fetchEnglishBlock(logger: Logger) {
   const res = await fetch(INDEX_URL, { headers: { 'User-Agent': UA } })
   if (!res.ok) throw new Error(`Failed to fetch index: ${res.status}`)
   const text = await res.text()
 
   const lines = text.split(/\r?\n/)
-  const start = lines.findIndex((l) => /^##\s*English\s*$/i.test(l.trim()))
-  if (start === -1) return ''
+  const headingRegex = /^#{1,6}\s*english\s*$/i
+
+  const start = lines.findIndex((l) => headingRegex.test(l.trim()))
+  if (start === -1) {
+    logger.warn(
+      'English section not found in llms.txt; parser may be out of date',
+    )
+    return ''
+  }
+
+  const levelMatch = lines[start].match(/^#{1,6}/)
+  const level = levelMatch ? levelMatch[0].length : 2
+
   let end = lines.length
   for (let i = start + 1; i < lines.length; i += 1) {
-    if (/^##\s+/.test(lines[i].trim())) {
-      end = i
-      break
+    const line = lines[i].trim()
+    if (/^#{1,6}\s+\S/.test(line)) {
+      const nextLevel = line.match(/^#{1,6}/)?.[0].length ?? 6
+      if (nextLevel <= level) {
+        end = i
+        break
+      }
     }
   }
-  return lines.slice(start, end).join('\n')
-}
 
-async function fetchEnglishLinks() {
-  const block = await fetchEnglishBlock()
+  const block = lines.slice(start, end).join('\n').trim()
+  if (!block) {
+    logger?.warn?.(
+      'English block parsed as empty; upstream format may have changed',
+    )
+  }
+  return block
+}
+async function fetchEnglishLinks(logger: Logger) {
+  const block = await fetchEnglishBlock(logger)
 
   const matches = [...block.matchAll(/\((\/iq\/[^\s)]+)\)/g)]
   const paths = matches.map((m) => {
@@ -53,12 +81,12 @@ async function fetchEnglishLinks() {
   return abs
 }
 
-export async function crawlIQLearnEnglish() {
+async function crawlIQLearnEnglish(logger: Logger) {
   try {
-    const urls = await fetchEnglishLinks()
+    const urls = await fetchEnglishLinks(logger)
 
     if (!urls || urls.length === 0) {
-      console.warn('No English links found from index')
+      logger.warn('No English links found from index')
       return []
     }
 
@@ -67,7 +95,7 @@ export async function crawlIQLearnEnglish() {
         try {
           const res = await fetch(url, { headers: { 'User-Agent': UA } })
           if (!res.ok) {
-            console.error(
+            logger.error(
               `Failed to fetch learn doc at ${url}: HTTP ${res.status}`,
             )
             return null
@@ -95,7 +123,7 @@ export async function crawlIQLearnEnglish() {
           return { title, content } as LearnDocs
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error)
-          console.error(
+          logger.error(
             `Failed to fetch or process learn doc at ${url}:`,
             message,
           )
@@ -107,7 +135,9 @@ export async function crawlIQLearnEnglish() {
     return results.filter((x): x is LearnDocs => x !== null)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('Failed to fetch English links index:', message)
+    logger.error('Failed to fetch English links index:', message)
     return []
   }
 }
+
+export default crawlIQLearnEnglish

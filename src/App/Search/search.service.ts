@@ -7,7 +7,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
-import { crawlIQLearnEnglish } from '../utils/crawl-iq-learn'
+import crawlIQLearnEnglish from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
@@ -328,16 +328,18 @@ class SearchService {
         {
           role: 'system',
           content: endent`
-            You are a wiki expert assistant. Answer the user's question using ONLY the provided wiki content.
+          You are a knowledgeable assistant. Answer the user's question using the provided sources:
+          1) Wiki articles (“AVAILABLE WIKIS”) — must be cited
+          2) IQ Learn documents (“ADDITIONAL CONTEXT — IQ Learn”) — use as supporting context, but do NOT cite them
 
-            RULES:
-            - Use only information from the provided wikis
-            - If information is missing or unclear, explicitly say so
-            - Cite sources using the format: (Source: [Wiki Title])
-            - Be concise but comprehensive
-            - If multiple wikis contain relevant info, synthesize them clearly
-            - Do not make assumptions or add external knowledge
-          `,
+          RULES:
+          - Cite ONLY wiki sources using the format: (Source: [Wiki Title])
+          - Use Learn documents silently to improve completeness, but never reference or cite them directly
+          - If information is missing or unclear from both sources, explicitly say so
+          - If multiple wikis contain relevant info, synthesize them clearly with citations
+          - Be concise but comprehensive
+          - Do not add external knowledge beyond these provided sources
+        `,
         },
         {
           role: 'assistant',
@@ -358,7 +360,7 @@ class SearchService {
 
     return (
       response.choices[0]?.message?.content ||
-      'No answer could be generated from the available wiki content.'
+      'No answer could be generated from the available wiki or Learn content.'
     )
   }
 
@@ -444,7 +446,7 @@ class SearchService {
       }
 
       this.logger.debug('Fetching fresh learn docs')
-      const learnDocs = await crawlIQLearnEnglish()
+      const learnDocs = await crawlIQLearnEnglish(this.logger)
 
       await this.cacheManager.set(
         SearchService.LEARN_DOCS_CACHE_KEY,
@@ -473,12 +475,20 @@ class SearchService {
 
   async refreshLearnDocsCache() {
     try {
-      await this.clearLearnDocsCache()
-      await this.fetchLearnDocs()
-      this.logger.log('Learn docs cache refreshed successfully')
+      this.logger.log('Refreshing learn docs cache...')
+      const learnDocs = await crawlIQLearnEnglish(this.logger)
+      await this.cacheManager.set(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+        learnDocs,
+        SearchService.LEARN_DOCS_TTL,
+      )
+      this.logger.log(
+        `Learn docs cache refreshed successfully with ${learnDocs.length} docs.`,
+      )
       return true
     } catch (error) {
       this.logger.error('Failed to refresh learn docs cache:', error)
+
       return false
     }
   }
