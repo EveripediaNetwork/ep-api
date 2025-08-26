@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import OpenAI from 'openai'
 import endent from 'endent'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
 import { crawlIQLearnEnglish } from '../utils/crawl-iq-learn'
@@ -107,10 +109,15 @@ class SearchService {
     coingecko_profile: 'Coingecko Link',
   }
 
+  private static readonly LEARN_DOCS_CACHE_KEY = 'learn_docs'
+
+  private static readonly LEARN_DOCS_TTL = 24 * 60 * 60 * 1000 * 30 // 30 days
+
   constructor(
     private configService: ConfigService,
     private dataSource: DataSource,
     private readonly wikiService: WikiService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.isProduction =
       this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
@@ -420,13 +427,59 @@ class SearchService {
     }
   }
 
+  /**
+   * Fetch learn docs with caching
+   */
   private async fetchLearnDocs() {
     try {
+      const cachedLearnDocs = await this.cacheManager.get(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+      )
+
+      if (cachedLearnDocs) {
+        this.logger.debug('Using cached learn docs')
+        return cachedLearnDocs as Awaited<
+          ReturnType<typeof crawlIQLearnEnglish>
+        >
+      }
+
+      this.logger.debug('Fetching fresh learn docs')
       const learnDocs = await crawlIQLearnEnglish()
+
+      await this.cacheManager.set(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+        learnDocs,
+        SearchService.LEARN_DOCS_TTL,
+      )
+
+      this.logger.debug(`Cached ${learnDocs.length} learn docs`)
       return learnDocs
     } catch (error) {
       this.logger.error('Failed to fetch learn docs:', error)
       return []
+    }
+  }
+
+  async clearLearnDocsCache() {
+    try {
+      await this.cacheManager.del(SearchService.LEARN_DOCS_CACHE_KEY)
+      this.logger.log('Learn docs cache cleared successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to clear learn docs cache:', error)
+      return false
+    }
+  }
+
+  async refreshLearnDocsCache() {
+    try {
+      await this.clearLearnDocsCache()
+      await this.fetchLearnDocs()
+      this.logger.log('Learn docs cache refreshed successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to refresh learn docs cache:', error)
+      return false
     }
   }
 
