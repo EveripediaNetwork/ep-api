@@ -5,6 +5,7 @@ import OpenAI from 'openai'
 import endent from 'endent'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
+import { crawlIQLearnEnglish } from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
@@ -89,6 +90,9 @@ class SearchService {
   private static readonly FINAL_TOP_K = 5
 
   private readonly isProduction: boolean
+
+  private learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>> | null =
+    null
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -297,7 +301,11 @@ class SearchService {
       .filter((x) => x !== null)
   }
 
-  private async answerQuestion(query: string, wikiContents: WikiContent[]) {
+  private async answerQuestion(
+    query: string,
+    wikiContents: WikiContent[],
+    learnDocsContent: string,
+  ) {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
     }
@@ -332,6 +340,10 @@ class SearchService {
           content: `AVAILABLE WIKIS:\n${contextContent}`,
         },
         {
+          role: 'assistant',
+          content: learnDocsContent,
+        },
+        {
           role: 'user',
           content: query,
         },
@@ -355,44 +367,87 @@ class SearchService {
         query,
       )
 
-      if (topSuggestions.length === 0) {
+      const learnDocs = await this.fetchLearnDocs()
+      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+
+      if (topSuggestions.length === 0 && !learnDocsContent.trim()) {
         return {
           suggestions: [],
           wikiContents: [],
+          learnDocs,
           answer:
             'No relevant wikis found for your query. Try rephrasing or using different keywords.',
         }
       }
 
-      const wikiIds = topSuggestions.map((w) => w.id)
-      const wikiContents = await this.fetchWikiContents(wikiIds)
+      let wikiContents: WikiContent[] = []
+      let suggestions: WikiSuggestion[] = []
 
-      const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
-      const metadataMap = new Map(
-        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-      )
+      if (topSuggestions.length > 0) {
+        const wikiIds = topSuggestions.map((w) => w.id)
+        wikiContents = await this.fetchWikiContents(wikiIds)
 
-      const suggestions = topSuggestions
-        .filter((s) => fetchedWikiIds.has(s.id))
-        .map((s) => ({
-          ...s,
-          metadata: metadataMap.get(s.id),
-        }))
+        const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
+        const metadataMap = new Map(
+          wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
+        )
 
-      let answer = 'No wiki content was available to answer the question.'
-      if (withAnswer && wikiContents.length > 0) {
-        answer = await this.answerQuestion(query, wikiContents)
+        suggestions = topSuggestions
+          .filter((s) => fetchedWikiIds.has(s.id))
+          .map((s) => ({
+            ...s,
+            metadata: metadataMap.get(s.id),
+          }))
+      }
+
+      let answer = 'No content was available to answer the question.'
+      if (withAnswer) {
+        if (wikiContents.length > 0 || learnDocsContent.trim()) {
+          answer = await this.answerQuestion(
+            query,
+            wikiContents,
+            learnDocsContent,
+          )
+        }
       }
 
       return {
         suggestions,
         wikiContents,
+        learnDocs,
         answer,
       }
     } catch (error) {
       this.logger.error('Error in searchWithoutCache:', error)
       throw error
     }
+  }
+
+  private async fetchLearnDocs() {
+    try {
+      const learnDocs = await crawlIQLearnEnglish()
+      return learnDocs || []
+    } catch (error) {
+      this.logger.error('Failed to fetch learn docs:', error)
+      return []
+    }
+  }
+
+  private formatLearnDocsForAI(
+    learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>>,
+  ) {
+    if (!learnDocs?.length) return ''
+
+    const header = endent`
+    ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
+    These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
+    Use them as supplemental context`
+
+    const body = learnDocs
+      .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
+      .join('\n')
+
+    return `\n\n${header}\n\n${body}\n`
   }
 
   async search(query: string, withAnswer: boolean) {
