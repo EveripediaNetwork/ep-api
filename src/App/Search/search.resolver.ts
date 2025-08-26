@@ -14,7 +14,7 @@ class SearchResolver {
     @Args('query') query: string,
     @Args('withAnswer', { type: () => Boolean, defaultValue: true })
     withAnswer: boolean,
-  ) {
+  ): Promise<SearchResult> {
     if (!query?.trim()) {
       throw new BadRequestException('Search query cannot be empty.')
     }
@@ -23,13 +23,13 @@ class SearchResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard)
-  async clearLearnDocsCache() {
+  async clearLearnDocsCache(): Promise<boolean> {
     return this.searchService.clearLearnDocsCache()
   }
 
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard)
-  async refreshLearnDocsCache() {
+  async refreshLearnDocsCache(): Promise<boolean> {
     return this.searchService.refreshLearnDocsCache()
   }
 }
