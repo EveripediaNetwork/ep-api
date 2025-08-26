@@ -426,7 +426,7 @@ class SearchService {
   private async fetchLearnDocs() {
     try {
       const learnDocs = await crawlIQLearnEnglish()
-      return learnDocs || []
+      return learnDocs
     } catch (error) {
       this.logger.error('Failed to fetch learn docs:', error)
       return []
