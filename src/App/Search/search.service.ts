@@ -1,10 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import OpenAI from 'openai'
 import endent from 'endent'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
+import crawlIQLearnEnglish from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
 
@@ -106,10 +109,15 @@ class SearchService {
     coingecko_profile: 'Coingecko Link',
   }
 
+  private static readonly LEARN_DOCS_CACHE_KEY = 'learn_docs'
+
+  private static readonly LEARN_DOCS_TTL = 24 * 60 * 60 * 1000 * 30 // 30 days
+
   constructor(
     private configService: ConfigService,
     private dataSource: DataSource,
     private readonly wikiService: WikiService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.isProduction =
       this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
@@ -297,7 +305,11 @@ class SearchService {
       .filter((x) => x !== null)
   }
 
-  private async answerQuestion(query: string, wikiContents: WikiContent[]) {
+  private async answerQuestion(
+    query: string,
+    wikiContents: WikiContent[],
+    learnDocsContent: string,
+  ) {
     if (!this.ai) {
       throw new Error('AI service not available - production mode required')
     }
@@ -316,20 +328,26 @@ class SearchService {
         {
           role: 'system',
           content: endent`
-            You are a wiki expert assistant. Answer the user's question using ONLY the provided wiki content.
+          You are a knowledgeable assistant. Answer the user's question using the provided sources:
+          1) Wiki articles (“AVAILABLE WIKIS”) — must be cited
+          2) IQ Learn documents (“ADDITIONAL CONTEXT — IQ Learn”) — use as supporting context, but do NOT cite them
 
-            RULES:
-            - Use only information from the provided wikis
-            - If information is missing or unclear, explicitly say so
-            - Cite sources using the format: (Source: [Wiki Title])
-            - Be concise but comprehensive
-            - If multiple wikis contain relevant info, synthesize them clearly
-            - Do not make assumptions or add external knowledge
-          `,
+          RULES:
+          - Cite ONLY wiki sources using the format: (Source: [Wiki Title])
+          - Use Learn documents silently to improve completeness, but never reference or cite them directly
+          - If information is missing or unclear from both sources, explicitly say so
+          - If multiple wikis contain relevant info, synthesize them clearly with citations
+          - Be concise but comprehensive
+          - Do not add external knowledge beyond these provided sources
+        `,
         },
         {
           role: 'assistant',
           content: `AVAILABLE WIKIS:\n${contextContent}`,
+        },
+        {
+          role: 'assistant',
+          content: learnDocsContent,
         },
         {
           role: 'user',
@@ -342,7 +360,7 @@ class SearchService {
 
     return (
       response.choices[0]?.message?.content ||
-      'No answer could be generated from the available wiki content.'
+      'No answer could be generated from the available wiki or Learn content.'
     )
   }
 
@@ -355,44 +373,141 @@ class SearchService {
         query,
       )
 
-      if (topSuggestions.length === 0) {
+      const learnDocs = await this.fetchLearnDocs()
+      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+
+      if (topSuggestions.length === 0 && !learnDocsContent.trim()) {
         return {
           suggestions: [],
           wikiContents: [],
+          learnDocs,
           answer:
             'No relevant wikis found for your query. Try rephrasing or using different keywords.',
         }
       }
 
-      const wikiIds = topSuggestions.map((w) => w.id)
-      const wikiContents = await this.fetchWikiContents(wikiIds)
+      let wikiContents: WikiContent[] = []
+      let suggestions: WikiSuggestion[] = []
 
-      const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
-      const metadataMap = new Map(
-        wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-      )
+      if (topSuggestions.length > 0) {
+        const wikiIds = topSuggestions.map((w) => w.id)
+        wikiContents = await this.fetchWikiContents(wikiIds)
 
-      const suggestions = topSuggestions
-        .filter((s) => fetchedWikiIds.has(s.id))
-        .map((s) => ({
-          ...s,
-          metadata: metadataMap.get(s.id),
-        }))
+        const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
+        const metadataMap = new Map(
+          wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
+        )
 
-      let answer = 'No wiki content was available to answer the question.'
-      if (withAnswer && wikiContents.length > 0) {
-        answer = await this.answerQuestion(query, wikiContents)
+        suggestions = topSuggestions
+          .filter((s) => fetchedWikiIds.has(s.id))
+          .map((s) => ({
+            ...s,
+            metadata: metadataMap.get(s.id),
+          }))
+      }
+
+      let answer = 'No content was available to answer the question.'
+      if (withAnswer) {
+        if (wikiContents.length > 0 || learnDocsContent.trim()) {
+          answer = await this.answerQuestion(
+            query,
+            wikiContents,
+            learnDocsContent,
+          )
+        }
       }
 
       return {
         suggestions,
         wikiContents,
+        learnDocs,
         answer,
       }
     } catch (error) {
       this.logger.error('Error in searchWithoutCache:', error)
       throw error
     }
+  }
+
+  /**
+   * Fetch learn docs with caching
+   */
+  private async fetchLearnDocs() {
+    try {
+      const cachedLearnDocs = await this.cacheManager.get(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+      )
+
+      if (cachedLearnDocs) {
+        this.logger.debug('Using cached learn docs')
+        return cachedLearnDocs as Awaited<
+          ReturnType<typeof crawlIQLearnEnglish>
+        >
+      }
+
+      this.logger.debug('Fetching fresh learn docs')
+      const learnDocs = await crawlIQLearnEnglish(this.logger)
+
+      await this.cacheManager.set(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+        learnDocs,
+        SearchService.LEARN_DOCS_TTL,
+      )
+
+      this.logger.debug(`Cached ${learnDocs.length} learn docs`)
+      return learnDocs
+    } catch (error) {
+      this.logger.error('Failed to fetch learn docs:', error)
+      return []
+    }
+  }
+
+  async clearLearnDocsCache() {
+    try {
+      await this.cacheManager.del(SearchService.LEARN_DOCS_CACHE_KEY)
+      this.logger.log('Learn docs cache cleared successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to clear learn docs cache:', error)
+      return false
+    }
+  }
+
+  async refreshLearnDocsCache() {
+    try {
+      this.logger.log('Refreshing learn docs cache...')
+      const learnDocs = await crawlIQLearnEnglish(this.logger)
+      await this.cacheManager.set(
+        SearchService.LEARN_DOCS_CACHE_KEY,
+        learnDocs,
+        SearchService.LEARN_DOCS_TTL,
+      )
+      this.logger.log(
+        `Learn docs cache refreshed successfully with ${learnDocs.length} docs.`,
+      )
+      return true
+    } catch (error) {
+      this.logger.error('Failed to refresh learn docs cache:', error)
+
+      return false
+    }
+  }
+
+  private formatLearnDocsForAI(
+    learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>>,
+  ) {
+    if (!learnDocs?.length) return ''
+
+    const header = endent`
+    ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
+    These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
+    Use them as supplemental context`
+
+    const body = learnDocs
+      .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
+      .join('\n')
+
+    return `\n\n${header}\n\n${body}\n`
   }
 
   async search(query: string, withAnswer: boolean) {
