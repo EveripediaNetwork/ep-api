@@ -91,9 +91,6 @@ class SearchService {
 
   private readonly isProduction: boolean
 
-  private learnDocs: Awaited<ReturnType<typeof crawlIQLearnEnglish>> | null =
-    null
-
   private static readonly ALLOWED_METADATA = new Set([
     'website',
     'twitter_profile',

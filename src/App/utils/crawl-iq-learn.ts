@@ -83,15 +83,21 @@ export async function crawlIQLearnEnglish() {
           ).replace(/\.md$/i, '')
           let title = h1 || fallback
 
-          if (title.toLowerCase() === 'contracts') {
-            title = 'View IQ token contract addresses on different chains'
+          const renames: Record<string, string> = {
+            contracts: 'View IQ token contract addresses on different chains',
+          }
+
+          const newTitle = renames[title.toLowerCase()]
+          if (newTitle) {
+            title = newTitle
           }
 
           return { title, content } as LearnDocs
-        } catch (error: any) {
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
           console.error(
             `Failed to fetch or process learn doc at ${url}:`,
-            error.message || error,
+            message,
           )
           return null
         }
@@ -99,11 +105,9 @@ export async function crawlIQLearnEnglish() {
     )
 
     return results.filter((x): x is LearnDocs => x !== null)
-  } catch (error: any) {
-    console.error(
-      'Failed to fetch English links index:',
-      error.message || error,
-    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Failed to fetch English links index:', message)
     return []
   }
 }
