@@ -1,19 +1,19 @@
-import { Injectable, Inject } from '@nestjs/common'
-import { Cache } from 'cache-manager'
+import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
 import { HttpService } from '@nestjs/axios'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import TreasuryRepository from './treasury.repository'
 import { firstLevelNodeProcess } from './treasury.dto'
+import { firstValueFrom } from 'rxjs'
 
 @Injectable()
 class TreasuryService {
+  private readonly logger = new Logger(TreasuryService.name)
+
   constructor(
     private repo: TreasuryRepository,
-    private configService: ConfigService,
     private httpService: HttpService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private configService: ConfigService,
   ) {}
 
   private getTreasuryENVs() {
@@ -23,16 +23,17 @@ class TreasuryService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async storeTotalValue() {
     if (firstLevelNodeProcess()) {
-      let value: number | null | undefined =
-        await this.cacheManager.get('treasuryBalance')
-      if (!value) {
-        value = await this.requestTotalbalance()
-        await this.cacheManager.set('treasuryBalance', value, 7200 * 1000)
+      const currentValue = await this.repo.getCurrentTreasuryValue()
+      if (currentValue) {
+        return
       }
-      await this.repo.saveData(`${value}`)
+      const value = await this.requestTotalbalance()
+      if (value) {
+        return await this.repo.saveData(`${value}`)
+      }
     }
   }
 
@@ -41,16 +42,16 @@ class TreasuryService {
       this.getTreasuryENVs().treasury
     }`
     try {
-      const res = await this.httpService
-        .get(url, {
+      const res = await firstValueFrom(
+        this.httpService.get(url, {
           headers: {
             Accesskey: `${this.getTreasuryENVs().debank}`,
           },
-        })
-        .toPromise()
-      return res?.data.total_usd_value
+        }),
+      )
+      return !isNaN(res?.data.total_usd_value) && res?.data.total_usd_value
     } catch (e: any) {
-      console.error(e)
+      this.logger.error(e)
     }
     return null
   }

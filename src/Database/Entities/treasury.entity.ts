@@ -15,7 +15,7 @@ class Treasury {
   id!: number
 
   @Field(() => String)
-  @Column('varchar')
+  @Column('varchar', { nullable: false })
   totalValue!: string
 
   @Field(() => GraphQLISODateTime)
