@@ -7,6 +7,8 @@ import { Cache } from 'cache-manager'
 
 @Injectable()
 class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
+  private readonly CACHE_TTL = 24 * 60 * 60 * 1000
+
   constructor(
     private dataSource: DataSource,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -18,9 +20,23 @@ class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
     await this.getCurrentTreasuryValue()
   }
 
+  private getTodayDateString(): string {
+    return new Date().toISOString().split('T')[0]
+  }
+
+  private getTodayCacheKey(date?: string): string {
+    const today = date || this.getTodayDateString()
+    return `treasury_today_${today}`
+  }
+
+  private async updateTodayCache(entry: Treasury): Promise<void> {
+    const cacheKey = this.getTodayCacheKey()
+    await this.cacheManager.set(cacheKey, entry, this.CACHE_TTL)
+  }
+
   async getCurrentTreasuryValue(): Promise<Treasury | null> {
-    const today = new Date().toISOString().split('T')[0]
-    const cacheKey = `treasury_today_${today}`
+    const today = this.getTodayDateString()
+    const cacheKey = this.getTodayCacheKey(today)
 
     let existingEntry = await this.cacheManager.get<Treasury>(cacheKey)
 
@@ -32,11 +48,7 @@ class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
       })
 
       if (existingEntry) {
-        await this.cacheManager.set(
-          cacheKey,
-          existingEntry,
-          24 * 60 * 60 * 1000,
-        )
+        await this.updateTodayCache(existingEntry)
       }
     }
 
@@ -49,19 +61,14 @@ class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
     if (existingEntry) {
       return existingEntry
     }
-
     const newTreasuryValue = this.create({
       totalValue: tokenValue,
+      created: new Date().setHours(0, 0, 0, 0),
     })
 
     const saved = await this.save(newTreasuryValue)
 
-    const today = new Date().toISOString().split('T')[0]
-    await this.cacheManager.set(
-      `treasury_today_${today}`,
-      saved,
-      24 * 60 * 60 * 1000,
-    )
+    await this.updateTodayCache(saved)
 
     return saved
   }

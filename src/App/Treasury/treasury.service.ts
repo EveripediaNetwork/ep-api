@@ -32,7 +32,7 @@ class TreasuryService {
       }
       const value = await this.requestTotalbalance()
       if (value !== null) {
-        return await this.repo.saveData(`${value}`)
+        await this.repo.saveData(`${value}`)
       }
     }
   }
@@ -50,11 +50,7 @@ class TreasuryService {
         }),
       )
       const totalValue = res?.data.total_usd_value
-      if (
-        !isNaN(totalValue) &&
-        totalValue !== null &&
-        totalValue !== undefined
-      ) {
+      if (typeof totalValue === 'number' && isFinite(totalValue)) {
         return totalValue
       }
       return null

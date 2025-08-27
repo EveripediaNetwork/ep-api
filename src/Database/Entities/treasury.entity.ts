@@ -3,7 +3,6 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
 
@@ -19,7 +18,7 @@ class Treasury {
   totalValue!: string
 
   @Field(() => GraphQLISODateTime)
-  @CreateDateColumn()
+  @Column('timestamp', { unique: true })
   created!: Date
 
   @Field(() => GraphQLISODateTime)
