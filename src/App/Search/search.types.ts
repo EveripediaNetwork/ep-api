@@ -37,6 +37,15 @@ export class WikiContent {
 }
 
 @ObjectType()
+export class LearnDocs {
+  @Field(() => String)
+  title!: string
+
+  @Field(() => String)
+  content!: string
+}
+
+@ObjectType()
 export class SearchResult {
   @Field(() => [WikiSuggestion], { nullable: true })
   suggestions?: WikiSuggestion[]
@@ -46,4 +55,7 @@ export class SearchResult {
 
   @Field(() => String, { nullable: true })
   answer?: string
+
+  @Field(() => [LearnDocs], { nullable: true })
+  learnDocs?: LearnDocs[]
 }
