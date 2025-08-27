@@ -6,14 +6,15 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import { ICategory } from '../../Database/Entities/types/ICategory'
 import CategoryService from './category.service'
 import { TitleArgs } from '../Wiki/wiki.dto'
-import { ArgsById } from '../general.args'
+import { ArgsById, BaseArgs } from '../general.args'
+import WikiService from '../Wiki/wiki.service'
 
-// TODO: test Categories resolver
 @Resolver(() => Category)
 class CategoryResolver {
   constructor(
     private dataSource: DataSource,
     private categoryService: CategoryService,
+    private wikiService: WikiService,
   ) {}
 
   @Query(() => [Category])
@@ -27,11 +28,11 @@ class CategoryResolver {
   }
 
   @ResolveField()
-  async wikis(@Parent() category: ICategory, @Args() args: PaginationArgs) {
+  async wikis(@Parent() category: ICategory, @Args() args: BaseArgs) {
     const { id } = category
     const repository = this.dataSource.getRepository(Wiki)
 
-    return repository
+    let wikis = await repository
       .createQueryBuilder('wiki')
       .where('wiki.hidden = false')
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
@@ -41,6 +42,11 @@ class CategoryResolver {
       .offset(args.offset)
       .orderBy('wiki.updated', 'DESC')
       .getMany()
+
+    if (args.lang === 'kr') {
+      wikis = await this.wikiService.applyKoreanTranslations(wikis)
+    }
+    return wikis
   }
 
   @Query(() => [Category])
