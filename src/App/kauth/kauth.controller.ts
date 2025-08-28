@@ -1,9 +1,11 @@
 import { Controller, Get, Query, Res, HttpStatus } from '@nestjs/common'
 import { Response } from 'express'
+import { KakaoWebhookService } from './kauth.service'
 
-@Controller('kauth')
+@Controller()
 export class KakaoCallbackController {
-  @Get('callback')
+  constructor(private readonly kakaoWebhookService: KakaoWebhookService) {}
+  @Get('kauth/callback')
   async handleCallback(
     @Query('code') code: string,
     @Query('state') state: string,
@@ -98,6 +100,52 @@ export class KakaoCallbackController {
         </body>
       </html>
     `)
+  }
+
+  @Get('/webhook/bitcoin-price')
+  async getBitcoinPrice(@Res() res: Response) {
+    try {
+      console.log('🪙 Bitcoin price webhook triggered')
+
+      // Get Bitcoin price
+      const bitcoinPrice = await this.kakaoWebhookService.getBitcoinPrice()
+
+      // Send KakaoTalk message with price
+      await this.kakaoWebhookService.sendBitcoinPriceMessage(bitcoinPrice)
+
+      // Return success page
+      return res.status(HttpStatus.OK).send(`
+        <html>
+          <head>
+            <title>Bitcoin Price Sent</title>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
+              .success { color: #2e7d32; background: #e8f5e8; padding: 20px; border-radius: 10px; }
+              .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="success">
+              <h1>₿ Bitcoin Price Sent!</h1>
+              <div class="price">${bitcoinPrice}</div>
+              <p>Check your KakaoTalk for the latest Bitcoin price update.</p>
+            </div>
+          </body>
+        </html>
+      `)
+    } catch (error) {
+      console.error('❌ Bitcoin price webhook error:', error)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(`
+        <html>
+          <head><title>Error</title></head>
+          <body>
+            <h1>❌ Error</h1>
+            <p>Unable to fetch Bitcoin price. Please try again later.</p>
+          </body>
+        </html>
+      `)
+    }
   }
 
   @Get('health')

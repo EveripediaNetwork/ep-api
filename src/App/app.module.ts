@@ -75,6 +75,7 @@ import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
 import WikiTranslationService from './Translation/translation.service'
 import { KakaoCallbackController } from './kauth/kauth.controller'
+import { KakaoWebhookService } from './kauth/kauth.service'
 
 // istanbul ignore next
 @Module({
@@ -132,6 +133,7 @@ import { KakaoCallbackController } from './kauth/kauth.controller'
   ],
   controllers: [UploadController, WikiController, KakaoCallbackController],
   providers: [
+    KakaoWebhookService,
     AppService,
     GatewayService,
     BlockchainProviderService,
