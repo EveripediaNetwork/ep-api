@@ -5,6 +5,7 @@ import { generateText, generateObject, jsonSchema } from 'ai'
 import { google } from '@ai-sdk/google'
 import endent from 'endent'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { openai } from '@ai-sdk/openai'
 import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
@@ -89,9 +90,9 @@ class SearchService {
 
   private static readonly modelName = 'gemini-2.0-flash'
 
-  private static readonly SCORE_THRESHOLD = 6
+  private static readonly finalAnswerModel = 'gpt-4.1-mini'
 
-  private static readonly SEMANTIC_THRESHOLD = 7.0
+  private static readonly SCORE_THRESHOLD = 6
 
   private static readonly ANSWER_TEMPERATURE = 0.3
 
@@ -277,7 +278,7 @@ class SearchService {
 
     try {
       const { text } = await generateText({
-        model: google(SearchService.modelName),
+        model: openai(SearchService.finalAnswerModel),
         prompt,
         temperature: SearchService.ANSWER_TEMPERATURE,
       })
@@ -354,9 +355,6 @@ class SearchService {
     }
   }
 
-  /**
-   * Fetch learn docs with caching
-   */
   private async fetchLearnDocs() {
     try {
       const cachedLearnDocs = await this.cacheManager.get(
