@@ -25,11 +25,6 @@ type WikiSuggestion = {
   metadata?: { url: string; title: string }[]
 }
 
-enum ApiLevel {
-  PROD = 'prod',
-  DEV = 'dev',
-}
-
 type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
   metadata?: { url: string; title: string }[]
 }
@@ -61,7 +56,7 @@ const wikiSuggestionSchema = jsonSchema<{
           reasoning: {
             type: 'string',
             description:
-              'Brief explanation of why this wiki is relevant to the query',
+              'Specific explanation of why this wiki is relevant to the query and what key information it provides',
           },
           metadata: {
             type: 'array',
@@ -92,9 +87,9 @@ class SearchService {
 
   private static readonly finalAnswerModel = 'gpt-4.1-mini'
 
-  private static readonly SCORE_THRESHOLD = 6
+  private static readonly SCORE_THRESHOLD = 7
 
-  private static readonly ANSWER_TEMPERATURE = 0.3
+  private static readonly ANSWER_TEMPERATURE = 0.2
 
   private static readonly FINAL_TOP_K = 5
 
@@ -126,8 +121,7 @@ class SearchService {
     private readonly wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.isProduction =
-      this.configService.get<string>('API_LEVEL') === ApiLevel.PROD
+    this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
   }
 
   async repository() {
@@ -156,27 +150,37 @@ class SearchService {
           {
             role: 'system',
             content: endent`
-              You are an expert at analyzing wiki relevance. You MUST be extremely strict about relevance.
+              You are WikiRank, an expert wiki relevance analyzer. Your job is to find the most relevant wikis for user queries with surgical precision.
 
-              STRICT RELEVANCE SCORING:
-              - 9-10: Directly answers the exact query, primary source of information
-              - 7-8: Highly relevant, contains key information that helps answer the query
-              - 5-6: Somewhat relevant, mentions related concepts but not central to the query
-              - 3-4: Tangentially related, might have keywords but doesn't help answer the query
-              - 1-2: Not relevant (DO NOT INCLUDE)
+              SCORING FRAMEWORK (Be ruthless with low scores):
+              • 10: Perfect match - directly answers the exact query, primary authoritative source
+              • 9: Nearly perfect - comprehensive coverage of the query topic with excellent detail
+              • 8: Highly relevant - contains substantial information that directly helps answer the query
+              • 7: Very relevant - covers key aspects of the query with good detail and clear value
+              • 6: Moderately relevant - contains useful information related to the query
+              • 5: Somewhat relevant - mentions related concepts but limited direct value
+              • 1-4: Irrelevant or tangentially related (EXCLUDE ENTIRELY)
+
+              STRICT ANALYSIS RULES:
+              1. ONLY analyze wikis from the provided knowledge base - never invent content
+              2. Keyword matching ≠ relevance - focus on actual informational value to the user
+              3. Consider user intent from the query naturally - do NOT rely on predefined categories
+              4. Prioritize depth over breadth - one comprehensive wiki beats three shallow ones
+              5. If uncertain about relevance, err on the side of exclusion
+              6. Maximum ${SearchService.FINAL_TOP_K} results, minimum score ${SearchService.SCORE_THRESHOLD}
+              7. Score conservatively - it's better to return fewer, highly relevant results
+
+              REASONING REQUIREMENTS:
+              • Explain specifically WHY this wiki helps answer the user's query
+              • Mention what key information, processes, or insights it provides
+              • Note the connection between wiki content and the user's specific question
+              • Be concrete about the value this wiki adds to answering the query
+              • If there are any limitations in coverage, mention them briefly
 
               CRITICAL CONSTRAINT:
-              - ONLY analyze and return wikis from the provided knowledge base below
+              - ONLY use wikis from the knowledge base provided below
               - DO NOT generate, invent, or suggest any wikis not explicitly listed
-              - ONLY use the exact IDs and titles provided in the knowledge base
-
-              CRITICAL RULES:
-              - Just because a title/summary contains query keywords doesn't make it relevant
-              - Focus on whether the wiki actually ANSWERS or HELPS with the specific query
-              - Be conservative with scores - it's better to miss some results than include irrelevant ones
-              - ALWAYS provide reasoning explaining WHY the wiki is relevant to this specific query
-              - Only include wikis with score >= 5
-              - Return maximum ${SearchService.FINAL_TOP_K} most relevant wikis
+              - ONLY use the exact IDs and titles from the provided knowledge base
             `,
           },
           {
@@ -185,16 +189,16 @@ class SearchService {
           },
           {
             role: 'user',
-            content: `Query: "${query}"\n\nAnalyze each wiki and score them based on relevance to this specific query. Be strict about relevance.`,
+            content: `Query: "${query}"\n\nAnalyze each wiki and score them based on relevance to this specific query. Focus on which wikis would actually help the user achieve their goal. Be strict about relevance and conservative with scoring.`,
           },
         ],
       })
 
       const suggestions = (object as WikiSearchResult)?.wikis || []
-      return suggestions.filter((s) => s.score > SearchService.SCORE_THRESHOLD)
+      return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
     } catch (e) {
       this.logger.warn(
-        `Gemini returned invalid response; skipping. Error: ${(e as Error).message}`,
+        `Gemini returned invalid response for query "${query}"; skipping. Error: ${(e as Error).message}`,
       )
       return []
     }
@@ -267,22 +271,37 @@ class SearchService {
           {
             role: 'system',
             content: endent`
-              You are a knowledgeable assistant. Answer the user's question using the provided sources:
-              1) Wiki articles ("AVAILABLE WIKIS") — must be cited
-              2) IQ Learn documents ("ADDITIONAL CONTEXT — IQ Learn") — use as supporting context, but do NOT cite them
+              You are WikiBot, an expert knowledge synthesizer specializing in IQ token, BrainDAO ecosystem, and blockchain technology.
 
-              RULES:
-              - Cite ONLY wiki sources using the format: (Source: [Wiki Title])
-              - Use Learn documents silently to improve completeness, but never reference or cite them directly
-              - If information is missing or unclear from both sources, explicitly say so
-              - If multiple wikis contain relevant info, synthesize them clearly with citations
-              - Be concise but comprehensive
-              - Do not add external knowledge beyond these provided sources
+              SOURCE HIERARCHY:
+              1. WIKI ARTICLES (PRIMARY) - Must be cited: (Source: [Wiki Title])
+              2. IQ LEARN DOCS (SUPPLEMENTARY) - Use silently for context, never cite
+
+              RESPONSE APPROACH:
+              • Lead with a direct answer to the user's specific question
+              • Provide comprehensive coverage using all relevant information
+              • Synthesize multiple sources naturally, showing connections
+              • Include specific details, examples, and technical data when available
+              • Acknowledge limitations transparently when information is incomplete
+
+              CITATION RULES:
+              • Cite every claim from wiki sources: (Source: [Exact Wiki Title])
+              • When combining multiple wikis, cite each relevant source
+              • Use Learn docs to enhance responses but never reference them directly
+              • If sources conflict, acknowledge different perspectives
+
+              FORBIDDEN:
+              ✗ External knowledge beyond provided sources
+              ✗ Speculation beyond available information
+              ✗ Direct citation of Learn docs
+              ✗ Unsupported claims or assumptions
+
+              TONE: Professional, conversational, technically accurate but accessible
             `,
           },
           {
             role: 'assistant',
-            content: `AVAILABLE WIKIS:\n${contextContent}`,
+            content: `AVAILABLE WIKI SOURCES:\n${contextContent}`,
           },
           {
             role: 'assistant',
@@ -290,7 +309,7 @@ class SearchService {
           },
           {
             role: 'user',
-            content: query,
+            content: `Query: ${query}`,
           },
         ],
       })
@@ -300,71 +319,28 @@ class SearchService {
         'No answer could be generated from the available wiki or Learn content.'
       )
     } catch (e) {
-      this.logger.error('Error generating answer:', e)
+      this.logger.error(`Error generating answer for query "${query}":`, e)
       return 'No answer could be generated from the available wiki or Learn content.'
     }
   }
 
-  async searchWithoutCache(query: string, withAnswer: boolean) {
-    try {
-      const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
+  private generateNoResultsMessage(query: string): string {
+    return endent`
+      No highly relevant wikis were found for your query: "${query}"
 
-      const topSuggestions = await this.getWikiSuggestions(allWikis, query)
+      This could mean:
+      • The topic isn't covered in our current wiki database
+      • The query might need rephrasing for better matching
+      • You might be looking for very specific information that requires broader search terms
 
-      const learnDocs = await this.fetchLearnDocs()
-      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+      Try these suggestions:
+      • Use broader terms (e.g., "IQ token" instead of "IQ token staking rewards calculation")
+      • Try different keywords that describe the same concept
+      • Break complex queries into simpler, more focused questions
+      • Check for typos in technical terms or project names
 
-      if (topSuggestions.length === 0 && !learnDocsContent.trim()) {
-        return {
-          suggestions: [],
-          wikiContents: [],
-          learnDocs,
-          answer:
-            'No relevant wikis found for your query. Try rephrasing or using different keywords.',
-        }
-      }
-
-      let wikiContents: WikiContent[] = []
-      let suggestions: WikiSuggestion[] = []
-
-      if (topSuggestions.length > 0) {
-        const wikiIds = topSuggestions.map((w) => w.id)
-        wikiContents = await this.fetchWikiContents(wikiIds)
-
-        const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
-        const metadataMap = new Map(
-          wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
-        )
-
-        suggestions = topSuggestions
-          .filter((s) => fetchedWikiIds.has(s.id))
-          .map((s) => ({
-            ...s,
-            metadata: metadataMap.get(s.id),
-          }))
-      }
-
-      let answer = 'No content was available to answer the question.'
-      if (withAnswer) {
-        if (wikiContents.length > 0 || learnDocsContent.trim()) {
-          answer = await this.answerQuestion(
-            query,
-            wikiContents,
-            learnDocsContent,
-          )
-        }
-      }
-
-      return {
-        suggestions,
-        wikiContents,
-        learnDocs,
-        answer,
-      }
-    } catch (error) {
-      this.logger.error('Error in searchWithoutCache:', error)
-      throw error
-    }
+      Our wiki database focuses on IQ token, BrainDAO ecosystem, and related blockchain technologies. Questions outside this scope may not yield results.
+    `
   }
 
   private async fetchLearnDocs() {
@@ -423,7 +399,6 @@ class SearchService {
       return true
     } catch (error) {
       this.logger.error('Failed to refresh learn docs cache:', error)
-
       return false
     }
   }
@@ -434,15 +409,102 @@ class SearchService {
     if (!learnDocs?.length) return ''
 
     const header = endent`
-    ADDITIONAL CONTEXT — IQ Learn (learn.iq.wiki)
-    These documents contain learning material about the IQ token and the wider IQ/BrainDAO ecosystem (e.g., hiIQ, bridges, exchanges, contracts).
-    Use them as supplemental context`
+      ADDITIONAL CONTEXT — IQ Learn Documentation (learn.iq.wiki)
+
+      The following documents contain supplementary learning material about the IQ token ecosystem,
+      BrainDAO, hiIQ, bridges, exchanges, smart contracts, and related blockchain technologies.
+      Use this information to enhance your responses with additional context and depth, but do NOT cite these sources directly.
+
+      Integration Guidelines:
+      • Use this content to fill gaps in wiki information
+      • Provide additional technical details when relevant
+      • Enhance explanations with practical examples from these docs
+      • Support wiki claims with complementary information
+      • Never reference "Learn docs" or "learn.iq.wiki" in your response
+    `
 
     const body = learnDocs
-      .map((d, i) => `[L${i + 1}] ${d.title}\n${d.content}\n`)
-      .join('\n')
+      .map(
+        (doc, i) =>
+          `[L${i + 1}] TITLE: ${doc.title}\nCONTENT: ${doc.content}\n`,
+      )
+      .join('\n---\n\n')
 
     return `\n\n${header}\n\n${body}\n`
+  }
+
+  async searchWithoutCache(query: string, withAnswer: boolean) {
+    try {
+      const allWikis = await this.wikiService.getWikiIdTitleAndSummary()
+      this.logger.debug(
+        `Searching through ${allWikis.length} wikis for query: "${query}"`,
+      )
+
+      const topSuggestions = await this.getWikiSuggestions(allWikis, query)
+
+      const learnDocs = await this.fetchLearnDocs()
+      const learnDocsContent = this.formatLearnDocsForAI(learnDocs)
+
+      if (topSuggestions.length === 0 && !learnDocsContent.trim()) {
+        return {
+          suggestions: [],
+          wikiContents: [],
+          learnDocs,
+          answer: this.generateNoResultsMessage(query),
+        }
+      }
+
+      let wikiContents: WikiContent[] = []
+      let suggestions: WikiSuggestion[] = []
+
+      if (topSuggestions.length > 0) {
+        const wikiIds = topSuggestions.map((w) => w.id)
+        wikiContents = await this.fetchWikiContents(wikiIds)
+
+        const fetchedWikiIds = new Set(wikiContents.map((wiki) => wiki.id))
+        const metadataMap = new Map(
+          wikiContents.map((wiki) => [wiki.id, wiki.metadata]),
+        )
+
+        suggestions = topSuggestions
+          .filter((s) => fetchedWikiIds.has(s.id))
+          .map((s) => ({
+            ...s,
+            metadata: metadataMap.get(s.id),
+          }))
+
+        this.logger.debug(
+          `Successfully fetched content for ${wikiContents.length} wikis`,
+        )
+      }
+
+      let answer = 'No content was available to answer the question.'
+      if (withAnswer) {
+        if (wikiContents.length > 0 || learnDocsContent.trim()) {
+          answer = await this.answerQuestion(
+            query,
+            wikiContents,
+            learnDocsContent,
+          )
+          this.logger.debug(`Generated answer of ${answer.length} characters`)
+        } else {
+          answer = this.generateNoResultsMessage(query)
+        }
+      }
+
+      return {
+        suggestions,
+        wikiContents,
+        learnDocs,
+        answer,
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error in searchWithoutCache for query "${query}":`,
+        error,
+      )
+      throw error
+    }
   }
 
   async search(query: string, withAnswer: boolean) {
