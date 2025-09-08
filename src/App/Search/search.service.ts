@@ -147,43 +147,47 @@ class SearchService {
       .map((w) => `ID: ${w.id}\nTITLE: ${w.title}\nSUMMARY: ${w.summary ?? ''}`)
       .join('\n\n')
 
-    const prompt = endent`
-      You are an expert at analyzing wiki relevance. You MUST be extremely strict about relevance.
-
-      STRICT RELEVANCE SCORING:
-      - 9-10: Directly answers the exact query, primary source of information
-      - 7-8: Highly relevant, contains key information that helps answer the query
-      - 5-6: Somewhat relevant, mentions related concepts but not central to the query
-      - 3-4: Tangentially related, might have keywords but doesn't help answer the query
-      - 1-2: Not relevant (DO NOT INCLUDE)
-
-      CRITICAL CONSTRAINT:
-      - ONLY analyze and return wikis from the provided knowledge base below
-      - DO NOT generate, invent, or suggest any wikis not explicitly listed
-      - ONLY use the exact IDs and titles provided in the knowledge base
-
-      CRITICAL RULES:
-      - Just because a title/summary contains query keywords doesn't make it relevant
-      - Focus on whether the wiki actually ANSWERS or HELPS with the specific query
-      - Be conservative with scores - it's better to miss some results than include irrelevant ones
-      - ALWAYS provide reasoning explaining WHY the wiki is relevant to this specific query
-      - Only include wikis with score >= 5
-      - Return maximum ${SearchService.FINAL_TOP_K} most relevant wikis
-
-      KNOWLEDGE BASE:
-      ${kbBlock}
-
-      Query: "${query}"
-
-      Analyze each wiki and score them based on relevance to this specific query. Be strict about relevance.
-    `
-
     try {
       const { object } = await generateObject({
         model: google(SearchService.modelName),
         schema: wikiSuggestionSchema,
-        prompt,
         temperature: 0.1,
+        messages: [
+          {
+            role: 'system',
+            content: endent`
+              You are an expert at analyzing wiki relevance. You MUST be extremely strict about relevance.
+
+              STRICT RELEVANCE SCORING:
+              - 9-10: Directly answers the exact query, primary source of information
+              - 7-8: Highly relevant, contains key information that helps answer the query
+              - 5-6: Somewhat relevant, mentions related concepts but not central to the query
+              - 3-4: Tangentially related, might have keywords but doesn't help answer the query
+              - 1-2: Not relevant (DO NOT INCLUDE)
+
+              CRITICAL CONSTRAINT:
+              - ONLY analyze and return wikis from the provided knowledge base below
+              - DO NOT generate, invent, or suggest any wikis not explicitly listed
+              - ONLY use the exact IDs and titles provided in the knowledge base
+
+              CRITICAL RULES:
+              - Just because a title/summary contains query keywords doesn't make it relevant
+              - Focus on whether the wiki actually ANSWERS or HELPS with the specific query
+              - Be conservative with scores - it's better to miss some results than include irrelevant ones
+              - ALWAYS provide reasoning explaining WHY the wiki is relevant to this specific query
+              - Only include wikis with score >= 5
+              - Return maximum ${SearchService.FINAL_TOP_K} most relevant wikis
+            `,
+          },
+          {
+            role: 'assistant',
+            content: `KNOWLEDGE BASE:\n${kbBlock}`,
+          },
+          {
+            role: 'user',
+            content: `Query: "${query}"\n\nAnalyze each wiki and score them based on relevance to this specific query. Be strict about relevance.`,
+          },
+        ],
       })
 
       const suggestions = (object as WikiSearchResult)?.wikis || []
@@ -255,32 +259,40 @@ class SearchService {
       )
       .join('\n\n---\n\n')
 
-    const prompt = endent`
-      You are a knowledgeable assistant. Answer the user's question using the provided sources:
-      1) Wiki articles ("AVAILABLE WIKIS") — must be cited
-      2) IQ Learn documents ("ADDITIONAL CONTEXT — IQ Learn") — use as supporting context, but do NOT cite them
-
-      RULES:
-      - Cite ONLY wiki sources using the format: (Source: [Wiki Title])
-      - Use Learn documents silently to improve completeness, but never reference or cite them directly
-      - If information is missing or unclear from both sources, explicitly say so
-      - If multiple wikis contain relevant info, synthesize them clearly with citations
-      - Be concise but comprehensive
-      - Do not add external knowledge beyond these provided sources
-
-      AVAILABLE WIKIS:
-      ${contextContent}
-
-      ${learnDocsContent}
-
-      Query: "${query}"
-    `
-
     try {
       const { text } = await generateText({
         model: openai(SearchService.finalAnswerModel),
-        prompt,
         temperature: SearchService.ANSWER_TEMPERATURE,
+        messages: [
+          {
+            role: 'system',
+            content: endent`
+              You are a knowledgeable assistant. Answer the user's question using the provided sources:
+              1) Wiki articles ("AVAILABLE WIKIS") — must be cited
+              2) IQ Learn documents ("ADDITIONAL CONTEXT — IQ Learn") — use as supporting context, but do NOT cite them
+
+              RULES:
+              - Cite ONLY wiki sources using the format: (Source: [Wiki Title])
+              - Use Learn documents silently to improve completeness, but never reference or cite them directly
+              - If information is missing or unclear from both sources, explicitly say so
+              - If multiple wikis contain relevant info, synthesize them clearly with citations
+              - Be concise but comprehensive
+              - Do not add external knowledge beyond these provided sources
+            `,
+          },
+          {
+            role: 'assistant',
+            content: `AVAILABLE WIKIS:\n${contextContent}`,
+          },
+          {
+            role: 'assistant',
+            content: learnDocsContent,
+          },
+          {
+            role: 'user',
+            content: query,
+          },
+        ],
       })
 
       return (
