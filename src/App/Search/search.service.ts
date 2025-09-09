@@ -82,7 +82,7 @@ const wikiSuggestionSchema = jsonSchema<{
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
 
-  private static readonly suggestionModelName = 'google/gemini-2.0-flash'
+  private static readonly suggestionModelName = 'google/gemini-2.0-flash-001'
 
   private static readonly finalAnswerModelName = 'openai/gpt-4.1-mini'
 
