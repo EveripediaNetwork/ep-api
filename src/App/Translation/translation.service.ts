@@ -18,8 +18,15 @@ const translationSchema = jsonSchema<{
 }>({
   type: 'object',
   properties: {
-    summary: { type: 'string' },
-    content: { type: 'string' },
+    summary: {
+      type: 'string',
+      description: 'A concise summary of the wiki content in Korean',
+    },
+    content: {
+      type: 'string',
+      description:
+        'The full translated wiki content in Korean, preserving formatting and special elements',
+    },
   },
   required: ['summary', 'content'],
   additionalProperties: false,
