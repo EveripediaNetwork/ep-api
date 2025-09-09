@@ -76,6 +76,7 @@ import SearchModule from './Search/search.module'
 import WikiTranslationService from './Translation/translation.service'
 import { KakaoCallbackController } from './kauth/kauth.controller'
 import { KakaoWebhookService } from './kauth/kauth.service'
+import { DraftModule } from './Drafts/draft.module'
 
 // istanbul ignore next
 @Module({
@@ -129,6 +130,7 @@ import { KakaoWebhookService } from './kauth/kauth.service'
     DiscordModule,
     SentryMod,
     SearchModule,
+    DraftModule,
     // TranslationModule
   ],
   controllers: [UploadController, WikiController, KakaoCallbackController],
