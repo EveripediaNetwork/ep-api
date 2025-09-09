@@ -1,29 +1,19 @@
 import { InputType, Field } from '@nestjs/graphql'
+import { ValidStringParams } from '../utils/customValidator'
+import { Validate } from 'class-validator'
 
 @InputType()
-export class CreateDraftInput {
+export class DraftInput {
   @Field()
+  @Validate(ValidStringParams)
   id!: string
 
   @Field()
+  @Validate(ValidStringParams)
   title!: string
 
   @Field(() => String, { nullable: true })
-  wikiId?: string
-
-  @Field(() => String)
-  draft!: any
-}
-
-@InputType()
-export class UpdateDraftInput {
-  @Field()
-  id!: string
-
-  @Field()
-  title!: string
-
-  @Field(() => String, { nullable: true })
+  @Validate(ValidStringParams)
   wikiId?: string
 
   @Field(() => String)

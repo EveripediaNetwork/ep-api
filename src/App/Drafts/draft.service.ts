@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common'
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, LessThan, MoreThan } from 'typeorm'
 import { Draft } from '../../Database/Entities/draft.entity'
-import { CreateDraftInput, UpdateDraftInput } from './draft.input'
+import { DraftInput } from './draft.input'
 import { Cron, CronExpression } from '@nestjs/schedule'
 
 @Injectable()
@@ -12,7 +16,7 @@ export class DraftService {
     private readonly draftRepo: Repository<Draft>,
   ) {}
 
-  async createDraft(input: CreateDraftInput): Promise<Draft> {
+  async createDraft(input: DraftInput): Promise<Draft> {
     try {
       const existingDraft = await this.draftRepo.findOne({
         where: { id: input.id, title: input.title },
@@ -27,7 +31,7 @@ export class DraftService {
       const draft = this.draftRepo.create({ ...input })
       return this.draftRepo.save(draft)
     } catch (error) {
-      throw new Error(
+      throw new InternalServerErrorException(
         `Failed to create/update draft: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
@@ -47,30 +51,8 @@ export class DraftService {
         order: { createdAt: 'DESC' },
       })
     } catch (error) {
-      throw new Error(
+      throw new NotFoundException(
         `Failed to get drafts: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      )
-    }
-  }
-
-  async updateDraft(input: UpdateDraftInput): Promise<Draft> {
-    try {
-      const existingDraft = await this.draftRepo.findOne({
-        where: { id: input.id, title: input.title },
-      })
-
-      if (!existingDraft) {
-        throw new Error('Draft not found')
-      }
-
-      existingDraft.draft = input.draft
-      existingDraft.wikiId = input.wikiId
-      return this.draftRepo.save(existingDraft)
-    } catch (error) {
-      throw new Error(
-        `Failed to update draft: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       )
@@ -93,14 +75,14 @@ export class DraftService {
   async deleteExpiredDrafts(): Promise<void> {
     try {
       const expiry = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      const result = await this.draftRepo.delete({
+      await this.draftRepo.delete({
         createdAt: LessThan(expiry),
       })
-      console.log(`Deleted ${result.affected || 0} expired drafts`)
     } catch (error) {
-      console.error(
-        'Failed to delete expired drafts:',
-        error instanceof Error ? error.message : 'Unknown error',
+      throw new InternalServerErrorException(
+        `Failed to delete expired drafts: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
       )
     }
   }

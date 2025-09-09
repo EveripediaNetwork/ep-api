@@ -1,23 +1,16 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql'
-import {
-  Entity,
-  Column,
-  CreateDateColumn,
-  Index,
-  PrimaryGeneratedColumn,
-  PrimaryColumn,
-} from 'typeorm'
+import { Entity, Column, CreateDateColumn, Index, PrimaryColumn } from 'typeorm'
 
 @ObjectType()
 @Entity()
-@Index(['id', 'title'], { unique: true })
+@Index(['id'], { unique: true })
 export class Draft {
   @Field(() => String)
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   id!: string
 
   @Field(() => String)
-  @PrimaryColumn()
+  @Column({ type: 'varchar' })
   title!: string
 
   @Field(() => String, { nullable: true })
@@ -26,7 +19,7 @@ export class Draft {
 
   @Field(() => String)
   @Column('jsonb')
-  draft!: any
+  draft!: string
 
   @Field(() => Date)
   @CreateDateColumn()

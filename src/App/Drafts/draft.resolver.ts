@@ -1,7 +1,7 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql'
 import { Draft } from '../../Database/Entities/draft.entity'
 import { DraftService } from './draft.service'
-import { CreateDraftInput, UpdateDraftInput } from './draft.input'
+import { DraftInput } from './draft.input'
 
 @Resolver(() => Draft)
 export class DraftResolver {
@@ -16,13 +16,8 @@ export class DraftResolver {
   }
 
   @Mutation(() => Draft)
-  async createDraft(@Args('input') input: CreateDraftInput): Promise<Draft> {
+  async createDraft(@Args('input') input: DraftInput): Promise<Draft> {
     return this.draftService.createDraft(input)
-  }
-
-  @Mutation(() => Draft)
-  async updateDraft(@Args('input') input: UpdateDraftInput): Promise<Draft> {
-    return this.draftService.updateDraft(input)
   }
 
   @Mutation(() => Boolean)
