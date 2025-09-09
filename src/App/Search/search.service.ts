@@ -28,7 +28,7 @@ type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
   metadata?: { url: string; title: string }[]
 }
 
-const wikiSuggestionSchema = jsonSchema<{
+export const wikiSuggestionSchema = jsonSchema<{
   wikis: {
     id: string
     title: string
@@ -59,17 +59,20 @@ const wikiSuggestionSchema = jsonSchema<{
           },
           metadata: {
             type: 'array',
+            description:
+              'Optional list of related metadata entries with url and title',
             items: {
               type: 'object',
               properties: {
-                url: { type: 'string' },
-                title: { type: 'string' },
+                url: { type: 'string', description: 'Metadata link URL' },
+                title: { type: 'string', description: 'Metadata link title' },
               },
               required: ['url', 'title'],
+              additionalProperties: false,
             },
           },
         },
-        required: ['id', 'title', 'score', 'reasoning'],
+        required: ['id', 'title', 'score', 'reasoning', 'metadata'],
         additionalProperties: false,
       },
     },
@@ -122,7 +125,7 @@ class SearchService {
     private readonly wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
+    this.isProduction = this.configService.get<string>('API_LEVEL') !== 'prod'
 
     this.openrouter = createOpenRouter({
       apiKey: this.configService.get<string>('OPENROUTER_API_KEY'),

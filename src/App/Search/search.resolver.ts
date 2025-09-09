@@ -4,10 +4,15 @@ import { BadRequestException, UseGuards } from '@nestjs/common'
 import SearchService from './search.service'
 import { SearchResult } from './search.types'
 import AuthGuard from '../utils/admin.guard'
+import SearchEvaluator from './search-evaluator.service'
+import EvaluationResult from './evaluator.types'
 
 @Resolver(() => SearchResult)
 class SearchResolver {
-  constructor(private readonly searchService: SearchService) {}
+  constructor(
+    private readonly searchService: SearchService,
+    private readonly evaluatorService: SearchEvaluator,
+  ) {}
 
   @Query(() => SearchResult)
   async search(
@@ -31,6 +36,16 @@ class SearchResolver {
   @UseGuards(AuthGuard)
   async refreshLearnDocsCache(): Promise<boolean> {
     return this.searchService.refreshLearnDocsCache()
+  }
+
+  @Query(() => EvaluationResult)
+  async evaluator(@Args('query') query: string): Promise<EvaluationResult> {
+    if (!query?.trim()) {
+      throw new BadRequestException('Evaluation query cannot be empty.')
+    }
+
+    const { evaluation } = await this.evaluatorService.judge(query)
+    return evaluation
   }
 }
 
