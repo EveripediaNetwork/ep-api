@@ -49,7 +49,7 @@ export default class WikiTranslationService {
     this.baseUrl = this.configService.get<string>('WEBSITE_URL') || ''
     this.model =
       this.configService.get<string>('OPENROUTER_MODEL') ||
-      'openai/gpt-4.1-mini'
+      'google/gemini-flash-1.5'
 
     const apiKey = this.configService.get<string>('OPENROUTER_API_KEY') || ''
     if (!apiKey) {
