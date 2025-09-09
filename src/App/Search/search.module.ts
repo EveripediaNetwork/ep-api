@@ -7,19 +7,10 @@ import WikiService from '../Wiki/wiki.service'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordModule from '../utils/discord.module'
 import TranslationModule from '../Translation/translation.module'
-import SearchEvaluator from './search-evaluator.service'
-import LoopSearchService from './loop-search.service'
 
 @Module({
   imports: [HttpModule, ConfigModule, DiscordModule, TranslationModule],
-  providers: [
-    SearchService,
-    SearchResolver,
-    ValidSlug,
-    WikiService,
-    SearchEvaluator,
-    LoopSearchService,
-  ],
+  providers: [SearchService, SearchResolver, ValidSlug, WikiService],
   exports: [SearchService],
 })
 export default class SearchModule {}
