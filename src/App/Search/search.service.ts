@@ -125,7 +125,7 @@ class SearchService {
     private readonly wikiService: WikiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.isProduction = this.configService.get<string>('API_LEVEL') !== 'prod'
+    this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
 
     this.openrouter = createOpenRouter({
       apiKey: this.configService.get<string>('OPENROUTER_API_KEY'),
