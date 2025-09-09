@@ -61,6 +61,7 @@
     "@nestjs/serve-static": "^5.0.2",
     "@nestjs/typeorm": "^9.0.1",
     "@ntegral/nestjs-sentry": "^4.0.0",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "@openzeppelin/defender-relay-client": "^1.54.1",
     "@pinata/sdk": "^2.1.0",
     "@react-email/components": "^0.0.33",

@@ -2,10 +2,9 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
 import { generateText, generateObject, jsonSchema } from 'ai'
-import { google } from '@ai-sdk/google'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import endent from 'endent'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { openai } from '@ai-sdk/openai'
 import { Cache } from 'cache-manager'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
@@ -83,9 +82,9 @@ const wikiSuggestionSchema = jsonSchema<{
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
 
-  private static readonly modelName = 'gemini-2.0-flash'
+  private static readonly suggestionModelName = 'google/gemini-2.0-flash'
 
-  private static readonly finalAnswerModel = 'gpt-4.1-mini'
+  private static readonly finalAnswerModelName = 'openai/gpt-4.1-mini'
 
   private static readonly SCORE_THRESHOLD = 7
 
@@ -94,6 +93,8 @@ class SearchService {
   private static readonly FINAL_TOP_K = 5
 
   private readonly isProduction: boolean
+
+  private readonly openrouter: ReturnType<typeof createOpenRouter>
 
   private static readonly ALLOWED_METADATA = new Set([
     'website',
@@ -113,7 +114,7 @@ class SearchService {
 
   private static readonly LEARN_DOCS_CACHE_KEY = 'learn_docs'
 
-  private static readonly LEARN_DOCS_TTL = 24 * 60 * 60 * 1000 * 30 // 30 days
+  private static readonly LEARN_DOCS_TTL = 24 * 60 * 60 * 1000 * 30
 
   constructor(
     private configService: ConfigService,
@@ -122,6 +123,10 @@ class SearchService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.isProduction = this.configService.get<string>('API_LEVEL') === 'prod'
+
+    this.openrouter = createOpenRouter({
+      apiKey: this.configService.get<string>('OPENROUTER_API_KEY'),
+    })
   }
 
   async repository() {
@@ -143,7 +148,7 @@ class SearchService {
 
     try {
       const { object } = await generateObject({
-        model: google(SearchService.modelName),
+        model: this.openrouter(SearchService.suggestionModelName),
         schema: wikiSuggestionSchema,
         temperature: 0.1,
         messages: [
@@ -198,7 +203,7 @@ class SearchService {
       return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
     } catch (e) {
       this.logger.warn(
-        `Gemini returned invalid response for query "${query}"; skipping. Error: ${(e as Error).message}`,
+        `OpenRouter suggestion model returned invalid response for query "${query}"; skipping. Error: ${(e as Error).message}`,
       )
       return []
     }
@@ -265,7 +270,7 @@ class SearchService {
 
     try {
       const { text } = await generateText({
-        model: openai(SearchService.finalAnswerModel),
+        model: this.openrouter(SearchService.finalAnswerModelName),
         temperature: SearchService.ANSWER_TEMPERATURE,
         messages: [
           {
