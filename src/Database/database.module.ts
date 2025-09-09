@@ -24,6 +24,7 @@ import Events from './Entities/Event.entity'
 import Explorer from './Entities/explorer.entity'
 import HiddenBlog from '../App/Blog/hideBlog.entity'
 import WikiKoreanTranslation from './Entities/wikiKoreanTranslation.entity'
+import { Draft } from './Entities/draft.entity'
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import WikiKoreanTranslation from './Entities/wikiKoreanTranslation.entity'
           Explorer,
           HiddenBlog,
           WikiKoreanTranslation,
+          Draft,
         ],
         synchronize: true,
         keepConnectionAlive: true,
