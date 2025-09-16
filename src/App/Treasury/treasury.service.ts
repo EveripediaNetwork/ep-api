@@ -25,7 +25,7 @@ class TreasuryService {
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async storeTotalValue() {
-    if (firstLevelNodeProcess()) {
+    if (firstLevelNodeProcess() && process.env.API_LEVEL === 'prod') {
       const currentValue = await this.repo.getCurrentTreasuryValue()
       if (currentValue) {
         return
