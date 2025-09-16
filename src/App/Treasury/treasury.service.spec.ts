@@ -139,6 +139,10 @@ describe('TreasuryService', () => {
 
       jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
 
+      // Mock the API_LEVEL environment variable
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'prod'
+
       // Mock getCurrentTreasuryValue to return null (no existing entry)
       treasuryRepository.getCurrentTreasuryValue.mockResolvedValue(null)
 
@@ -152,12 +156,20 @@ describe('TreasuryService', () => {
       expect(treasuryRepository.saveData).toHaveBeenCalledWith(
         totalValue.toString(),
       )
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
     })
 
     it('should not save value when current value already exists', async () => {
       const existingValue = { id: 1, totalValue: '1000.5' } as any
 
       jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
+
+      // Mock the API_LEVEL environment variable
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'prod'
+
       treasuryRepository.getCurrentTreasuryValue.mockResolvedValue(
         existingValue,
       )
@@ -166,6 +178,9 @@ describe('TreasuryService', () => {
 
       expect(treasuryRepository.getCurrentTreasuryValue).toHaveBeenCalled()
       expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
     })
 
     it('should not save value when not first level node process', async () => {
@@ -174,6 +189,22 @@ describe('TreasuryService', () => {
       await treasuryService.storeTotalValue()
 
       expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+    })
+
+    it('should not save value when API_LEVEL is not prod', async () => {
+      jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
+
+      // Mock the API_LEVEL environment variable to non-prod
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'dev'
+
+      await treasuryService.storeTotalValue()
+
+      expect(treasuryRepository.getCurrentTreasuryValue).not.toHaveBeenCalled()
+      expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
     })
   })
 })
