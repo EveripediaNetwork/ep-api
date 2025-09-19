@@ -112,11 +112,11 @@ class Wiki {
   user!: Relation<User>
 
   @Field(() => User, { nullable: true })
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', { lazy: true })
   author?: Relation<User>
 
   @Field(() => User, { nullable: true })
-  @ManyToOne('User', 'user', { lazy: true })
+  @ManyToOne('User', { lazy: true })
   operator?: Relation<User>
 
   @Field(() => [Metadata])

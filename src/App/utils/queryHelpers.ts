@@ -54,7 +54,7 @@ export const queryWikisCreated = async (
     })
   } else {
     query.where(
-      '(LOWER(activity.userId) = :id OR LOWER(author.id) = :id) OR LOWER(operator.id) = :id AND w."hidden" = false',
+      '((LOWER(activity.userId) = :id OR LOWER(author.id) = :id) OR LOWER(operator.id) = :id) AND w."hidden" = false',
       {
         id: id?.toLowerCase(),
       },
