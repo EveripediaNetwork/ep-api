@@ -351,17 +351,49 @@ Translate summary and content fields while preserving all formatting, links, cit
     result: TranslationResult,
   ): Promise<void> {
     const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const hasSummary =
+      result.translatedContent?.summary &&
+      typeof result.translatedContent.summary === 'string' &&
+      result.translatedContent.summary.trim().length > 0
+
+    const hasContent =
+      result.translatedContent?.content &&
+      typeof result.translatedContent.content === 'string' &&
+      result.translatedContent.content.trim().length > 0
+
+    if (!hasSummary && !hasContent) {
+      this.logger.error(
+        `Cannot save translation for wiki ${wikiId}: No meaningful content to save`,
+      )
+      throw new Error('No meaningful content was translated')
+    }
+
     const translation =
       (await repository.findOne({ where: { wikiId } })) ||
       repository.create({ wikiId })
 
-    translation.summary = result.translatedContent?.summary?.trim() || ''
-    translation.content = result.translatedContent?.content?.trim() || ''
+    if (hasSummary && result.translatedContent?.summary) {
+      translation.summary = result.translatedContent.summary.trim()
+    }
+    if (hasContent && result.translatedContent?.content) {
+      translation.content = result.translatedContent.content.trim()
+    }
+
     translation.translationStatus = 'completed'
     translation.translationProvider = result.provider || 'openrouter'
     translation.translationModel = result.model || this.model
     translation.translationCost = result.cost || 0
     translation.errorMessage = null
+
+    // Log what was successfully translated
+    const translatedFields = []
+    if (hasSummary) translatedFields.push('summary')
+    if (hasContent) translatedFields.push('content')
+
+    this.logger.log(
+      `Successfully translated ${translatedFields.join(', ')} for wiki ${wikiId}`,
+    )
 
     await repository.save(translation)
   }
