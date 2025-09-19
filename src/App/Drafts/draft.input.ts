@@ -6,7 +6,7 @@ import { Validate } from 'class-validator'
 export class DraftInput {
   @Field()
   @Validate(ValidStringParams)
-  id!: string
+  userId!: string
 
   @Field()
   @Validate(ValidStringParams)
