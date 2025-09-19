@@ -115,6 +115,10 @@ class Wiki {
   @ManyToOne('User', 'user', { lazy: true })
   author?: Relation<User>
 
+  @Field(() => User, { nullable: true })
+  @ManyToOne('User', 'user', { lazy: true })
+  operator?: Relation<User>
+
   @Field(() => [Metadata])
   @Column('json', { nullable: true })
   metadata!: Metadata[]
