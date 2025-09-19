@@ -325,7 +325,7 @@ Translate summary and content fields while preserving all formatting, links, cit
   }
 
   private preProcessContent(content: string, isEditor = false): string {
-    let sanitized = content.replace(/<br\s*\/?/g, '\n') || ''
+    let sanitized = content.replace(/<br\s*\/?>/g, '\n') || ''
     sanitized = sanitized.replace(
       /^(#+)\s*(\$\$widget\d.*?\$\$)(.*$)/gm,
       '$2\n$1 $3',
@@ -352,15 +352,9 @@ Translate summary and content fields while preserving all formatting, links, cit
   ): Promise<void> {
     const repository = this.dataSource.getRepository(WikiKoreanTranslation)
 
-    const hasSummary =
-      result.translatedContent?.summary &&
-      typeof result.translatedContent.summary === 'string' &&
-      result.translatedContent.summary.trim().length > 0
+    const hasSummary = !!result.translatedContent?.summary?.trim()
 
-    const hasContent =
-      result.translatedContent?.content &&
-      typeof result.translatedContent.content === 'string' &&
-      result.translatedContent.content.trim().length > 0
+    const hasContent = !!result.translatedContent?.content?.trim()
 
     if (!hasSummary && !hasContent) {
       this.logger.error(
@@ -458,7 +452,13 @@ Translate summary and content fields while preserving all formatting, links, cit
         'failedTranslations',
       )
       .addSelect('COALESCE(SUM(translation.translationCost), 0)', 'totalCost')
-      .getRawOne()
+      .getRawOne<{
+        totalTranslations: string
+        pendingTranslations: string
+        completedTranslations: string
+        failedTranslations: string
+        totalCost: string
+      }>()
 
     return {
       totalTranslations: parseInt(stats?.totalTranslations || '0', 10),
@@ -479,9 +479,9 @@ Translate summary and content fields while preserving all formatting, links, cit
       .addSelect('wiki.updated', 'updated')
       .where('translation.translationStatus = :status', { status: 'completed' })
       .andWhere('wiki.hidden = :hidden', { hidden: false })
-      .getRawMany()
+      .getRawMany<{ id: string; updated: Date | string }>()
 
-    return rows.map((r: any) => ({
+    return rows.map((r) => ({
       id: r.id,
       updated: r.updated instanceof Date ? r.updated : new Date(r.updated),
     }))
