@@ -253,7 +253,7 @@ Translate summary and content fields while preserving all formatting, links, cit
         if (object.content) translatedSections.push(object.content)
       } catch (error) {
         this.logger.error(`Error translating section ${i + 1}:`, error)
-        translatedSections.push(sections[i]) // fallback to original
+        translatedSections.push(sections[i])
       }
 
       if (i < sections.length - 1) {
@@ -351,18 +351,139 @@ Translate summary and content fields while preserving all formatting, links, cit
     result: TranslationResult,
   ): Promise<void> {
     const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const hasSummary = !!result.translatedContent?.summary?.trim()
+
+    const hasContent = !!result.translatedContent?.content?.trim()
+
+    if (!hasSummary && !hasContent) {
+      this.logger.error(
+        `Cannot save translation for wiki ${wikiId}: No meaningful content to save`,
+      )
+      throw new Error('No meaningful content was translated')
+    }
+
     const translation =
       (await repository.findOne({ where: { wikiId } })) ||
       repository.create({ wikiId })
 
-    translation.summary = result.translatedContent?.summary?.trim() || ''
-    translation.content = result.translatedContent?.content?.trim() || ''
+    if (hasSummary && result.translatedContent?.summary) {
+      translation.summary = result.translatedContent.summary.trim()
+    }
+    if (hasContent && result.translatedContent?.content) {
+      translation.content = result.translatedContent.content.trim()
+    }
+
     translation.translationStatus = 'completed'
     translation.translationProvider = result.provider || 'openrouter'
     translation.translationModel = result.model || this.model
     translation.translationCost = result.cost || 0
     translation.errorMessage = null
 
+    const translatedFields: string[] = []
+    if (hasSummary) translatedFields.push('summary')
+    if (hasContent) translatedFields.push('content')
+
+    this.logger.log(
+      `Successfully translated ${translatedFields.join(', ')} for wiki ${wikiId}`,
+    )
+
     await repository.save(translation)
+  }
+
+  async getKoreanTranslation(
+    wikiId: string,
+  ): Promise<WikiKoreanTranslation | null> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    return repository.findOne({ where: { wikiId } })
+  }
+
+  async cleanupInvalidTranslations(): Promise<{ cleaned: number }> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    try {
+      const updateResult = await repository
+        .createQueryBuilder()
+        .update(WikiKoreanTranslation)
+        .set({
+          translationStatus: 'failed',
+          errorMessage:
+            'Translation marked as completed but contains no meaningful content',
+        })
+        .where('translationStatus = :status', { status: 'completed' })
+        .andWhere(
+          "(summary IS NULL OR TRIM(summary) = '') AND (content IS NULL OR TRIM(content) = '')",
+        )
+        .execute()
+
+      const cleaned = updateResult.affected || 0
+      this.logger.log(
+        `Cleanup completed: ${cleaned} invalid translations cleaned up`,
+      )
+      return { cleaned }
+    } catch (error) {
+      this.logger.error('Error during translation cleanup:', error)
+      throw error
+    }
+  }
+
+  async getTranslationStats(): Promise<{
+    totalTranslations: number
+    pendingTranslations: number
+    completedTranslations: number
+    failedTranslations: number
+    totalCost: number
+  }> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const stats = await repository
+      .createQueryBuilder('translation')
+      .select('COUNT(translation.id)', 'totalTranslations')
+      .addSelect(
+        "SUM(CASE WHEN translation.translationStatus = 'pending' THEN 1 ELSE 0 END)",
+        'pendingTranslations',
+      )
+      .addSelect(
+        "SUM(CASE WHEN translation.translationStatus = 'completed' THEN 1 ELSE 0 END)",
+        'completedTranslations',
+      )
+      .addSelect(
+        "SUM(CASE WHEN translation.translationStatus = 'failed' THEN 1 ELSE 0 END)",
+        'failedTranslations',
+      )
+      .addSelect('COALESCE(SUM(translation.translationCost), 0)', 'totalCost')
+      .getRawOne<{
+        totalTranslations: string
+        pendingTranslations: string
+        completedTranslations: string
+        failedTranslations: string
+        totalCost: string
+      }>()
+
+    return {
+      totalTranslations: parseInt(stats?.totalTranslations || '0', 10),
+      pendingTranslations: parseInt(stats?.pendingTranslations || '0', 10),
+      completedTranslations: parseInt(stats?.completedTranslations || '0', 10),
+      failedTranslations: parseInt(stats?.failedTranslations || '0', 10),
+      totalCost: parseFloat(stats?.totalCost || '0'),
+    }
+  }
+
+  async getKoreanWikiIds(): Promise<{ id: string; updated: Date }[]> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const rows = await repository
+      .createQueryBuilder('translation')
+      .innerJoin('translation.wiki', 'wiki')
+      .select('translation.wikiId', 'id')
+      .addSelect('wiki.updated', 'updated')
+      .where('translation.translationStatus = :status', { status: 'completed' })
+      .andWhere('wiki.hidden = :hidden', { hidden: false })
+      .getRawMany<{ id: string; updated: Date | string }>()
+
+    return rows.map((r) => ({
+      id: r.id,
+      updated: r.updated instanceof Date ? r.updated : new Date(r.updated),
+    }))
   }
 }
