@@ -365,4 +365,122 @@ Translate summary and content fields while preserving all formatting, links, cit
 
     await repository.save(translation)
   }
+
+  async getKoreanTranslation(
+    wikiId: string,
+  ): Promise<WikiKoreanTranslation | null> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    return repository.findOne({ where: { wikiId } })
+  }
+
+  async cleanupInvalidTranslations(): Promise<{
+    cleaned: number
+    errors: Array<{ wikiId: string; error: string }>
+  }> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    const result = {
+      cleaned: 0,
+      errors: [] as Array<{ wikiId: string; error: string }>,
+    }
+
+    try {
+      const completedTranslations = await repository.find({
+        where: { translationStatus: 'completed' },
+      })
+
+      for (const translation of completedTranslations) {
+        const hasValidContent =
+          (translation.summary && translation.summary.trim().length > 0) ||
+          (translation.content && translation.content.trim().length > 0)
+
+        if (!hasValidContent) {
+          try {
+            translation.translationStatus = 'failed'
+            translation.errorMessage =
+              'Translation marked as completed but contains no meaningful content'
+            await repository.save(translation)
+            result.cleaned += 1
+            this.logger.log(
+              `Cleaned up invalid translation for wiki ${translation.wikiId}`,
+            )
+          } catch (error) {
+            result.errors.push({
+              wikiId: translation.wikiId,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            })
+          }
+        }
+      }
+
+      this.logger.log(
+        `Cleanup completed: ${result.cleaned} invalid translations cleaned up`,
+      )
+      return result
+    } catch (error) {
+      this.logger.error('Error during translation cleanup:', error)
+      throw error
+    }
+  }
+
+  async getTranslationStats(): Promise<{
+    totalTranslations: number
+    pendingTranslations: number
+    completedTranslations: number
+    failedTranslations: number
+    totalCost: number
+  }> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const [
+      totalTranslations,
+      pendingTranslations,
+      completedTranslations,
+      failedTranslations,
+    ] = await Promise.all([
+      repository.count(),
+      repository.count({ where: { translationStatus: 'pending' } }),
+      repository.count({ where: { translationStatus: 'completed' } }),
+      repository.count({ where: { translationStatus: 'failed' } }),
+    ])
+
+    const costResult = await repository
+      .createQueryBuilder('translation')
+      .select('SUM(translation.translationCost)', 'totalCost')
+      .getRawOne()
+
+    return {
+      totalTranslations,
+      pendingTranslations,
+      completedTranslations,
+      failedTranslations,
+      totalCost: parseFloat(costResult?.totalCost || '0'),
+    }
+  }
+
+  async getKoreanWikiIds(): Promise<{ id: string; updated: Date }[]> {
+    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+
+    const translations = await repository.find({
+      where: {
+        translationStatus: 'completed',
+        wiki: {
+          hidden: false,
+        },
+      },
+      relations: ['wiki'],
+      select: {
+        wikiId: true,
+        wiki: {
+          updated: true,
+        },
+      },
+    })
+
+    const validTranslations = translations.map((translation) => ({
+      id: translation.wikiId,
+      updated: translation.wiki.updated,
+    }))
+
+    return validTranslations
+  }
 }
