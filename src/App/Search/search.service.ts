@@ -141,7 +141,12 @@ class SearchService {
   }
 
   private formatWikisCompact(wikis: WikiData[]): string {
-    return wikis.map((w) => `${w.id}|${w.title}|${w.summary || ''}`).join('\n')
+    return wikis
+      .map(
+        (w) =>
+          `${w.id}|${w.title.replace(/[|\n]/g, ' ')}|${(w.summary || '').replace(/[|\n]/g, ' ')}`,
+      )
+      .join('\n')
   }
 
   private async getWikiSuggestions(wikis: WikiData[], query: string) {
@@ -269,7 +274,10 @@ class SearchService {
 
   private formatWikiContentsCompact(wikiContents: WikiContent[]): string {
     return wikiContents
-      .map((wiki, index) => `[${index + 1}]|${wiki.title}|${wiki.content}`)
+      .map(
+        (wiki, index) =>
+          `[${index + 1}]|${wiki.title.replace(/\|/g, '—')}|${wiki.content.replace(/\|/g, '—')}`,
+      )
       .join('\n\n---\n\n')
   }
 
