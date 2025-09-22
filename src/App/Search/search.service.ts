@@ -144,7 +144,7 @@ class SearchService {
     return wikis
       .map(
         (w) =>
-          `${w.id}|${w.title.replace(/[|\n]/g, ' ')}|${(w.summary || '').replace(/[|\n]/g, ' ')}`,
+          `${w.id}|${w.title.replace(/[|\r\n]/g, ' ')}|${(w.summary || '').replace(/[|\r\n]/g, ' ')}`,
       )
       .join('\n')
   }
@@ -276,7 +276,7 @@ class SearchService {
     return wikiContents
       .map(
         (wiki, index) =>
-          `[${index + 1}]|${wiki.title.replace(/\|/g, '—')}|${wiki.content.replace(/\|/g, '—')}`,
+          `[${index + 1}]|${wiki.title.replace(/[|\r\n]/g, ' ')}|${wiki.content.replace(/\|/g, '—')}`,
       )
       .join('\n\n---\n\n')
   }
