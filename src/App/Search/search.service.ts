@@ -276,7 +276,7 @@ class SearchService {
     return wikiContents
       .map(
         (wiki, index) =>
-          `[${index + 1}]|${wiki.title.replace(/[|\r\n]/g, ' ')}|${wiki.content.replace(/\|/g, '—')}`,
+          `[${index + 1}]|${wiki.title.replace(/[|\r\n]/g, ' ')}|${wiki.content.replace(/\|/g, '—').replace(/[\r\n]/g, ' ')}`,
       )
       .join('\n\n---\n\n')
   }
