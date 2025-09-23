@@ -3,6 +3,7 @@ import Activity from '../../Database/Entities/activity.entity'
 import { OrderBy, Direction, IntervalByDays } from '../general.args'
 import { VistArgs } from '../pageViews/pageviews.dto'
 import { UserActivity, WikiCount } from '../User/user.dto'
+import { SOPHIA_ID } from '../../globalVars'
 
 export const orderWikis = (order: OrderBy, direction: Direction) => {
   let sortValue = {}
@@ -43,14 +44,26 @@ export const queryWikisCreated = async (
   const query = repo
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .where('LOWER(activity.userId) = :id AND w."hidden" = false', {
+    .leftJoin('user', 'author', 'w."authorId" = author."id"')
+    .leftJoin('user', 'operator', 'w."operatorId" = operator."id"')
+    .andWhere("activity.type = '0'")
+
+  if (id?.toLowerCase() === SOPHIA_ID.toLowerCase()) {
+    query.where('LOWER(activity.userId) = :id AND w."hidden" = false', {
       id: id?.toLowerCase(),
     })
-    .andWhere("activity.type = '0'")
+  } else {
+    query.where(
+      '((LOWER(activity.userId) = :id OR LOWER(author.id) = :id) OR LOWER(operator.id) = :id) AND w."hidden" = false',
+      {
+        id: id?.toLowerCase(),
+      },
+    )
+  }
 
   if (count) {
     const result = await query
-      .select('Count(activity.wikiId)', 'amount')
+      .select('Count(DISTINCT activity.wikiId)', 'amount')
       .getRawMany()
     return { count: result[0].amount } as WikiCount
   }
@@ -72,7 +85,10 @@ export const queryWikisEdited = async (
   repo: Repository<Activity>,
   count = false,
 ): Promise<UserActivity | WikiCount> => {
-  const subquery = `
+  let subquery: string
+
+  if (id?.toLowerCase() === SOPHIA_ID.toLowerCase()) {
+    subquery = `
             FROM (
                 SELECT "wikiId", MAX(datetime) AS MaxDate  
                 FROM activity
@@ -83,12 +99,31 @@ export const queryWikisEdited = async (
             ON d."wikiId" = r."wikiId" AND d.datetime = r.MaxDate
             INNER JOIN "wiki" w
             ON w."id" = d."wikiId"
-            WHERE w."hidden" = false
+            LEFT JOIN "user" u ON w."userId" = u."id"
+            WHERE w."hidden" = false AND LOWER(u."id") = LOWER($1)
     `
+  } else {
+    subquery = `
+            FROM (
+                SELECT "wikiId", MAX(datetime) AS MaxDate  
+                FROM activity
+                WHERE type = '1' AND LOWER("activity"."userId") = LOWER($1)
+                GROUP BY "activity"."wikiId"
+            ) r
+            INNER JOIN "activity" d
+            ON d."wikiId" = r."wikiId" AND d.datetime = r.MaxDate
+            INNER JOIN "wiki" w
+            ON w."id" = d."wikiId"
+            LEFT JOIN "user" u ON w."userId" = u."id"
+            LEFT JOIN "user" op ON w."operatorId" = op."id"
+            WHERE w."hidden" = false AND (LOWER(u."id") = LOWER($1) OR LOWER(op."id") = LOWER($1))
+    `
+  }
+
   if (count) {
     const result = await repo.query(
       `
-        SELECT COUNT(results."wikiId") AS edits
+        SELECT COUNT(DISTINCT results."wikiId") AS edits
         FROM (
             SELECT d."wikiId", d."type", d."userId", d."id"
             ${subquery}

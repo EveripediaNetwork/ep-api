@@ -18,6 +18,7 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import { IUser } from '../../Database/Entities/types/IUser'
 import UserProfile from '../../Database/Entities/userProfile.entity'
 import AuthGuard from '../utils/admin.guard'
+import { SOPHIA_ID } from '../../globalVars'
 import IsActiveGuard from '../utils/isActive.guard'
 import AdminLogsInterceptor from '../utils/adminLogs.interceptor'
 import UserService from './user.service'
@@ -94,11 +95,32 @@ class UserResolver {
   @ResolveField()
   async wikis(@Parent() user: IUser, @Args() args: PaginationArgs) {
     const wikiRepo = this.dataSource.getRepository(Wiki)
+
+    if (user.id?.toLowerCase() === SOPHIA_ID.toLowerCase()) {
+      return wikiRepo.find({
+        where: {
+          user: { id: user.id as string },
+          hidden: false,
+        },
+        take: args.limit,
+        skip: args.offset,
+        order: {
+          updated: 'DESC',
+        },
+      })
+    }
+
     return wikiRepo.find({
-      where: {
-        user: { id: user.id as string },
-        hidden: false,
-      },
+      where: [
+        {
+          user: { id: user.id as string },
+          hidden: false,
+        },
+        {
+          operator: { id: user.id as string },
+          hidden: false,
+        },
+      ],
       take: args.limit,
       skip: args.offset,
       order: {

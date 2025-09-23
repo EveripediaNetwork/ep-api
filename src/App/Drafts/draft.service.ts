@@ -19,7 +19,7 @@ export class DraftService {
   async createDraft(input: DraftInput): Promise<Draft> {
     try {
       const existingDraft = await this.draftRepo.findOne({
-        where: { userId: input.userId, title: input.title },
+        where: { id: input.id, title: input.title },
       })
 
       if (existingDraft) {
@@ -59,9 +59,9 @@ export class DraftService {
     }
   }
 
-  async deleteDraft(userId: string, title: string): Promise<boolean> {
+  async deleteDraft(id: string, title: string): Promise<boolean> {
     try {
-      const result = await this.draftRepo.delete({ userId, title })
+      const result = await this.draftRepo.delete({ id, title })
       return (result.affected || 0) > 0
     } catch (error) {
       throw new Error(
