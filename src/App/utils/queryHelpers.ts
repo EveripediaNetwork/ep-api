@@ -68,9 +68,7 @@ export const queryWikisCreated = async (
   }
 
   const activity = await query
-    .select('DISTINCT activity.*')
-    .groupBy('activity.wikiId')
-    .addGroupBy('activity.id')
+    .groupBy('activity.wikiId, activity.id')
     .orderBy('activity.datetime', 'DESC')
     .limit(limit)
     .offset(offset)
