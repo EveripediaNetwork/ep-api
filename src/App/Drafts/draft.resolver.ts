@@ -9,10 +9,10 @@ export class DraftResolver {
 
   @Query(() => [Draft])
   async drafts(
-    @Args('id') id: string,
+    @Args('userId') userId: string,
     @Args('title', { nullable: true }) title?: string,
   ): Promise<Draft[]> {
-    return this.draftService.getDrafts(id, title)
+    return this.draftService.getDrafts(userId, title)
   }
 
   @Mutation(() => Draft)
@@ -22,9 +22,9 @@ export class DraftResolver {
 
   @Mutation(() => Boolean)
   async deleteDraft(
-    @Args('id') id: string,
+    @Args('userId') userId: string,
     @Args('title') title: string,
   ): Promise<boolean> {
-    return this.draftService.deleteDraft(id, title)
+    return this.draftService.deleteDraft(userId, title)
   }
 }

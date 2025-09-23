@@ -67,12 +67,12 @@ class RelayerService {
   }
 
   async getMaticGas(): Promise<string | null> {
-    const KEY = this.configService.get<string>('POLYGONSCAN_API_KEY') as string
+    const KEY = this.configService.get<string>('ETHERSCAN_API_KEY') as string
     try {
       const { data } = await firstValueFrom(
         this.httpService
           .get(
-            `https://api.polygonscan.com/api?module=gastracker&action=gasoracle&apikey=${KEY}`,
+            `https://api.etherscan.io/v2/api?chainid=137&module=gastracker&action=gasoracle&apikey=${KEY}`,
           )
           .pipe(
             catchError((error: AxiosError) => {

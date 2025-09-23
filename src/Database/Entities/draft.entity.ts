@@ -3,11 +3,11 @@ import { Entity, Column, CreateDateColumn, Index, PrimaryColumn } from 'typeorm'
 
 @ObjectType()
 @Entity()
-@Index(['id'], { unique: true })
+@Index(['userId'], { unique: true })
 export class Draft {
   @Field(() => String)
   @PrimaryColumn({ type: 'varchar' })
-  id!: string
+  userId!: string
 
   @Field(() => String)
   @Column({ type: 'varchar' })
