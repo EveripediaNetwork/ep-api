@@ -44,7 +44,6 @@ export const queryWikisCreated = async (
   const query = repo
     .createQueryBuilder('activity')
     .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .leftJoin('user', 'author', 'w."authorId" = author."id"')
     .leftJoin('user', 'operator', 'w."operatorId" = operator."id"')
     .andWhere("activity.type = '0'")
 
@@ -54,7 +53,7 @@ export const queryWikisCreated = async (
     })
   } else {
     query.where(
-      '((LOWER(activity.userId) = :id OR LOWER(author.id) = :id) OR LOWER(operator.id) = :id) AND w."hidden" = false',
+      '(LOWER(activity.userId) = :id OR LOWER(operator.id) = :id) AND w."hidden" = false',
       {
         id: id?.toLowerCase(),
       },
@@ -63,16 +62,17 @@ export const queryWikisCreated = async (
 
   if (count) {
     const result = await query
-      .select('Count(DISTINCT activity.wikiId)', 'amount')
+      .select('COUNT(DISTINCT activity.wikiId)', 'amount')
       .getRawMany()
     return { count: result[0].amount } as WikiCount
   }
 
   const activity = await query
+    // .select('DISTINCT activity.*')
     .groupBy('activity.wikiId, activity.id')
+    .orderBy('activity.datetime', 'DESC')
     .limit(limit)
     .offset(offset)
-    .orderBy('datetime', 'DESC')
     .getMany()
 
   return { activity } as UserActivity
