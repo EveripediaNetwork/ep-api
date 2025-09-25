@@ -18,8 +18,10 @@ export class DraftService {
 
   async createDraft(input: DraftInput): Promise<Draft> {
     try {
+      const normalizedUserId = input.userId.toLowerCase()
+
       const existingDraft = await this.draftRepo.findOne({
-        where: { id: input.id, title: input.title },
+        where: { userId: normalizedUserId, title: input.title },
       })
 
       if (existingDraft) {
@@ -28,7 +30,10 @@ export class DraftService {
         return this.draftRepo.save(existingDraft)
       }
 
-      const draft = this.draftRepo.create({ ...input })
+      const draft = this.draftRepo.create({
+        ...input,
+        userId: normalizedUserId,
+      })
       return this.draftRepo.save(draft)
     } catch (error) {
       throw new InternalServerErrorException(
@@ -39,11 +44,15 @@ export class DraftService {
     }
   }
 
-  async getDrafts(id: string, title?: string): Promise<Draft[]> {
+  async getDrafts(userId: string, title?: string): Promise<Draft[]> {
     try {
       const expiryDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const normalizedUserId = userId.toLowerCase()
 
-      const where: any = { id, createdAt: MoreThan(expiryDate) }
+      const where: any = {
+        userId: normalizedUserId,
+        createdAt: MoreThan(expiryDate),
+      }
       if (title) where.title = title
 
       return this.draftRepo.find({
@@ -59,9 +68,13 @@ export class DraftService {
     }
   }
 
-  async deleteDraft(id: string, title: string): Promise<boolean> {
+  async deleteDraft(userId: string, title: string): Promise<boolean> {
     try {
-      const result = await this.draftRepo.delete({ id, title })
+      const normalizedUserId = userId.toLowerCase()
+      const result = await this.draftRepo.delete({
+        userId: normalizedUserId,
+        title,
+      })
       return (result.affected || 0) > 0
     } catch (error) {
       throw new Error(

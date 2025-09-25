@@ -1,13 +1,21 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql'
-import { Entity, Column, CreateDateColumn, Index, PrimaryColumn } from 'typeorm'
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 
 @ObjectType()
 @Entity()
-@Index(['id'], { unique: true })
 export class Draft {
-  @Field(() => String)
-  @PrimaryColumn({ type: 'varchar' })
+  @Field(() => ID)
+  @PrimaryGeneratedColumn('uuid')
   id!: string
+
+  @Field(() => String)
+  @Column({ type: 'varchar' })
+  userId!: string
 
   @Field(() => String)
   @Column({ type: 'varchar' })
