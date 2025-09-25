@@ -140,14 +140,21 @@ class SearchService {
     return SearchService.METADATA_KEY_MAP[key] || key
   }
 
+  private formatWikisCompact(wikis: WikiData[]): string {
+    return wikis
+      .map(
+        (w) =>
+          `${w.id}|${w.title.replace(/[|\r\n]/g, ' ')}|${(w.summary || '').replace(/[|\r\n]/g, ' ')}`,
+      )
+      .join('\n')
+  }
+
   private async getWikiSuggestions(wikis: WikiData[], query: string) {
     if (!this.isProduction) {
       throw new Error('AI service not available - production mode required')
     }
 
-    const kbBlock = wikis
-      .map((w) => `ID: ${w.id}\nTITLE: ${w.title}\nSUMMARY: ${w.summary ?? ''}`)
-      .join('\n\n')
+    const kbCompact = this.formatWikisCompact(wikis)
 
     try {
       const { object } = await generateObject({
@@ -160,9 +167,17 @@ class SearchService {
             content: endent`
               You are WikiRank, an expert wiki relevance analyzer. Your job is to find the most relevant wikis for user queries with surgical precision.
 
+              WIKI DATA FORMAT: Each line contains: ID|TITLE|SUMMARY
+
+              TITLE MATCHING PRIORITY (CRITICAL):
+              • If query EXACTLY matches a wiki title, that wiki gets automatic 10/10 score
+              • If query contains most words from a wiki title, boost score by +2
+              • If wiki title contains exact query words, boost score by +1
+              • Title matches are MORE IMPORTANT than content relevance
+
               SCORING FRAMEWORK (Be ruthless with low scores):
-              • 10: Perfect match - directly answers the exact query, primary authoritative source
-              • 9: Nearly perfect - comprehensive coverage of the query topic with excellent detail
+              • 10: Perfect match - title exactly matches query OR directly answers the exact query
+              • 9: Nearly perfect - title closely matches OR comprehensive coverage with excellent detail
               • 8: Highly relevant - contains substantial information that directly helps answer the query
               • 7: Very relevant - covers key aspects of the query with good detail and clear value
               • 6: Moderately relevant - contains useful information related to the query
@@ -171,14 +186,16 @@ class SearchService {
 
               STRICT ANALYSIS RULES:
               1. ONLY analyze wikis from the provided knowledge base - never invent content
-              2. Keyword matching ≠ relevance - focus on actual informational value to the user
-              3. Consider user intent from the query naturally - do NOT rely on predefined categories
-              4. Prioritize depth over breadth - one comprehensive wiki beats three shallow ones
-              5. If uncertain about relevance, err on the side of exclusion
-              6. Maximum ${SearchService.FINAL_TOP_K} results, minimum score ${SearchService.SCORE_THRESHOLD}
-              7. Score conservatively - it's better to return fewer, highly relevant results
+              2. PRIORITIZE title matching over content matching - exact title matches get highest scores
+              3. Keyword matching ≠ relevance - focus on actual informational value to the user
+              4. Consider user intent from the query naturally - do NOT rely on predefined categories
+              5. Prioritize depth over breadth - one comprehensive wiki beats three shallow ones
+              6. If uncertain about relevance, err on the side of exclusion
+              7. Maximum ${SearchService.FINAL_TOP_K} results, minimum score ${SearchService.SCORE_THRESHOLD}
+              8. Score conservatively - it's better to return fewer, highly relevant results
 
               REASONING REQUIREMENTS:
+              • First mention if title matches the query (and how closely)
               • Explain specifically WHY this wiki helps answer the user's query
               • Mention what key information, processes, or insights it provides
               • Note the connection between wiki content and the user's specific question
@@ -193,11 +210,11 @@ class SearchService {
           },
           {
             role: 'assistant',
-            content: `KNOWLEDGE BASE:\n${kbBlock}`,
+            content: `KNOWLEDGE BASE (Format: ID|TITLE|SUMMARY):\n${kbCompact}`,
           },
           {
             role: 'user',
-            content: `Query: "${query}"\n\nAnalyze each wiki and score them based on relevance to this specific query. Focus on which wikis would actually help the user achieve their goal. Be strict about relevance and conservative with scoring.`,
+            content: `Query: "${query}"\n\nAnalyze each wiki and score them based on relevance to this specific query. PRIORITIZE wikis whose titles match or closely match the query terms. Focus on which wikis would actually help the user achieve their goal. Be strict about relevance and conservative with scoring.`,
           },
         ],
       })
@@ -255,6 +272,15 @@ class SearchService {
       .filter((x) => x !== null)
   }
 
+  private formatWikiContentsCompact(wikiContents: WikiContent[]): string {
+    return wikiContents
+      .map(
+        (wiki, index) =>
+          `[${index + 1}]|${wiki.title.replace(/[|\r\n]/g, ' ')}|${wiki.content.replace(/\|/g, '—').replace(/[\r\n]/g, ' ')}`,
+      )
+      .join('\n\n---\n\n')
+  }
+
   private async answerQuestion(
     query: string,
     wikiContents: WikiContent[],
@@ -264,12 +290,7 @@ class SearchService {
       throw new Error('AI service not available - production mode required')
     }
 
-    const contextContent = wikiContents
-      .map(
-        (wiki, index) =>
-          `[${index + 1}] WIKI: ${wiki.title}\nCONTENT: ${wiki.content}`,
-      )
-      .join('\n\n---\n\n')
+    const contextContent = this.formatWikiContentsCompact(wikiContents)
 
     try {
       const { text } = await generateText({
@@ -280,6 +301,8 @@ class SearchService {
             role: 'system',
             content: endent`
               You are WikiBot, an expert knowledge synthesizer specializing in IQ token, BrainDAO ecosystem, and blockchain technology.
+
+              WIKI DATA FORMAT: Each wiki entry is formatted as [INDEX]|TITLE|CONTENT
 
               SOURCE HIERARCHY:
               1. WIKI ARTICLES (PRIMARY) - Must be cited: (Source: [Wiki Title])
@@ -309,7 +332,7 @@ class SearchService {
           },
           {
             role: 'assistant',
-            content: `AVAILABLE WIKI SOURCES:\n${contextContent}`,
+            content: `AVAILABLE WIKI SOURCES (Format: [INDEX]|TITLE|CONTENT):\n${contextContent}`,
           },
           {
             role: 'assistant',
