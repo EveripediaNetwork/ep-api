@@ -14,6 +14,7 @@ import IqSubscription from '../../Database/Entities/IqSubscription'
 import Notification from '../../Database/Entities/notification.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import WikiTranslationService from '../../App/Translation/translation.service'
+import { SOPHIA_ID } from '../../globalVars'
 
 @Injectable()
 class DBStoreService {
@@ -74,6 +75,10 @@ class DBStoreService {
       user = await userRepository.save(user)
     }
 
+    const operator = await userRepository.findOneBy({
+      id: ILike(wiki?.operator?.id as string),
+    })
+
     let language = await languageRepository.findOneBy({
       id: wiki.language as unknown as LanguagesISOEnum,
     })
@@ -133,6 +138,7 @@ class DBStoreService {
       a_created: (ipfsTime && wiki.created) || existWiki?.created || newDate,
       a_updated: (ipfsTime && wiki.updated) || newDate,
       a_author: author,
+      a_operator: operator,
       a_version: wiki.version,
       content: [
         {
@@ -146,6 +152,7 @@ class DBStoreService {
           user,
           tags,
           author,
+          operator,
           created: (ipfsTime && wiki.created) || existWiki?.created || newDate,
           updated: (ipfsTime && wiki.updated) || newDate,
           categories,
@@ -204,6 +211,12 @@ class DBStoreService {
         ? (wiki.updated as unknown as Date)
         : existWiki.updated
       existWiki.transactionHash = hash.transactionHash
+      if (
+        existWiki.operator &&
+        user.id.toLowerCase() === SOPHIA_ID.toLowerCase()
+      ) {
+        existWiki.operator = operator as User
+      }
       await wikiRepository.save(existWiki)
       this.translateWikiToKorean(existWiki.id)
 
@@ -242,6 +255,10 @@ class DBStoreService {
       user,
       tags,
       author: user,
+      operator:
+        user.id.toLowerCase() === SOPHIA_ID.toLowerCase() && operator
+          ? operator
+          : undefined,
       media: wiki.media || [],
       linkedWikis: wiki.linkedWikis,
       categories,
@@ -251,7 +268,7 @@ class DBStoreService {
       ipfs: hash.id,
       ...(ipfsTime && { created: wiki.created, updated: wiki.updated }),
       transactionHash: hash.transactionHash,
-    })
+    }) as Wiki
 
     await wikiRepository.save(newWiki)
     this.translateWikiToKorean(newWiki.id)

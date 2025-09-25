@@ -182,24 +182,84 @@ class WikiService {
     return promotedWikis
   }
 
-  async getWikiIdTitleAndSummary(): Promise<
-    { id: string; title: string; summary: string }[]
-  > {
-    const wikiIdsList:
-      | { id: string; title: string; summary: string }[]
-      | null
-      | undefined = await this.cacheManager.get('wikiIdsList')
-    if (wikiIdsList) return wikiIdsList
-    const response = await (await this.repository())
+  async getWikiIdTitleAndSummary(timestampQuery?: {
+    interval?: string
+    startDate?: string
+    endDate?: string
+  }): Promise<{ id: string; title: string; summary: string }[]> {
+    if (
+      !timestampQuery?.interval &&
+      !timestampQuery?.startDate &&
+      !timestampQuery?.endDate
+    ) {
+      const wikiIdsList:
+        | { id: string; title: string; summary: string }[]
+        | null
+        | undefined = await this.cacheManager.get('wikiIdsList')
+      if (wikiIdsList) return wikiIdsList
+    }
+
+    const query = (await this.repository())
       .createQueryBuilder('wiki')
       .select('wiki.id')
       .addSelect('wiki.title')
       .addSelect('wiki.summary')
       .where('wiki.hidden = false')
-      .orderBy('wiki.id', 'ASC')
-      .getMany()
 
-    await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
+    if (
+      timestampQuery?.interval ||
+      timestampQuery?.startDate ||
+      timestampQuery?.endDate
+    ) {
+      let filterDate: Date
+
+      if (timestampQuery.interval) {
+        const now = new Date()
+        switch (timestampQuery.interval) {
+          case 'daily':
+            filterDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+            break
+          case 'weekly':
+            filterDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+            break
+          case 'monthly':
+            filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            break
+          case '6months':
+            filterDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
+            break
+          case '1year':
+            filterDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+            break
+          default:
+            filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        }
+        query.andWhere('wiki.updated < :filterDate', { filterDate })
+      }
+
+      if (timestampQuery.startDate) {
+        query.andWhere('wiki.updated >= :startDate', {
+          startDate: new Date(timestampQuery.startDate),
+        })
+      }
+
+      if (timestampQuery.endDate) {
+        query.andWhere('wiki.updated <= :endDate', {
+          endDate: new Date(timestampQuery.endDate),
+        })
+      }
+    }
+
+    const response = await query.orderBy('wiki.id', 'ASC').getMany()
+    console.log(response.length)
+    if (
+      !timestampQuery?.interval &&
+      !timestampQuery?.startDate &&
+      !timestampQuery?.endDate
+    ) {
+      await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
+    }
+
     return response
   }
 

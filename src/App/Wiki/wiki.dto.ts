@@ -69,6 +69,28 @@ export class PromoteWikiArgs extends ByIdArgs {
   featuredEvents = false
 }
 
+export enum TimeInterval {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  SIX_MONTHS = '6months',
+  ONE_YEAR = '1year',
+}
+
+@ArgsType()
+export class TimestampQueryArgs {
+  @Field(() => TimeInterval, { nullable: true })
+  interval?: TimeInterval
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidDateParams)
+  startDate?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidDateParams)
+  endDate?: string
+}
+
 @ObjectType()
 export class WikiUrl {
   @Field(() => String)

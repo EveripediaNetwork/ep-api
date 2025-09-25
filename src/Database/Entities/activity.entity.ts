@@ -137,6 +137,9 @@ class Activity {
   @Column('varchar', { nullable: true })
   a_author!: Relation<User>
 
+  @Column('varchar', { nullable: true })
+  a_operator!: Relation<User>
+
   @Column('smallint', { nullable: true })
   a_version!: string
 
