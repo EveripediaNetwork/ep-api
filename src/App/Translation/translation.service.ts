@@ -40,7 +40,9 @@ export default class WikiTranslationService {
 
   private readonly model: string
 
-  private readonly openrouter: ReturnType<typeof createOpenRouter>
+  private readonly openrouter: ReturnType<typeof createOpenRouter> | null
+
+  private readonly isTranslationEnabled: boolean
 
   constructor(
     private readonly dataSource: DataSource,
@@ -51,18 +53,33 @@ export default class WikiTranslationService {
       this.configService.get<string>('OPENROUTER_MODEL') ||
       'google/gemini-flash-1.5'
 
-    const apiKey = this.configService.get<string>('OPENROUTER_API_KEY') || ''
-    if (!apiKey) {
-      this.logger.error(
-        'OPENROUTER_API_KEY is not set in environment variables',
-      )
-    }
+    const apiKey = this.configService.get<string>('OPENROUTER_API_KEY')
 
-    this.openrouter = createOpenRouter({ apiKey })
+    if (!apiKey) {
+      this.logger.warn(
+        'OPENROUTER_API_KEY is not set - translation features will be disabled',
+      )
+      this.openrouter = null
+      this.isTranslationEnabled = false
+    } else {
+      this.openrouter = createOpenRouter({ apiKey })
+      this.isTranslationEnabled = true
+      this.logger.log('Translation service initialized successfully')
+    }
   }
 
   async translateWiki(request: TranslationInput): Promise<TranslationResult> {
     const { wikiId, forceRetranslate = false } = request
+
+    if (!this.isTranslationEnabled) {
+      this.logger.warn(
+        `Translation skipped for wiki ${wikiId} - translation service is disabled (missing API key)`,
+      )
+      return {
+        success: false,
+        error: 'Translation service is disabled - missing API key',
+      }
+    }
 
     if (this.baseUrl?.includes('dev')) {
       this.logger.warn(
@@ -178,6 +195,13 @@ export default class WikiTranslationService {
   }
 
   private async performTranslation(wiki: Wiki): Promise<TranslationResult> {
+    if (!this.openrouter) {
+      return {
+        success: false,
+        error: 'Translation service is not available - missing API key',
+      }
+    }
+
     const contentToTranslate = this.prepareContentForTranslation(wiki)
     this.logger.log(`Translating wiki ${wiki.id} with OpenRouter`)
 
@@ -218,6 +242,13 @@ Translate summary and content fields while preserving all formatting, links, cit
   private async performChunkedTranslation(
     wiki: Wiki,
   ): Promise<TranslationResult> {
+    if (!this.openrouter) {
+      return {
+        success: false,
+        error: 'Translation service is not available - missing API key',
+      }
+    }
+
     const summaryContent = wiki.summary
       ? this.preProcessContent(wiki.summary)
       : ''
@@ -385,7 +416,9 @@ Translate summary and content fields while preserving all formatting, links, cit
     if (hasContent) translatedFields.push('content')
 
     this.logger.log(
-      `Successfully translated ${translatedFields.join(', ')} for wiki ${wikiId}`,
+      `Successfully translated ${translatedFields.join(
+        ', ',
+      )} for wiki ${wikiId}`,
     )
 
     await repository.save(translation)
