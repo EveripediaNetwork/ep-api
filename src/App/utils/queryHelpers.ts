@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm'
+import { Repository, SelectQueryBuilder } from 'typeorm'
 import Activity from '../../Database/Entities/activity.entity'
 import { OrderBy, Direction, IntervalByDays } from '../general.args'
 import { VistArgs } from '../pageViews/pageviews.dto'
@@ -41,34 +41,42 @@ export const queryWikisCreated = async (
   repo: Repository<Activity>,
   count = false,
 ): Promise<UserActivity | WikiCount> => {
-  const query = repo
-    .createQueryBuilder('activity')
-    .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
-    .leftJoin('user', 'operator', 'w."operatorId" = operator."id"')
-    .andWhere("activity.type = '0'")
-
-  if (id?.toLowerCase() === SOPHIA_ID.toLowerCase()) {
-    query.where('LOWER(activity.userId) = :id AND w."hidden" = false', {
-      id: id?.toLowerCase(),
-    })
-  } else {
-    query.where(
-      '(LOWER(activity.userId) = :id OR LOWER(operator.id) = :id) AND w."hidden" = false',
-      {
-        id: id?.toLowerCase(),
-      },
-    )
+  const buildBaseQuery = (queryBuilder: SelectQueryBuilder<Activity>) => {
+    return queryBuilder
+      .leftJoin('wiki', 'w', 'w."id" = activity.wikiId')
+      .leftJoin('user', 'operator', 'w."operatorId" = operator."id"')
+      .andWhere("activity.type = '0'")
+      .andWhere(
+        id?.toLowerCase() === SOPHIA_ID.toLowerCase()
+          ? 'LOWER(activity.userId) = :id AND w."hidden" = false'
+          : '(LOWER(activity.userId) = :id OR LOWER(operator.id) = :id) AND w."hidden" = false',
+        { id: id?.toLowerCase() },
+      )
   }
 
   if (count) {
+    const query = buildBaseQuery(repo.createQueryBuilder('activity'))
     const result = await query
       .select('COUNT(DISTINCT activity.wikiId)', 'amount')
       .getRawMany()
     return { count: result[0].amount } as WikiCount
   }
 
-  const activity = await query
-    .groupBy('activity.wikiId, activity.id')
+  const rawQuery = buildBaseQuery(repo.createQueryBuilder('activity'))
+    .select('activity.*')
+    .addSelect(
+      'ROW_NUMBER() OVER (PARTITION BY activity.wikiId ORDER BY activity.datetime DESC)',
+      'rn',
+    )
+
+  const activity = await repo
+    .createQueryBuilder('activity')
+    .innerJoin(
+      `(${rawQuery.getQuery()})`,
+      'ranked',
+      'ranked.id = activity.id AND ranked.rn = 1',
+    )
+    .setParameters(rawQuery.getParameters())
     .orderBy('activity.datetime', 'DESC')
     .limit(limit)
     .offset(offset)

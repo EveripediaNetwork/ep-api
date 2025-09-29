@@ -186,12 +186,28 @@ class WikiService {
     interval?: string
     startDate?: string
     endDate?: string
-  }): Promise<{ id: string; title: string; summary: string }[]> {
-    if (
-      !timestampQuery?.interval &&
-      !timestampQuery?.startDate &&
-      !timestampQuery?.endDate
-    ) {
+  }): Promise<
+    {
+      id: string
+      title: string
+      summary: string
+      updated?: Date
+      category?: Array<{
+        id: string
+        title: string
+        description: string
+        cardImage: string
+        heroImage: string
+      }>
+    }[]
+  > {
+    const hasTimestampQuery = !!(
+      timestampQuery?.interval ||
+      timestampQuery?.startDate ||
+      timestampQuery?.endDate
+    )
+
+    if (!hasTimestampQuery) {
       const wikiIdsList:
         | { id: string; title: string; summary: string }[]
         | null
@@ -206,11 +222,12 @@ class WikiService {
       .addSelect('wiki.summary')
       .where('wiki.hidden = false')
 
-    if (
-      timestampQuery?.interval ||
-      timestampQuery?.startDate ||
-      timestampQuery?.endDate
-    ) {
+    if (hasTimestampQuery) {
+      query.addSelect('wiki.updated')
+      query.leftJoinAndSelect('wiki.categories', 'category')
+    }
+
+    if (hasTimestampQuery) {
       let filterDate: Date
 
       if (timestampQuery.interval) {
@@ -251,16 +268,33 @@ class WikiService {
     }
 
     const response = await query.orderBy('wiki.id', 'ASC').getMany()
-    console.log(response.length)
-    if (
-      !timestampQuery?.interval &&
-      !timestampQuery?.startDate &&
-      !timestampQuery?.endDate
-    ) {
-      await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
+
+    const transformedResponse = hasTimestampQuery
+      ? response.map((wiki: any) => ({
+          ...wiki,
+          category: wiki.__categories__
+            ? wiki.__categories__.map((cat: any) => ({
+                id: cat.id,
+                title: cat.title,
+                description: cat.description,
+                cardImage: cat.cardImage,
+                heroImage: cat.heroImage,
+              }))
+            : [],
+          __categories__: undefined,
+          categories: undefined,
+        }))
+      : response
+
+    if (!hasTimestampQuery) {
+      await this.cacheManager.set(
+        'wikiIdsList',
+        transformedResponse,
+        3600 * 1000,
+      )
     }
 
-    return response
+    return transformedResponse
   }
 
   async getWikisByCategory(
