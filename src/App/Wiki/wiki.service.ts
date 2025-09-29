@@ -225,6 +225,7 @@ class WikiService {
     if (hasTimestampQuery) {
       query.addSelect('wiki.updated')
       query.leftJoinAndSelect('wiki.categories', 'category')
+      query.leftJoinAndSelect('wiki.tags', 'tag')
     }
 
     if (hasTimestampQuery) {
@@ -282,7 +283,13 @@ class WikiService {
               }))
             : [],
           __categories__: undefined,
-          categories: undefined,
+          tags: wiki.tags
+            ? wiki.__tags__.map((tag: any) => ({
+                id: tag.id,
+                title: tag.title,
+              }))
+            : [],
+          __tags__: undefined,
         }))
       : response
 
