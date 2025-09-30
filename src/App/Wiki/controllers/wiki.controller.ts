@@ -11,12 +11,20 @@ class WikiController {
     @Query('interval') interval?: TimeInterval,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
   ) {
-    return this.wikiService.getWikiIdTitleAndSummary({
-      interval,
-      startDate,
-      endDate,
-    })
+    const hasQueryParams = !!(interval || startDate || endDate)
+
+    return this.wikiService.getWikiIdTitleAndSummary(
+      {
+        interval,
+        startDate,
+        endDate,
+      },
+      hasQueryParams ? limit : undefined,
+      hasQueryParams ? offset : undefined,
+    )
   }
 }
 export default WikiController

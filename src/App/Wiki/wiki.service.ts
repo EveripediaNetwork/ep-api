@@ -182,11 +182,15 @@ class WikiService {
     return promotedWikis
   }
 
-  async getWikiIdTitleAndSummary(timestampQuery?: {
-    interval?: string
-    startDate?: string
-    endDate?: string
-  }): Promise<
+  async getWikiIdTitleAndSummary(
+    timestampQuery?: {
+      interval?: string
+      startDate?: string
+      endDate?: string
+    },
+    limit?: number,
+    offset?: number,
+  ): Promise<
     {
       id: string
       title: string
@@ -268,7 +272,18 @@ class WikiService {
       }
     }
 
-    const response = await query.orderBy('wiki.id', 'ASC').getMany()
+    let queryBuilder = query.orderBy('wiki.id', 'ASC')
+
+    if (hasTimestampQuery) {
+      if (limit !== undefined) {
+        queryBuilder = queryBuilder.limit(limit)
+      }
+      if (offset !== undefined) {
+        queryBuilder = queryBuilder.offset(offset)
+      }
+    }
+
+    const response = await queryBuilder.getMany()
 
     const transformedResponse = hasTimestampQuery
       ? response.map((wiki: any) => ({
