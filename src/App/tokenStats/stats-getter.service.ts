@@ -55,8 +55,10 @@ class StatsGetterService {
       ])
     } catch (e: any) {
       this.logger.error(
-        `COINGECKO ERROR ${e.response.status} ${e.response.statusText} for ${name}`,
+        `COINGECKO ERROR ${e.response?.status} ${e.response?.statusText} for ${name}`,
       )
+      const notFoundCacheKey = `${name}-not-found`
+      await this.cacheManager.set(notFoundCacheKey, true, 24 * 60 * 60 * 1000)
     }
     return { marketChangeResult, volumeChangeResult }
   }
@@ -131,6 +133,16 @@ class StatsGetterService {
   }
 
   async getStats(name: string): Promise<any> {
+    const notFoundCacheKey = `${name}-not-found`
+    const isNotFound = await this.cacheManager.get(notFoundCacheKey)
+
+    if (isNotFound) {
+      this.logger.debug(
+        `Token ${name} is cached as not found, skipping API call`,
+      )
+      return new TokenData()
+    }
+
     const cachedData = await this.cacheManager.get<TokenData>(`${name}-token`)
 
     if (cachedData) {

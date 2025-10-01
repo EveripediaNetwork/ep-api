@@ -15,7 +15,8 @@
     "dist/wiki.resolver.spec.ts",
     "dist/RPCProvider.service.spec.ts",
     "dist/run.command.spec.ts",
-    "emails"
+    "emails",
+    "logs/CoinGecko"
   ],
   "exclude": ["node_modules", "uploads"]
 }
