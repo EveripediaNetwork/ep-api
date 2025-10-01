@@ -42,6 +42,16 @@ class StatsGetterService {
     let marketChangeResult
     let volumeChangeResult
 
+    const notFoundCacheKey = `${name}-not-found`
+    const isNotFound = await this.cacheManager.get(notFoundCacheKey)
+
+    if (isNotFound) {
+      this.logger.debug(
+        `Token ${name} is cached as not found, skipping API call`,
+      )
+      return new TokenData()
+    }
+
     try {
       ;[marketChangeResult, volumeChangeResult] = await Promise.all([
         this.gateway.fetchData<Record<string, any>>(
@@ -133,16 +143,6 @@ class StatsGetterService {
   }
 
   async getStats(name: string): Promise<any> {
-    const notFoundCacheKey = `${name}-not-found`
-    const isNotFound = await this.cacheManager.get(notFoundCacheKey)
-
-    if (isNotFound) {
-      this.logger.debug(
-        `Token ${name} is cached as not found, skipping API call`,
-      )
-      return new TokenData()
-    }
-
     const cachedData = await this.cacheManager.get<TokenData>(`${name}-token`)
 
     if (cachedData) {
