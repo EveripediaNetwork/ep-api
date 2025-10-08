@@ -16,8 +16,10 @@ import {
   EventDefaultArgs,
   ExplorerArgs,
   LangArgs,
+  PaginatedWikiResponse,
   PromoteWikiArgs,
   TitleArgs,
+  WikiItem,
   WikiUrl,
   eventTag,
 } from './wiki.dto'
@@ -182,42 +184,12 @@ class WikiService {
     return promotedWikis
   }
 
-  async getWikiIdTitleAndSummary(
-    timestampQuery?: {
-      interval?: string
-      startDate?: string
-      endDate?: string
-    },
-    limit?: number,
-    offset?: number,
-  ): Promise<
-    {
-      id: string
-      title: string
-      summary: string
-      updated?: Date
-      category?: Array<{
-        id: string
-        title: string
-        description: string
-        cardImage: string
-        heroImage: string
-      }>
-    }[]
-  > {
-    const hasTimestampQuery = !!(
-      timestampQuery?.interval ||
-      timestampQuery?.startDate ||
-      timestampQuery?.endDate
-    )
-
-    if (!hasTimestampQuery) {
-      const wikiIdsList:
-        | { id: string; title: string; summary: string }[]
-        | null
-        | undefined = await this.cacheManager.get('wikiIdsList')
-      if (wikiIdsList) return wikiIdsList
-    }
+  async getWikiIdTitleAndSummary() {
+    const wikiIdsList:
+      | { id: string; title: string; summary: string }[]
+      | null
+      | undefined = await this.cacheManager.get('wikiIdsList')
+    if (wikiIdsList) return wikiIdsList
 
     const query = (await this.repository())
       .createQueryBuilder('wiki')
@@ -226,97 +198,114 @@ class WikiService {
       .addSelect('wiki.summary')
       .where('wiki.hidden = false')
 
-    if (hasTimestampQuery) {
-      query.addSelect('wiki.updated')
-      query.leftJoinAndSelect('wiki.categories', 'category')
-      query.leftJoinAndSelect('wiki.tags', 'tag')
-    }
-
-    if (hasTimestampQuery) {
-      let filterDate: Date
-
-      if (timestampQuery.interval) {
-        const now = new Date()
-        switch (timestampQuery.interval) {
-          case 'daily':
-            filterDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-            break
-          case 'weekly':
-            filterDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-            break
-          case 'monthly':
-            filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-            break
-          case '6months':
-            filterDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
-            break
-          case '1year':
-            filterDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-            break
-          default:
-            filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        }
-        query.andWhere('wiki.updated < :filterDate', { filterDate })
-      }
-
-      if (timestampQuery.startDate) {
-        query.andWhere('wiki.updated >= :startDate', {
-          startDate: new Date(timestampQuery.startDate),
-        })
-      }
-
-      if (timestampQuery.endDate) {
-        query.andWhere('wiki.updated <= :endDate', {
-          endDate: new Date(timestampQuery.endDate),
-        })
-      }
-    }
-
-    let queryBuilder = query.orderBy('wiki.id', 'ASC')
-
-    if (hasTimestampQuery) {
-      if (limit !== undefined) {
-        queryBuilder = queryBuilder.limit(limit)
-      }
-      if (offset !== undefined) {
-        queryBuilder = queryBuilder.offset(offset)
-      }
-    }
+    const queryBuilder = query.orderBy('wiki.id', 'ASC')
 
     const response = await queryBuilder.getMany()
 
-    const transformedResponse = hasTimestampQuery
-      ? response.map((wiki: any) => ({
-          ...wiki,
-          category: wiki.__categories__
-            ? wiki.__categories__.map((cat: any) => ({
-                id: cat.id,
-                title: cat.title,
-                description: cat.description,
-                cardImage: cat.cardImage,
-                heroImage: cat.heroImage,
-              }))
-            : [],
-          __categories__: undefined,
-          tags: wiki.tags
-            ? wiki.__tags__.map((tag: any) => ({
-                id: tag.id,
-                title: tag.title,
-              }))
-            : [],
-          __tags__: undefined,
-        }))
-      : response
+    await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
+    return response
+  }
+  async getOutdatedWikis(
+    limit = 20,
+    offset = 0,
+    timestampQuery?: {
+      interval?: string
+      startDate?: string
+      endDate?: string
+    },
+  ): Promise<PaginatedWikiResponse> {
+    const query = (await this.repository())
+      .createQueryBuilder('wiki')
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.summary')
+      .where('wiki.hidden = false')
+      .addSelect('wiki.updated')
+      .leftJoinAndSelect('wiki.categories', 'category')
+      .leftJoinAndSelect('wiki.tags', 'tag')
 
-    if (!hasTimestampQuery) {
-      await this.cacheManager.set(
-        'wikiIdsList',
-        transformedResponse,
-        3600 * 1000,
-      )
+    let count = 0
+
+    let filterDate: Date
+
+    if (timestampQuery?.interval) {
+      const now = new Date()
+      switch (timestampQuery.interval) {
+        case 'daily':
+          filterDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+          break
+        case 'weekly':
+          filterDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          break
+        case 'monthly':
+          filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          break
+        case '6months':
+          filterDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
+          break
+        case '1year':
+          filterDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+          break
+        case '3years':
+          filterDate = new Date(now.getTime() - 3 * 365 * 24 * 60 * 60 * 1000)
+          break
+        default:
+          filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      }
+      query.andWhere('wiki.updated >= :filterDate', { filterDate })
     }
 
-    return transformedResponse
+    if (timestampQuery?.startDate) {
+      query.andWhere('wiki.updated >= :startDate', {
+        startDate: new Date(timestampQuery.startDate),
+      })
+    }
+
+    if (timestampQuery?.endDate) {
+      query.andWhere('wiki.updated <= :endDate', {
+        endDate: new Date(timestampQuery.endDate),
+      })
+    }
+    count = await query.getCount()
+
+    const queryBuilder = query.orderBy('wiki.id', 'ASC')
+
+    const response = await queryBuilder.getMany()
+
+    const transformedResponse = response.map((wiki: any) => ({
+      ...wiki,
+      category: wiki.__categories__
+        ? wiki.__categories__.map((cat: any) => ({
+            id: cat.id,
+            title: cat.title,
+            description: cat.description,
+            cardImage: cat.cardImage,
+            heroImage: cat.heroImage,
+          }))
+        : [],
+      __categories__: undefined,
+      tags: wiki.tags
+        ? wiki.__tags__.map((tag: any) => ({
+            id: tag.id,
+            title: tag.title,
+          }))
+        : [],
+      __tags__: undefined,
+    }))
+
+    const effectiveLimit = limit || 10
+    const effectiveOffset = offset || 0
+
+    const paginatedWikis = transformedResponse.slice(
+      effectiveOffset,
+      effectiveOffset + effectiveLimit,
+    )
+
+    const paginatedResponse: PaginatedWikiResponse = {
+      total: count,
+      wikis: paginatedWikis,
+    }
+    return paginatedResponse
   }
 
   async getWikisByCategory(

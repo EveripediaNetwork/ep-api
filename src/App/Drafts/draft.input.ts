@@ -12,9 +12,9 @@ export class DraftInput {
   @Validate(ValidStringParams)
   title!: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   @Validate(ValidStringParams)
-  wikiId?: string
+  wikiId!: string
 
   @Field(() => String)
   draft!: any

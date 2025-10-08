@@ -7,23 +7,25 @@ class WikiController {
   constructor(private wikiService: WikiService) {}
 
   @Get()
-  async wikiIdTitleAndSummary(
+  async wikiIdTitleAndSummary() {
+    return this.wikiService.getWikiIdTitleAndSummary()
+  }
+  @Get('outdated')
+  async outDatedWikis(
+    @Query('limit') limit: number,
+    @Query('offset') offset: number,
     @Query('interval') interval?: TimeInterval,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
   ) {
-    const hasQueryParams = !!(interval || startDate || endDate)
-
-    return this.wikiService.getWikiIdTitleAndSummary(
+    return this.wikiService.getOutdatedWikis(
+      parseInt(String(limit), 10),
+      parseInt(String(offset), 10),
       {
         interval,
         startDate,
         endDate,
       },
-      hasQueryParams ? limit : undefined,
-      hasQueryParams ? offset : undefined,
     )
   }
 }

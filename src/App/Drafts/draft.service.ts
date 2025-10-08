@@ -21,7 +21,7 @@ export class DraftService {
       const normalizedUserId = input.userId.toLowerCase()
 
       const existingDraft = await this.draftRepo.findOne({
-        where: { userId: normalizedUserId, title: input.title },
+        where: { userId: normalizedUserId, wikiId: input.wikiId },
       })
 
       if (existingDraft) {
@@ -44,7 +44,7 @@ export class DraftService {
     }
   }
 
-  async getDrafts(userId: string, title?: string): Promise<Draft[]> {
+  async getDrafts(userId: string, wikiId?: string): Promise<Draft[]> {
     try {
       const expiryDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       const normalizedUserId = userId.toLowerCase()
@@ -53,7 +53,7 @@ export class DraftService {
         userId: normalizedUserId,
         createdAt: MoreThan(expiryDate),
       }
-      if (title) where.title = title
+      if (wikiId) where.wikiId = wikiId
 
       return this.draftRepo.find({
         where,
@@ -68,12 +68,12 @@ export class DraftService {
     }
   }
 
-  async deleteDraft(userId: string, title: string): Promise<boolean> {
+  async deleteDraft(userId: string, wikiId: string): Promise<boolean> {
     try {
       const normalizedUserId = userId.toLowerCase()
       const result = await this.draftRepo.delete({
         userId: normalizedUserId,
-        title,
+        wikiId,
       })
       return (result.affected || 0) > 0
     } catch (error) {

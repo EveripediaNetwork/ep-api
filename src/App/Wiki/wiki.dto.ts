@@ -8,6 +8,8 @@ import {
 } from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
+import { Tag } from 'arweave/node/lib/transaction'
+import Category from '../../Database/Entities/category.entity'
 
 export const eventTag = 'events'
 export const eventDate = 'EVENT'
@@ -162,4 +164,18 @@ export function hasField(
   })
 
   return fieldExists
+}
+
+export interface WikiItem {
+  id: string
+  title: string
+  summary: string
+  updated?: Date
+  category?: Category[]
+  tags?: Tag[]
+}
+
+export interface PaginatedWikiResponse {
+  total: number
+  wikis: WikiItem[]
 }

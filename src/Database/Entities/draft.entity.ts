@@ -21,9 +21,9 @@ export class Draft {
   @Column({ type: 'varchar' })
   title!: string
 
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
-  wikiId?: string
+  @Field(() => String)
+  @Column({ type: 'varchar' })
+  wikiId!: string
 
   @Field(() => String)
   @Column('jsonb')
