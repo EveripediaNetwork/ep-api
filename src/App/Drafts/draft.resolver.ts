@@ -10,7 +10,7 @@ export class DraftResolver {
   @Query(() => [Draft])
   async drafts(
     @Args('userId') userId: string,
-    @Args('wikiId') wikiId: string,
+    @Args('wikiId') wikiId?: string,
   ): Promise<Draft[]> {
     return this.draftService.getDrafts(userId, wikiId)
   }
