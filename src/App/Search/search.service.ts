@@ -87,7 +87,7 @@ class SearchService {
 
   private static readonly suggestionModelName = 'google/gemini-2.0-flash-001'
 
-  private static readonly finalAnswerModelName = 'openai/gpt-4.1-mini'
+  private static readonly finalAnswerModelName = 'openai/gpt-4.1-nano'
 
   private static readonly SCORE_THRESHOLD = 7
 
