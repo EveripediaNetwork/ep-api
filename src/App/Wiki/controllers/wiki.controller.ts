@@ -15,17 +15,11 @@ class WikiController {
     @Query('limit') limit: number,
     @Query('offset') offset: number,
     @Query('interval') interval?: TimeInterval,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
   ) {
     return this.wikiService.getOutdatedWikis(
       parseInt(String(limit), 10),
       parseInt(String(offset), 10),
-      {
-        interval,
-        startDate,
-        endDate,
-      },
+      interval,
     )
   }
 }

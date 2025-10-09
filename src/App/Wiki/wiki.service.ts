@@ -208,11 +208,7 @@ class WikiService {
   async getOutdatedWikis(
     limit = 20,
     offset = 0,
-    timestampQuery?: {
-      interval?: string
-      startDate?: string
-      endDate?: string
-    },
+    interval?: string,
   ): Promise<PaginatedWikiResponse> {
     const query = (await this.repository())
       .createQueryBuilder('wiki')
@@ -224,13 +220,11 @@ class WikiService {
       .leftJoinAndSelect('wiki.categories', 'category')
       .leftJoinAndSelect('wiki.tags', 'tag')
 
-    let count = 0
-
     let filterDate: Date
 
-    if (timestampQuery?.interval) {
+    if (interval) {
       const now = new Date()
-      switch (timestampQuery.interval) {
+      switch (interval) {
         case 'daily':
           filterDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
           break
@@ -246,29 +240,15 @@ class WikiService {
         case '1year':
           filterDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
           break
-        case '3years':
-          filterDate = new Date(now.getTime() - 3 * 365 * 24 * 60 * 60 * 1000)
-          break
         default:
           filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       }
-      query.andWhere('wiki.updated >= :filterDate', { filterDate })
+      query.andWhere('wiki.updated <= :filterDate', { filterDate })
     }
 
-    if (timestampQuery?.startDate) {
-      query.andWhere('wiki.updated >= :startDate', {
-        startDate: new Date(timestampQuery.startDate),
-      })
-    }
+    const count = await query.getCount()
 
-    if (timestampQuery?.endDate) {
-      query.andWhere('wiki.updated <= :endDate', {
-        endDate: new Date(timestampQuery.endDate),
-      })
-    }
-    count = await query.getCount()
-
-    const queryBuilder = query.orderBy('wiki.id', 'ASC')
+    const queryBuilder = query.orderBy('wiki.updated', 'DESC')
 
     const response = await queryBuilder.getMany()
 
