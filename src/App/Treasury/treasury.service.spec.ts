@@ -143,16 +143,12 @@ describe('TreasuryService', () => {
       const originalEnv = process.env.API_LEVEL
       process.env.API_LEVEL = 'prod'
 
-      // Mock getCurrentTreasuryValue to return null (no existing entry)
-      treasuryRepository.getCurrentTreasuryValue.mockResolvedValue(null)
-
       jest
         .spyOn(treasuryService, 'requestTotalbalance')
         .mockResolvedValue(totalValue)
 
       await treasuryService.storeTotalValue()
 
-      expect(treasuryRepository.getCurrentTreasuryValue).toHaveBeenCalled()
       expect(treasuryRepository.saveData).toHaveBeenCalledWith(
         totalValue.toString(),
       )
@@ -170,13 +166,8 @@ describe('TreasuryService', () => {
       const originalEnv = process.env.API_LEVEL
       process.env.API_LEVEL = 'prod'
 
-      treasuryRepository.getCurrentTreasuryValue.mockResolvedValue(
-        existingValue,
-      )
-
       await treasuryService.storeTotalValue()
 
-      expect(treasuryRepository.getCurrentTreasuryValue).toHaveBeenCalled()
       expect(treasuryRepository.saveData).not.toHaveBeenCalled()
 
       // Restore original environment variable

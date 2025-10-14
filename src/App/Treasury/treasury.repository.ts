@@ -1,10 +1,12 @@
-import { Injectable, Inject, OnModuleInit } from '@nestjs/common'
+import { Injectable, Inject, OnModuleInit, Logger } from '@nestjs/common'
 import { DataSource, Raw, Repository } from 'typeorm'
 import Treasury from '../../Database/Entities/treasury.entity'
 import { DateArgs } from '../Wiki/wikiStats.dto'
 
 @Injectable()
 class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
+  private readonly logger = new Logger(TreasuryRepository.name)
+
   constructor(private dataSource: DataSource) {
     super(Treasury, dataSource.createEntityManager())
   }
@@ -34,6 +36,9 @@ class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
         totalValue: tokenValue,
         created: new Date().setHours(0, 0, 0, 0),
       })
+      this.logger.debug(
+        `Saving new treasury value: ${tokenValue} at ${newTreasuryValue.created}`,
+      )
       return this.save(newTreasuryValue)
     }
     return existingEntry
