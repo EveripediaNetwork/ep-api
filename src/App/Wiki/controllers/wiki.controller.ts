@@ -14,12 +14,16 @@ class WikiController {
   async outDatedWikis(
     @Query('limit') limit: number,
     @Query('offset') offset: number,
+    @Query('sort') sort: 'ASC' | 'DESC',
     @Query('interval') interval?: TimeInterval,
+    @Query('search') search?: string,
   ) {
     return this.wikiService.getOutdatedWikis(
       parseInt(String(limit), 10),
       parseInt(String(offset), 10),
+      sort,
       interval,
+      search,
     )
   }
 }

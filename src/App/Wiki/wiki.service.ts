@@ -208,7 +208,9 @@ class WikiService {
   async getOutdatedWikis(
     limit = 20,
     offset = 0,
+    sort: 'ASC' | 'DESC' = 'ASC',
     interval?: string,
+    search?: string,
   ): Promise<PaginatedWikiResponse> {
     const query = (await this.repository())
       .createQueryBuilder('wiki')
@@ -246,10 +248,15 @@ class WikiService {
       query.andWhere('wiki.updated <= :filterDate', { filterDate })
     }
 
-    const count = await query.getCount()
+    const queryBuilder = query.orderBy('wiki.updated', sort)
+    if (search) {
+      const searchTerm = `%${search.replace(/[\W_]+/g, '%').toLowerCase()}%`
+      queryBuilder.andWhere('LOWER(wiki.title) LIKE :searchTerm', {
+        searchTerm,
+      })
+    }
 
-    const queryBuilder = query.orderBy('wiki.updated', 'DESC')
-
+    const count = await queryBuilder.getCount()
     const response = await queryBuilder.getMany()
 
     const transformedResponse = response.map((wiki: any) => ({
