@@ -34,7 +34,7 @@ class TreasuryRepository extends Repository<Treasury> implements OnModuleInit {
     if (!existingEntry) {
       const newTreasuryValue = this.create({
         totalValue: tokenValue,
-        created: new Date().setHours(0, 0, 0, 0),
+        created: new Date().toISOString().split('T')[0],
       })
       this.logger.debug(
         `Saving new treasury value: ${tokenValue} at ${newTreasuryValue.created}`,

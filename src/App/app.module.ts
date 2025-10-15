@@ -74,9 +74,8 @@ import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
 import WikiTranslationService from './Translation/translation.service'
-import { KakaoCallbackController } from './kauth/kauth.controller'
-import { KakaoWebhookService } from './kauth/kauth.service'
 import { DraftModule } from './Drafts/draft.module'
+import TranslationModule from './Translation/translation.module'
 
 // istanbul ignore next
 @Module({
@@ -131,11 +130,10 @@ import { DraftModule } from './Drafts/draft.module'
     HiIQHolderModule,
     IQHolderModule,
     SearchModule,
-    // TranslationModule
+    TranslationModule,
   ],
-  controllers: [UploadController, WikiController, KakaoCallbackController],
+  controllers: [UploadController, WikiController],
   providers: [
-    KakaoWebhookService,
     AppService,
     GatewayService,
     BlockchainProviderService,
