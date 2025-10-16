@@ -123,6 +123,13 @@ describe('CategoryResolver', () => {
         ...getProviders([
           ProviderEnum.categoryResolver,
           ProviderEnum.categoryService,
+          ProviderEnum.wikiService,
+          ProviderEnum.validSlug,
+          ProviderEnum.configService,
+          ProviderEnum.tagRepository,
+          ProviderEnum.webhookHandler,
+          ProviderEnum.discordWebhookService,
+          ProviderEnum.wikiTranslationService,
         ]),
         {
           provide: DataSource,

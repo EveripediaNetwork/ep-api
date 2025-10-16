@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
-import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql'
-import { MinLength, Validate } from 'class-validator'
+import { ArgsType, Field, Int, ObjectType, PickType } from '@nestjs/graphql'
+import { Max, Min, MinLength, Validate } from 'class-validator'
 import {
   ValidStringParams,
   ValidDateParams,
@@ -8,6 +8,8 @@ import {
 } from '../utils/customValidator'
 import { Direction, OrderBy } from '../general.args'
 import PaginationArgs from '../pagination.args'
+import { Tag } from 'arweave/node/lib/transaction'
+import Category from '../../Database/Entities/category.entity'
 
 export const eventTag = 'events'
 export const eventDate = 'EVENT'
@@ -67,6 +69,28 @@ export class PromoteWikiArgs extends ByIdArgs {
 
   @Field(() => Boolean)
   featuredEvents = false
+}
+
+export enum TimeInterval {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  SIX_MONTHS = '6months',
+  ONE_YEAR = '1year',
+}
+
+@ArgsType()
+export class TimestampQueryArgs {
+  @Field(() => TimeInterval, { nullable: true })
+  interval?: TimeInterval
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidDateParams)
+  startDate?: string
+
+  @Field(() => String, { nullable: true })
+  @Validate(ValidDateParams)
+  endDate?: string
 }
 
 @ObjectType()
@@ -140,4 +164,18 @@ export function hasField(
   })
 
   return fieldExists
+}
+
+export interface WikiItem {
+  id: string
+  title: string
+  summary: string
+  updated?: Date
+  category?: Category[]
+  tags?: Tag[]
+}
+
+export interface PaginatedWikiResponse {
+  total: number
+  wikis: WikiItem[]
 }

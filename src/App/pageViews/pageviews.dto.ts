@@ -34,6 +34,10 @@ export class WikiViewArgs extends OrderArgs {
 export class VistArgs {
   @Field(() => IntervalByDays, { nullable: true })
   interval = IntervalByDays.WEEK
+
+  @Field(() => String)
+  @Validate(ValidStringParams)
+  lang = 'en'
 }
 
 @ArgsType()

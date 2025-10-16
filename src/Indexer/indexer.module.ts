@@ -14,11 +14,12 @@ import httpModule from '../httpModule'
 import MetadataChangesService from './Store/metadataChanges.service'
 import { RevalidatePageService } from '../App/revalidatePage/revalidatePage.service'
 import SentryMod from '../sentry/sentry.module'
-import AutoInjestService from '../App/utils/auto-injest'
+import AutoIngestService from '../App/utils/auto-injest'
 import { LockingService } from '../App/IQHolders/IQHolders.dto'
 import RPCProviderService from './RPCProvider/RPCProvider.service'
 import AppService from '../App/app.service'
 import SentryPlugin from '../sentry/sentryPlugin'
+import TranslationModule from '../App/Translation/translation.module'
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import SentryPlugin from '../sentry/sentryPlugin'
       }),
     }),
     SentryMod,
+    TranslationModule,
   ],
   controllers: [],
   providers: [
@@ -54,7 +56,7 @@ import SentryPlugin from '../sentry/sentryPlugin'
     IPFSGetterService,
     RunCommand,
     RevalidatePageService,
-    AutoInjestService,
+    AutoIngestService,
     LockingService,
     RPCProviderService,
     AppService,

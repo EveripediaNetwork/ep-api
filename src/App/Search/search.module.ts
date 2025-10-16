@@ -6,9 +6,10 @@ import SearchResolver from './search.resolver'
 import WikiService from '../Wiki/wiki.service'
 import { ValidSlug } from '../utils/validSlug'
 import DiscordModule from '../utils/discord.module'
+import TranslationModule from '../Translation/translation.module'
 
 @Module({
-  imports: [HttpModule, ConfigModule, DiscordModule],
+  imports: [HttpModule, ConfigModule, DiscordModule, TranslationModule],
   providers: [SearchService, SearchResolver, ValidSlug, WikiService],
   exports: [SearchService],
 })

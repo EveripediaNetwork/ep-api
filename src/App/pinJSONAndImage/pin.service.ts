@@ -1,5 +1,3 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable new-cap */
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import {
@@ -10,7 +8,7 @@ import {
 import { DataSource, In } from 'typeorm'
 import IpfsHash from './model/ipfsHash'
 import IPFSValidatorService from '../../Indexer/Validator/validator.service'
-import { USER_ACTIVITY_LIMIT } from '../../globalVars'
+import { USER_ACTIVITY_LIMIT, SOPHIA_ID } from '../../globalVars'
 import MetadataChangesService from '../../Indexer/Store/metadataChanges.service'
 import WebhookHandler from '../utils/discordWebhookHandler'
 import { ActionTypes, WebhookPayload } from '../utils/utilTypes'
@@ -120,6 +118,32 @@ class PinService {
           error: ValidatorCodes.GLOBAL_RATE_LIMIT,
         },
         HttpStatus.TOO_MANY_REQUESTS,
+      )
+    }
+
+    if (
+      wikiData.user.id.toLowerCase() === SOPHIA_ID.toLowerCase() &&
+      !(wikiData as any).operator
+    ) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Operator field is required for Sophia Edits',
+        },
+        HttpStatus.BAD_REQUEST,
+      )
+    }
+
+    if (
+      (wikiData as any).operator &&
+      (wikiData as any).operator.id?.toLowerCase() === SOPHIA_ID.toLowerCase()
+    ) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Operator cannot be Sophia',
+        },
+        HttpStatus.BAD_REQUEST,
       )
     }
 

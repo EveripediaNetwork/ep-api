@@ -50,6 +50,7 @@ describe('TreasuryService', () => {
           provide: TreasuryRepository,
           useValue: {
             saveData: jest.fn(),
+            getCurrentTreasuryValue: jest.fn(),
           },
         },
       ],
@@ -99,7 +100,6 @@ describe('TreasuryService', () => {
       }
 
       httpService.get.mockReturnValue(of(response) as any)
-      httpService.get(url).toPromise = jest.fn().mockResolvedValue(response)
 
       const result = await treasuryService.requestTotalbalance()
 
@@ -118,16 +118,18 @@ describe('TreasuryService', () => {
 
       const error = new Error('API Error')
       httpService.get.mockReturnValue(throwError(() => error))
-      httpService.get(url).toPromise = jest.fn().mockRejectedValue(error)
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+      // Mock the logger instead of console
+      const loggerSpy = jest
+        .spyOn(treasuryService['logger'], 'error')
+        .mockImplementation()
 
       const result = await treasuryService.requestTotalbalance()
 
       expect(result).toBeNull()
-      expect(consoleSpy).toHaveBeenCalledWith(error)
+      expect(loggerSpy).toHaveBeenCalledWith(error)
 
-      consoleSpy.mockRestore()
+      loggerSpy.mockRestore()
     })
   })
 
@@ -137,15 +139,39 @@ describe('TreasuryService', () => {
 
       jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
 
+      // Mock the API_LEVEL environment variable
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'prod'
+
       jest
         .spyOn(treasuryService, 'requestTotalbalance')
         .mockResolvedValue(totalValue)
 
       await treasuryService.storeTotalValue()
-      expect(cacheManager.get).toHaveBeenCalledWith('treasuryBalance')
+
       expect(treasuryRepository.saveData).toHaveBeenCalledWith(
-        totalValue.toFixed(1),
+        totalValue.toString(),
       )
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
+    })
+
+    it('should not save value when current value already exists', async () => {
+      const existingValue = { id: 1, totalValue: '1000.5' } as any
+
+      jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
+
+      // Mock the API_LEVEL environment variable
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'prod'
+
+      await treasuryService.storeTotalValue()
+
+      expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
     })
 
     it('should not save value when not first level node process', async () => {
@@ -154,6 +180,22 @@ describe('TreasuryService', () => {
       await treasuryService.storeTotalValue()
 
       expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+    })
+
+    it('should not save value when API_LEVEL is not prod', async () => {
+      jest.spyOn(treasuryDto, 'firstLevelNodeProcess').mockReturnValue(true)
+
+      // Mock the API_LEVEL environment variable to non-prod
+      const originalEnv = process.env.API_LEVEL
+      process.env.API_LEVEL = 'dev'
+
+      await treasuryService.storeTotalValue()
+
+      expect(treasuryRepository.getCurrentTreasuryValue).not.toHaveBeenCalled()
+      expect(treasuryRepository.saveData).not.toHaveBeenCalled()
+
+      // Restore original environment variable
+      process.env.API_LEVEL = originalEnv
     })
   })
 })

@@ -4,9 +4,8 @@ import Tag from '../../Database/Entities/tag.entity'
 import PaginationArgs from '../pagination.args'
 import { ITag } from '../../Database/Entities/types/ITag'
 import TagService from './tag.service'
-import TagIDArgs from './tag.dto'
 import { DateArgs } from '../Wiki/wikiStats.dto'
-import { ArgsById } from '../general.args'
+import { ArgsById, BaseArgs } from '../general.args'
 
 @Resolver(() => Tag)
 class TagResolver {
@@ -26,7 +25,7 @@ class TagResolver {
   }
 
   @Query(() => [Tag])
-  async tagsById(@Args() args: TagIDArgs) {
+  async tagsById(@Args() args: ArgsById) {
     return this.service.getTagsById(args)
   }
 
@@ -36,7 +35,7 @@ class TagResolver {
   }
 
   @ResolveField()
-  async wikis(@Parent() tag: ITag, @Args() args: PaginationArgs) {
+  async wikis(@Parent() tag: ITag, @Args() args: BaseArgs) {
     const { id } = tag
     return this.service.wikis(id, args)
   }

@@ -8,6 +8,7 @@ import SitemapController from './sitemap.controller'
 import WikiService from '../../App/Wiki/wiki.service'
 import { ValidSlug } from '../../App/utils/validSlug'
 import CategoryService from '../../App/Category/category.service'
+import WikiTranslationService from '../../App/Translation/translation.service'
 
 // Mock the dependencies
 jest.mock('../../App/Wiki/wiki.service')
@@ -42,6 +43,12 @@ describe('SitemapController', () => {
           provide: CategoryService,
           useFactory: () => ({
             getCategoryIds: jest.fn(() => []),
+          }),
+        },
+        {
+          provide: WikiTranslationService,
+          useFactory: () => ({
+            getKoreanWikiIds: jest.fn(() => []),
           }),
         },
         {

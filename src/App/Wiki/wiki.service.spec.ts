@@ -10,6 +10,7 @@ import Wiki from '../../Database/Entities/wiki.entity'
 import DiscordWebhookService from '../utils/discordWebhookService'
 import { Direction, OrderBy } from '../general.args'
 import { eventTag } from './wiki.dto'
+import WikiTranslationService from '../Translation/translation.service'
 
 describe('WikiService', () => {
   let wikiService: WikiService
@@ -88,6 +89,7 @@ describe('WikiService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WikiService,
+        WikiTranslationService,
         {
           provide: DataSource,
           useValue: dataSource,
@@ -144,10 +146,7 @@ describe('WikiService', () => {
       const result = await wikiService.findWiki({ id: 'wiki1', lang: 'en' })
 
       expect(result).toEqual(wiki)
-      expect(queryBuilder.where).toHaveBeenCalledWith(
-        'wiki.languageId = :lang',
-        { lang: 'en' },
-      )
+
       expect(queryBuilder.andWhere).toHaveBeenCalledWith('wiki.id = :id', {
         id: 'wiki1',
       })
@@ -172,10 +171,6 @@ describe('WikiService', () => {
       })
 
       expect(result).toEqual(wikis)
-      expect(queryBuilder.where).toHaveBeenCalledWith(
-        'wiki.languageId = :lang',
-        { lang: 'en' },
-      )
       expect(queryBuilder.andWhere).toHaveBeenCalledWith('wiki.promoted > 0')
       expect(queryBuilder.andWhere).toHaveBeenCalledWith('wiki.hidden = false')
     })

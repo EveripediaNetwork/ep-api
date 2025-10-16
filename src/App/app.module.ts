@@ -73,6 +73,9 @@ import TokenStatsResolver from './tokenStats/tokenStats.resolver'
 import BlockchainProviderService from './utils/BlockchainProviderService'
 import GatewayService from './utils/gatewayService'
 import SearchModule from './Search/search.module'
+import WikiTranslationService from './Translation/translation.service'
+import { DraftModule } from './Drafts/draft.module'
+import TranslationModule from './Translation/translation.module'
 
 // istanbul ignore next
 @Module({
@@ -118,14 +121,16 @@ import SearchModule from './Search/search.module'
     RelayerModule,
     BrainPassModule,
     ActivityModule,
+    SentryMod,
+    DraftModule,
+    DiscordModule,
     IndexerWebhookModule,
     TreasuryModule,
     StakedIQModule,
     HiIQHolderModule,
     IQHolderModule,
-    DiscordModule,
-    SentryMod,
     SearchModule,
+    TranslationModule,
   ],
   controllers: [UploadController, WikiController],
   providers: [
@@ -135,7 +140,8 @@ import SearchModule from './Search/search.module'
     SecurityTestingService,
     ConfigService,
     WikiResolver,
-    BlogResolver,
+    SentryPlugin,
+    Pm2Service,
     WikiService,
     LanguageResolver,
     CategoryResolver,
@@ -159,17 +165,17 @@ import SearchModule from './Search/search.module'
     TokenValidator,
     WikiSubscriptionResolver,
     WikiSubscriptionService,
+    BlogResolver,
     MarketCapResolver,
     MarketCapService,
     MarketCapSearch,
     TokenStatsResolver,
     StatsGetterService,
-    SentryPlugin,
-    Pm2Service,
     MirrorApiService,
     BlogService,
     EventsService,
     UserProfileValidator,
+    WikiTranslationService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>

@@ -1,5 +1,11 @@
-import { ArgsType, Field, registerEnumType } from '@nestjs/graphql'
-import { Validate } from 'class-validator'
+import {
+  ArgsType,
+  Field,
+  Int,
+  PickType,
+  registerEnumType,
+} from '@nestjs/graphql'
+import { Max, Min, Validate } from 'class-validator'
 import { ValidStringParams } from './utils/customValidator'
 
 export enum OrderBy {
@@ -32,7 +38,31 @@ export enum IntervalByDays {
 }
 
 @ArgsType()
-export class ArgsById {
+export class BaseArgs {
+  @Field(() => String)
+  @Validate(ValidStringParams)
+  lang = 'en'
+
+  @Field(() => Direction)
+  direction = Direction.DESC
+
+  @Field(() => OrderBy)
+  order = OrderBy.UPDATED
+
+  @Field(() => Boolean)
+  hidden = false
+
+  @Field(() => Int)
+  offset = 0
+
+  @Field(() => Int)
+  @Min(1)
+  @Max(50)
+  limit = 30
+}
+
+@ArgsType()
+export class ArgsById extends PickType(BaseArgs, ['lang', 'offset', 'limit']) {
   @Field(() => String)
   @Validate(ValidStringParams)
   id!: string

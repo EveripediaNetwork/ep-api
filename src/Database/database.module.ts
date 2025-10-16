@@ -23,6 +23,8 @@ import MarketCapIds from './Entities/marketCapIds.entity'
 import Events from './Entities/Event.entity'
 import Explorer from './Entities/explorer.entity'
 import HiddenBlog from '../App/Blog/hideBlog.entity'
+import WikiKoreanTranslation from './Entities/wikiKoreanTranslation.entity'
+import { Draft } from './Entities/draft.entity'
 
 @Module({
   imports: [
@@ -58,6 +60,8 @@ import HiddenBlog from '../App/Blog/hideBlog.entity'
           Events,
           Explorer,
           HiddenBlog,
+          WikiKoreanTranslation,
+          Draft,
         ],
         synchronize: true,
         keepConnectionAlive: true,

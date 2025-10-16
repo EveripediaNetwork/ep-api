@@ -16,8 +16,10 @@ import {
   EventDefaultArgs,
   ExplorerArgs,
   LangArgs,
+  PaginatedWikiResponse,
   PromoteWikiArgs,
   TitleArgs,
+  WikiItem,
   WikiUrl,
   eventTag,
 } from './wiki.dto'
@@ -28,6 +30,7 @@ import DiscordWebhookService from '../utils/discordWebhookService'
 import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
 import { eventWiki } from '../Tag/tag.dto'
+import WikiTranslationService from '../Translation/translation.service'
 
 @Injectable()
 class WikiService {
@@ -38,10 +41,40 @@ class WikiService {
     private httpService: HttpService,
     private discordService: DiscordWebhookService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private wikiTranslationService: WikiTranslationService,
   ) {}
 
   private getWebpageUrl() {
     return this.configService.get<string>('WEBSITE_URL') || ''
+  }
+
+  async applyKoreanTranslations(wikis: Wiki[]): Promise<Wiki[]> {
+    if (!wikis || wikis.length === 0) {
+      return wikis
+    }
+
+    for (const wiki of wikis) {
+      try {
+        const translation =
+          await this.wikiTranslationService.getKoreanTranslation(wiki.id)
+
+        if (translation && translation.translationStatus === 'completed') {
+          if (translation.summary && translation.summary.length > 0) {
+            wiki.summary = translation.summary
+          }
+          if (translation.content && translation.content.length > 0) {
+            wiki.content = translation.content
+          }
+        }
+      } catch (error) {
+        console.error(
+          `Error applying Korean translation for wiki ${wiki.id}:`,
+          error,
+        )
+      }
+    }
+
+    return wikis
   }
 
   async repository(): Promise<Repository<Wiki>> {
@@ -58,11 +91,18 @@ class WikiService {
   }
 
   async findWiki(args: ByIdArgs): Promise<Wiki | null> {
-    const wiki = await (await this.repository())
+    let wiki = await (await this.repository())
       .createQueryBuilder('wiki')
-      .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.id = :id', { id: args.id })
       .getOne()
+
+    if (!wiki) {
+      return null
+    }
+
+    if (args.lang === 'kr') {
+      wiki = (await this.applyKoreanTranslations([wiki]))[0]
+    }
 
     return wiki
   }
@@ -79,17 +119,21 @@ class WikiService {
   ): Promise<Wiki[] | []> {
     const queryBuilder = (await this.repository())
       .createQueryBuilder('wiki')
-      .where('wiki.languageId = :lang', { lang: args.lang })
-      .andWhere('wiki.hidden = false')
+      .where('wiki.hidden = false')
 
     if (featuredEvents !== undefined) {
       this.filterFeaturedEvents(queryBuilder, featuredEvents)
     }
-    return queryBuilder
+    let wikis = (await queryBuilder
       .orderBy(`wiki.${args.order}`, args.direction)
       .skip(args.offset)
       .take(args.limit)
-      .getMany() as unknown as Wiki[]
+      .getMany()) as unknown as Wiki[]
+
+    if (args.lang === 'kr') {
+      wikis = await this.applyKoreanTranslations(wikis)
+    }
+    return wikis
   }
 
   filterFeaturedEvents(
@@ -123,7 +167,6 @@ class WikiService {
     const queryBuilder = (await this.repository()).createQueryBuilder('wiki')
 
     queryBuilder
-      .where('wiki.languageId = :lang', { lang: args.lang })
       .andWhere('wiki.promoted > 0')
       .andWhere('wiki.hidden = false')
       .orderBy('wiki.promoted', args.direction)
@@ -132,29 +175,124 @@ class WikiService {
 
     this.filterFeaturedEvents(queryBuilder, featuredEvents)
 
-    const promotedWikis = await queryBuilder.getMany()
+    let promotedWikis = await queryBuilder.getMany()
+
+    if (args.lang === 'kr') {
+      promotedWikis = await this.applyKoreanTranslations(promotedWikis)
+    }
+
     return promotedWikis
   }
 
-  async getWikiIdTitleAndSummary(): Promise<
-    { id: string; title: string; summary: string }[]
-  > {
+  async getWikiIdTitleAndSummary() {
     const wikiIdsList:
       | { id: string; title: string; summary: string }[]
       | null
       | undefined = await this.cacheManager.get('wikiIdsList')
     if (wikiIdsList) return wikiIdsList
-    const response = await (await this.repository())
+
+    const query = (await this.repository())
       .createQueryBuilder('wiki')
-      .select('id')
-      .addSelect('title')
-      .addSelect('summary')
-      .where('hidden = false')
-      .orderBy('id', 'ASC')
-      .getRawMany()
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.summary')
+      .where('wiki.hidden = false')
+
+    const queryBuilder = query.orderBy('wiki.id', 'ASC')
+
+    const response = await queryBuilder.getMany()
 
     await this.cacheManager.set('wikiIdsList', response, 3600 * 1000)
     return response
+  }
+  async getOutdatedWikis(
+    limit = 20,
+    offset = 0,
+    sort: 'ASC' | 'DESC' = 'ASC',
+    interval?: string,
+    search?: string,
+  ): Promise<PaginatedWikiResponse> {
+    const query = (await this.repository())
+      .createQueryBuilder('wiki')
+      .select('wiki.id')
+      .addSelect('wiki.title')
+      .addSelect('wiki.summary')
+      .where('wiki.hidden = false')
+      .addSelect('wiki.updated')
+      .leftJoinAndSelect('wiki.categories', 'category')
+      .leftJoinAndSelect('wiki.tags', 'tag')
+
+    let filterDate: Date
+
+    if (interval) {
+      const now = new Date()
+      switch (interval) {
+        case 'daily':
+          filterDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+          break
+        case 'weekly':
+          filterDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          break
+        case 'monthly':
+          filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          break
+        case '6months':
+          filterDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
+          break
+        case '1year':
+          filterDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+          break
+        default:
+          filterDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      }
+      query.andWhere('wiki.updated <= :filterDate', { filterDate })
+    }
+
+    const queryBuilder = query.orderBy('wiki.updated', sort)
+    if (search) {
+      const searchTerm = `%${search.replace(/[\W_]+/g, '%').toLowerCase()}%`
+      queryBuilder.andWhere('LOWER(wiki.title) LIKE :searchTerm', {
+        searchTerm,
+      })
+    }
+
+    const count = await queryBuilder.getCount()
+    const response = await queryBuilder.getMany()
+
+    const transformedResponse = response.map((wiki: any) => ({
+      ...wiki,
+      category: wiki.__categories__
+        ? wiki.__categories__.map((cat: any) => ({
+            id: cat.id,
+            title: cat.title,
+            description: cat.description,
+            cardImage: cat.cardImage,
+            heroImage: cat.heroImage,
+          }))
+        : [],
+      __categories__: undefined,
+      tags: wiki.tags
+        ? wiki.__tags__.map((tag: any) => ({
+            id: tag.id,
+            title: tag.title,
+          }))
+        : [],
+      __tags__: undefined,
+    }))
+
+    const effectiveLimit = limit || 10
+    const effectiveOffset = offset || 0
+
+    const paginatedWikis = transformedResponse.slice(
+      effectiveOffset,
+      effectiveOffset + effectiveLimit,
+    )
+
+    const paginatedResponse: PaginatedWikiResponse = {
+      total: count,
+      wikis: paginatedWikis,
+    }
+    return paginatedResponse
   }
 
   async getWikisByCategory(
@@ -170,10 +308,7 @@ class WikiService {
       .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
         categoryId: args.category,
       })
-      .where('wiki.language = :lang AND hidden = :status', {
-        lang,
-        status: false,
-      })
+      .where('hidden = false')
 
     if (tagIds) {
       query.innerJoin('wiki.tags', 'tag')
@@ -222,7 +357,12 @@ class WikiService {
         break
     }
 
-    return query.limit(limit).offset(offset).getMany()
+    let wikisByCategory = await query.limit(limit).offset(offset).getMany()
+
+    if (lang === 'kr') {
+      wikisByCategory = await this.applyKoreanTranslations(wikisByCategory)
+    }
+    return wikisByCategory
   }
 
   async getWikisByTitle(
@@ -237,14 +377,10 @@ class WikiService {
 
     let query = (await this.repository())
       .createQueryBuilder('wiki')
-      .where(
-        'wiki.language = :lang AND LOWER(wiki.title) LIKE :title AND hidden = :hidden',
-        {
-          lang,
-          title,
-          hidden: false,
-        },
-      )
+      .where('LOWER(wiki.title) LIKE :title AND hidden = :status', {
+        title,
+        status: args.hidden,
+      })
 
     if (eventArgs) {
       query = this.eventsFilter(query, {
@@ -270,7 +406,12 @@ class WikiService {
         break
     }
 
-    return query.limit(limit).offset(offset).getMany()
+    let wikisByTitle = await query.limit(limit).offset(offset).getMany()
+
+    if (lang === 'kr') {
+      wikisByTitle = await this.applyKoreanTranslations(wikisByTitle)
+    }
+    return wikisByTitle
   }
 
   eventsFilter(
@@ -335,8 +476,8 @@ class WikiService {
     const qb = (await this.repository())
       .createQueryBuilder('wiki')
       .innerJoin('pageviews_per_day', 'p', 'p."wikiId" = wiki.id')
-      .where('wiki.language = :lang AND hidden = :status', {
-        lang: 'en',
+      .where('hidden = :status', {
+        lang: 'en', // Keep as 'en' for pageviews data consistency
         status: false,
       })
       .andWhere('p.day >= :start AND p.day <= :end', {
@@ -353,7 +494,11 @@ class WikiService {
       })
     }
 
-    const response = await qb.getMany()
+    let response = await qb.getMany()
+
+    if (args.lang === 'kr') {
+      response = await this.applyKoreanTranslations(response)
+    }
 
     return response
   }
