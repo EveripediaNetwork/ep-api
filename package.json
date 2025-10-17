@@ -125,7 +125,8 @@
     "slugify": "^1.6.5",
     "typeorm": "^0.3.12",
     "viem": "^2.17.4",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.6",

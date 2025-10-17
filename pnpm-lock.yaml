@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@ai-sdk/google':
         specifier: ^2.0.6
-        version: 2.0.6(zod@3.25.67)
+        version: 2.0.6(zod@4.1.12)
       '@ai-sdk/openai':
         specifier: ^2.0.26
-        version: 2.0.26(zod@3.25.67)
+        version: 2.0.26(zod@4.1.12)
       '@apollo/server':
         specifier: ^4.10.4
         version: 4.11.3(graphql@16.3.0)
@@ -28,7 +28,7 @@ importers:
         version: 0.4.3
       '@everipedia/web3-signer':
         specifier: ^0.0.11
-        version: 0.0.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67)
+        version: 0.0.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       '@graphql-tools/utils':
         specifier: ^8.7.0
         version: 8.12.0(graphql@16.3.0)
@@ -82,7 +82,7 @@ importers:
         version: 4.0.0(@nestjs/common@11.0.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/core@11.0.10(@nestjs/common@11.0.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@nestjs/platform-express@11.0.10)(reflect-metadata@0.1.13)(rxjs@7.5.4))(@sentry/hub@6.19.7)(@sentry/node@7.80.1)(bufferutil@4.0.9)(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.3.0)(reflect-metadata@0.1.13)(rimraf@6.0.1)(rxjs@7.5.4)(utf-8-validate@5.0.10)
       '@openrouter/ai-sdk-provider':
         specifier: ^1.2.0
-        version: 1.2.0(ai@5.0.15(zod@3.25.67))(zod@3.25.67)
+        version: 1.2.0(ai@5.0.15(zod@4.1.12))(zod@4.1.12)
       '@openzeppelin/defender-relay-client':
         specifier: ^1.54.1
         version: 1.54.1(@ethersproject/abstract-provider@5.7.0)(@ethersproject/abstract-signer@5.7.0)(@ethersproject/hash@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@ethersproject/transactions@5.7.0)(web3-core-helpers@1.10.4)(web3-core@1.10.4)
@@ -133,7 +133,7 @@ importers:
         version: 0.3.1
       ai:
         specifier: ^5.0.15
-        version: 5.0.15(zod@3.25.67)
+        version: 5.0.15(zod@4.1.12)
       apollo-server-express:
         specifier: ^3.13.0
         version: 3.13.0(express@4.21.2)(graphql@16.3.0)
@@ -229,7 +229,7 @@ importers:
         version: 6.8.0
       openai:
         specifier: ^5.11.0
-        version: 5.11.0(ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.67)
+        version: 5.11.0(ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12)
       pg:
         specifier: ^8.7.3
         version: 8.8.0
@@ -271,10 +271,13 @@ importers:
         version: 0.3.12(mysql2@2.3.3)(pg@8.8.0)(ts-node@10.9.2(@swc/core@1.3.69(@swc/helpers@0.5.15))(@types/node@22.13.4)(typescript@5.7.3))
       viem:
         specifier: ^2.17.4
-        version: 2.17.4(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67)
+        version: 2.17.4(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
       winston:
         specifier: ^3.8.2
         version: 3.8.2
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.0.6
@@ -9085,45 +9088,50 @@ packages:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
 
-  zod@3.25.67:
-    resolution: {integrity: sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==}
+  zod-to-json-schema@3.24.6:
+    resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
+    peerDependencies:
+      zod: ^3.24.1
+
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
 
 snapshots:
 
   '@adraffy/ens-normalize@1.10.0': {}
 
-  '@ai-sdk/gateway@1.0.7(zod@3.25.67)':
+  '@ai-sdk/gateway@1.0.7(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.3(zod@3.25.67)
-      zod: 3.25.67
+      '@ai-sdk/provider-utils': 3.0.3(zod@4.1.12)
+      zod: 4.1.12
 
-  '@ai-sdk/google@2.0.6(zod@3.25.67)':
+  '@ai-sdk/google@2.0.6(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.3(zod@3.25.67)
-      zod: 3.25.67
+      '@ai-sdk/provider-utils': 3.0.3(zod@4.1.12)
+      zod: 4.1.12
 
-  '@ai-sdk/openai@2.0.26(zod@3.25.67)':
+  '@ai-sdk/openai@2.0.26(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.8(zod@3.25.67)
-      zod: 3.25.67
+      '@ai-sdk/provider-utils': 3.0.8(zod@4.1.12)
+      zod: 4.1.12
 
-  '@ai-sdk/provider-utils@3.0.3(zod@3.25.67)':
+  '@ai-sdk/provider-utils@3.0.3(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.3
-      zod: 3.25.67
-      zod-to-json-schema: 3.24.6(zod@3.25.67)
+      zod: 4.1.12
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
 
-  '@ai-sdk/provider-utils@3.0.8(zod@3.25.67)':
+  '@ai-sdk/provider-utils@3.0.8(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.6
-      zod: 3.25.67
+      zod: 4.1.12
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
@@ -10359,13 +10367,13 @@ snapshots:
 
   '@everipedia/iq-utils@0.4.3': {}
 
-  '@everipedia/web3-signer@0.0.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67)':
+  '@everipedia/web3-signer@0.0.11(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)':
     dependencies:
       base-64: 1.0.0
       is-valid-domain: 0.1.6
       ms: 2.1.3
       parse-headers: 2.0.5
-      viem: 0.1.23(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67)
+      viem: 0.1.23(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12)
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -11350,10 +11358,10 @@ snapshots:
       '@opencensus/core': 0.0.8
       uuid: 3.4.0
 
-  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.15(zod@3.25.67))(zod@3.25.67)':
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.15(zod@4.1.12))(zod@4.1.12)':
     dependencies:
-      ai: 5.0.15(zod@3.25.67)
-      zod: 3.25.67
+      ai: 5.0.15(zod@4.1.12)
+      zod: 4.1.12
 
   '@opentelemetry/api-logs@0.56.0':
     dependencies:
@@ -12783,16 +12791,16 @@ snapshots:
 
   abbrev@1.1.1: {}
 
-  abitype@0.7.1(typescript@5.7.3)(zod@3.25.67):
+  abitype@0.7.1(typescript@5.7.3)(zod@4.1.12):
     dependencies:
       typescript: 5.7.3
     optionalDependencies:
-      zod: 3.25.67
+      zod: 4.1.12
 
-  abitype@1.0.5(typescript@5.7.3)(zod@3.25.67):
+  abitype@1.0.5(typescript@5.7.3)(zod@4.1.12):
     optionalDependencies:
       typescript: 5.7.3
-      zod: 3.25.67
+      zod: 4.1.12
 
   abortcontroller-polyfill@1.7.8: {}
 
@@ -12842,13 +12850,13 @@ snapshots:
       clean-stack: 4.2.0
       indent-string: 5.0.0
 
-  ai@5.0.15(zod@3.25.67):
+  ai@5.0.15(zod@4.1.12):
     dependencies:
-      '@ai-sdk/gateway': 1.0.7(zod@3.25.67)
+      '@ai-sdk/gateway': 1.0.7(zod@4.1.12)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.3(zod@3.25.67)
+      '@ai-sdk/provider-utils': 3.0.3(zod@4.1.12)
       '@opentelemetry/api': 1.9.0
-      zod: 3.25.67
+      zod: 4.1.12
 
   ajv-formats@2.1.1(ajv@8.17.1):
     optionalDependencies:
@@ -17464,10 +17472,10 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@5.11.0(ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.67):
+  openai@5.11.0(ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12):
     optionalDependencies:
       ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      zod: 3.25.67
+      zod: 4.1.12
 
   openurl@1.1.1: {}
 
@@ -19238,12 +19246,12 @@ snapshots:
 
   vary@1.1.2: {}
 
-  viem@0.1.23(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67):
+  viem@0.1.23(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12):
     dependencies:
       '@noble/hashes': 1.3.2
       '@noble/secp256k1': 1.7.1
       '@wagmi/chains': 0.2.15(typescript@5.7.3)
-      abitype: 0.7.1(typescript@5.7.3)(zod@3.25.67)
+      abitype: 0.7.1(typescript@5.7.3)(zod@4.1.12)
       idna-uts46-hx: 4.1.2
       isomorphic-ws: 5.0.0(ws@8.13.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ws: 8.13.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -19253,14 +19261,14 @@ snapshots:
       - utf-8-validate
       - zod
 
-  viem@2.17.4(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.67):
+  viem@2.17.4(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.1.12):
     dependencies:
       '@adraffy/ens-normalize': 1.10.0
       '@noble/curves': 1.4.0
       '@noble/hashes': 1.4.0
       '@scure/bip32': 1.4.0
       '@scure/bip39': 1.3.0
-      abitype: 1.0.5(typescript@5.7.3)(zod@3.25.67)
+      abitype: 1.0.5(typescript@5.7.3)(zod@4.1.12)
       isows: 1.0.4(ws@8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -19652,5 +19660,8 @@ snapshots:
 
   yoctocolors-cjs@2.1.2: {}
 
-  zod@3.25.67:
-    optional: true
+  zod-to-json-schema@3.24.6(zod@4.1.12):
+    dependencies:
+      zod: 4.1.12
+
+  zod@4.1.12: {}
