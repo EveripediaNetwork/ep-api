@@ -178,6 +178,60 @@ class SearchService {
         model: this.openrouter(SearchService.suggestionModelName),
         schema: wikiSuggestionSchema,
         temperature: 0.1,
+        experimental_repairText: async ({ text, error }) => {
+          this.logger.warn(
+            `AI response needs repair for query "${query}". Error: ${error.message}`,
+          )
+          this.logger.debug(`Raw text to repair: ${text.substring(0, 500)}...`)
+
+          try {
+            let repaired = text
+
+            // Replace undefined with null
+            repaired = repaired.replace(/:\s*undefined/g, ': null')
+
+            // Fix trailing commas
+            repaired = repaired.replace(/,(\s*[}\]])/g, '$1')
+
+            // Fix missing quotes around property names
+            repaired = repaired.replace(/(\{|,)\s*(\w+):/g, '$1"$2":')
+
+            // Attempt to parse the repaired text
+            const parsed = JSON.parse(repaired)
+
+            // Additional validation: ensure wikis is an array
+            if (parsed.wikis && !Array.isArray(parsed.wikis)) {
+              this.logger.debug('Converting wikis object to array')
+              parsed.wikis = [parsed.wikis]
+              repaired = JSON.stringify(parsed)
+            }
+
+            // Type coercion: ensure scores are numbers
+            if (parsed.wikis && Array.isArray(parsed.wikis)) {
+              let needsUpdate = false
+              parsed.wikis = parsed.wikis.map((wiki: any) => {
+                if (typeof wiki.score === 'string') {
+                  needsUpdate = true
+                  return { ...wiki, score: parseFloat(wiki.score) || 5 }
+                }
+                return wiki
+              })
+              if (needsUpdate) {
+                repaired = JSON.stringify(parsed)
+              }
+            }
+
+            this.logger.log(
+              `Successfully repaired AI response for query "${query}"`,
+            )
+            return repaired
+          } catch (repairError) {
+            this.logger.error(
+              `Cannot repair text for query "${query}": ${(repairError as Error).message}`,
+            )
+            return null
+          }
+        },
         messages: [
           {
             role: 'system',
