@@ -249,7 +249,7 @@ class SearchService {
         this.logger.debug(`Raw object received: ${JSON.stringify(object)}`)
 
         throw new Error(
-          `Invalid AI response schema. Expected object with 'wikis' array containing {id, title, score, reasoning}. Validation errors: ${errorDetails}`,
+          `Invalid AI response schema. See error logs for details.`,
         )
       }
 
