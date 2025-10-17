@@ -6,15 +6,12 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import endent from 'endent'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
+import { z } from 'zod'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
 import crawlIQLearnEnglish from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
-
-type WikiSearchResult = {
-  wikis: WikiSuggestion[]
-}
 
 type WikiSuggestion = {
   id: string
@@ -27,6 +24,26 @@ type WikiSuggestion = {
 type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
   metadata?: { url: string; title: string }[]
 }
+
+// Zod schema for runtime validation
+const wikiSuggestionZodSchema = z.object({
+  wikis: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      score: z.number().min(1).max(10),
+      reasoning: z.string(),
+      metadata: z
+        .array(
+          z.object({
+            url: z.string(),
+            title: z.string(),
+          }),
+        )
+        .optional(),
+    }),
+  ),
+})
 
 export const wikiSuggestionSchema = jsonSchema<{
   wikis: {
@@ -85,7 +102,7 @@ export const wikiSuggestionSchema = jsonSchema<{
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
 
-  private static readonly suggestionModelName = 'google/gemini-2.0-flash-001'
+  private static readonly suggestionModelName = 'google/gemini-2.5-flash'
 
   private static readonly finalAnswerModelName = 'openai/gpt-4.1-nano'
 
@@ -161,6 +178,60 @@ class SearchService {
         model: this.openrouter(SearchService.suggestionModelName),
         schema: wikiSuggestionSchema,
         temperature: 0.1,
+        experimental_repairText: async ({ text, error }) => {
+          this.logger.warn(
+            `AI response needs repair for query "${query}". Error: ${error.message}`,
+          )
+          this.logger.debug(`Raw text to repair: ${text.substring(0, 500)}...`)
+
+          try {
+            let repaired = text
+
+            // Replace undefined with null
+            repaired = repaired.replace(/:\s*undefined/g, ': null')
+
+            // Fix trailing commas
+            repaired = repaired.replace(/,(\s*[}\]])/g, '$1')
+
+            // Fix missing quotes around property names
+            repaired = repaired.replace(/(\{|,)\s*(\w+):/g, '$1"$2":')
+
+            // Attempt to parse the repaired text
+            const parsed = JSON.parse(repaired)
+
+            // Additional validation: ensure wikis is an array
+            if (parsed.wikis && !Array.isArray(parsed.wikis)) {
+              this.logger.debug('Converting wikis object to array')
+              parsed.wikis = [parsed.wikis]
+              repaired = JSON.stringify(parsed)
+            }
+
+            // Type coercion: ensure scores are numbers
+            if (parsed.wikis && Array.isArray(parsed.wikis)) {
+              let needsUpdate = false
+              parsed.wikis = parsed.wikis.map((wiki: any) => {
+                if (typeof wiki.score === 'string') {
+                  needsUpdate = true
+                  return { ...wiki, score: parseFloat(wiki.score) || 5 }
+                }
+                return wiki
+              })
+              if (needsUpdate) {
+                repaired = JSON.stringify(parsed)
+              }
+            }
+
+            this.logger.log(
+              `Successfully repaired AI response for query "${query}"`,
+            )
+            return repaired
+          } catch (repairError) {
+            this.logger.error(
+              `Cannot repair text for query "${query}": ${(repairError as Error).message}`,
+            )
+            return null
+          }
+        },
         messages: [
           {
             role: 'system',
@@ -219,7 +290,25 @@ class SearchService {
         ],
       })
 
-      const suggestions = (object as WikiSearchResult)?.wikis || []
+      const validationResult = wikiSuggestionZodSchema.safeParse(object)
+
+      if (!validationResult.success) {
+        const errorDetails = validationResult.error.issues
+          .map((err) => `${err.path.join('.')}: ${err.message}`)
+          .join('; ')
+
+        this.logger.error(
+          `AI model returned invalid schema for query "${query}". Validation errors: ${errorDetails}`,
+        )
+        this.logger.debug(`Raw object received: ${JSON.stringify(object)}`)
+
+        throw new Error(
+          `Invalid AI response schema. See error logs for details.`,
+        )
+      }
+
+      const suggestions = validationResult.data.wikis
+
       return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
     } catch (e) {
       this.logger.warn(
