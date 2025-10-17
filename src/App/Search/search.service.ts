@@ -6,15 +6,12 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import endent from 'endent'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
+import { z } from 'zod'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
 import crawlIQLearnEnglish from '../utils/crawl-iq-learn'
 
 type WikiData = Pick<Wiki, 'id' | 'title' | 'summary'>
-
-type WikiSearchResult = {
-  wikis: WikiSuggestion[]
-}
 
 type WikiSuggestion = {
   id: string
@@ -27,6 +24,26 @@ type WikiSuggestion = {
 type WikiContent = Pick<Wiki, 'id' | 'title' | 'content'> & {
   metadata?: { url: string; title: string }[]
 }
+
+// Zod schema for runtime validation
+const wikiSuggestionZodSchema = z.object({
+  wikis: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      score: z.number().min(1).max(10),
+      reasoning: z.string(),
+      metadata: z
+        .array(
+          z.object({
+            url: z.string(),
+            title: z.string(),
+          }),
+        )
+        .optional(),
+    }),
+  ),
+})
 
 export const wikiSuggestionSchema = jsonSchema<{
   wikis: {
@@ -85,7 +102,7 @@ export const wikiSuggestionSchema = jsonSchema<{
 class SearchService {
   private readonly logger = new Logger(SearchService.name)
 
-  private static readonly suggestionModelName = 'google/gemini-2.0-flash-001'
+  private static readonly suggestionModelName = 'google/gemini-2.5-flash'
 
   private static readonly finalAnswerModelName = 'openai/gpt-4.1-nano'
 
@@ -219,7 +236,25 @@ class SearchService {
         ],
       })
 
-      const suggestions = (object as WikiSearchResult)?.wikis || []
+      const validationResult = wikiSuggestionZodSchema.safeParse(object)
+
+      if (!validationResult.success) {
+        const errorDetails = validationResult.error.issues
+          .map((err) => `${err.path.join('.')}: ${err.message}`)
+          .join('; ')
+
+        this.logger.error(
+          `AI model returned invalid schema for query "${query}". Validation errors: ${errorDetails}`,
+        )
+        this.logger.debug(`Raw object received: ${JSON.stringify(object)}`)
+
+        throw new Error(
+          `Invalid AI response schema. Expected object with 'wikis' array containing {id, title, score, reasoning}. Validation errors: ${errorDetails}`,
+        )
+      }
+
+      const suggestions = validationResult.data.wikis
+
       return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
     } catch (e) {
       this.logger.warn(
