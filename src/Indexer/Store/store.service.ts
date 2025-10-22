@@ -205,7 +205,6 @@ class DBStoreService {
       existWiki.linkedWikis = wiki.linkedWikis
       existWiki.metadata = wiki.metadata
       existWiki.block = hash.block
-      existWiki.recentActivity = wiki.recentActivity
       existWiki.ipfs = hash.id
       existWiki.hidden = wiki.hidden
       existWiki.updated = ipfsTime

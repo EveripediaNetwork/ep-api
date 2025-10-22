@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   JoinTable,
   CreateDateColumn,
@@ -25,6 +26,7 @@ import Media from './types/IMedia'
 import Image from './image.entity'
 import LinkedWikis from './types/ILinkedWikis'
 import Events from './Event.entity'
+import RecentActivity from './recentActivity.entity'
 
 @ObjectType()
 @Entity()
@@ -132,8 +134,7 @@ class Wiki {
   linkedWikis?: LinkedWikis
 
   @Field(() => String, { nullable: true })
-  @Column('json', { nullable: true })
-  recentActivity?: string
+  recentActivity?: Relation<RecentActivity>
 
   @Field(() => [Events], { nullable: true })
   events?: Events[]

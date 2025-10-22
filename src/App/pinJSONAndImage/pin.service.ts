@@ -19,6 +19,7 @@ import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import { RankType } from '../marketCap/marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
 import Events from '../../Database/Entities/Event.entity'
+import RecentActivity from '../../Database/Entities/recentActivity.entity'
 import GatewayService from '../utils/gatewayService'
 
 interface CgApiIdList {
@@ -149,6 +150,11 @@ class PinService {
 
     const { createdEvents, updatedEvents, deletedEvents } =
       await this.updateEventsTable(wikiData as unknown as Wiki)
+    const recentActivity = (wikiData as any).recentActivity
+    const recentActivityState = await this.trackRecentActivity(
+      recentActivity,
+      wikiData.id,
+    )
 
     if (createdEvents.length !== 0) {
       wikiData.events?.map((obj) => {
@@ -186,6 +192,11 @@ class PinService {
       return res
     } catch (e) {
       await this.revertEventChanges(createdEvents, updatedEvents, deletedEvents)
+      await this.revertRecentActivityChanges(
+        wikiData.id,
+        recentActivityState.previousActivity,
+        recentActivityState.wasInserted,
+      )
       return e
     }
   }
@@ -199,6 +210,44 @@ class PinService {
       }
       return true
     })
+  }
+
+  async trackRecentActivity(
+    recentActivity: string | undefined,
+    wikiId: string,
+  ): Promise<{ previousActivity: string | null; wasInserted: boolean }> {
+    if (!recentActivity) return { previousActivity: null, wasInserted: false }
+
+    const repository = this.dataSource.getRepository(RecentActivity)
+
+    try {
+      const existingRecord = await repository.findOne({
+        where: { wikiId },
+      })
+
+      const previousActivity = existingRecord?.recentActivity || null
+      const wasInserted = !existingRecord
+
+      if (existingRecord) {
+        existingRecord.recentActivity = recentActivity
+        await repository.save(existingRecord)
+      } else {
+        const newRecord = repository.create({
+          wikiId,
+          recentActivity,
+        })
+        await repository.save(newRecord)
+      }
+
+      return { previousActivity, wasInserted }
+    } catch (error) {
+      this.logger.error(
+        'Error tracking recent activity for wiki:',
+        wikiId,
+        error,
+      )
+      return { previousActivity: null, wasInserted: false }
+    }
   }
 
   async updateEventsTable(wiki: Wiki): Promise<{
@@ -415,6 +464,35 @@ class PinService {
     } catch (error) {
       this.logger.error('Failed to revert event changes:', error)
       // Don't throw here as this is already in an error recovery scenario
+    }
+  }
+
+  async revertRecentActivityChanges(
+    wikiId: string,
+    previousActivity: string | null,
+    wasInserted: boolean,
+  ): Promise<void> {
+    const repository = this.dataSource.getRepository(RecentActivity)
+
+    try {
+      if (wasInserted) {
+        this.logger.debug(
+          `Reverting recent activity for wiki ${wikiId} (deleting new record)`,
+        )
+        await repository.delete({ wikiId })
+      } else if (previousActivity !== null) {
+        this.logger.debug(
+          `Reverting recent activity for wiki ${wikiId} (restoring previous value)`,
+        )
+        await repository.update(
+          { wikiId },
+          { recentActivity: previousActivity },
+        )
+      }
+
+      this.logger.log('Successfully reverted recent activity changes')
+    } catch (error) {
+      this.logger.error('Failed to revert recent activity changes:', error)
     }
   }
 

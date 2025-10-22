@@ -12,6 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { DataSource } from 'typeorm'
 import gql from 'graphql-tag'
 import Wiki from '../../Database/Entities/wiki.entity'
+import RecentActivity from '../../Database/Entities/recentActivity.entity'
 import AuthGuard from '../utils/admin.guard'
 import { SlugResult } from '../utils/validSlug'
 import { RevalidatePageService } from '../revalidatePage/revalidatePage.service'
@@ -270,6 +271,21 @@ class WikiResolver {
       return this.wikiService.events(wiki.id)
     }
     return wiki.events as unknown as Events[]
+  }
+
+  @ResolveField(() => String, { nullable: true })
+  async recentActivity(@Parent() wiki: Wiki): Promise<string | null> {
+    if (!wiki.id) {
+      return null
+    }
+
+    const recentActivityRecord = await this.dataSource
+      .getRepository(RecentActivity)
+      .findOne({
+        where: { wikiId: wiki.id },
+      })
+
+    return recentActivityRecord?.recentActivity || null
   }
 }
 
