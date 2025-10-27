@@ -51,7 +51,7 @@ export default class WikiTranslationService {
     this.baseUrl = this.configService.get<string>('WEBSITE_URL') || ''
     this.model =
       this.configService.get<string>('OPENROUTER_MODEL') ||
-      'google/gemini-flash-1.5'
+      'google/gemini-2.0-flash-001'
 
     const apiKey = this.configService.get<string>('OPENROUTER_API_KEY')
 
