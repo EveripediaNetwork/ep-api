@@ -294,7 +294,10 @@ class SearchService {
 
       if (!validationResult.success) {
         const errorDetails = validationResult.error.issues
-          .map((err) => `${err.path.join('.')}: ${err.message}`)
+          .map(
+            (err: { path: any[]; message: any }) =>
+              `${err.path.join('.')}: ${err.message}`,
+          )
           .join('; ')
 
         this.logger.error(
@@ -309,7 +312,9 @@ class SearchService {
 
       const suggestions = validationResult.data.wikis
 
-      return suggestions.filter((s) => s.score >= SearchService.SCORE_THRESHOLD)
+      return suggestions.filter(
+        (s: { score: number }) => s.score >= SearchService.SCORE_THRESHOLD,
+      )
     } catch (e) {
       this.logger.warn(
         `OpenRouter suggestion model returned invalid response for query "${query}"; skipping. Error: ${(e as Error).message}`,
@@ -587,8 +592,8 @@ class SearchService {
         )
 
         suggestions = topSuggestions
-          .filter((s) => fetchedWikiIds.has(s.id))
-          .map((s) => ({
+          .filter((s: WikiSuggestion) => fetchedWikiIds.has(s.id))
+          .map((s: WikiSuggestion) => ({
             ...s,
             metadata: metadataMap.get(s.id),
           }))

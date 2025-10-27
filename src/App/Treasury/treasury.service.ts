@@ -25,6 +25,7 @@ class TreasuryService {
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async storeTotalValue() {
+    this.logger.debug('TREASURY CRON JOB EXECUTED')
     if (firstLevelNodeProcess() && process.env.API_LEVEL === 'prod') {
       const value = await this.requestTotalbalance()
       if (value !== null) {
