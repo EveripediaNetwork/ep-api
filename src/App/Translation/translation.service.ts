@@ -1,36 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DataSource } from 'typeorm'
-import { generateObject, jsonSchema } from 'ai'
+import { generateObject } from 'ai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiKoreanTranslation from '../../Database/Entities/wikiKoreanTranslation.entity'
+import WikiTranslation from '../../Database/Entities/wikiTranslation.entity'
 import {
   BulkTranslationInput,
   TranslationInput,
   TranslationResult,
   BulkTranslationResult,
+  TranslationLanguage,
+  translationSchema,
 } from './translation.dto'
-
-const translationSchema = jsonSchema<{
-  summary: string
-  content: string
-}>({
-  type: 'object',
-  properties: {
-    summary: {
-      type: 'string',
-      description: 'A concise summary of the wiki content in Korean',
-    },
-    content: {
-      type: 'string',
-      description:
-        'The full translated wiki content in Korean, preserving formatting and special elements',
-    },
-  },
-  required: ['summary', 'content'],
-  additionalProperties: false,
-})
 
 @Injectable()
 export default class WikiTranslationService {
@@ -69,7 +52,7 @@ export default class WikiTranslationService {
   }
 
   async translateWiki(request: TranslationInput): Promise<TranslationResult> {
-    const { wikiId, forceRetranslate = false } = request
+    const { wikiId, forceRetranslate = false, targetLanguage } = request
 
     if (!this.isTranslationEnabled) {
       this.logger.warn(
@@ -92,7 +75,10 @@ export default class WikiTranslationService {
     }
 
     try {
-      const existingTranslation = await this.getExistingTranslation(wikiId)
+      const existingTranslation = await this.getExistingTranslation(
+        wikiId,
+        targetLanguage,
+      )
       if (existingTranslation && !forceRetranslate) {
         this.logger.debug(`Translation already exists for wiki ${wikiId}`)
         return {
@@ -116,15 +102,20 @@ export default class WikiTranslationService {
       const translationResult =
         contentLength > 12000
           ? await this.performChunkedTranslation(wiki)
-          : await this.performTranslation(wiki)
+          : await this.performTranslation(wiki, targetLanguage)
 
       if (!translationResult.success) return translationResult
 
-      await this.saveTranslation(wikiId, translationResult)
-      this.logger.log(`Successfully translated wiki ${wikiId} to Korean`)
+      await this.saveTranslation(wikiId, targetLanguage, translationResult)
+      this.logger.log(
+        `Successfully translated wiki ${wikiId} to ${targetLanguage}`,
+      )
       return translationResult
     } catch (error) {
-      this.logger.error(`Failed to translate wiki ${wikiId}:`, error)
+      this.logger.error(
+        `Failed to translate wiki ${wikiId} to ${targetLanguage} :`,
+        error,
+      )
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -137,6 +128,7 @@ export default class WikiTranslationService {
   ): Promise<BulkTranslationResult> {
     const {
       wikiIds,
+      targetLanguage,
       batchSize = 5,
       delayMs = 1000,
       forceRetranslate = false,
@@ -160,6 +152,7 @@ export default class WikiTranslationService {
             const result = await this.translateWiki({
               wikiId,
               forceRetranslate,
+              targetLanguage,
             })
             results.processed += 1
             if (result.success) {
@@ -194,7 +187,10 @@ export default class WikiTranslationService {
     return results
   }
 
-  private async performTranslation(wiki: Wiki): Promise<TranslationResult> {
+  private async performTranslation(
+    wiki: Wiki,
+    language: TranslationLanguage,
+  ): Promise<TranslationResult> {
     if (!this.openrouter) {
       return {
         success: false,
@@ -213,7 +209,7 @@ export default class WikiTranslationService {
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator specializing in translating Wikipedia-style content to Korean.
+            content: `You are a professional translator specializing in translating Wikipedia-style content to ${language}.
 Translate summary and content fields while preserving all formatting, links, citations, and widgets.`,
           },
           {
@@ -306,10 +302,11 @@ Translate summary and content fields while preserving all formatting, links, cit
 
   private async getExistingTranslation(
     wikiId: string,
-  ): Promise<WikiKoreanTranslation | null> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    targetLanguage: TranslationLanguage,
+  ): Promise<WikiTranslation | null> {
+    const repository = this.dataSource.getRepository(WikiTranslation)
     const translation = await repository.findOne({
-      where: { wikiId, translationStatus: 'completed' },
+      where: { wikiId, targetLanguage, translationStatus: 'completed' },
     })
     return translation || null
   }
@@ -379,9 +376,10 @@ Translate summary and content fields while preserving all formatting, links, cit
 
   private async saveTranslation(
     wikiId: string,
+    targetLanguage: TranslationLanguage,
     result: TranslationResult,
   ): Promise<void> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    const repository = this.dataSource.getRepository(WikiTranslation)
 
     const hasSummary = !!result.translatedContent?.summary?.trim()
 
@@ -395,8 +393,8 @@ Translate summary and content fields while preserving all formatting, links, cit
     }
 
     const translation =
-      (await repository.findOne({ where: { wikiId } })) ||
-      repository.create({ wikiId })
+      (await repository.findOne({ where: { wikiId, targetLanguage } })) ||
+      repository.create({ wikiId, targetLanguage })
 
     if (hasSummary && result.translatedContent?.summary) {
       translation.summary = result.translatedContent.summary.trim()
@@ -424,20 +422,21 @@ Translate summary and content fields while preserving all formatting, links, cit
     await repository.save(translation)
   }
 
-  async getKoreanTranslation(
+  async getTranslation(
     wikiId: string,
-  ): Promise<WikiKoreanTranslation | null> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
-    return repository.findOne({ where: { wikiId } })
+    targetLanguage: TranslationLanguage,
+  ): Promise<WikiTranslation | null> {
+    const repository = this.dataSource.getRepository(WikiTranslation)
+    return repository.findOne({ where: { wikiId, targetLanguage } })
   }
 
   async cleanupInvalidTranslations(): Promise<{ cleaned: number }> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    const repository = this.dataSource.getRepository(WikiTranslation)
 
     try {
       const updateResult = await repository
         .createQueryBuilder()
-        .update(WikiKoreanTranslation)
+        .update(WikiTranslation)
         .set({
           translationStatus: 'failed',
           errorMessage:
@@ -467,7 +466,7 @@ Translate summary and content fields while preserving all formatting, links, cit
     failedTranslations: number
     totalCost: number
   }> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+    const repository = this.dataSource.getRepository(WikiTranslation)
 
     const stats = await repository
       .createQueryBuilder('translation')
@@ -502,8 +501,10 @@ Translate summary and content fields while preserving all formatting, links, cit
     }
   }
 
-  async getKoreanWikiIds(): Promise<{ id: string; updated: Date }[]> {
-    const repository = this.dataSource.getRepository(WikiKoreanTranslation)
+  async getTranslationWikiIds(
+    targetLanguage: TranslationLanguage,
+  ): Promise<{ id: string; updated: Date }[]> {
+    const repository = this.dataSource.getRepository(WikiTranslation)
 
     const rows = await repository
       .createQueryBuilder('translation')
@@ -511,7 +512,7 @@ Translate summary and content fields while preserving all formatting, links, cit
       .select('translation.wikiId', 'id')
       .addSelect('wiki.updated', 'updated')
       .where('translation.translationStatus = :status', { status: 'completed' })
-      .andWhere('wiki.hidden = :hidden', { hidden: false })
+      .andWhere('translation.targetLanguage = :lang', { lang: targetLanguage })
       .getRawMany<{ id: string; updated: Date | string }>()
 
     return rows.map((r) => ({

@@ -1,4 +1,39 @@
-import { Field, ObjectType, InputType, Int, Float } from '@nestjs/graphql'
+import {
+  Field,
+  ObjectType,
+  InputType,
+  Int,
+  Float,
+  registerEnumType,
+} from '@nestjs/graphql'
+import { jsonSchema } from 'ai'
+
+export const translationSchema = jsonSchema<{
+  summary: string
+  content: string
+}>({
+  type: 'object',
+  properties: {
+    summary: {
+      type: 'string',
+      description: 'A concise summary of the wiki content in Korean',
+    },
+    content: {
+      type: 'string',
+      description:
+        'The full translated wiki content in Korean, preserving formatting and special elements',
+    },
+  },
+  required: ['summary', 'content'],
+  additionalProperties: false,
+})
+
+export enum TranslationLanguage {
+  KOREAN = 'Korean',
+  CHINESE = 'Chinese',
+}
+
+registerEnumType(TranslationLanguage, { name: 'TranslationLanguage' })
 
 @InputType()
 export class TranslationInput {
@@ -7,6 +42,12 @@ export class TranslationInput {
 
   @Field(() => Boolean, { nullable: true, defaultValue: false })
   forceRetranslate?: boolean
+
+  @Field(() => TranslationLanguage, {
+    nullable: true,
+    defaultValue: TranslationLanguage.KOREAN,
+  })
+  targetLanguage!: TranslationLanguage
 }
 
 @InputType()
@@ -22,6 +63,12 @@ export class BulkTranslationInput {
 
   @Field(() => Boolean, { nullable: true, defaultValue: false })
   forceRetranslate?: boolean
+
+  @Field(() => TranslationLanguage, {
+    nullable: true,
+    defaultValue: TranslationLanguage.KOREAN,
+  })
+  targetLanguage!: TranslationLanguage
 }
 
 @ObjectType()
@@ -34,8 +81,6 @@ export class TranslatedContent {
 
   @Field(() => String, { nullable: true, description: 'Translated content' })
   content?: string
-
-  // Note: title is intentionally omitted as we don't translate titles
 }
 
 @ObjectType()
@@ -66,6 +111,12 @@ export class TranslationResponse {
 
   @Field(() => String, { nullable: true })
   error?: string
+
+  @Field(() => TranslationLanguage, {
+    nullable: true,
+    defaultValue: TranslationLanguage.KOREAN,
+  })
+  targetLanguage?: TranslationLanguage
 }
 
 @ObjectType()

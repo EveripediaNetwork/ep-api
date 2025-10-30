@@ -8,6 +8,7 @@ import Tag from '../../Database/Entities/tag.entity'
 import User from '../../Database/Entities/user.entity'
 import { EventArgs, hasField } from './wiki.dto'
 import WikiService from './wiki.service'
+import { TranslationLanguage } from '../Translation/translation.dto'
 
 @Injectable()
 class EventsService {
@@ -154,7 +155,17 @@ class EventsService {
       )
 
       if (args.lang === 'kr') {
-        events = await this.wikiService.applyKoreanTranslations(events)
+        events = await this.wikiService.applyTranslations(
+          events,
+          TranslationLanguage.KOREAN,
+        )
+      }
+
+      if (args.lang === 'zh') {
+        events = await this.wikiService.applyTranslations(
+          events,
+          TranslationLanguage.CHINESE,
+        )
       }
       return events
     } catch (error) {

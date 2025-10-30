@@ -48,7 +48,7 @@ describe('SitemapController', () => {
         {
           provide: WikiTranslationService,
           useFactory: () => ({
-            getKoreanWikiIds: jest.fn(() => []),
+            getTranslationWikiIds: jest.fn(() => []),
           }),
         },
         {

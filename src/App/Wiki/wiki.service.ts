@@ -31,6 +31,7 @@ import Explorer from '../../Database/Entities/explorer.entity'
 import Events from '../../Database/Entities/Event.entity'
 import { eventWiki } from '../Tag/tag.dto'
 import WikiTranslationService from '../Translation/translation.service'
+import { TranslationLanguage } from '../Translation/translation.dto'
 
 @Injectable()
 class WikiService {
@@ -48,15 +49,20 @@ class WikiService {
     return this.configService.get<string>('WEBSITE_URL') || ''
   }
 
-  async applyKoreanTranslations(wikis: Wiki[]): Promise<Wiki[]> {
+  async applyTranslations(
+    wikis: Wiki[],
+    targetLanguage: TranslationLanguage,
+  ): Promise<Wiki[]> {
     if (!wikis || wikis.length === 0) {
       return wikis
     }
 
     for (const wiki of wikis) {
       try {
-        const translation =
-          await this.wikiTranslationService.getKoreanTranslation(wiki.id)
+        const translation = await this.wikiTranslationService.getTranslation(
+          wiki.id,
+          targetLanguage,
+        )
 
         if (translation && translation.translationStatus === 'completed') {
           if (translation.summary && translation.summary.length > 0) {
@@ -101,7 +107,14 @@ class WikiService {
     }
 
     if (args.lang === 'kr') {
-      wiki = (await this.applyKoreanTranslations([wiki]))[0]
+      wiki = (
+        await this.applyTranslations([wiki], TranslationLanguage.KOREAN)
+      )[0]
+    }
+    if (args.lang === 'zh') {
+      wiki = (
+        await this.applyTranslations([wiki], TranslationLanguage.CHINESE)
+      )[0]
     }
 
     return wiki
@@ -131,7 +144,10 @@ class WikiService {
       .getMany()) as unknown as Wiki[]
 
     if (args.lang === 'kr') {
-      wikis = await this.applyKoreanTranslations(wikis)
+      wikis = await this.applyTranslations(wikis, TranslationLanguage.KOREAN)
+    }
+    if (args.lang === 'zh') {
+      wikis = await this.applyTranslations(wikis, TranslationLanguage.CHINESE)
     }
     return wikis
   }
@@ -178,7 +194,17 @@ class WikiService {
     let promotedWikis = await queryBuilder.getMany()
 
     if (args.lang === 'kr') {
-      promotedWikis = await this.applyKoreanTranslations(promotedWikis)
+      promotedWikis = await this.applyTranslations(
+        promotedWikis,
+        TranslationLanguage.KOREAN,
+      )
+    }
+
+    if (args.lang === 'zh') {
+      promotedWikis = await this.applyTranslations(
+        promotedWikis,
+        TranslationLanguage.CHINESE,
+      )
     }
 
     return promotedWikis
@@ -360,7 +386,16 @@ class WikiService {
     let wikisByCategory = await query.limit(limit).offset(offset).getMany()
 
     if (lang === 'kr') {
-      wikisByCategory = await this.applyKoreanTranslations(wikisByCategory)
+      wikisByCategory = await this.applyTranslations(
+        wikisByCategory,
+        TranslationLanguage.KOREAN,
+      )
+    }
+    if (lang === 'zh') {
+      wikisByCategory = await this.applyTranslations(
+        wikisByCategory,
+        TranslationLanguage.CHINESE,
+      )
     }
     return wikisByCategory
   }
@@ -409,7 +444,16 @@ class WikiService {
     let wikisByTitle = await query.limit(limit).offset(offset).getMany()
 
     if (lang === 'kr') {
-      wikisByTitle = await this.applyKoreanTranslations(wikisByTitle)
+      wikisByTitle = await this.applyTranslations(
+        wikisByTitle,
+        TranslationLanguage.KOREAN,
+      )
+    }
+    if (lang === 'zh') {
+      wikisByTitle = await this.applyTranslations(
+        wikisByTitle,
+        TranslationLanguage.CHINESE,
+      )
     }
     return wikisByTitle
   }
@@ -497,7 +541,17 @@ class WikiService {
     let response = await qb.getMany()
 
     if (args.lang === 'kr') {
-      response = await this.applyKoreanTranslations(response)
+      response = await this.applyTranslations(
+        response,
+        TranslationLanguage.KOREAN,
+      )
+    }
+
+    if (args.lang === 'zh') {
+      response = await this.applyTranslations(
+        response,
+        TranslationLanguage.CHINESE,
+      )
     }
 
     return response

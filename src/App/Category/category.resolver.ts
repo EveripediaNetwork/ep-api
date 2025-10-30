@@ -8,6 +8,7 @@ import CategoryService from './category.service'
 import { TitleArgs } from '../Wiki/wiki.dto'
 import { ArgsById, BaseArgs } from '../general.args'
 import WikiService from '../Wiki/wiki.service'
+import { TranslationLanguage } from '../Translation/translation.dto'
 
 @Resolver(() => Category)
 class CategoryResolver {
@@ -44,7 +45,16 @@ class CategoryResolver {
       .getMany()
 
     if (args.lang === 'kr') {
-      wikis = await this.wikiService.applyKoreanTranslations(wikis)
+      wikis = await this.wikiService.applyTranslations(
+        wikis,
+        TranslationLanguage.KOREAN,
+      )
+    }
+    if (args.lang === 'zh') {
+      wikis = await this.wikiService.applyTranslations(
+        wikis,
+        TranslationLanguage.CHINESE,
+      )
     }
     return wikis
   }

@@ -52,9 +52,29 @@ module.exports = {
       max_memory_restart: '600M',
     },
     {
-      name: 'bulk-translate-korean',
+      name: 'bulk-translate-service-korean',
       script: 'pnpm',
-      args: 'run console-translation translate:bulk-korean',
+      args: 'run console-translation translate:bulk -t Korean',
+      watch: false,
+      time: true,
+      autorestart: false, // Don't auto-restart after completion
+      ignore_watch: ['[/\\]./', 'uploads'],
+      watch_delay: 10000,
+      cwd: process.cwd(),
+      log_type: 'json',
+      error_file: `./logs/translation-error.json`,
+      out_file: `./logs/translation-out.json`,
+      log_date_format: 'YYYY-MM-DD HH:mm Z',
+      max_memory_restart: '1G',
+
+      env_development: {
+        API_LEVEL: 'dev',
+      },
+    },
+    {
+      name: 'bulk-translate-service-chinese',
+      script: 'pnpm',
+      args: 'run console-translation translate:bulk -t Chinese',
       watch: false,
       time: true,
       autorestart: false, // Don't auto-restart after completion

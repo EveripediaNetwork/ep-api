@@ -5,6 +5,7 @@ import WikiService from '../../App/Wiki/wiki.service'
 import staticPagesData from '../data/staticPagesData'
 import CategoryService from '../../App/Category/category.service'
 import WikiTranslationService from '../../App/Translation/translation.service'
+import { TranslationLanguage } from '../../App/Translation/translation.dto'
 
 @Controller()
 export default class SitemapController {
@@ -45,7 +46,10 @@ export default class SitemapController {
     const [wikisIds, categoriesId, koreanWikiIds] = await Promise.all([
       this.wikiService.getWikiIds(),
       this.categoryService.getCategoryIds(),
-      this.wikiTranslationService.getKoreanWikiIds(),
+      this.wikiTranslationService.getTranslationWikiIds(
+        TranslationLanguage.KOREAN,
+      ),
+      // this.wikiTranslationService.getTranslationWikiIds(TranslationLanguage.CHINESE),
     ])
 
     wikisIds.map((wiki) =>

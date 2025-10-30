@@ -26,8 +26,10 @@ export default class WikiTranslationResolver {
     }
 
     try {
-      const existingTranslation =
-        await this.translationService.getKoreanTranslation(input.wikiId)
+      const existingTranslation = await this.translationService.getTranslation(
+        input.wikiId,
+        input.targetLanguage,
+      )
 
       if (
         existingTranslation &&
@@ -67,6 +69,7 @@ export default class WikiTranslationResolver {
       const result = await this.translationService.translateWiki({
         wikiId: input.wikiId,
         forceRetranslate: input.forceRetranslate,
+        targetLanguage: input.targetLanguage,
       })
 
       if (!result.success) {
@@ -106,8 +109,12 @@ export default class WikiTranslationResolver {
 
   @Mutation(() => TranslationResponse)
   async retranslateWiki(
-    @Args('wikiId') wikiId: string,
+    @Args('input') input: TranslationInput,
   ): Promise<TranslationResponse> {
-    return this.translateWiki({ wikiId, forceRetranslate: true })
+    return this.translateWiki({
+      wikiId: input.wikiId,
+      forceRetranslate: true,
+      targetLanguage: input.targetLanguage,
+    })
   }
 }

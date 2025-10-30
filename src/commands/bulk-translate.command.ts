@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import WikiTranslationService from '../App/Translation/translation.service'
 import Wiki from '../Database/Entities/wiki.entity'
+import { TranslationLanguage } from '../App/Translation/translation.dto'
 
 interface BulkTranslateOptions {
   limit?: number // 0 = no limit (translate all), >0 = limit to that number
@@ -11,11 +12,12 @@ interface BulkTranslateOptions {
   delayMs?: number // Delay between batches
   forceRetranslate?: boolean // Retranslate even if translation exists
   wikiIds?: string // Comma-separated specific wiki IDs to translate
+  targetLanguage?: TranslationLanguage // Target language for translation
 }
 
 @Command({
-  name: 'translate:bulk-korean',
-  description: 'Bulk translate wikis to Korean',
+  name: 'translate:bulk',
+  description: 'Bulk translate wikis',
 })
 export default class BulkTranslateCommand implements CommandRunner {
   private readonly logger = new Logger(BulkTranslateCommand.name)
@@ -36,9 +38,10 @@ export default class BulkTranslateCommand implements CommandRunner {
       delayMs = 1000,
       forceRetranslate = false,
       wikiIds,
+      targetLanguage,
     } = options || {}
 
-    this.logger.log('🚀 Starting bulk Korean translation...')
+    this.logger.log(`🚀 Starting bulk ${targetLanguage} translation...`)
 
     try {
       let targetWikiIds: string[]
@@ -65,11 +68,12 @@ export default class BulkTranslateCommand implements CommandRunner {
         // Get count of wikis that need translation (excluding already translated ones)
         const needTranslationCount = await wikiRepository
           .createQueryBuilder('wiki')
-          .leftJoin('wiki_korean_translations', 'kt', 'kt.wiki_id = wiki.id')
+          .leftJoin('wiki_translation', 'wt', 'wt.wiki_id = wiki.id')
           .where('wiki.content IS NOT NULL')
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
-          .andWhere('kt.wiki_id IS NULL') // No existing translation
+          .andWhere('wt.wiki_id IS NULL') // No existing translation
+          .andWhere('wt.target_language = :targetLanguage', { targetLanguage })
           .getCount()
 
         this.logger.log(
@@ -79,11 +83,12 @@ export default class BulkTranslateCommand implements CommandRunner {
         let query = wikiRepository
           .createQueryBuilder('wiki')
           .select(['wiki.id'])
-          .leftJoin('wiki_korean_translations', 'kt', 'kt.wiki_id = wiki.id')
+          .leftJoin('wiki_translation', 'wt', 'wt.wiki_id = wiki.id')
           .where('wiki.content IS NOT NULL')
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
-          .andWhere('kt.wiki_id IS NULL') // Exclude wikis that already have translations
+          .andWhere('wt.wiki_id IS NULL') // Exclude wikis that already have translations
+          .andWhere('wt.target_language = :targetLanguage', { targetLanguage })
           .orderBy('wiki.updated', 'DESC')
           .offset(offset)
 
@@ -117,6 +122,7 @@ export default class BulkTranslateCommand implements CommandRunner {
         batchSize,
         delayMs,
         forceRetranslate,
+        targetLanguage: targetLanguage as TranslationLanguage,
       })
 
       this.logger.log('🎉 Bulk translation completed!')
@@ -168,6 +174,14 @@ export default class BulkTranslateCommand implements CommandRunner {
   })
   parseBatchSize(value: string): number {
     return parseInt(value, 10) || 5
+  }
+
+  @Option({
+    flags: '-t, --target-language <language>',
+    description: 'What language to translate to',
+  })
+  parseTargetLanguage(value: string): TranslationLanguage {
+    return value as TranslationLanguage
   }
 
   @Option({

@@ -15,6 +15,7 @@ import Notification from '../../Database/Entities/notification.entity'
 import MarketCapIds from '../../Database/Entities/marketCapIds.entity'
 import WikiTranslationService from '../../App/Translation/translation.service'
 import { SOPHIA_ID } from '../../globalVars'
+import { TranslationLanguage } from '../../App/Translation/translation.dto'
 
 @Injectable()
 class DBStoreService {
@@ -218,7 +219,10 @@ class DBStoreService {
         existWiki.operator = operator as User
       }
       await wikiRepository.save(existWiki)
-      this.translateWikiToKorean(existWiki.id)
+      await Promise.all([
+        this.translateWiki(existWiki.id, TranslationLanguage.KOREAN),
+        this.translateWiki(existWiki.id, TranslationLanguage.CHINESE),
+      ])
 
       if (!existIpfs) {
         await activityRepository.save(
@@ -271,7 +275,10 @@ class DBStoreService {
     }) as Wiki
 
     await wikiRepository.save(newWiki)
-    this.translateWikiToKorean(newWiki.id)
+    await Promise.all([
+      this.translateWiki(newWiki.id, TranslationLanguage.KOREAN),
+      this.translateWiki(newWiki.id, TranslationLanguage.CHINESE),
+    ])
     await activityRepository.save(
       createActivity(activityRepository, {
         ...incomingActivity,
@@ -314,9 +321,12 @@ class DBStoreService {
     })
   }
 
-  private translateWikiToKorean(wikiId: string): void {
+  private translateWiki(
+    wikiId: string,
+    targetLanguage: TranslationLanguage,
+  ): void {
     this.translationService
-      .translateWiki({ wikiId, forceRetranslate: false })
+      .translateWiki({ wikiId, forceRetranslate: false, targetLanguage })
       .then((result) => {
         if (result.success) {
           this.logger.log(

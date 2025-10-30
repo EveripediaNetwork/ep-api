@@ -7,6 +7,7 @@ import { ArgsById, BaseArgs } from '../general.args'
 import TagRepository from './tag.repository'
 import Wiki from '../../Database/Entities/wiki.entity'
 import WikiService from '../Wiki/wiki.service'
+import { TranslationLanguage } from '../Translation/translation.dto'
 
 @Injectable()
 class TagService {
@@ -46,7 +47,16 @@ class TagService {
       .getMany()
 
     if (args.lang === 'kr') {
-      wikis = await this.wikiService.applyKoreanTranslations(wikis)
+      wikis = await this.wikiService.applyTranslations(
+        wikis,
+        TranslationLanguage.KOREAN,
+      )
+    }
+    if (args.lang === 'zh') {
+      wikis = await this.wikiService.applyTranslations(
+        wikis,
+        TranslationLanguage.CHINESE,
+      )
     }
     return wikis
   }

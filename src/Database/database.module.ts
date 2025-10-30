@@ -26,6 +26,7 @@ import HiddenBlog from '../App/Blog/hideBlog.entity'
 import WikiKoreanTranslation from './Entities/wikiKoreanTranslation.entity'
 import { Draft } from './Entities/draft.entity'
 import RecentActivity from './Entities/recentActivity.entity'
+import WikiTranslation from './Entities/wikiTranslation.entity'
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import RecentActivity from './Entities/recentActivity.entity'
           Explorer,
           HiddenBlog,
           WikiKoreanTranslation,
+          WikiTranslation,
           Draft,
           RecentActivity,
         ],
