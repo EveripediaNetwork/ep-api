@@ -78,7 +78,6 @@ export default class BulkTranslateCommand implements CommandRunner {
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
           .andWhere('wt.wiki_id IS NULL') // No existing translation
-          .andWhere('wt.target_language = :targetLanguage', { targetLanguage })
           .getCount()
 
         this.logger.log(
@@ -98,7 +97,6 @@ export default class BulkTranslateCommand implements CommandRunner {
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
           .andWhere('wt.wiki_id IS NULL') // Exclude wikis that already have translations
-          .andWhere('wt.target_language = :targetLanguage', { targetLanguage })
           .orderBy('wiki.updated', 'DESC')
           .offset(offset)
 
