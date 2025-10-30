@@ -68,7 +68,12 @@ export default class BulkTranslateCommand implements CommandRunner {
         // Get count of wikis that need translation (excluding already translated ones)
         const needTranslationCount = await wikiRepository
           .createQueryBuilder('wiki')
-          .leftJoin('wiki_translation', 'wt', 'wt.wiki_id = wiki.id')
+          .leftJoin(
+            'wiki_translation',
+            'wt',
+            'wt.wiki_id = wiki.id AND wt.target_language = :targetLanguage',
+            { targetLanguage },
+          )
           .where('wiki.content IS NOT NULL')
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
@@ -83,7 +88,12 @@ export default class BulkTranslateCommand implements CommandRunner {
         let query = wikiRepository
           .createQueryBuilder('wiki')
           .select(['wiki.id'])
-          .leftJoin('wiki_translation', 'wt', 'wt.wiki_id = wiki.id')
+          .leftJoin(
+            'wiki_translation',
+            'wt',
+            'wt.wiki_id = wiki.id AND wt.target_language = :targetLanguage',
+            { targetLanguage },
+          )
           .where('wiki.content IS NOT NULL')
           .andWhere('wiki.summary IS NOT NULL')
           .andWhere('wiki.hidden = false')
