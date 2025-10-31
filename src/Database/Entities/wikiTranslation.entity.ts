@@ -7,6 +7,7 @@ import {
   Index,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm'
 import Wiki from './wiki.entity'
 import { TranslationLanguage } from '../../App/Translation/translation.dto'
@@ -73,8 +74,4 @@ export default class WikiTranslation {
 
   @Column({ name: 'target_language', type: 'enum', enum: TranslationLanguage })
   targetLanguage!: TranslationLanguage
-
-  @OneToOne(() => Wiki)
-  @JoinColumn({ name: 'wiki_id', referencedColumnName: 'id' })
-  wiki!: Wiki
 }
