@@ -43,14 +43,17 @@ export default class SitemapController {
       }),
     )
 
-    const [wikisIds, categoriesId, koreanWikiIds] = await Promise.all([
-      this.wikiService.getWikiIds(),
-      this.categoryService.getCategoryIds(),
-      this.wikiTranslationService.getTranslationWikiIds(
-        TranslationLanguage.KOREAN,
-      ),
-      // this.wikiTranslationService.getTranslationWikiIds(TranslationLanguage.CHINESE),
-    ])
+    const [wikisIds, categoriesId, koreanWikiIds, chineseWikiIds] =
+      await Promise.all([
+        this.wikiService.getWikiIds(),
+        this.categoryService.getCategoryIds(),
+        this.wikiTranslationService.getTranslationWikiIds(
+          TranslationLanguage.KOREAN,
+        ),
+        this.wikiTranslationService.getTranslationWikiIds(
+          TranslationLanguage.CHINESE,
+        ),
+      ])
 
     wikisIds.map((wiki) =>
       smStream.write({
@@ -69,6 +72,16 @@ export default class SitemapController {
         lastmod: wiki.updated,
       }),
     )
+
+    chineseWikiIds.map((wiki) =>
+      smStream.write({
+        url: `/zh/wiki/${wiki.id}`,
+        changefreq: 'daily',
+        priority: 0.9,
+        lastmod: wiki.updated,
+      }),
+    )
+
     categoriesId.map((category) =>
       smStream.write({
         url: `/categories/${category.id}`,
