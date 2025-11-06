@@ -40,14 +40,29 @@ class MirrorApiService {
 
       const data = response?.data?.data
 
-      // Check for GraphQL errors
-      if (response?.data?.errors?.length > 0) {
-        this.logger.warn('GraphQL errors returned:', response.data.errors)
+      if (
+        response?.data?.errors &&
+        Array.isArray(response.data.errors) &&
+        response.data.errors.length > 0
+      ) {
+        this.logger.error('GraphQL errors returned:', {
+          errors: response.data.errors,
+          query: query.substring(0, 100),
+          variables,
+        })
+        return null
       }
 
       return data || null
     } catch (error) {
-      this.logger.error('Query execution failed:', error)
+      this.logger.error('Query execution failed:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        url: this.apiUrl,
+        variables,
+        status: (error as any)?.response?.status,
+        statusText: (error as any)?.response?.statusText,
+      })
       return null
     }
   }
@@ -106,7 +121,10 @@ class MirrorApiService {
 
       return entries
     } catch (error) {
-      this.logger.error(`Failed to get blogs for address ${address}:`, error)
+      this.logger.error(`Failed to get blogs for address ${address}:`, {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        address,
+      })
       return []
     }
   }
@@ -154,7 +172,10 @@ class MirrorApiService {
       const result = await this.executeQuery(query, { digest: digest.trim() })
       return result?.entry || null
     } catch (error) {
-      this.logger.error(`Failed to get blog for digest ${digest}:`, error)
+      this.logger.error(`Failed to get blog for digest ${digest}:`, {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        digest,
+      })
       return null
     }
   }
