@@ -16,7 +16,7 @@ export default class WikiTranslationResolver {
 
   @Mutation(() => TranslationResponse, { nullable: true })
   async translateWiki(
-    @Args() input: TranslationInput,
+    @Args('input') input: TranslationInput,
   ): Promise<TranslationResponse> {
     if (!input.wikiId?.trim()) {
       return {
@@ -109,7 +109,7 @@ export default class WikiTranslationResolver {
 
   @Mutation(() => TranslationResponse)
   async retranslateWiki(
-    @Args() input: TranslationInput,
+    @Args('input') input: TranslationInput,
   ): Promise<TranslationResponse> {
     return this.translateWiki({
       wikiId: input.wikiId,
