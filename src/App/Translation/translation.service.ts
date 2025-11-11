@@ -4,7 +4,6 @@ import { DataSource } from 'typeorm'
 import { generateObject } from 'ai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import Wiki from '../../Database/Entities/wiki.entity'
-import WikiKoreanTranslation from '../../Database/Entities/wikiKoreanTranslation.entity'
 import WikiTranslation from '../../Database/Entities/wikiTranslation.entity'
 import {
   BulkTranslationInput,
@@ -12,7 +11,7 @@ import {
   TranslationResult,
   BulkTranslationResult,
   TranslationLanguage,
-  translationSchema,
+  createTranslationSchema,
 } from './translation.dto'
 
 @Injectable()
@@ -101,7 +100,7 @@ export default class WikiTranslationService {
       const contentLength = (wiki.content || '').length
       const translationResult =
         contentLength > 12000
-          ? await this.performChunkedTranslation(wiki)
+          ? await this.performChunkedTranslation(wiki, targetLanguage)
           : await this.performTranslation(wiki, targetLanguage)
 
       if (!translationResult.success) return translationResult
@@ -199,18 +198,26 @@ export default class WikiTranslationService {
     }
 
     const contentToTranslate = this.prepareContentForTranslation(wiki)
-    this.logger.log(`Translating wiki ${wiki.id} with OpenRouter`)
+    const languageCode =
+      language === TranslationLanguage.CHINESE
+        ? 'Chinese (Simplified)'
+        : language
+
+    this.logger.log(
+      `Translating wiki ${wiki.id} to ${languageCode} with OpenRouter`,
+    )
 
     try {
       const { object } = await generateObject({
         model: this.openrouter(this.model),
-        schema: translationSchema,
+        schema: createTranslationSchema(languageCode),
         temperature: 0,
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator specializing in translating Wikipedia-style content to ${language}.
-Translate summary and content fields while preserving all formatting, links, citations, and widgets.`,
+            content: `You are a professional translator. Translate the following content to ${languageCode}.
+IMPORTANT: You MUST translate to ${languageCode}, not any other language.
+Preserve all formatting, links, citations, and widgets exactly as they appear.`,
           },
           {
             role: 'user',
@@ -218,6 +225,10 @@ Translate summary and content fields while preserving all formatting, links, cit
           },
         ],
       })
+
+      this.logger.log(
+        `Translation result for ${wiki.id}: summary=${object.summary?.substring(0, 50)}..., content=${object.content?.substring(0, 50)}...`,
+      )
 
       return {
         success: true,
@@ -237,6 +248,7 @@ Translate summary and content fields while preserving all formatting, links, cit
 
   private async performChunkedTranslation(
     wiki: Wiki,
+    language: TranslationLanguage,
   ): Promise<TranslationResult> {
     if (!this.openrouter) {
       return {
@@ -245,6 +257,10 @@ Translate summary and content fields while preserving all formatting, links, cit
       }
     }
 
+    const languageCode =
+      language === TranslationLanguage.CHINESE
+        ? 'Chinese (Simplified)'
+        : language
     const summaryContent = wiki.summary
       ? this.preProcessContent(wiki.summary)
       : ''
@@ -259,12 +275,12 @@ Translate summary and content fields while preserving all formatting, links, cit
       try {
         const { object } = await generateObject({
           model: this.openrouter(this.model),
-          schema: translationSchema,
+          schema: createTranslationSchema(languageCode),
           temperature: 0,
           messages: [
             {
               role: 'system',
-              content: 'Translate summary and content into Korean.',
+              content: `Translate summary and content into ${languageCode}.`,
             },
             {
               role: 'user',

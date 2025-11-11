@@ -5,11 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-  OneToOne,
-  JoinColumn,
-  ManyToOne,
 } from 'typeorm'
-import Wiki from './wiki.entity'
 import { TranslationLanguage } from '../../App/Translation/translation.dto'
 
 @Entity()

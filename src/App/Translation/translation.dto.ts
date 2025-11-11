@@ -8,25 +8,25 @@ import {
 } from '@nestjs/graphql'
 import { jsonSchema } from 'ai'
 
-export const translationSchema = jsonSchema<{
-  summary: string
-  content: string
-}>({
-  type: 'object',
-  properties: {
-    summary: {
-      type: 'string',
-      description: 'A concise summary of the wiki content in Korean',
+export const createTranslationSchema = (targetLanguage: string) =>
+  jsonSchema<{
+    summary: string
+    content: string
+  }>({
+    type: 'object',
+    properties: {
+      summary: {
+        type: 'string',
+        description: `A concise summary of the wiki content in ${targetLanguage}`,
+      },
+      content: {
+        type: 'string',
+        description: `The full translated wiki content in ${targetLanguage}, preserving formatting and special elements`,
+      },
     },
-    content: {
-      type: 'string',
-      description:
-        'The full translated wiki content in Korean, preserving formatting and special elements',
-    },
-  },
-  required: ['summary', 'content'],
-  additionalProperties: false,
-})
+    required: ['summary', 'content'],
+    additionalProperties: false,
+  })
 
 export enum TranslationLanguage {
   KOREAN = 'Korean',
