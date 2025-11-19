@@ -27,6 +27,7 @@ import WikiKoreanTranslation from './Entities/wikiKoreanTranslation.entity'
 import { Draft } from './Entities/draft.entity'
 import RecentActivity from './Entities/recentActivity.entity'
 import WikiTranslation from './Entities/wikiTranslation.entity'
+import UserSuggestion from './Entities/userSuggestion.entity'
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import WikiTranslation from './Entities/wikiTranslation.entity'
           WikiTranslation,
           Draft,
           RecentActivity,
+          UserSuggestion,
         ],
         synchronize: true,
         keepConnectionAlive: true,
