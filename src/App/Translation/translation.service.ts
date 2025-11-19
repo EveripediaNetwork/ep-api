@@ -536,16 +536,27 @@ Preserve all formatting, links, citations, and widgets exactly as they appear.`,
 
     const wikiIds = translations.map((t) => t.wikiId)
 
-    const wikis = await this.dataSource
-      .getRepository(Wiki)
-      .createQueryBuilder('wiki')
-      .select(['wiki.id', 'wiki.updated'])
-      .where('wiki.id IN (:...wikiIds)', { wikiIds })
-      .getMany()
+    const batchSize = 1000
+    const allWikis: { id: string; updated: Date }[] = []
 
-    return wikis.map((wiki) => ({
-      id: wiki.id,
-      updated: wiki.updated,
-    }))
+    for (let i = 0; i < wikiIds.length; i += batchSize) {
+      const batch = wikiIds.slice(i, i + batchSize)
+
+      const wikis = await this.dataSource
+        .getRepository(Wiki)
+        .createQueryBuilder('wiki')
+        .select(['wiki.id', 'wiki.updated'])
+        .where('wiki.id IN (:...wikiIds)', { wikiIds: batch })
+        .getMany()
+
+      allWikis.push(
+        ...wikis.map((wiki) => ({
+          id: wiki.id,
+          updated: wiki.updated,
+        })),
+      )
+    }
+
+    return allWikis
   }
 }
