@@ -76,6 +76,7 @@ import SearchModule from './Search/search.module'
 import WikiTranslationService from './Translation/translation.service'
 import { DraftModule } from './Drafts/draft.module'
 import TranslationModule from './Translation/translation.module'
+import SuggestionsModule from './Suggestions/suggestions.module'
 
 // istanbul ignore next
 @Module({
@@ -125,12 +126,13 @@ import TranslationModule from './Translation/translation.module'
     DraftModule,
     DiscordModule,
     IndexerWebhookModule,
-    TreasuryModule,
-    StakedIQModule,
-    HiIQHolderModule,
-    IQHolderModule,
+    // TreasuryModule,
+    // StakedIQModule,
+    // HiIQHolderModule,
+    // IQHolderModule,
     SearchModule,
     TranslationModule,
+    // SuggestionsModule,
   ],
   controllers: [UploadController, WikiController],
   providers: [
