@@ -32,7 +32,6 @@ export default class UserSuggestion {
   wikiTitle?: string
 
   @Field({ nullable: true })
-  @IsEmail()
   @Column({ type: 'varchar', nullable: true })
   email?: string
 

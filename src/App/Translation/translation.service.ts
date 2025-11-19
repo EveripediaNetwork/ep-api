@@ -522,18 +522,41 @@ Preserve all formatting, links, citations, and widgets exactly as they appear.`,
   ): Promise<{ id: string; updated: Date }[]> {
     const repository = this.dataSource.getRepository(WikiTranslation)
 
-    const rows = await repository
-      .createQueryBuilder('translation')
-      .innerJoin('translation.wiki', 'wiki')
-      .select('translation.wikiId', 'id')
-      .addSelect('wiki.updated', 'updated')
-      .where('translation.translationStatus = :status', { status: 'completed' })
-      .andWhere('translation.targetLanguage = :lang', { lang: targetLanguage })
-      .getRawMany<{ id: string; updated: Date | string }>()
+    const translations = await repository.find({
+      where: {
+        translationStatus: 'completed',
+        targetLanguage,
+      },
+      select: ['wikiId'],
+    })
 
-    return rows.map((r) => ({
-      id: r.id,
-      updated: r.updated instanceof Date ? r.updated : new Date(r.updated),
-    }))
+    if (translations.length === 0) {
+      return []
+    }
+
+    const wikiIds = translations.map((t) => t.wikiId)
+
+    const batchSize = 1000
+    const allWikis: { id: string; updated: Date }[] = []
+
+    for (let i = 0; i < wikiIds.length; i += batchSize) {
+      const batch = wikiIds.slice(i, i + batchSize)
+
+      const wikis = await this.dataSource
+        .getRepository(Wiki)
+        .createQueryBuilder('wiki')
+        .select(['wiki.id', 'wiki.updated'])
+        .where('wiki.id IN (:...wikiIds)', { wikiIds: batch })
+        .getMany()
+
+      allWikis.push(
+        ...wikis.map((wiki) => ({
+          id: wiki.id,
+          updated: wiki.updated,
+        })),
+      )
+    }
+
+    return allWikis
   }
 }
