@@ -41,7 +41,10 @@ export default class SuggestionsService {
       query.andWhere('suggestion.name = :name', { name: args.name })
     }
 
-    query.orderBy('suggestion.createdAt', 'DESC')
+    query
+      .orderBy('suggestion.createdAt', 'DESC')
+      .skip(args.offset)
+      .take(args.limit)
 
     return query.getMany()
   }
