@@ -1,5 +1,6 @@
 import { Field, InputType, ArgsType, Int } from '@nestjs/graphql'
 import PaginationArgs from '../pagination.args'
+import { IsEmail } from 'class-validator'
 
 @InputType()
 export class CreateSuggestionInput {
@@ -15,6 +16,7 @@ export class CreateSuggestionInput {
   @Field(() => String, { nullable: true })
   wikiTitle?: string
 
+  @IsEmail()
   @Field(() => String, { nullable: true })
   email?: string
 
