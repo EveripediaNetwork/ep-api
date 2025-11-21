@@ -34,11 +34,11 @@ export default class SuggestionsService {
     const query = repository.createQueryBuilder('suggestion')
 
     if (args.wikiId) {
-      query.andWhere('suggestion.wikiId = :wikiId', { wikiId: args.wikiId })
+      query.andWhere('suggestion.wikiId ILIKE :wikiId', { wikiId: args.wikiId })
     }
 
     if (args.name) {
-      query.andWhere('suggestion.name = :name', { name: args.name })
+      query.andWhere('suggestion.name ILIKE :name', { name: args.name })
     }
 
     query
