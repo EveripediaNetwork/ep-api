@@ -23,11 +23,11 @@ export default class UserSuggestion {
   @Column({ type: 'json' })
   suggestion!: string
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   wikiId?: string
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   wikiTitle?: string
 
