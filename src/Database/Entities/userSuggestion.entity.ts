@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
-import { IsEmail } from 'class-validator'
 
 @ObjectType()
 @Entity()

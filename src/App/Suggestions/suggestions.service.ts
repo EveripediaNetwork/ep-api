@@ -21,11 +21,35 @@ export default class SuggestionsService {
       throw new Error('Suggestion must be valid JSON')
     }
 
+    const existing = await repository.findOne({
+      where: {
+        name: input.name,
+        wikiId: input.wikiId,
+      },
+    })
+
+    if (existing) {
+      existing.suggestion = input.suggestion
+      existing.wikiTitle = input.wikiTitle
+      existing.email = input.email
+      existing.relevance = input.relevance
+      existing.cryptoScore = input.cryptoScore
+
+      const updated = await repository.save(existing)
+      this.logger.log(
+        `Updated existing suggestion ${updated.id} for name: ${input.name}, wikiId: ${input.wikiId}`,
+      )
+      return updated
+    }
+
     const suggestion = repository.create({
       ...input,
     })
 
     const saved = await repository.save(suggestion)
+    this.logger.log(
+      `Created new suggestion ${saved.id} for name: ${input.name}, wikiId: ${input.wikiId}`,
+    )
     return saved
   }
 
