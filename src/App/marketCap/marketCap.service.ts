@@ -42,7 +42,7 @@ interface RankPageWiki {
 class MarketCapService {
   private readonly logger = new Logger(MarketCapService.name)
 
-  private RANK_LIMIT = 2000
+  private RANK_LIMIT = 12000
 
   private INCOMING_WIKI_ID!: string
 
@@ -201,7 +201,7 @@ class MarketCapService {
 
     const kindLower = kind.toLowerCase()
     const BATCH_SIZE = 50
-    const DELAY_MS = 2000
+    const DELAY_MS = 1200
     const results: (RankPageWiki | null)[] = []
 
     try {
@@ -347,7 +347,7 @@ class MarketCapService {
     reset = false,
   ): Promise<Record<any, any>[] | undefined> {
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const perPage = limit
+    const perPage = 250
     const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
     const startPage = Math.ceil(offset / perPage) + 1
     const categoryParam = category ? `category=${category}&` : ''
@@ -358,7 +358,7 @@ class MarketCapService {
     for (let page = startPage; page <= totalPages; page += 1) {
       const url = this.buildApiUrl(baseUrl, kind, categoryParam, perPage, page)
       lastUrl = url
-
+      console.log('Fetching data from URL:', url)
       const cachedData = await this.tryGetFromCache(url, reset)
       if (cachedData) {
         allData.push(...cachedData)
@@ -370,7 +370,7 @@ class MarketCapService {
         allData.push(...freshData)
       }
 
-      if (allData.length >= limit) {
+      if (allData.length >= this.RANK_LIMIT) {
         break
       }
     }
@@ -536,6 +536,7 @@ class MarketCapService {
 
     let cache
     if (args.kind === RankType.TOKEN) {
+      console.log('data', data.tokens.length)
       if (args.category === TokenCategory.STABLE_COINS) {
         cache = data.stableCoins as unknown as TokenRankListData[]
       } else if (args.category === TokenCategory.AI)
