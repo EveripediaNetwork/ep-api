@@ -20,6 +20,9 @@ import Events from '../../Database/Entities/Event.entity'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 import GatewayService from '../utils/gatewayService'
+import { HttpService } from '@nestjs/axios'
+import { catchError, firstValueFrom } from 'rxjs'
+import { AxiosError } from 'axios'
 
 const noContentWiki = {
   id: 'no-content',
@@ -42,19 +45,13 @@ interface RankPageWiki {
 class MarketCapService {
   private readonly logger = new Logger(MarketCapService.name)
 
-  private RANK_LIMIT = 12000
+  private RANK_LIMIT = 5000
+
+  private RANK_PAGE_LIMIT = 250
 
   private INCOMING_WIKI_ID!: string
 
   private CACHED_WIKI!: RankPageWiki
-
-  private RANK_LIST = 'default-list'
-
-  private RANK_STABLECOINS_LIST = 'stablecoins-list'
-
-  private RANK_AI_LIST = 'ai-coins-list'
-
-  private RANK_NFT_LIST = 'nft-list'
 
   constructor(
     private dataSource: DataSource,
@@ -201,7 +198,7 @@ class MarketCapService {
 
     const kindLower = kind.toLowerCase()
     const BATCH_SIZE = 50
-    const DELAY_MS = 1200
+    const DELAY_MS = 800
     const results: (RankPageWiki | null)[] = []
 
     try {
@@ -236,24 +233,26 @@ class MarketCapService {
     }
   }
 
-  async marketData(args: MarketCapInputs, reset = false) {
+  async *marketData(args: MarketCapInputs, reset = false) {
     const { kind } = args
 
-    const data = await this.cgMarketDataApiCall(args, reset)
-    const wikis = await this.getWikiData(data || [], kind)
+    const data = this.cgMarketDataApiCall(args, reset)
+    for await (const batch of data) {
+      const wikis = await this.getWikiData(batch || [], kind)
 
-    if (!data?.length || !wikis?.length) {
-      return []
+      if (!batch?.length || !wikis?.length) {
+        return []
+      }
+
+      const processedResults = await Promise.all(
+        batch.map((element: any, index: number) => {
+          const wiki = index < wikis.length ? wikis[index] : null
+          return this.processMarketElement(element, wiki, kind)
+        }),
+      )
+
+      yield processedResults
     }
-
-    const processedResults = await Promise.all(
-      data.map((element: any, index: number) => {
-        const wiki = index < wikis.length ? wikis[index] : null
-        return this.processMarketElement(element, wiki, kind)
-      }),
-    )
-
-    return processedResults
   }
 
   private processMarketElement(
@@ -316,61 +315,76 @@ class MarketCapService {
     }
   }
 
-  async cgMarketDataApiCall(
+  async *cgMarketDataApiCall(
     args: MarketCapInputs,
     reset = false,
-  ): Promise<Record<any, any>[] | undefined> {
+  ): AsyncGenerator<Record<any, any>[], void, unknown> {
     try {
-      const { kind, category, limit = 250, offset = 0 } = args
-      const results = await this.fetchMarketData(
+      const { kind, category, limit = this.RANK_PAGE_LIMIT, offset = 0 } = args
+
+      for await (const batch of this.fetchMarketData(
         kind,
         category,
         limit,
         offset,
         reset,
-      )
-      return results?.slice(0, this.RANK_LIMIT)
+      )) {
+        if (batch.length > 0) {
+          yield batch
+        }
+      }
     } catch (error) {
       this.logger.error(
         'Failed to fetch market data:',
         error instanceof Error ? error.message : error,
       )
-      return []
     }
   }
 
-  private async fetchMarketData(
+  private async *fetchMarketData(
     kind: RankType,
     category?: string,
-    limit = 250,
+    limit = this.RANK_PAGE_LIMIT,
     offset = 0,
     reset = false,
-  ): Promise<Record<any, any>[] | undefined> {
+  ): AsyncGenerator<Record<any, any>[], void, unknown> {
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const perPage = 250
-    const totalPages = Math.ceil(this.RANK_LIMIT / perPage)
+    const perPage = limit
+    const totalPages =
+      limit === this.RANK_PAGE_LIMIT
+        ? Math.ceil(this.RANK_LIMIT / perPage)
+        : Math.ceil(limit / perPage)
+
     const startPage = Math.ceil(offset / perPage) + 1
     const categoryParam = category ? `category=${category}&` : ''
 
-    const allData: Record<any, any>[] = []
+    let totalFetched = 0
     let lastUrl: string | undefined
 
     for (let page = startPage; page <= totalPages; page += 1) {
       const url = this.buildApiUrl(baseUrl, kind, categoryParam, perPage, page)
       lastUrl = url
-      console.log('Fetching data from URL:', url)
+
       const cachedData = await this.tryGetFromCache(url, reset)
       if (cachedData) {
-        allData.push(...cachedData)
-        break
+        yield cachedData
+        totalFetched += cachedData.length
+        if (totalFetched >= this.RANK_LIMIT) {
+          break
+        }
+        continue
       }
 
       const freshData = await this.fetchAndCacheData(url)
       if (freshData) {
-        allData.push(...freshData)
+        yield freshData
+        totalFetched += freshData.length
       }
 
-      if (allData.length >= this.RANK_LIMIT) {
+      if (
+        totalFetched >= this.RANK_LIMIT ||
+        (freshData && freshData.length === 0)
+      ) {
         break
       }
     }
@@ -378,8 +392,6 @@ class MarketCapService {
     if (lastUrl) {
       Globals.REFRESH_CACHE_KEY = lastUrl
     }
-
-    return allData
   }
 
   private async tryGetFromCache<T = Record<string, any>>(
@@ -430,10 +442,18 @@ class MarketCapService {
     }
   }
 
+  async collectAll<T>(generator: AsyncGenerator<T[]>): Promise<T[]> {
+    const results: T[] = []
+    for await (const batch of generator) {
+      results.push(...batch)
+    }
+    return results
+  }
+
   async ranks(
     args: MarketCapInputs,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
-    const data = await this.marketData(args)
+    const data = await this.collectAll(this.marketData(args))
 
     const result =
       args.kind === RankType.NFT
@@ -441,34 +461,6 @@ class MarketCapService {
         : (data as unknown as TokenRankListData[])
 
     return result
-  }
-
-  getCacheKey(args: MarketCapInputs) {
-    let key
-    switch (args.kind) {
-      case RankType.TOKEN:
-        switch (args.category) {
-          case TokenCategory.STABLE_COINS:
-            key = this.RANK_STABLECOINS_LIST
-            break
-          case TokenCategory.AI:
-            key = this.RANK_AI_LIST
-            break
-          default:
-            key = this.RANK_LIST
-            break
-        }
-        break
-
-      case RankType.NFT:
-        key = this.RANK_NFT_LIST
-        break
-      default:
-        key = this.RANK_LIST
-        break
-    }
-
-    return key
   }
 
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
@@ -502,13 +494,15 @@ class MarketCapService {
         })
       }
 
-      await this.marketData(
-        {
-          kind,
-          limit,
-          offset,
-        },
-        true,
+      await this.collectAll(
+        this.marketData(
+          {
+            kind,
+            limit,
+            offset,
+          },
+          true,
+        ),
       )
 
       if (Number(process.env.pm_id) && this.CACHED_WIKI) {
@@ -536,12 +530,15 @@ class MarketCapService {
 
     let cache
     if (args.kind === RankType.TOKEN) {
-      console.log('data', data.tokens.length)
       if (args.category === TokenCategory.STABLE_COINS) {
         cache = data.stableCoins as unknown as TokenRankListData[]
-      } else if (args.category === TokenCategory.AI)
+      } else if (args.category === TokenCategory.AI) {
         cache = data.aiTokens as unknown as TokenRankListData[]
-      else {
+      } else if (args.category === TokenCategory.KRW_TOKENS) {
+        cache = data.krwTokens as unknown as TokenRankListData[]
+      } else if (args.category === TokenCategory.MEME_TOKENS) {
+        cache = data.memeTokens as unknown as TokenRankListData[]
+      } else {
         cache = data.tokens as unknown as TokenRankListData[]
       }
     }
