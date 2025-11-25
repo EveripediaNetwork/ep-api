@@ -245,7 +245,7 @@ class MarketCapService {
       }
 
       const processedResults = await Promise.all(
-        batch.map((element: any, index: number) => {
+        batch.map((element: Record<string, any>, index: number) => {
           const wiki = index < wikis.length ? wikis[index] : null
           return this.processMarketElement(element, wiki, kind)
         }),
