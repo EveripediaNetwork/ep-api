@@ -20,9 +20,6 @@ import Events from '../../Database/Entities/Event.entity'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 import GatewayService from '../utils/gatewayService'
-import { HttpService } from '@nestjs/axios'
-import { catchError, firstValueFrom } from 'rxjs'
-import { AxiosError } from 'axios'
 
 const noContentWiki = {
   id: 'no-content',
@@ -198,7 +195,7 @@ class MarketCapService {
 
     const kindLower = kind.toLowerCase()
     const BATCH_SIZE = 50
-    const DELAY_MS = 800
+    const DELAY_MS = 500
     const results: (RankPageWiki | null)[] = []
 
     try {
@@ -349,11 +346,13 @@ class MarketCapService {
     reset = false,
   ): AsyncGenerator<Record<any, any>[], void, unknown> {
     const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-    const perPage = limit
-    const totalPages =
-      limit === this.RANK_PAGE_LIMIT
-        ? Math.ceil(this.RANK_LIMIT / perPage)
-        : Math.ceil(limit / perPage)
+
+    const isBackgroundJob = limit === this.RANK_PAGE_LIMIT
+    const perPage = isBackgroundJob ? this.RANK_PAGE_LIMIT : limit
+    const totalToFetch = isBackgroundJob ? this.RANK_LIMIT : limit
+    const totalPages = isBackgroundJob
+      ? Math.ceil(this.RANK_LIMIT / perPage)
+      : 1
 
     const startPage = Math.ceil(offset / perPage) + 1
     const categoryParam = category ? `category=${category}&` : ''
@@ -369,7 +368,7 @@ class MarketCapService {
       if (cachedData) {
         yield cachedData
         totalFetched += cachedData.length
-        if (totalFetched >= this.RANK_LIMIT) {
+        if (totalFetched >= totalToFetch) {
           break
         }
         continue
@@ -382,7 +381,7 @@ class MarketCapService {
       }
 
       if (
-        totalFetched >= this.RANK_LIMIT ||
+        totalFetched >= totalToFetch ||
         (freshData && freshData.length === 0)
       ) {
         break

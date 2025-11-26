@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { OnEvent } from '@nestjs/event-emitter'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron } from '@nestjs/schedule'
 import { PubSub } from 'graphql-subscriptions'
-import { gql } from 'graphql-request'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import MarketCapService from './marketCap.service'
 import {
@@ -43,7 +42,7 @@ class MarketCapSearch {
   }
 
   @OnEvent(Pm2Events.BUILD_RANK_SEARCH_DATA, { async: true })
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron('0 */7 * * * *')
   private async buildRankpageSearchData() {
     if (firstLevelNodeProcess()) {
       await this.loadAllMarketData()
