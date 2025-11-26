@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
+import { ConfigService } from '@nestjs/config'
 import {
   MarketCapInputs,
   MarketCapSearchInputs,
@@ -42,7 +43,7 @@ interface RankPageWiki {
 class MarketCapService {
   private readonly logger = new Logger(MarketCapService.name)
 
-  private RANK_LIMIT = 5250
+  private RANK_LIMIT: number
 
   private RANK_PAGE_LIMIT = 250
 
@@ -54,8 +55,11 @@ class MarketCapService {
     private dataSource: DataSource,
     private pm2Service: Pm2Service,
     private gateway: GatewayService,
+    private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) {
+    this.RANK_LIMIT = this.configService.get<number>('RANK_LIMIT', 2000)
+  }
 
   private async findWiki(
     id: string,

@@ -125,6 +125,23 @@ class MarketCapSearch {
       ),
     ])
 
+    state.tokens = this.mergeUnique(state.tokens, state.krwTokens)
+
+    await this.cacheManager.set(
+      'marketCapSearch',
+      { ...state },
+      this.SIX_MINUTES_TTL,
+    )
+    this.pm2Service.sendDataToProcesses(
+      `${Pm2Events.UPDATE_CACHE} ${MarketCapSearch.name}`,
+      {
+        data: JSON.stringify(state),
+        key: 'marketCapSearch',
+        ttl: this.SIX_MINUTES_TTL,
+      },
+      Number(process.env.pm_id),
+    )
+
     this.logger.log('All market data loaded successfully', {
       nfts: state.nfts.length,
       tokens: state.tokens.length,
