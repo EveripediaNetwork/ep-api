@@ -14,7 +14,7 @@ module.exports = {
       log_type: 'json',
       error_file: './logs/api-error.json',
       log_date_format: 'YYYY-MM-DD HH:mm Z',
-      max_memory_restart: '2600M',
+      max_memory_restart: '4G',
 
       env_development: {
         API_LEVEL: 'dev',
