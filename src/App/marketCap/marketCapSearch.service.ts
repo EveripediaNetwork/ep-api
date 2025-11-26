@@ -74,6 +74,11 @@ class MarketCapSearch {
       for await (const batch of stream) {
         state[key] = this.mergeUnique(state[key], batch)
 
+        // Also merge krwTokens into tokens for general TOKEN searches
+        if (key === 'krwTokens') {
+          state.tokens = this.mergeUnique(state.tokens, batch)
+        }
+
         await this.cacheManager.set(
           'marketCapSearch',
           { ...state },
@@ -124,23 +129,6 @@ class MarketCapSearch {
         'krwTokens',
       ),
     ])
-
-    state.tokens = this.mergeUnique(state.tokens, state.krwTokens)
-
-    await this.cacheManager.set(
-      'marketCapSearch',
-      { ...state },
-      this.SIX_MINUTES_TTL,
-    )
-    this.pm2Service.sendDataToProcesses(
-      `${Pm2Events.UPDATE_CACHE} ${MarketCapSearch.name}`,
-      {
-        data: JSON.stringify(state),
-        key: 'marketCapSearch',
-        ttl: this.SIX_MINUTES_TTL,
-      },
-      Number(process.env.pm_id),
-    )
 
     this.logger.log('All market data loaded successfully', {
       nfts: state.nfts.length,
