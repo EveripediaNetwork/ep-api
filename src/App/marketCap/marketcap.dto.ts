@@ -89,6 +89,7 @@ export interface MarketCapSearchType {
   tokens: TokenRankListData[]
   aiTokens: TokenRankListData[]
   memeTokens: TokenRankListData[]
+  krwTokens: TokenRankListData[]
   stableCoins: TokenRankListData[]
 }
 
@@ -123,6 +124,7 @@ export enum RankType {
 export enum TokenCategory {
   AI = 'artificial-intelligence',
   MEME_TOKENS = 'meme-token',
+  KRW_TOKENS = 'krw-stablecoin',
   STABLE_COINS = 'stablecoins',
 }
 
