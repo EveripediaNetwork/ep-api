@@ -42,7 +42,7 @@ interface RankPageWiki {
 class MarketCapService {
   private readonly logger = new Logger(MarketCapService.name)
 
-  private RANK_LIMIT = 5000
+  private RANK_LIMIT = 5250
 
   private RANK_PAGE_LIMIT = 250
 
