@@ -74,7 +74,6 @@ class MarketCapSearch {
       for await (const batch of stream) {
         state[key] = this.mergeUnique(state[key], batch)
 
-        // Also merge krwTokens into tokens for general TOKEN searches
         if (key === 'krwTokens') {
           state.tokens = this.mergeUnique(state.tokens, batch)
         }

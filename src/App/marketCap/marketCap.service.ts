@@ -354,11 +354,12 @@ class MarketCapService {
     const isBackgroundJob = limit === this.RANK_PAGE_LIMIT
     const perPage = isBackgroundJob ? this.RANK_PAGE_LIMIT : limit
     const totalToFetch = isBackgroundJob ? this.RANK_LIMIT : limit
+
+    const startPage = Math.floor(offset / perPage) + 1
     const totalPages = isBackgroundJob
       ? Math.ceil(this.RANK_LIMIT / perPage)
-      : 1
+      : startPage
 
-    const startPage = Math.ceil(offset / perPage) + 1
     const categoryParam = category ? `category=${category}&` : ''
 
     let totalFetched = 0
