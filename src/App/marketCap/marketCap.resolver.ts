@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 import { Logger, UseGuards } from '@nestjs/common'
 import {
   MarketCapInputs,
@@ -9,7 +9,6 @@ import {
   TokenRankListData,
 } from './marketcap.dto'
 import MarketCapService from './marketCap.service'
-import MarketCapSearch from './marketCapSearch.service'
 import AuthGuard from '../utils/admin.guard'
 
 export function extractSlug(url: string) {
@@ -24,10 +23,7 @@ export function extractSlug(url: string) {
 class MarketCapResolver {
   private readonly logger = new Logger(MarketCapResolver.name)
 
-  constructor(
-    private marketCapService: MarketCapService,
-    private marketCapSearch: MarketCapSearch,
-  ) {}
+  constructor(private marketCapService: MarketCapService) {}
 
   @Query(() => [MarketRankData], { nullable: 'items' })
   async rankList(
@@ -64,13 +60,6 @@ class MarketCapResolver {
       this.logger.error(error)
       return false
     }
-  }
-
-  @Subscription(() => Boolean)
-  marketCapSearchSubscription() {
-    return this.marketCapSearch
-      .getRankPagePubSub()
-      .asyncIterator('marketCapSearchSubscription')
   }
 }
 

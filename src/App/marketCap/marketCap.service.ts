@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
-import { DataSource } from 'typeorm'
+import { Brackets, DataSource, ILike, In } from 'typeorm'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
@@ -47,9 +47,9 @@ class MarketCapService {
 
   private RANK_PAGE_LIMIT = 250
 
-  private INCOMING_WIKI_ID!: string
+  private INCOMING_WIKI_ID: string | null = null
 
-  private CACHED_WIKI!: RankPageWiki
+  private CACHED_WIKI: RankPageWiki | null = null
 
   constructor(
     private dataSource: DataSource,
@@ -58,134 +58,183 @@ class MarketCapService {
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.RANK_LIMIT = this.configService.get<number>('RANK_LIMIT', 2000)
+    this.RANK_LIMIT = this.configService.get<number>('RANK_LIMIT', 2500)
   }
 
-  private async findWiki(
-    id: string,
+  private async findWikiBulk(
+    ids: string[],
     category: string,
-  ): Promise<RankPageWiki | null> {
+  ): Promise<Map<string, RankPageWiki>> {
+    if (!ids.length) return new Map()
+
     const wikiRepository = this.dataSource.getRepository(Wiki)
     const eventsRepository = this.dataSource.getRepository(Events)
     const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
 
     const baseCoingeckoUrl = 'https://www.coingecko.com/en'
-    const coingeckoProfileUrl = `${baseCoingeckoUrl}/${
-      category === 'cryptocurrencies' ? 'coins' : 'nft'
-    }/${id}`
+    const categoryPath = category === 'cryptocurrencies' ? 'coins' : 'nft'
 
-    const cachedWiki: RankPageWiki | null | undefined =
-      await this.cacheManager.get(id)
+    const resultMap = new Map<string, RankPageWiki>()
+    const uncachedIds: string[] = []
 
-    if (cachedWiki?.wiki) {
-      return {
-        ...cachedWiki,
-        wiki: {
-          ...cachedWiki.wiki,
-          created: new Date(cachedWiki.wiki.created),
-        },
-      } as RankPageWiki
-    }
+    const cachedResults = await Promise.all(
+      ids.map((id) => this.cacheManager.get(id)),
+    )
 
-    const marketCapId = await marketCapIdRepository.findOne({
-      where: { coingeckoId: id, kind: category as RankType },
-      select: ['wikiId'],
+    ids.forEach((id, index) => {
+      const cached = cachedResults[index] as RankPageWiki | null | undefined
+
+      if (cached?.wiki) {
+        resultMap.set(id, {
+          ...cached,
+          wiki: {
+            ...cached.wiki,
+            created: new Date(cached.wiki.created),
+          },
+        } as RankPageWiki)
+      } else {
+        uncachedIds.push(id)
+      }
     })
 
-    const noCategoryId = marketCapId?.wikiId || id
+    if (!uncachedIds.length) return resultMap
 
-    const baseQuery = wikiRepository
-      .createQueryBuilder('wiki')
-      .select('wiki.id')
-      .addSelect('wiki.title')
-      .addSelect('wiki.ipfs')
-      .addSelect('wiki.images')
+    const marketCapIds = await marketCapIdRepository.find({
+      where: {
+        coingeckoId: In(uncachedIds),
+        kind: category as RankType,
+      },
+      select: ['coingeckoId', 'wikiId'],
+    })
 
-    const wikiQuery = baseQuery
-      .clone()
-      .addSelect('wiki.metadata')
-      .addSelect('wiki.created')
-      .addSelect('wiki.linkedWikis')
-      .leftJoinAndSelect('wiki.tags', 'tags')
+    const idMapping = new Map(
+      marketCapIds.map((m) => [m.coingeckoId, m.wikiId || m.coingeckoId]),
+    )
 
-    const wikiResult =
-      (await wikiQuery
-        .where('wiki.id = :id AND wiki.hidden = false', {
-          id: noCategoryId,
-        })
-        .getOne()) ||
-      (await wikiQuery
-        .andWhere(
-          `EXISTS (
-                    SELECT 1
-                    FROM json_array_elements(wiki.metadata) AS meta
-                    WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = :url
-            )`,
-          { url: coingeckoProfileUrl },
-        )
-        .where('wiki.id = :id AND wiki.hidden = false', { id })
-        .getOne()) ||
-      (await wikiQuery
-        .innerJoin('wiki.categories', 'category', 'category.id = :categoryId', {
-          categoryId: category,
-        })
-        .where('wiki.id = :id AND wiki.hidden = false', { id })
-        .getOne())
-
-    const [founders, blockchain] = await Promise.all([
-      (async () => {
-        if (wikiResult?.linkedWikis?.founders) {
-          const founderResults = []
-          for (const f of wikiResult.linkedWikis.founders) {
-            const result = await baseQuery
-              .where('wiki.id = :id AND wiki.hidden = false', {
-                id: f,
-              })
-              .getOne()
-            if (result) {
-              founderResults.push(result)
-            }
-          }
-          return founderResults
-        }
-        return []
-      })(),
-      (async () => {
-        if (wikiResult?.linkedWikis?.blockchains) {
-          const blockchainResults = []
-          for (const b of wikiResult.linkedWikis.blockchains) {
-            const result = await baseQuery
-              .where('wiki.id = :id AND wiki.hidden = false', {
-                id: b,
-              })
-              .getOne()
-            if (result) {
-              blockchainResults.push(result)
-            }
-          }
-          return blockchainResults
-        }
-        return []
-      })(),
-    ])
-
-    const events =
-      (await eventsRepository.query(
-        `SELECT * FROM events WHERE "wikiId" = $1`,
-        [wikiResult?.id],
-      )) || []
-
-    const wiki = wikiResult && { ...wikiResult, events }
-
-    const result = { wiki, founders, blockchain }
-
-    if (this.INCOMING_WIKI_ID === wiki?.id) {
-      this.CACHED_WIKI = result as RankPageWiki
+    for (const id of uncachedIds) {
+      if (!idMapping.has(id)) {
+        idMapping.set(id, id)
+      }
     }
 
-    await this.cacheManager.set(id, result, 60 * 60 * 1000) // Set cache for 1 hour
+    const wikiIds = Array.from(new Set(idMapping.values()))
+    const coingeckoUrls = uncachedIds.map(
+      (id) => `${baseCoingeckoUrl}/${categoryPath}/${id}`,
+    )
 
-    return result as unknown as RankPageWiki
+    const wikis = await wikiRepository
+      .createQueryBuilder('wiki')
+      .select(['wiki.id', 'wiki.title', 'wiki.images', 'wiki.linkedWikis'])
+      .leftJoinAndSelect('wiki.tags', 'tags')
+      .leftJoin('wiki.categories', 'category')
+      .where('wiki.hidden = false')
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('wiki.id IN (:...wikiIds)', { wikiIds })
+            .orWhere(
+              `EXISTS (
+              SELECT 1
+              FROM json_array_elements(wiki.metadata) AS meta
+              WHERE meta->>'id' = 'coingecko_profile' 
+              AND meta->>'value' IN (:...urls)
+            )`,
+              { urls: coingeckoUrls },
+            )
+            .orWhere('category.id = :category', { category })
+        }),
+      )
+      .getMany()
+
+    const wikiMap = new Map(wikis.map((w) => [w.id, w]))
+
+    const allLinkedIds = new Set<string>()
+
+    for (const wiki of wikis) {
+      if (wiki.linkedWikis?.founders) {
+        wiki.linkedWikis.founders.forEach((id) => allLinkedIds.add(id))
+      }
+      if (wiki.linkedWikis?.blockchains) {
+        wiki.linkedWikis.blockchains.forEach((id) => allLinkedIds.add(id))
+      }
+    }
+
+    const linkedWikis =
+      allLinkedIds.size > 0
+        ? await wikiRepository
+            .createQueryBuilder('wiki')
+            .select(['wiki.id', 'wiki.title', 'wiki.images'])
+            .where('wiki.id IN (:...ids) AND wiki.hidden = false', {
+              ids: Array.from(allLinkedIds),
+            })
+            .getMany()
+        : []
+
+    const linkedWikiMap = new Map(linkedWikis.map((w) => [w.id, w]))
+
+    const events =
+      wikiMap.size > 0
+        ? await eventsRepository.find({
+            select: ['wikiId', 'title', 'type', 'date'],
+            where: {
+              wikiId: In(Array.from(wikiMap.keys())),
+              title: ILike('Date founded'),
+            },
+          })
+        : []
+
+    const eventsByWikiId = new Map<string, typeof events>()
+    for (const event of events) {
+      if (!event.wikiId) continue
+      if (!eventsByWikiId.has(event.wikiId)) {
+        eventsByWikiId.set(event.wikiId, [event])
+      }
+    }
+
+    for (const id of uncachedIds) {
+      const wikiId = idMapping.get(id)
+      const wiki = wikiId ? wikiMap.get(wikiId) : undefined
+
+      if (!wiki) {
+        const url = `${baseCoingeckoUrl}/${categoryPath}/${id}`
+        const foundWiki = wikis.find((w) =>
+          w.metadata?.some(
+            (m) => m.id === 'coingecko_profile' && m.value === url,
+          ),
+        )
+
+        if (foundWiki) {
+          wikiMap.set(foundWiki.id, foundWiki)
+        }
+      }
+
+      const finalWiki = wiki || wikiMap.get(id)
+
+      if (finalWiki) {
+        const founders =
+          finalWiki.linkedWikis?.founders
+            ?.map((fId) => linkedWikiMap.get(fId))
+            .filter(Boolean) || []
+
+        const blockchain =
+          finalWiki.linkedWikis?.blockchains
+            ?.map((bId) => linkedWikiMap.get(bId))
+            .filter(Boolean) || []
+
+        const wikiEvents = eventsByWikiId.get(finalWiki.id) || []
+
+        const result: RankPageWiki = {
+          wiki: { ...finalWiki, events: wikiEvents },
+          founders,
+          blockchain,
+        } as RankPageWiki
+
+        resultMap.set(id, result)
+
+        await this.cacheManager.set(id, result, 60 * 60 * 1000)
+      }
+    }
+
+    return resultMap
   }
 
   async getWikiData(
@@ -198,33 +247,35 @@ class MarketCapService {
     }
 
     const kindLower = kind.toLowerCase()
-    const BATCH_SIZE = 50
-    const DELAY_MS = 500
-    const results: (RankPageWiki | null)[] = []
+    const BATCH_SIZE = 100
+    const results: RankPageWiki[] = []
 
     try {
       for (let i = 0; i < coinsData.length; i += BATCH_SIZE) {
         const batchEnd = Math.min(i + BATCH_SIZE, coinsData.length)
-        const batchPromises = []
+        const batch = coinsData.slice(i, batchEnd)
 
-        for (let j = i; j < batchEnd; j += 1) {
-          const element = coinsData[j]
+        const ids = batch
+          .filter((element) => element?.id)
+          .map((element) => element.id)
 
-          if (!element?.id) continue
+        if (!ids.length) continue
 
-          batchPromises.push(this.findWiki(element.id, kindLower))
+        const batchResultsMap = await this.findWikiBulk(ids, kindLower)
+
+        for (const id of ids) {
+          const result = batchResultsMap.get(id)
+          if (result) {
+            results.push(result)
+          }
         }
 
-        const batchResults = await Promise.all(batchPromises)
-
-        results.push(...(batchResults.filter(Boolean) as RankPageWiki[]))
-
         if (delay && batchEnd < coinsData.length) {
-          await new Promise((resolve) => setTimeout(resolve, DELAY_MS))
+          await new Promise((resolve) => setTimeout(resolve, 500))
         }
       }
 
-      return results as RankPageWiki[]
+      return results
     } catch (error) {
       this.logger.error(
         'Error retrieving wiki data:',
@@ -308,10 +359,25 @@ class MarketCapService {
     }
 
     return {
-      ...rankpageWiki.wiki,
-      tags: rankpageWiki.wiki.__tags__,
-      founderWikis: rankpageWiki.founders,
-      blockchainWikis: rankpageWiki.blockchain,
+      id: rankpageWiki.wiki.id,
+      title: rankpageWiki.wiki.title,
+      images: rankpageWiki.wiki.images,
+      tags: rankpageWiki.wiki.__tags__?.map((t: any) => ({ id: t.id })),
+      events: rankpageWiki.wiki.events?.map((e: any) => ({
+        type: e.type,
+        date: e.date,
+        title: e.title,
+      })),
+      founderWikis: rankpageWiki.founders?.map((f: any) => ({
+        id: f.id,
+        title: f.title,
+        images: f.images,
+      })),
+      blockchainWikis: rankpageWiki.blockchain?.map((f: any) => ({
+        id: f.id,
+        title: f.title,
+        images: f.images,
+      })),
       ...marketData,
     }
   }
@@ -509,7 +575,11 @@ class MarketCapService {
         ),
       )
 
-      if (Number(process.env.pm_id) && this.CACHED_WIKI) {
+      if (
+        Number(process.env.pm_id) &&
+        this.CACHED_WIKI &&
+        this.INCOMING_WIKI_ID
+      ) {
         this.pm2Service.sendDataToProcesses(
           `${Pm2Events.UPDATE_CACHE} ${MarketCapService.name}`,
           { data: this.CACHED_WIKI, key: this.INCOMING_WIKI_ID },
@@ -521,7 +591,32 @@ class MarketCapService {
     } catch (e) {
       this.logger.error('Error in updateMistachIds:', e)
       return false
+    } finally {
+      this.INCOMING_WIKI_ID = null
+      this.CACHED_WIKI = null
     }
+  }
+
+  private getCacheDataByCategory(
+    data: MarketCapSearchType,
+    kind: RankType,
+    category?: TokenCategory,
+  ): (TokenRankListData | NftRankListData)[] {
+    if (kind === RankType.TOKEN) {
+      switch (category) {
+        case TokenCategory.STABLE_COINS:
+          return data.stableCoins as unknown as TokenRankListData[]
+        case TokenCategory.AI:
+          return data.aiTokens as unknown as TokenRankListData[]
+        case TokenCategory.KRW_TOKENS:
+          return data.krwTokens as unknown as TokenRankListData[]
+        case TokenCategory.MEME_TOKENS:
+          return data.memeTokens as unknown as TokenRankListData[]
+        default:
+          return data.tokens as unknown as TokenRankListData[]
+      }
+    }
+    return data.nfts as unknown as NftRankListData[]
   }
 
   async wildcardSearch(args: MarketCapSearchInputs) {
@@ -532,23 +627,7 @@ class MarketCapService {
       return [] as (TokenRankListData | NftRankListData)[]
     }
 
-    let cache
-    if (args.kind === RankType.TOKEN) {
-      if (args.category === TokenCategory.STABLE_COINS) {
-        cache = data.stableCoins as unknown as TokenRankListData[]
-      } else if (args.category === TokenCategory.AI) {
-        cache = data.aiTokens as unknown as TokenRankListData[]
-      } else if (args.category === TokenCategory.KRW_TOKENS) {
-        cache = data.krwTokens as unknown as TokenRankListData[]
-      } else if (args.category === TokenCategory.MEME_TOKENS) {
-        cache = data.memeTokens as unknown as TokenRankListData[]
-      } else {
-        cache = data.tokens as unknown as TokenRankListData[]
-      }
-    }
-    if (args.kind === RankType.NFT) {
-      cache = data.nfts as unknown as NftRankListData[]
-    }
+    const cache = this.getCacheDataByCategory(data, args.kind, args.category)
 
     const lowerSearchTerm = args.search.toLowerCase()
     let result

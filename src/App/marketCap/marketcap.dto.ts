@@ -5,12 +5,12 @@ import {
   Field,
   registerEnumType,
   ArgsType,
+  PickType,
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import { ValidStringParams } from '../utils/customValidator'
-import Events from '../../Database/Entities/Event.entity'
 
 @ObjectType()
 class MarketDataGenerals {
@@ -75,15 +75,6 @@ export class TokenListData extends MarketDataGenerals {
   market_cap_change_24h!: number
 }
 
-@ObjectType()
-export class TokenRankListData extends Wiki {
-  @Field(() => TokenListData, { nullable: true })
-  tokenMarketData?: TokenListData
-
-  @Field(() => [Events], { nullable: true })
-  events?: Events[]
-}
-
 export interface MarketCapSearchType {
   nfts: NftRankListData[]
   tokens: TokenRankListData[]
@@ -94,12 +85,26 @@ export interface MarketCapSearchType {
 }
 
 @ObjectType()
-export class NftRankListData extends Wiki {
+export class RankListData extends PickType(Wiki, [
+  'id',
+  'title',
+  'images',
+  'founderWikis',
+  'events',
+  'blockchainWikis',
+  'tags',
+] as const) {}
+
+@ObjectType()
+export class TokenRankListData extends RankListData {
+  @Field(() => TokenListData, { nullable: true })
+  tokenMarketData?: TokenListData
+}
+
+@ObjectType()
+export class NftRankListData extends RankListData {
   @Field(() => NftListData, { nullable: true })
   nftMarketData?: NftListData
-
-  @Field(() => [Events], { nullable: true })
-  events?: Events[]
 }
 
 export const MarketRankData = createUnionType({
