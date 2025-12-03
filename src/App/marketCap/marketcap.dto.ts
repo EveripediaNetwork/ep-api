@@ -194,8 +194,8 @@ export class FlexibleTokenCategory implements CustomScalar<string, string> {
 
   parseValue(value: unknown): string {
     const strValue = String(value)
-    if (strValue.length < 3) {
-      throw new Error('Category must be at least 3 characters long')
+    if (strValue.length < 2) {
+      throw new Error('Category must be at least 2 characters long')
     }
     return strValue
   }
@@ -206,9 +206,9 @@ export class FlexibleTokenCategory implements CustomScalar<string, string> {
 
   parseLiteral(ast: ValueNode): string {
     if (ast.kind === Kind.STRING) {
-      if (ast.value.length < 3) {
+      if (ast.value.length < 2) {
         throw new Error(
-          'Token category as string must be at least 3 characters long',
+          'Token category as string must be at least 2 characters long',
         )
       }
       return ast.value
