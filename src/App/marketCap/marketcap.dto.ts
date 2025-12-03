@@ -6,11 +6,14 @@ import {
   registerEnumType,
   ArgsType,
   PickType,
+  CustomScalar,
+  Scalar,
 } from '@nestjs/graphql'
 import { Validate } from 'class-validator'
 import Wiki from '../../Database/Entities/wiki.entity'
 import PaginationArgs from '../pagination.args'
 import { ValidStringParams } from '../utils/customValidator'
+import { ValueNode, Kind } from 'graphql'
 
 @ObjectType()
 class MarketDataGenerals {
@@ -80,8 +83,8 @@ export interface MarketCapSearchType {
   tokens: TokenRankListData[]
   aiTokens: TokenRankListData[]
   memeTokens: TokenRankListData[]
-  krwTokens: TokenRankListData[]
   stableCoins: TokenRankListData[]
+  [key: string]: TokenRankListData[]
 }
 
 @ObjectType()
@@ -146,13 +149,15 @@ export class MarketCapInputs extends PaginationArgs {
   @Validate(ValidStringParams)
   kind!: RankType
 
-  @Field(() => TokenCategory, { nullable: true })
-  @Validate(ValidStringParams)
-  category?: TokenCategory
+  @Field(() => FlexibleTokenCategory, { nullable: true })
+  category?: TokenCategory | string
 
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
   search?: string
+
+  @Field(() => Boolean, { defaultValue: true })
+  hasWiki?: boolean
 }
 
 @ArgsType()
@@ -173,4 +178,50 @@ export class RankPageIdInputs extends PaginationArgs {
   @Field(() => RankType, { defaultValue: RankType.TOKEN })
   @Validate(ValidStringParams)
   kind!: RankType
+
+  @Field(() => Boolean, { defaultValue: true })
+  hasWiki!: boolean
+}
+
+export const STABLECOIN_CATEGORIES_CACHE_KEY = 'stablecoinCategories'
+export const NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY = 'noWikiMarketcapSearch'
+export const MARKETCAP_SEARCH_CACHE_KEY = 'marketcapSearch'
+export const BASE_URL_COINGECKO_API = 'https://pro-api.coingecko.com/api/v3/'
+
+@Scalar('FlexibleTokenCategory')
+export class FlexibleTokenCategory implements CustomScalar<string, string> {
+  description = 'String that accepts both enum values and arbitrary strings'
+
+  parseValue(value: unknown): string {
+    const strValue = String(value)
+    if (strValue.length < 3) {
+      throw new Error('Category must be at least 3 characters long')
+    }
+    return strValue
+  }
+
+  serialize(value: unknown): string {
+    return String(value)
+  }
+
+  parseLiteral(ast: ValueNode): string {
+    if (ast.kind === Kind.STRING) {
+      if (ast.value.length < 3) {
+        throw new Error(
+          'Token category as string must be at least 3 characters long',
+        )
+      }
+      return ast.value
+    }
+    if (ast.kind === Kind.ENUM) {
+      const enumKeys = Object.keys(TokenCategory)
+      if (!enumKeys.includes(ast.value)) {
+        throw new Error(
+          `Invalid enum value. Must be one of: ${enumKeys.join(', ')}`,
+        )
+      }
+      return TokenCategory[ast.value as keyof typeof TokenCategory]
+    }
+    throw new Error('FlexibleTokenCategory must be a string or enum value')
+  }
 }

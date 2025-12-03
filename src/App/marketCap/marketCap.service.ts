@@ -6,12 +6,16 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
 import { ConfigService } from '@nestjs/config'
 import {
+  BASE_URL_COINGECKO_API,
+  MARKETCAP_SEARCH_CACHE_KEY,
   MarketCapInputs,
   MarketCapSearchInputs,
   MarketCapSearchType,
   NftRankListData,
+  NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY,
   RankPageIdInputs,
   RankType,
+  STABLECOIN_CATEGORIES_CACHE_KEY,
   TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
@@ -290,15 +294,14 @@ class MarketCapService {
 
     const data = this.cgMarketDataApiCall(args, reset)
     for await (const batch of data) {
-      const wikis = await this.getWikiData(batch || [], kind)
-
-      if (!batch?.length || !wikis?.length) {
+      if (!batch?.length) {
         return []
       }
+      const wikis = await this.getWikiData(batch, kind)
 
       const processedResults = await Promise.all(
         batch.map((element: Record<string, any>, index: number) => {
-          const wiki = index < wikis.length ? wikis[index] : null
+          const wiki = wikis && index < wikis.length ? wikis[index] : null
           return this.processMarketElement(element, wiki, kind)
         }),
       )
@@ -388,7 +391,6 @@ class MarketCapService {
   ): AsyncGenerator<Record<any, any>[], void, unknown> {
     try {
       const { kind, category, limit = this.RANK_PAGE_LIMIT, offset = 0 } = args
-
       for await (const batch of this.fetchMarketData(
         kind,
         category,
@@ -415,8 +417,6 @@ class MarketCapService {
     offset = 0,
     reset = false,
   ): AsyncGenerator<Record<any, any>[], void, unknown> {
-    const baseUrl = 'https://pro-api.coingecko.com/api/v3/'
-
     const isBackgroundJob = limit === this.RANK_PAGE_LIMIT
     const perPage = isBackgroundJob ? this.RANK_PAGE_LIMIT : limit
     const totalToFetch = isBackgroundJob ? this.RANK_LIMIT : limit
@@ -432,7 +432,13 @@ class MarketCapService {
     let lastUrl: string | undefined
 
     for (let page = startPage; page <= totalPages; page += 1) {
-      const url = this.buildApiUrl(baseUrl, kind, categoryParam, perPage, page)
+      const url = this.buildApiUrl(
+        BASE_URL_COINGECKO_API,
+        kind,
+        categoryParam,
+        perPage,
+        page,
+      )
       lastUrl = url
 
       const cachedData = await this.tryGetFromCache(url, reset)
@@ -523,14 +529,40 @@ class MarketCapService {
   async ranks(
     args: MarketCapInputs,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
-    const data = await this.collectAll(this.marketData(args))
+    const matchedCategory = await this.getCacheCateoryKey(args.category || '')
+    let data
+    if (!args.hasWiki) {
+      const cachedData = await this.cacheManager.get<MarketCapSearchType>(
+        NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY,
+      )
+      if (args.kind === RankType.NFT) {
+        data = cachedData?.nfts as unknown as NftRankListData[]
+      } else if (
+        args.kind === RankType.TOKEN &&
+        args.category &&
+        matchedCategory?.key &&
+        cachedData
+      ) {
+        data = cachedData[matchedCategory.key] as unknown as TokenRankListData[]
+      } else {
+        data = cachedData?.tokens as unknown as TokenRankListData[]
+      }
+
+      if (data) {
+        data = data.slice(args.offset, args.offset + args.limit)
+      }
+    } else {
+      data = await this.collectAll(
+        this.marketData({ ...args, category: matchedCategory?.id }),
+      )
+    }
 
     const result =
       args.kind === RankType.NFT
         ? (data as unknown as NftRankListData[])
         : (data as unknown as TokenRankListData[])
 
-    return result
+    return result || []
   }
 
   async updateMistachIds(args: RankPageIdInputs): Promise<boolean> {
@@ -597,37 +629,64 @@ class MarketCapService {
     }
   }
 
-  private getCacheDataByCategory(
+  private async getCacheDataByCategory(
     data: MarketCapSearchType,
     kind: RankType,
-    category?: TokenCategory,
-  ): (TokenRankListData | NftRankListData)[] {
+    category?: TokenCategory | string,
+  ): Promise<(TokenRankListData | NftRankListData)[]> {
     if (kind === RankType.TOKEN) {
       switch (category) {
         case TokenCategory.STABLE_COINS:
           return data.stableCoins as unknown as TokenRankListData[]
         case TokenCategory.AI:
           return data.aiTokens as unknown as TokenRankListData[]
-        case TokenCategory.KRW_TOKENS:
-          return data.krwTokens as unknown as TokenRankListData[]
         case TokenCategory.MEME_TOKENS:
           return data.memeTokens as unknown as TokenRankListData[]
-        default:
+        case undefined:
           return data.tokens as unknown as TokenRankListData[]
+        default: {
+          const matchedCategory = await this.getCacheCateoryKey(category)
+          if (matchedCategory && data[matchedCategory.key]) {
+            return data[matchedCategory.key] as unknown as TokenRankListData[]
+          }
+          return data.tokens as unknown as TokenRankListData[]
+        }
       }
     }
     return data.nfts as unknown as NftRankListData[]
   }
 
+  async getCacheCateoryKey(category: string) {
+    const stablecoinCategories = await this.cacheManager.get<
+      { id: string; name: string; key: string }[]
+    >(STABLECOIN_CATEGORIES_CACHE_KEY)
+    const lowerCategory = category?.toLowerCase()
+    const matchedCategory = stablecoinCategories?.find(
+      (cat) =>
+        cat.id.toLowerCase().includes(lowerCategory!) ||
+        cat.name.toLowerCase().includes(lowerCategory!) ||
+        cat.key.toLowerCase().includes(lowerCategory!),
+    )
+    return matchedCategory
+  }
+
   async wildcardSearch(args: MarketCapSearchInputs) {
     const data: MarketCapSearchType | null | undefined =
-      await this.cacheManager.get('marketCapSearch')
+      await this.cacheManager.get(
+        args.hasWiki
+          ? MARKETCAP_SEARCH_CACHE_KEY
+          : NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY,
+      )
 
     if (!data || !args.search) {
       return [] as (TokenRankListData | NftRankListData)[]
     }
 
-    const cache = this.getCacheDataByCategory(data, args.kind, args.category)
+    const cache = await this.getCacheDataByCategory(
+      data,
+      args.kind,
+      args.category,
+    )
 
     const lowerSearchTerm = args.search.toLowerCase()
     let result

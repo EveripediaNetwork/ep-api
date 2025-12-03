@@ -77,6 +77,7 @@ import WikiTranslationService from './Translation/translation.service'
 import { DraftModule } from './Drafts/draft.module'
 import TranslationModule from './Translation/translation.module'
 import SuggestionsModule from './Suggestions/suggestions.module'
+import { FlexibleTokenCategory } from './marketCap/marketcap.dto'
 
 // istanbul ignore next
 @Module({
@@ -178,6 +179,7 @@ import SuggestionsModule from './Suggestions/suggestions.module'
     EventsService,
     UserProfileValidator,
     WikiTranslationService,
+    FlexibleTokenCategory,
     {
       provide: APP_INTERCEPTOR,
       useFactory: () =>
