@@ -129,18 +129,9 @@ export enum RankType {
   NFT = 'nfts',
   TOKEN = 'cryptocurrencies',
 }
-export enum TokenCategory {
-  AI = 'artificial-intelligence',
-  MEME_TOKENS = 'meme-token',
-  KRW_TOKENS = 'krw-stablecoin',
-  STABLE_COINS = 'stablecoins',
-}
 
 registerEnumType(RankType, {
   name: 'RankType',
-})
-registerEnumType(TokenCategory, {
-  name: 'TokenCategory',
 })
 
 @ArgsType()
@@ -149,8 +140,8 @@ export class MarketCapInputs extends PaginationArgs {
   @Validate(ValidStringParams)
   kind!: RankType
 
-  @Field(() => FlexibleTokenCategory, { nullable: true })
-  category?: TokenCategory | string
+  @Field(() => String, { nullable: true })
+  category?: string
 
   @Field(() => String, { nullable: true })
   @Validate(ValidStringParams)
@@ -187,41 +178,3 @@ export const STABLECOIN_CATEGORIES_CACHE_KEY = 'stablecoinCategories'
 export const NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY = 'noWikiMarketcapSearch'
 export const MARKETCAP_SEARCH_CACHE_KEY = 'marketcapSearch'
 export const BASE_URL_COINGECKO_API = 'https://pro-api.coingecko.com/api/v3/'
-
-@Scalar('FlexibleTokenCategory')
-export class FlexibleTokenCategory implements CustomScalar<string, string> {
-  description = 'String that accepts both enum values and arbitrary strings'
-
-  parseValue(value: unknown): string {
-    const strValue = String(value)
-    if (strValue.length < 2) {
-      throw new Error('Category must be at least 2 characters long')
-    }
-    return strValue
-  }
-
-  serialize(value: unknown): string {
-    return String(value)
-  }
-
-  parseLiteral(ast: ValueNode): string {
-    if (ast.kind === Kind.STRING) {
-      if (ast.value.length < 2) {
-        throw new Error(
-          'Token category as string must be at least 2 characters long',
-        )
-      }
-      return ast.value
-    }
-    if (ast.kind === Kind.ENUM) {
-      const enumKeys = Object.keys(TokenCategory)
-      if (!enumKeys.includes(ast.value)) {
-        throw new Error(
-          `Invalid enum value. Must be one of: ${enumKeys.join(', ')}`,
-        )
-      }
-      return TokenCategory[ast.value as keyof typeof TokenCategory]
-    }
-    throw new Error('FlexibleTokenCategory must be a string or enum value')
-  }
-}

@@ -16,7 +16,6 @@ import {
   RankPageIdInputs,
   RankType,
   STABLECOIN_CATEGORIES_CACHE_KEY,
-  TokenCategory,
   TokenRankListData,
 } from './marketcap.dto'
 import Wiki from '../../Database/Entities/wiki.entity'
@@ -25,6 +24,7 @@ import Events from '../../Database/Entities/Event.entity'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 import GatewayService from '../utils/gatewayService'
+import { HttpService } from '@nestjs/axios'
 
 const noContentWiki = {
   id: 'no-content',
@@ -557,7 +557,13 @@ class MarketCapService {
       }
     } else {
       data = await this.collectAll(
-        this.marketData({ ...args, category: matchedCategory?.id }),
+        this.marketData({
+          ...args,
+          category:
+            args.category === 'stablecoins'
+              ? args.category
+              : matchedCategory?.id || args.category,
+        }),
       )
     }
     const result =
@@ -635,15 +641,15 @@ class MarketCapService {
   private async getCacheDataByCategory(
     data: MarketCapSearchType,
     kind: RankType,
-    category?: TokenCategory | string,
+    category?: string,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
     if (kind === RankType.TOKEN) {
       switch (category) {
-        case TokenCategory.STABLE_COINS:
+        case 'stablecoins':
           return data.stableCoins as unknown as TokenRankListData[]
-        case TokenCategory.AI:
+        case 'artificial-intelligence':
           return data.aiTokens as unknown as TokenRankListData[]
-        case TokenCategory.MEME_TOKENS:
+        case 'meme-token':
           return data.memeTokens as unknown as TokenRankListData[]
         case undefined:
           return data.tokens as unknown as TokenRankListData[]

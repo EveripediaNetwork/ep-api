@@ -12,7 +12,6 @@ import {
   NO_WIKI_MARKETCAP_SEARCH_CACHE_KEY,
   RankType,
   STABLECOIN_CATEGORIES_CACHE_KEY,
-  TokenCategory,
 } from './marketcap.dto'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { firstLevelNodeProcess } from '../Treasury/treasury.dto'
@@ -168,7 +167,7 @@ class MarketCapSearch {
       this.processStream(
         {
           kind: RankType.TOKEN,
-          category: TokenCategory.STABLE_COINS,
+          category: 'stablecoins',
         } as MarketCapInputs,
         'stableCoins',
         state,
@@ -176,7 +175,7 @@ class MarketCapSearch {
       this.processStream(
         {
           kind: RankType.TOKEN,
-          category: TokenCategory.AI,
+          category: 'artificial-intelligence',
         } as MarketCapInputs,
         'aiTokens',
         state,
@@ -184,7 +183,7 @@ class MarketCapSearch {
       this.processStream(
         {
           kind: RankType.TOKEN,
-          category: TokenCategory.MEME_TOKENS,
+          category: 'meme-token',
         } as MarketCapInputs,
         'memeTokens',
         state,
