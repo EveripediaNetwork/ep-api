@@ -529,7 +529,9 @@ class MarketCapService {
   async ranks(
     args: MarketCapInputs,
   ): Promise<(TokenRankListData | NftRankListData)[]> {
-    const matchedCategory = await this.getCacheCateoryKey(args.category || '')
+    const matchedCategory = args.category
+      ? await this.getCacheCateoryKey(args.category)
+      : undefined
     let data
     if (!args.hasWiki) {
       const cachedData = await this.cacheManager.get<MarketCapSearchType>(
@@ -543,7 +545,9 @@ class MarketCapService {
         matchedCategory?.key &&
         cachedData
       ) {
-        data = cachedData[matchedCategory.key] as unknown as TokenRankListData[]
+        data = cachedData[
+          matchedCategory?.key
+        ] as unknown as TokenRankListData[]
       } else {
         data = cachedData?.tokens as unknown as TokenRankListData[]
       }
@@ -556,7 +560,6 @@ class MarketCapService {
         this.marketData({ ...args, category: matchedCategory?.id }),
       )
     }
-
     const result =
       args.kind === RankType.NFT
         ? (data as unknown as NftRankListData[])
