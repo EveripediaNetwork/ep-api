@@ -42,6 +42,45 @@ interface RankPageWiki {
   blockchain: (Wiki | null)[]
 }
 
+interface MarketCapMapping {
+  coingeckoId: string
+  wikiId: string
+}
+
+interface WikiRawData {
+  id: string
+  title: string
+  ipfs: string
+  images: { id: string; type: string }[]
+  metadata: { id: string; value: string }[]
+  created: Date
+  linkedWikis: { founders?: string[]; blockchains?: string[] }
+  tag_ids: (string | null)[]
+}
+
+interface LinkedWikiData {
+  id: string
+  title: string
+  ipfs: string
+  images: { id: string; type: string }[]
+}
+
+interface EventData {
+  wikiId: string
+  type: string
+  date: Date
+  title?: string
+  description?: string
+  link?: string
+  multiDateStart?: Date
+  multiDateEnd?: Date
+}
+
+interface ProcessedWikiData extends Omit<WikiRawData, 'tag_ids'> {
+  tags: { id: string }[]
+  events?: EventData[]
+}
+
 @Injectable()
 class MarketCapService {
   private readonly logger = new Logger(MarketCapService.name)
@@ -89,7 +128,7 @@ class MarketCapService {
       this.dataSource.query(
         `SELECT "coingeckoId", "wikiId" FROM market_cap_ids WHERE "coingeckoId" = ANY($1::text[]) AND kind = $2`,
         [uncachedIds, category],
-      ),
+      ) as Promise<MarketCapMapping[]>,
       this.dataSource.query(
         `SELECT w.id, w.title, w.ipfs, w.images, w.metadata, w.created, w."linkedWikis",
                 array_agg(DISTINCT t.id) FILTER (WHERE t.id IS NOT NULL) as tag_ids
@@ -102,29 +141,34 @@ class MarketCapService {
          ))
          GROUP BY w.id`,
         [uncachedIds, profileUrls],
-      ),
+      ) as Promise<WikiRawData[]>,
     ])
 
     const cgToWikiMap = new Map<string, string>(
-      marketCapMappings.map((m: any) => [m.coingeckoId, m.wikiId]),
+      marketCapMappings.map((m: MarketCapMapping) => [m.coingeckoId, m.wikiId]),
     )
-    const wikiMap = new Map<string, any>(
-      wikisRaw.map((w: any) => [
+    const wikiMap = new Map<string, ProcessedWikiData>(
+      wikisRaw.map((w: WikiRawData) => [
         w.id,
         {
           ...w,
-          tags: w.tag_ids?.filter(Boolean).map((id: string) => ({ id })) || [],
+          tags:
+            w.tag_ids
+              ?.filter((id): id is string => id !== null)
+              .map((id: string) => ({ id })) || [],
         },
       ]),
     )
     const urlToIdMap = new Map<string, string>(
-      wikisRaw.flatMap((w: any) => {
-        const cg = w.metadata?.find?.((m: any) => m.id === 'coingecko_profile')
+      wikisRaw.flatMap((w: WikiRawData) => {
+        const cg = w.metadata?.find(
+          (m: { id: string; value: string }) => m.id === 'coingecko_profile',
+        )
         return cg?.value ? [[cg.value, w.id]] : []
       }),
     )
 
-    const getWiki = (id: string): any =>
+    const getWiki = (id: string): ProcessedWikiData | undefined =>
       wikiMap.get(cgToWikiMap.get(id) || id) ||
       wikiMap.get(
         urlToIdMap.get(`https://www.coingecko.com/en/${coinType}/${id}`) || '',
@@ -143,39 +187,49 @@ class MarketCapService {
 
     const [linkedWikis, events] = await Promise.all([
       allLinkedIds.size
-        ? this.dataSource.query(
+        ? (this.dataSource.query(
             `SELECT id, title, ipfs, images FROM wiki WHERE id = ANY($1::text[]) AND hidden = false`,
             [[...allLinkedIds]],
-          )
-        : [],
+          ) as Promise<LinkedWikiData[]>)
+        : Promise.resolve([]),
       wikiIdsForEvents.length
-        ? this.dataSource.query(
+        ? (this.dataSource.query(
             `SELECT * FROM events WHERE "wikiId" = ANY($1::text[])`,
             [wikiIdsForEvents],
-          )
-        : [],
+          ) as Promise<EventData[]>)
+        : Promise.resolve([]),
     ])
 
-    const linkedMap = new Map(linkedWikis.map((w: any) => [w.id, w]))
+    const linkedMap = new Map<string, LinkedWikiData>(
+      linkedWikis.map((w: LinkedWikiData) => [w.id, w]),
+    )
     const eventsMap = events.reduce(
-      (acc: Map<string, any[]>, e: any) => (
-        acc.set(e.wikiId, [...(acc.get(e.wikiId) || []), e]), acc
-      ),
-      new Map(),
+      (acc: Map<string, EventData[]>, e: EventData) => {
+        acc.set(e.wikiId, [...(acc.get(e.wikiId) || []), e])
+        return acc
+      },
+      new Map<string, EventData[]>(),
     )
 
     for (const id of uncachedIds) {
       const wikiData = getWiki(id)
       const result: RankPageWiki = wikiData
-        ? ({
-            wiki: { ...wikiData, events: eventsMap.get(wikiData.id) || [] },
+        ? {
+            wiki: {
+              ...wikiData,
+              events: eventsMap.get(wikiData.id) || [],
+            } as unknown as Wiki,
             founders: (wikiData.linkedWikis?.founders || [])
               .map((f: string) => linkedMap.get(f))
-              .filter(Boolean),
+              .filter(
+                (wiki): wiki is LinkedWikiData => wiki !== undefined,
+              ) as unknown as Wiki[],
             blockchain: (wikiData.linkedWikis?.blockchains || [])
               .map((b: string) => linkedMap.get(b))
-              .filter(Boolean),
-          } as RankPageWiki)
+              .filter(
+                (wiki): wiki is LinkedWikiData => wiki !== undefined,
+              ) as unknown as Wiki[],
+          }
         : { wiki: null as any, founders: [], blockchain: [] }
 
       if (wikiData && this.INCOMING_WIKI_ID === wikiData.id)
@@ -191,18 +245,27 @@ class MarketCapService {
     coinsData: Record<any, any> | undefined,
     kind: RankType,
     delay = false,
-  ): Promise<RankPageWiki[]> {
+  ): Promise<(RankPageWiki | null)[]> {
     if (!coinsData?.length) return []
 
-    const wikisMap = await this.findWikisBulk(
-      coinsData.map((e: any) => e.id),
-      kind.toLowerCase(),
-    )
-    if (delay) await new Promise((r) => setTimeout(r, 2000))
+    const batchSize = 100
+    const allWikis: (RankPageWiki | null)[] = []
 
-    return coinsData.map(
-      (e: any) => wikisMap.get(e.id) || null,
-    ) as RankPageWiki[]
+    for (let i = 0; i < coinsData.length; i += batchSize) {
+      const batch = coinsData.slice(i, i + batchSize)
+      const wikisMap = await this.findWikisBulk(
+        batch.map((e: any) => e.id),
+        kind.toLowerCase(),
+      )
+
+      allWikis.push(...batch.map((e: any) => wikisMap.get(e.id) || null))
+
+      if (delay) {
+        await new Promise((r) => setTimeout(r, 2000))
+      }
+    }
+
+    return allWikis
   }
 
   async *marketData(args: MarketCapInputs, reset = false) {
