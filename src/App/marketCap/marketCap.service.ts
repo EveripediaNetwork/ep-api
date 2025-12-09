@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-underscore-dangle */
-import { Brackets, DataSource, ILike, In } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Cache } from 'cache-manager'
@@ -24,7 +24,6 @@ import Events from '../../Database/Entities/Event.entity'
 import Pm2Service, { Pm2Events } from '../utils/pm2Service'
 import { Globals } from '../../globalVars'
 import GatewayService from '../utils/gatewayService'
-import { HttpService } from '@nestjs/axios'
 
 const noContentWiki = {
   id: 'no-content',
@@ -41,6 +40,45 @@ interface RankPageWiki {
   wiki: Wiki
   founders: (Wiki | null)[]
   blockchain: (Wiki | null)[]
+}
+
+interface MarketCapMapping {
+  coingeckoId: string
+  wikiId: string
+}
+
+interface WikiRawData {
+  id: string
+  title: string
+  ipfs: string
+  images: { id: string; type: string }[]
+  metadata: { id: string; value: string }[]
+  created: Date
+  linkedWikis: { founders?: string[]; blockchains?: string[] }
+  tag_ids: (string | null)[]
+}
+
+interface LinkedWikiData {
+  id: string
+  title: string
+  ipfs: string
+  images: { id: string; type: string }[]
+}
+
+interface EventData {
+  wikiId: string
+  type: string
+  date: Date
+  title?: string
+  description?: string
+  link?: string
+  multiDateStart?: Date
+  multiDateEnd?: Date
+}
+
+interface ProcessedWikiData extends Omit<WikiRawData, 'tag_ids'> {
+  tags: { id: string }[]
+  events?: EventData[]
 }
 
 @Injectable()
@@ -65,228 +103,169 @@ class MarketCapService {
     this.RANK_LIMIT = this.configService.get<number>('RANK_LIMIT', 2500)
   }
 
-  private async findWikiBulk(
+  private async findWikisBulk(
     ids: string[],
     category: string,
   ): Promise<Map<string, RankPageWiki>> {
-    if (!ids.length) return new Map()
-
-    const wikiRepository = this.dataSource.getRepository(Wiki)
-    const eventsRepository = this.dataSource.getRepository(Events)
-    const marketCapIdRepository = this.dataSource.getRepository(MarketCapIds)
-
-    const baseCoingeckoUrl = 'https://www.coingecko.com/en'
-    const categoryPath = category === 'cryptocurrencies' ? 'coins' : 'nft'
-
-    const resultMap = new Map<string, RankPageWiki>()
-    const uncachedIds: string[] = []
+    const resultsMap = new Map<string, RankPageWiki>()
+    if (!ids.length) return resultsMap
 
     const cachedResults = await Promise.all(
-      ids.map((id) => this.cacheManager.get(id)),
+      ids.map((id) => this.cacheManager.get<RankPageWiki>(id)),
     )
-
-    ids.forEach((id, index) => {
-      const cached = cachedResults[index] as RankPageWiki | null | undefined
-
-      if (cached?.wiki) {
-        resultMap.set(id, {
-          ...cached,
-          wiki: {
-            ...cached.wiki,
-            created: new Date(cached.wiki.created),
-          },
-        } as RankPageWiki)
-      } else {
-        uncachedIds.push(id)
-      }
+    const uncachedIds = ids.filter((id, i) => {
+      if (cachedResults[i]) resultsMap.set(id, cachedResults[i]!)
+      return !cachedResults[i]
     })
+    if (!uncachedIds.length) return resultsMap
 
-    if (!uncachedIds.length) return resultMap
-
-    const marketCapIds = await marketCapIdRepository.find({
-      where: {
-        coingeckoId: In(uncachedIds),
-        kind: category as RankType,
-      },
-      select: ['coingeckoId', 'wikiId'],
-    })
-
-    const idMapping = new Map(
-      marketCapIds.map((m) => [m.coingeckoId, m.wikiId || m.coingeckoId]),
+    const coinType = category === 'cryptocurrencies' ? 'coins' : 'nft'
+    const profileUrls = uncachedIds.map(
+      (id) => `https://www.coingecko.com/en/${coinType}/${id}`,
     )
 
-    for (const id of uncachedIds) {
-      if (!idMapping.has(id)) {
-        idMapping.set(id, id)
-      }
-    }
+    const [marketCapMappings, wikisRaw] = await Promise.all([
+      this.dataSource.query(
+        `SELECT "coingeckoId", "wikiId" FROM market_cap_ids WHERE "coingeckoId" = ANY($1::text[]) AND kind = $2`,
+        [uncachedIds, category],
+      ) as Promise<MarketCapMapping[]>,
+      this.dataSource.query(
+        `SELECT w.id, w.title, w.ipfs, w.images, w.metadata, w.created, w."linkedWikis",
+                array_agg(DISTINCT t.id) FILTER (WHERE t.id IS NOT NULL) as tag_ids
+         FROM wiki w
+         LEFT JOIN wiki_tags_tag wt ON wt."wikiId" = w.id
+         LEFT JOIN tag t ON t.id = wt."tagId"
+         WHERE w.hidden = false AND (w.id = ANY($1::text[]) OR EXISTS (
+           SELECT 1 FROM json_array_elements(w.metadata) AS meta
+           WHERE meta->>'id' = 'coingecko_profile' AND meta->>'value' = ANY($2::text[])
+         ))
+         GROUP BY w.id`,
+        [uncachedIds, profileUrls],
+      ) as Promise<WikiRawData[]>,
+    ])
 
-    const wikiIds = Array.from(new Set(idMapping.values()))
-    const coingeckoUrls = uncachedIds.map(
-      (id) => `${baseCoingeckoUrl}/${categoryPath}/${id}`,
+    const cgToWikiMap = new Map<string, string>(
+      marketCapMappings.map((m: MarketCapMapping) => [m.coingeckoId, m.wikiId]),
+    )
+    const wikiMap = new Map<string, ProcessedWikiData>(
+      wikisRaw.map((w: WikiRawData) => [
+        w.id,
+        {
+          ...w,
+          tags:
+            w.tag_ids
+              ?.filter((id): id is string => id !== null)
+              .map((id: string) => ({ id })) || [],
+        },
+      ]),
+    )
+    const urlToIdMap = new Map<string, string>(
+      wikisRaw.flatMap((w: WikiRawData) => {
+        const cg = w.metadata?.find(
+          (m: { id: string; value: string }) => m.id === 'coingecko_profile',
+        )
+        return cg?.value ? [[cg.value, w.id]] : []
+      }),
     )
 
-    const wikis = await wikiRepository
-      .createQueryBuilder('wiki')
-      .select(['wiki.id', 'wiki.title', 'wiki.images', 'wiki.linkedWikis'])
-      .leftJoinAndSelect('wiki.tags', 'tags')
-      .leftJoin('wiki.categories', 'category')
-      .where('wiki.hidden = false')
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where('wiki.id IN (:...wikiIds)', { wikiIds })
-            .orWhere(
-              `EXISTS (
-              SELECT 1
-              FROM json_array_elements(wiki.metadata) AS meta
-              WHERE meta->>'id' = 'coingecko_profile' 
-              AND meta->>'value' IN (:...urls)
-            )`,
-              { urls: coingeckoUrls },
-            )
-            .orWhere('category.id = :category', { category })
-        }),
+    const getWiki = (id: string): ProcessedWikiData | undefined =>
+      wikiMap.get(cgToWikiMap.get(id) || id) ||
+      wikiMap.get(
+        urlToIdMap.get(`https://www.coingecko.com/en/${coinType}/${id}`) || '',
       )
-      .getMany()
-
-    const wikiMap = new Map(wikis.map((w) => [w.id, w]))
 
     const allLinkedIds = new Set<string>()
-
-    for (const wiki of wikis) {
-      if (wiki.linkedWikis?.founders) {
-        wiki.linkedWikis.founders.forEach((id) => allLinkedIds.add(id))
+    const wikiIdsForEvents: string[] = []
+    uncachedIds.forEach((id) => {
+      const w = getWiki(id)
+      if (w) {
+        wikiIdsForEvents.push(w.id)
+        w.linkedWikis?.founders?.forEach((f: string) => allLinkedIds.add(f))
+        w.linkedWikis?.blockchains?.forEach((b: string) => allLinkedIds.add(b))
       }
-      if (wiki.linkedWikis?.blockchains) {
-        wiki.linkedWikis.blockchains.forEach((id) => allLinkedIds.add(id))
-      }
-    }
+    })
 
-    const linkedWikis =
-      allLinkedIds.size > 0
-        ? await wikiRepository
-            .createQueryBuilder('wiki')
-            .select(['wiki.id', 'wiki.title', 'wiki.images'])
-            .where('wiki.id IN (:...ids) AND wiki.hidden = false', {
-              ids: Array.from(allLinkedIds),
-            })
-            .getMany()
-        : []
+    const [linkedWikis, events] = await Promise.all([
+      allLinkedIds.size
+        ? (this.dataSource.query(
+            `SELECT id, title, ipfs, images FROM wiki WHERE id = ANY($1::text[]) AND hidden = false`,
+            [[...allLinkedIds]],
+          ) as Promise<LinkedWikiData[]>)
+        : Promise.resolve([]),
+      wikiIdsForEvents.length
+        ? (this.dataSource.query(
+            `SELECT * FROM events WHERE "wikiId" = ANY($1::text[])`,
+            [wikiIdsForEvents],
+          ) as Promise<EventData[]>)
+        : Promise.resolve([]),
+    ])
 
-    const linkedWikiMap = new Map(linkedWikis.map((w) => [w.id, w]))
-
-    const events =
-      wikiMap.size > 0
-        ? await eventsRepository.find({
-            select: ['wikiId', 'title', 'type', 'date'],
-            where: {
-              wikiId: In(Array.from(wikiMap.keys())),
-              title: ILike('Date founded'),
-            },
-          })
-        : []
-
-    const eventsByWikiId = new Map<string, typeof events>()
-    for (const event of events) {
-      if (!event.wikiId) continue
-      if (!eventsByWikiId.has(event.wikiId)) {
-        eventsByWikiId.set(event.wikiId, [event])
-      }
-    }
+    const linkedMap = new Map<string, LinkedWikiData>(
+      linkedWikis.map((w: LinkedWikiData) => [w.id, w]),
+    )
+    const eventsMap = events.reduce(
+      (acc: Map<string, EventData[]>, e: EventData) => {
+        acc.set(e.wikiId, [...(acc.get(e.wikiId) || []), e])
+        return acc
+      },
+      new Map<string, EventData[]>(),
+    )
 
     for (const id of uncachedIds) {
-      const wikiId = idMapping.get(id)
-      const wiki = wikiId ? wikiMap.get(wikiId) : undefined
+      const wikiData = getWiki(id)
+      const result: RankPageWiki = wikiData
+        ? {
+            wiki: {
+              ...wikiData,
+              events: eventsMap.get(wikiData.id) || [],
+            } as unknown as Wiki,
+            founders: (wikiData.linkedWikis?.founders || [])
+              .map((f: string) => linkedMap.get(f))
+              .filter(
+                (wiki): wiki is LinkedWikiData => wiki !== undefined,
+              ) as unknown as Wiki[],
+            blockchain: (wikiData.linkedWikis?.blockchains || [])
+              .map((b: string) => linkedMap.get(b))
+              .filter(
+                (wiki): wiki is LinkedWikiData => wiki !== undefined,
+              ) as unknown as Wiki[],
+          }
+        : { wiki: null as any, founders: [], blockchain: [] }
 
-      if (!wiki) {
-        const url = `${baseCoingeckoUrl}/${categoryPath}/${id}`
-        const foundWiki = wikis.find((w) =>
-          w.metadata?.some(
-            (m) => m.id === 'coingecko_profile' && m.value === url,
-          ),
-        )
-
-        if (foundWiki) {
-          wikiMap.set(foundWiki.id, foundWiki)
-        }
-      }
-
-      const finalWiki = wiki || wikiMap.get(id)
-
-      if (finalWiki) {
-        const founders =
-          finalWiki.linkedWikis?.founders
-            ?.map((fId) => linkedWikiMap.get(fId))
-            .filter(Boolean) || []
-
-        const blockchain =
-          finalWiki.linkedWikis?.blockchains
-            ?.map((bId) => linkedWikiMap.get(bId))
-            .filter(Boolean) || []
-
-        const wikiEvents = eventsByWikiId.get(finalWiki.id) || []
-
-        const result: RankPageWiki = {
-          wiki: { ...finalWiki, events: wikiEvents },
-          founders,
-          blockchain,
-        } as RankPageWiki
-
-        resultMap.set(id, result)
-
-        await this.cacheManager.set(id, result, 60 * 60 * 1000)
-      }
+      if (wikiData && this.INCOMING_WIKI_ID === wikiData.id)
+        this.CACHED_WIKI = result
+      resultsMap.set(id, result)
+      this.cacheManager.set(id, result, 3600 * 1000)
     }
 
-    return resultMap
+    return resultsMap
   }
 
   async getWikiData(
-    coinsData: Record<any, any>[] | undefined,
+    coinsData: Record<any, any> | undefined,
     kind: RankType,
     delay = false,
-  ): Promise<RankPageWiki[] | null> {
-    if (!coinsData?.length) {
-      return []
-    }
+  ): Promise<(RankPageWiki | null)[]> {
+    if (!coinsData?.length) return []
 
-    const kindLower = kind.toLowerCase()
-    const BATCH_SIZE = 100
-    const results: RankPageWiki[] = []
+    const batchSize = 100
+    const allWikis: (RankPageWiki | null)[] = []
 
-    try {
-      for (let i = 0; i < coinsData.length; i += BATCH_SIZE) {
-        const batchEnd = Math.min(i + BATCH_SIZE, coinsData.length)
-        const batch = coinsData.slice(i, batchEnd)
-
-        const ids = batch
-          .filter((element) => element?.id)
-          .map((element) => element.id)
-
-        if (!ids.length) continue
-
-        const batchResultsMap = await this.findWikiBulk(ids, kindLower)
-
-        for (const id of ids) {
-          const result = batchResultsMap.get(id)
-          if (result) {
-            results.push(result)
-          }
-        }
-
-        if (delay && batchEnd < coinsData.length) {
-          await new Promise((resolve) => setTimeout(resolve, 500))
-        }
-      }
-
-      return results
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving wiki data:',
-        error instanceof Error ? error.message : error,
+    for (let i = 0; i < coinsData.length; i += batchSize) {
+      const batch = coinsData.slice(i, i + batchSize)
+      const wikisMap = await this.findWikisBulk(
+        batch.map((e: any) => e.id),
+        kind.toLowerCase(),
       )
-      return null
+
+      allWikis.push(...batch.map((e: any) => wikisMap.get(e.id) || null))
+
+      if (delay) {
+        await new Promise((r) => setTimeout(r, 2000))
+      }
     }
+
+    return allWikis
   }
 
   async *marketData(args: MarketCapInputs, reset = false) {
