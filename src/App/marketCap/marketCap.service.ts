@@ -181,7 +181,7 @@ class MarketCapService {
       if (wikiData && this.INCOMING_WIKI_ID === wikiData.id)
         this.CACHED_WIKI = result
       resultsMap.set(id, result)
-      this.cacheManager.set(id, result, 3600)
+      this.cacheManager.set(id, result, 3600 * 1000)
     }
 
     return resultsMap
