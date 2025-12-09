@@ -55,7 +55,7 @@ interface WikiRawData {
   metadata: { id: string; value: string }[]
   created: Date
   linkedWikis: { founders?: string[]; blockchains?: string[] }
-  tag_ids: (string | null)[]
+  tag_ids: ({ id: string } | null)[]
 }
 
 interface LinkedWikiData {
@@ -131,7 +131,7 @@ class MarketCapService {
       ) as Promise<MarketCapMapping[]>,
       this.dataSource.query(
         `SELECT w.id, w.title, w.ipfs, w.images, w.metadata, w.created, w."linkedWikis",
-                array_agg(DISTINCT t.id) FILTER (WHERE t.id IS NOT NULL) as tag_ids
+                array_agg(DISTINCT jsonb_build_object('id', t.id)) FILTER (WHERE t.id IS NOT NULL) as tag_ids
          FROM wiki w
          LEFT JOIN wiki_tags_tag wt ON wt."wikiId" = w.id
          LEFT JOIN tag t ON t.id = wt."tagId"
@@ -153,9 +153,8 @@ class MarketCapService {
         {
           ...w,
           tags:
-            w.tag_ids
-              ?.filter((id): id is string => id !== null)
-              .map((id: string) => ({ id })) || [],
+            w.tag_ids?.filter((tag): tag is { id: string } => tag !== null) ||
+            [],
         },
       ]),
     )
@@ -218,6 +217,7 @@ class MarketCapService {
             wiki: {
               ...wikiData,
               events: eventsMap.get(wikiData.id) || [],
+              tags: wikiData.tags,
             } as unknown as Wiki,
             founders: (wikiData.linkedWikis?.founders || [])
               .map((f: string) => linkedMap.get(f))
@@ -344,7 +344,7 @@ class MarketCapService {
       id: rankpageWiki.wiki.id,
       title: rankpageWiki.wiki.title,
       images: rankpageWiki.wiki.images,
-      tags: rankpageWiki.wiki.__tags__?.map((t: any) => ({ id: t.id })),
+      tags: rankpageWiki.wiki.tags?.map((t: any) => ({ id: t.id })),
       events: rankpageWiki.wiki.events?.map((e: any) => ({
         type: e.type,
         date: e.date,
