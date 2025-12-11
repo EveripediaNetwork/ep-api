@@ -533,13 +533,18 @@ class PinService {
           `https://www.coingecko.com/en/coins/${apiId}`
         this.logger.debug('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
-          const matchedId = marketCapIdRepo.create({
-            wikiId: wiki.id,
-            coingeckoId: apiId,
-            kind: RankType.TOKEN,
-            linked: false,
-          })
-          await marketCapIdRepo.save(matchedId)
+          await marketCapIdRepo.upsert(
+            {
+              wikiId: wiki.id,
+              coingeckoId: apiId,
+              kind: RankType.TOKEN,
+              linked: false,
+            },
+            {
+              conflictPaths: ['wikiId', 'coingeckoId'],
+              skipUpdateIfNoValuesChanged: true,
+            },
+          )
         }
 
         return {
