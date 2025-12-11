@@ -91,15 +91,18 @@ class MarketCapService {
   ): Promise<{ index: number; id: string }[]> {
     const missingItems: { index: number; id: string }[] = []
 
-    for (const item of items) {
-      const cachedWiki: RankPageWiki | undefined | null =
-        await this.cacheManager.get(item.id)
+    const cacheLookups = items.map((item) =>
+      this.cacheManager.get<RankPageWiki>(item.id),
+    )
+    const cachedResults = await Promise.all(cacheLookups)
+    items.forEach((item, i) => {
+      const cachedWiki = cachedResults[i]
       if (cachedWiki) {
         item.rankPageWiki = cachedWiki
       } else {
         missingItems.push({ index: item.index, id: item.id })
       }
-    }
+    })
 
     return missingItems
   }
@@ -118,14 +121,14 @@ class MarketCapService {
       select: ['wikiId', 'coingeckoId'],
     })
 
-    return missingItems.map((mis) => {
-      const marketCapId = marketCapIds.find((m) => m.coingeckoId === mis.id)
-      return {
-        coingeckoId: mis.id,
-        wikiId: marketCapId?.wikiId || '',
-        index: mis.index,
-      }
-    })
+    const marketCapIdMap = new Map(
+      marketCapIds.map((m) => [m.coingeckoId, m.wikiId]),
+    )
+    return missingItems.map((mis) => ({
+      coingeckoId: mis.id,
+      wikiId: marketCapIdMap.get(mis.id) || '',
+      index: mis.index,
+    }))
   }
 
   private async fetchWikis(
@@ -370,7 +373,7 @@ class MarketCapService {
           .filter(Boolean) || []
 
       const events = eventsMap.get(wiki.id) || []
-      const wikiWithEvents = { ...wiki, events, nullField: wiki.nullField }
+      const wikiWithEvents = { ...wiki, events }
 
       resultsMap.set(index, {
         wiki: wikiWithEvents,
