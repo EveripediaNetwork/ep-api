@@ -8,10 +8,10 @@ class MarketCapIds {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Column('varchar')
+  @Column({ type: 'varchar', unique: true })
   wikiId!: string
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   coingeckoId!: string
 
   @Column({
