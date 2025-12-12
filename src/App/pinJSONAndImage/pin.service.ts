@@ -515,11 +515,8 @@ class PinService {
 
     if (!marketCapId || !marketCapId.linked) {
       const apiId = await this.getCgApiId(coingeckoUrl)
-      const coingeckoApiId = await marketCapIdRepo.findOneBy({
-        wikiId: wiki.id,
-      })
 
-      if (!apiId || coingeckoApiId) {
+      if (!apiId) {
         return { wikiObject: wiki, saveMatchedIdcallback: async () => {} }
       }
 
@@ -533,18 +530,25 @@ class PinService {
           `https://www.coingecko.com/en/coins/${apiId}`
         this.logger.debug('wiki id', wiki.id, '🔗', 'coingecko api Id', apiId)
         const saveMatchedIdcallback = async () => {
-          await marketCapIdRepo.upsert(
-            {
+          const existing = await marketCapIdRepo.findOne({
+            where: [{ wikiId: wiki.id }, { coingeckoId: apiId }],
+          })
+
+          if (existing) {
+            await marketCapIdRepo.update(existing.id, {
               wikiId: wiki.id,
               coingeckoId: apiId,
               kind: RankType.TOKEN,
               linked: false,
-            },
-            {
-              conflictPaths: ['wikiId', 'coingeckoId'],
-              skipUpdateIfNoValuesChanged: true,
-            },
-          )
+            })
+          } else {
+            await marketCapIdRepo.insert({
+              wikiId: wiki.id,
+              coingeckoId: apiId,
+              kind: RankType.TOKEN,
+              linked: false,
+            })
+          }
         }
 
         return {
