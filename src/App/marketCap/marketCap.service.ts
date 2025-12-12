@@ -741,8 +741,9 @@ class MarketCapService {
           },
           Number(process.env.pm_id),
         )
-        await marketCapIdRepository.update(existingRecord, {
+        await marketCapIdRepository.update(existingRecord.id, {
           wikiId,
+          coingeckoId,
         })
       } else {
         await marketCapIdRepository.insert({
