@@ -40,6 +40,9 @@ import UserSuggestion from './Entities/userSuggestion.entity'
         username: configService.get('DATABASE_USERNAME'),
         password: configService.get('DATABASE_PASS'),
         database: configService.get('DATABASE_NAME'),
+        ssl: {
+          rejectUnauthorized: false, // For self-signed certs
+        },
         entities: [
           Wiki,
           Tag,
